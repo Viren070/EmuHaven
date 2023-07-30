@@ -27,4 +27,4 @@ You can choose either the:
   - These must be installed seperately and paths must be set in the settings. 
   - Has a much smaller file size
 
- The difference between .exe and .zip is miniscule (.exe may launch a bit faster)
+ The .exe will take longer to launch but has no clutter. The .zip includes a smaller sized .exe and will launch faster but has a lot of files. 
