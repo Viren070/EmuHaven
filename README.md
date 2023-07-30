@@ -12,7 +12,7 @@ A program that will help manage your emulators, currently supports:
 - Delete all data or just saved data. 
 - For yuzu (and Ryujinx) specifically :
   - it will automatically prompt you to install the latest firmware and keys to your device when launched*
-  - Built-in downloader that allows you to switch firmware and key versions all the way back to 1.0.0
+  - Built-in [downloader](https://github.com/Viren070/SwitchFirmwareKeysInstaller) that allows you to switch firmware and key versions all the way back to 1.0.0
 
 *Requires paths to firmware and keys to be set in settings. This is done by default if you download the -resources-included.exe and requires no further setup.
 
