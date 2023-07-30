@@ -632,16 +632,17 @@ class Application(customtkinter.CTkFrame):
             messagebox.showerror("Error", Error)
             self.key_installation_in_progress = False
             return
-
+        shutil.rmtree(self.temp_directory)
         status_frame.finish_installation()
         self.key_installation_in_progress = False
 
     def extract_keys_from_custom_zip(self, zip_location, status_frame):
-        temp_directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Temp")
+        self.temp_directory = os.path.join(os.getenv("TEMP"), "Emulator Manager Extracts")
         with open(zip_location, 'rb') as file:
 
             with zipfile.ZipFile(file) as archive:
-                return self.extract_keys_from_zip(archive, temp_directory, status_frame)
+                return self.extract_keys_from_zip(archive, self.temp_directory, status_frame)
+        
 
     def extract_keys_from_zip(self, archive, extract_location, status_frame):
         self.delete_files_and_folders(extract_location)
