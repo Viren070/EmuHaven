@@ -71,7 +71,7 @@ class MainScreen(customtkinter.CTk):
         self.navigation_frame.grid(row=0, column=0, sticky="nsew")
         self.navigation_frame.grid_rowconfigure(4, weight=1)
 
-        self.navigation_frame_label = customtkinter.CTkLabel(self.navigation_frame, text= "Emulator Manager v0.6.1",
+        self.navigation_frame_label = customtkinter.CTkLabel(self.navigation_frame, text= "Emulator Manager v0.6.2",
                                                              compound="left", padx=5, font=customtkinter.CTkFont(size=12, weight="bold"))
         self.navigation_frame_label.grid(row=0, column=0, padx=20, pady=20)
 
