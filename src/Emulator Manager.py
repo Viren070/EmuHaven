@@ -29,7 +29,12 @@ class MainScreen(customtkinter.CTk):
         self.yuzu_automatic_firmwarekeys_install = True 
         self.yuzu_installer_available = True
         self.dolphin_installer_available = True
-        
+        try:
+            self.define_images()
+        except FileNotFoundError:
+            messagebox.showerror("Image Error", "You are missing the image files. Please download the latest release from GitHub again and do not delete any folders.\n\nIf the GitHub repository is unavailable or you believe this was a mistake, contact the creator.")
+            self.destroy()
+            return
         self.create_widgets()
         #print(f"Took {(perf_counter() - start):.2f}s to create widgets")
     
@@ -42,8 +47,18 @@ class MainScreen(customtkinter.CTk):
         self.validate_optional_paths()
         #print("Starting Mainloop")
         print(f"Initialised in {(perf_counter() - start):.2}s")
-        
-        
+        self.mainloop()
+
+    def define_images(self):
+        image_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "images")
+        self.dolphin_image = customtkinter.CTkImage(Image.open(os.path.join(image_path, "dolphin_logo.png")), size=(26, 26))
+        self.yuzu_image = customtkinter.CTkImage(Image.open(os.path.join(image_path, "yuzu_logo.png")), size=(26, 26))
+        self.play_image = customtkinter.CTkImage(light_image=Image.open(os.path.join(image_path, "play_light.png")),
+                                                     dark_image=Image.open(os.path.join(image_path, "play_dark.png")), size=(20, 20))
+        self.settings_image =  customtkinter.CTkImage(light_image=Image.open(os.path.join(image_path, "settings_light.png")),
+                                                     dark_image=Image.open(os.path.join(image_path, "settings_dark.png")), size=(20, 20))
+        self.lock_image =  customtkinter.CTkImage(light_image=Image.open(os.path.join(image_path, "padlock_light.png")),
+                                                     dark_image=Image.open(os.path.join(image_path, "padlock_dark.png")), size=(20, 20))
     def create_widgets(self):
         
         self.resizable(False, False)
@@ -54,15 +69,7 @@ class MainScreen(customtkinter.CTk):
         
         self.minsize(800,500)
         
-        image_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "images")
-        self.dolphin_image = customtkinter.CTkImage(Image.open(os.path.join(image_path, "dolphin_logo.png")), size=(26, 26))
-        self.yuzu_image = customtkinter.CTkImage(Image.open(os.path.join(image_path, "yuzu_logo.png")), size=(26, 26))
-        self.play_image = customtkinter.CTkImage(light_image=Image.open(os.path.join(image_path, "play_light.png")),
-                                                     dark_image=Image.open(os.path.join(image_path, "play_dark.png")), size=(20, 20))
-        self.settings_image =  customtkinter.CTkImage(light_image=Image.open(os.path.join(image_path, "settings_light.png")),
-                                                     dark_image=Image.open(os.path.join(image_path, "settings_dark.png")), size=(20, 20))
-        self.lock_image =  customtkinter.CTkImage(light_image=Image.open(os.path.join(image_path, "padlock_light.png")),
-                                                     dark_image=Image.open(os.path.join(image_path, "padlock_dark.png")), size=(20, 20))
+        
 
         self.navigation_frame = customtkinter.CTkFrame(self, corner_radius=0)
         self.navigation_frame.grid(row=0, column=0, sticky="nsew")
@@ -548,13 +555,13 @@ class MainScreen(customtkinter.CTk):
         if not startup:
             self.update_settings()
         self.destroy()
-
-        new=MainScreen(['settings','appearance'])
-        new.mainloop()
+        MainScreen(['settings','appearance'])
+        
     def change_appearance_mode(self, mode, startup=False):
         customtkinter.set_appearance_mode(mode.lower())
         if not startup:
             self.update_settings()
+            
     def update_settings(self):
         settings = {
             "dolphin_settings": {
@@ -1544,6 +1551,6 @@ if __name__=="__main__":
     customtkinter.set_default_color_theme(theme)
     customtkinter.set_appearance_mode(appearance_mode)
     app = MainScreen()
-    app.mainloop()
+
    
 
