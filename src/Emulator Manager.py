@@ -595,6 +595,7 @@ class MainScreen(customtkinter.CTk):
     def load_settings(self):
         if not os.path.exists(self.settings_file): 
             self.previous_settings_available = False
+            return 
         self.previous_settings_available = True
         with open(self.settings_file, 'r') as file:
             try:
@@ -602,8 +603,6 @@ class MainScreen(customtkinter.CTk):
             except json.decoder.JSONDecodeError:
                 self.restore_default_dolphin_settings()
                 self.restore_default_yuzu_settings()
-                return
-            except:
                 messagebox.showerror("Error", "Unable to load settings")
         dolphin_settings = loaded_settings["dolphin_settings"]
         yuzu_settings = loaded_settings["yuzu_settings"]
