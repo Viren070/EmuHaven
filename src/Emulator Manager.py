@@ -1526,7 +1526,7 @@ if __name__=="__main__":
     try:
         path_to_settings = os.path.join(os.path.expanduser('~'), "AppData", "Roaming", "Emulator Manager", "config", "settings.json")
         if os.path.exists(path_to_settings):
-            with open() as file:
+            with open(path_to_settings) as file:
         
                 loaded_settings = json.load(file)
                 appearance_settings = loaded_settings["appearance_settings"]
@@ -1538,7 +1538,7 @@ if __name__=="__main__":
     except Exception as error:
         appearance_mode = "system"
         theme = "blue"
-
+        messagebox.showerror("Settings Error", f"Unable to load appearance settings\n\n{error}")
 
     print("Creating Object...")
     customtkinter.set_default_color_theme(theme)
