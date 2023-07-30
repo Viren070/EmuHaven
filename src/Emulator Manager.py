@@ -6,7 +6,7 @@ from hashlib import pbkdf2_hmac
 from subprocess import run
 from sys import platform
 from threading import Thread
-from time import perf_counter
+from time import perf_counter, sleep
 from tkinter import filedialog, messagebox, ttk
 from zipfile import ZipFile
 
@@ -900,7 +900,11 @@ class MainScreen(customtkinter.CTk):
         except Exception as error:
             messagebox.showerror("Copy Error", f"Unable to make a copy of yuzu_install.exe\n\n{error}")
         run([target_installer], capture_output = True)
-        shutil.rmtree(temp_dir)
+        sleep(0.3) # trying to delete instantly causes PermissionError
+        try:
+            shutil.rmtree(temp_dir)
+        except PermissionError as error:
+            messagebox.showerror("Delete Error", "Unable to delete temporary yuzu installer directory.")
         self.yuzu_install_yuzu_button.configure(state="normal")
         self.yuzu_launch_yuzu_button.configure(state="normal")
     def manage_yuzu_data(self, mode):
