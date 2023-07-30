@@ -129,7 +129,7 @@ class MainScreen(customtkinter.CTk):
         self.dolphin_install_dolphin_button = customtkinter.CTkButton(self.dolphin_actions_frame, text="Install Dolphin", command=self.install_dolphin_wrapper)
         self.dolphin_install_dolphin_button.grid(row=0, column=0,padx=10, pady=5)
 
-        self.dolphin_delete_dolphin_button = customtkinter.CTkButton(self.dolphin_actions_frame, text="Delete Dolphin", fg_color="red", hover_color="darkred", command=self.delete_dolphin)
+        self.dolphin_delete_dolphin_button = customtkinter.CTkButton(self.dolphin_actions_frame, text="Delete Dolphin", fg_color="red", hover_color="darkred", command=self.delete_dolphin_button_event)
         self.dolphin_delete_dolphin_button.grid(row=0, column=2,padx=10, pady=5)
 
         
@@ -815,21 +815,28 @@ class MainScreen(customtkinter.CTk):
         self.dolphin_delete_dolphin_button.configure(state="normal")
         self.dolphin_launch_dolphin_button.configure(state="normal")
         self.check_dolphin_installation()
-    def delete_dolphin(self):
+    
+    def delete_dolphin_button_event(self):
         if self.dolphin_is_running:
             messagebox.showerror("Error", "Please close Dolphin before trying to delete it. If dolphin is not open, try restarting the application")
             return
-        level_of_deletion = messagebox.askyesno("Confirmation", "Are you sure you wish to delete the Dolphin Installation. This will not delete your user data.")
-        if level_of_deletion:
-            try:
-                shutil.rmtree(self.dolphin_settings_install_directory_variable.get())
-            except FileNotFoundError:
-                messagebox.showinfo("Dolphin", "Installation of dolphin not found")
-                return
-            except Exception as e:
-                messagebox.showerror("Error", e)
-                return
-            messagebox.showinfo("Success", "The Dolphin installation was successfully was removed")
+        if messagebox.askyesno("Confirmation", "Are you sure you wish to delete the Dolphin Installation. This will not delete your user data."):
+            self.dolphin_delete_dolphin_button.configure(state="disabled", text="Deleting...")
+            Thread(target=self.delete_dolphin).start()
+        
+    def delete_dolphin(self):
+        try:
+            shutil.rmtree(self.dolphin_settings_install_directory_variable.get())
+            self.dolphin_delete_dolphin_button.configure(state="normal", text="Delete")
+        except FileNotFoundError:
+            messagebox.showinfo("Dolphin", "Installation of dolphin not found")
+            self.dolphin_delete_dolphin_button.configure(state="normal", text="Delete")
+            return
+        except Exception as e:
+            messagebox.showerror("Error", e)
+            self.dolphin_delete_dolphin_button.configure(state="normal", text="Delete")
+            return
+        messagebox.showinfo("Success", "The Dolphin installation was successfully was removed")
         elif level_of_deletion == False:
             return
 
