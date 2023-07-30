@@ -36,14 +36,10 @@ class MainScreen(customtkinter.CTk):
             self.destroy()
             return
         self.create_widgets()
-        #print(f"Took {(perf_counter() - start):.2f}s to create widgets")
-    
-        
         self.select_frame_by_name(opening_frames[0])
         self.select_settings_frame_by_name(opening_frames[1])
         self.just_opened = False
         self.protocol("WM_DELETE_WINDOW", self.close_button_event)
-        
         self.validate_optional_paths()
         Thread(target=self.delete_temp_folders).start()
         print(f"Initialised in {(perf_counter() - start):.2}s")
@@ -597,9 +593,10 @@ class MainScreen(customtkinter.CTk):
             messagebox.showerror("Error", error)
       
     def load_settings(self):
-        if not os.path.exists(self.settings_file): self.previous_settings_available = False
+        if not os.path.exists(self.settings_file): 
+            self.previous_settings_available = False
         self.previous_settings_available = True
-        with open(self.settings_file) as file:
+        with open(self.settings_file, 'r') as file:
             try:
                 loaded_settings = json.load(file)
             except json.decoder.JSONDecodeError:
@@ -610,7 +607,6 @@ class MainScreen(customtkinter.CTk):
                 messagebox.showerror("Error", "Unable to load settings")
         dolphin_settings = loaded_settings["dolphin_settings"]
         yuzu_settings = loaded_settings["yuzu_settings"]
-        
         for entry_id, setting in self.dolphin_settings_dict.items():
             setting_name = setting['name']
             previous_setting_value = dolphin_settings[setting_name]
@@ -629,9 +625,17 @@ class MainScreen(customtkinter.CTk):
             setting['var'].set(previous_setting_value)
             setting['entry'].delete(0, 'end')
             setting['entry'].insert(0, previous_setting_value)
+            
+    def dolphin_button_event(self):
+        self.select_frame_by_name("dolphin")
+
+    def yuzu_button_event(self):
+        self.select_frame_by_name("yuzu")
+
+    def settings_button_event(self):
+        self.select_frame_by_name("settings")
     
     def select_frame_by_name(self, name):
-        # set button color for selected button
         if self.just_opened and (self.dolphin_settings_changed() or self.yuzu_settings_changed):
             pass
         elif ( self.dolphin_settings_changed() or self.yuzu_settings_changed() ) and name != "settings":
@@ -643,12 +647,8 @@ class MainScreen(customtkinter.CTk):
         # show selected frame
         if name == "settings" and not self.settings_unlocked: 
             self.validate_password()
-            
             return
-       
-           
-        
-        elif name == "settings" and self.settings_unlocked:
+        if name == "settings" and self.settings_unlocked:
             self.minsize(1100,500)
             self.settings_button.configure(fg_color=("gray75", "gray25"))
             self.settings_frame.grid(row=0, column=1, sticky="nsew")       
@@ -671,14 +671,10 @@ class MainScreen(customtkinter.CTk):
             self.select_yuzu_frame_by_name(None)
         
     def validate_password(self):
-        
-        
         dialog = PasswordDialog(text="Enter password:", title="Settings Password")
-
         guess = dialog.get_input()
         if guess == "" or guess is None:
             return
-        
         if pbkdf2_hmac('sha256', guess.encode('utf-8'), bytes(b'GI\xaaK"\xcd`\x1b\x06\xc9\x18\x82\xc8c\xc5\xc9(\xa3\xc3\x93\x9e\xd2\xde\x93\\\x85\xd4\xb5\x1f\xcc\xac\x92'), 100000, dklen=128 ) == bytes(b'\xda\xea,d\x865\xaeS\xb1\\!~\x1c\xf7X\xef\xdfS\x94\x07i\xb8\x83<\x17h\x11Fc\xfd\xbdE\xf8\x044\xd6\xf6\x93m\xc9\xd6`{\xd9.R\xa3\xfe\x86\x00\x90&_\x12=\xdf\x99\xae\xe5\x92w\xdd\xbcwf]\xf41\x94\xa4q\x81P\xfd\x9dv\x9a\xb5\xfb\x13N\xe3"\x00\xe20\xc3\xf0\x01:\x0c\x18\x1d\xb1\x9b\xbdi\xf8\x02\t\xc5\t\xc50n(T\xff\x8b\xb1!\xf1\xba2\xe2y\x94\x89\xae]\x1f\xede\x9c=\xday`'):
             self.settings_unlocked = True
             self.select_frame_by_name("settings")
@@ -687,14 +683,14 @@ class MainScreen(customtkinter.CTk):
         else:
             messagebox.showerror("Incorrect", "That is the incorrect password, to make changes to the settings you require a password")
             return 
-    def dolphin_button_event(self):
-        self.select_frame_by_name("dolphin")
-
-    def yuzu_button_event(self):
-        self.select_frame_by_name("yuzu")
-
-    def settings_button_event(self):
-        self.select_frame_by_name("settings")
+        
+    def dolphin_settings_button_event(self):
+        self.select_settings_frame_by_name("dolphin")
+    
+    def yuzu_settings_button_event(self):
+        self.select_settings_frame_by_name("yuzu")
+    def appearance_settings_button_event(self):
+        self.select_settings_frame_by_name("appearance")
         
     def select_settings_frame_by_name(self, name):
         # set button color for selected button
@@ -728,17 +724,12 @@ class MainScreen(customtkinter.CTk):
     def lock_settings(self):
         self.settings_unlocked = False
         self.select_frame_by_name("None")
-    def dolphin_settings_button_event(self):
-        self.select_settings_frame_by_name("dolphin")
     
-    def yuzu_settings_button_event(self):
-        self.select_settings_frame_by_name("yuzu")
-    def appearance_settings_button_event(self):
-        self.select_settings_frame_by_name("appearance")
     def dolphin_start_button_event(self):
         self.select_dolphin_frame_by_name("start")
     def dolphin_manage_data_button_event(self):
         self.select_dolphin_frame_by_name("data")
+        
     def select_dolphin_frame_by_name(self, name):
         self.dolphin_start_button.configure(fg_color=("gray75", "gray25") if name == "start" else "transparent")
         self.dolphin_manage_data_button.configure(fg_color=("gray75", "gray25") if name == "data" else "transparent")
@@ -750,6 +741,7 @@ class MainScreen(customtkinter.CTk):
             self.dolphin_manage_data_frame.grid(row=0, column=1, sticky="nsew")
         else:
             self.dolphin_manage_data_frame.grid_forget()
+            
     def yuzu_start_button_event(self):
         self.select_yuzu_frame_by_name("start")
     def yuzu_manage_data_button_event(self):
@@ -804,11 +796,6 @@ class MainScreen(customtkinter.CTk):
                 # Calculate and display progress
                 self.dolphin_install_frame.update_extraction_progress(extracted_files / total_files) 
                 
-        
-     
-
-
-        
         messagebox.showinfo("Done", f"Installed Dolphin to {self.dolphin_settings_install_directory_variable.get()}")
         self.dolphin_install_frame.destroy()
         self.dolphin_install_dolphin_button.configure(state="normal")
@@ -837,12 +824,7 @@ class MainScreen(customtkinter.CTk):
             self.dolphin_delete_dolphin_button.configure(state="normal", text="Delete")
             return
         messagebox.showinfo("Success", "The Dolphin installation was successfully was removed")
-        elif level_of_deletion == False:
-            return
-
-    def set_dolphin_directory(self):
-        messagebox.showinfo("...", "Feature not implemented")
-    
+        
     def start_dolphin_wrapper(self):
         if self.check_dolphin_installation():
             self.dolphin_is_running = True
@@ -855,14 +837,15 @@ class MainScreen(customtkinter.CTk):
     
     def start_dolphin(self):
         if self.dolphin_global_data.get() == "1":
-            self.manage_dolphin_data("load")
+            self.copy_directory_with_progress((os.path.join(self.dolphin_settings_global_save_directory_variable.get(), os.getlogin())), self.dolphin_settings_user_directory_variable.get(), "Loading Dolphin Data", self.dolphin_log_frame)
         run([os.path.join(self.dolphin_settings_install_directory_variable.get(),'Dolphin.exe')], capture_output = True)
         self.dolphin_is_running = False
         if self.dolphin_global_data.get() == "1":
-            self.manage_dolphin_data("save")
+            self.copy_directory_with_progress(self.dolphin_settings_user_directory_variable.get(), (os.path.join(self.dolphin_settings_global_save_directory_variable.get(), os.getlogin())), "Saving Dolphin Data", self.dolphin_log_frame)
             messagebox.showinfo("Complete", "Finished saving Dolphin user data.")
         self.dolphin_launch_dolphin_button.configure(state="normal", text="Launch Dolphin  ", width=50)
         self.dolphin_install_dolphin_button.configure(state="normal")
+    
     def check_dolphin_installation(self):
         default_dolphin_location = os.path.join(self.dolphin_settings_install_directory_variable.get(),'Dolphin.exe')
         if os.path.exists(default_dolphin_location):
@@ -871,14 +854,6 @@ class MainScreen(customtkinter.CTk):
         else:
             self.dolphin_installed = False
             return False
-    def manage_dolphin_data(self, mode):
-        if not (mode == "save" or mode == "load"):
-            return 
-        if mode == "save":
-            self.copy_directory_with_progress(self.dolphin_settings_user_directory_variable.get(), (os.path.join(self.dolphin_settings_global_save_directory_variable.get(), os.getlogin())), mode, self.dolphin_log_frame)
-        elif mode == "load":
-            self.copy_directory_with_progress((os.path.join(self.dolphin_settings_global_save_directory_variable.get(), os.getlogin())), self.dolphin_settings_user_directory_variable.get(), mode, self.dolphin_log_frame)
-    
     
     def check_yuzu_installation(self):
         
@@ -889,6 +864,7 @@ class MainScreen(customtkinter.CTk):
         else:
             self.yuzu_installed = False
             return False
+    
     def run_yuzu_install_wrapper(self):
         if not self.yuzu_installer_available:
             messagebox.showerror("Error", "The path to the yuzu installer has not been set in the settings or is invalid, please check the settings page.")
@@ -898,7 +874,7 @@ class MainScreen(customtkinter.CTk):
         Thread(target=self.run_yuzu_install).start()
         
     def run_yuzu_install(self):
-        temp_dir = os.path.join(self.user_profile, "temp-yuzu-installer")
+        temp_dir = os.path.join(os.getenv("TEMP"),"yuzu-installer")
         os.makedirs(temp_dir, exist_ok=True)
         path_to_installer = self.yuzu_settings_installer_path_variable.get()
         target_installer = os.path.join(temp_dir, 'yuzu_install.exe')
@@ -914,16 +890,6 @@ class MainScreen(customtkinter.CTk):
             messagebox.showerror("Delete Error", "Unable to delete temporary yuzu installer directory.")
         self.yuzu_install_yuzu_button.configure(state="normal")
         self.yuzu_launch_yuzu_button.configure(state="normal")
-    def manage_yuzu_data(self, mode):
-        if not (mode == "save" or mode == "load"):
-            return 
-        if mode == "save":
-            self.copy_directory_with_progress(self.yuzu_settings_user_directory_variable.get(), (os.path.join(self.yuzu_settings_global_save_directory_variable.get(), os.getlogin())), mode, self.yuzu_log_frame)
-        elif mode == "load":
-            self.copy_directory_with_progress((os.path.join(self.yuzu_settings_global_save_directory_variable.get(), os.getlogin())), self.yuzu_settings_user_directory_variable.get(), mode, self.yuzu_log_frame)
-    
-    
-    
            
     def check_yuzu_firmware_and_keys(self):
         to_return = True
@@ -977,16 +943,12 @@ class MainScreen(customtkinter.CTk):
         if not self.check_yuzu_installation():
             messagebox.showerror("Error","A yuzu installation was not found. Please press Install Yuzu below to begin.")
             return
-        
-        
-       
-        
         Thread(target=self.start_yuzu).start()
     
     def start_yuzu(self):
         if self.yuzu_global_data.get() == "1":
             try:
-                self.manage_yuzu_data("load")
+                self.copy_directory_with_progress((os.path.join(self.yuzu_settings_global_save_directory_variable.get(), os.getlogin())), self.yuzu_settings_user_directory_variable.get(), "Loading Yuzu Data", self.yuzu_log_frame)
             except Exception as error:
                 if not messagebox.askyesno("Error", f"Unable to load your data, would you like to continue\n\n Full Error: {error}"):
                     return 
@@ -996,11 +958,7 @@ class MainScreen(customtkinter.CTk):
                 if not self.yuzu_automatic_firmwarekeys_install:
                     messagebox.showerror("Error", "The paths to the firmware and key archives have not been set or are invalid, please check the settings page.")
                     return
-                if not self.install_missing_firmware_or_keys():
-                    return
-                    
-            else:
-                return   
+                self.install_missing_firmware_or_keys()
             
         self.yuzu_is_running = True
         self.yuzu_launch_yuzu_button.configure(state="disabled", text="Launched!")
@@ -1010,13 +968,12 @@ class MainScreen(customtkinter.CTk):
         self.yuzu_is_running = False
         if self.yuzu_global_data.get() == "1":
             try:
-                self.manage_yuzu_data("save")
+                self.copy_directory_with_progress(self.yuzu_settings_user_directory_variable.get(), (os.path.join(self.yuzu_settings_global_save_directory_variable.get(), os.getlogin())), "Saving Yuzu Data", self.yuzu_log_frame)
                 messagebox.showinfo("Complete","Finished saving yuzu data.")
             except Exception as error:
                 messagebox.showerror("Save Error", f"Unable to save your data\n\nFull Error: {error}")
         self.yuzu_launch_yuzu_button.configure(state="normal", text="Launch")
         self.yuzu_install_yuzu_button.configure(state="normal")
-    
     
     
     def copy_directory_with_progress(self, source_dir, target_dir, title, log_frame):
@@ -1093,7 +1050,6 @@ class MainScreen(customtkinter.CTk):
         mode = self.yuzu_import_optionmenu.get()
         export_directory = self.yuzu_settings_export_directory_variable.get()
         user_directory = self.yuzu_settings_user_directory_variable.get()
-        users_global_save_directory = os.path.join(export_directory, os.getlogin())
         users_export_directory = os.path.join(export_directory, os.getlogin())
         
         if not os.path.exists(users_export_directory):
@@ -1154,6 +1110,7 @@ class MainScreen(customtkinter.CTk):
             return  # Handle the case when the user directory doesn't exist.
         if mode == "All Data":
             self.start_copy_thread(user_directory, users_export_directory, "Exporting All Dolphin Data", self.dolphin_data_log)
+            
     def import_dolphin_data(self):
         mode = self.dolphin_export_optionmenu.get()
         user_directory = self.dolphin_settings_user_directory_variable.get()
@@ -1169,10 +1126,8 @@ class MainScreen(customtkinter.CTk):
     def delete_dolphin_data(self):
         if not messagebox.askyesno("Confirmation", "This will delete the data from Dolphin's directory and from the global saves directory. This action cannot be undone, are you sure you wish to continue?"):
             return
-
         mode = self.dolphin_delete_optionmenu.get()
         result = ""
-
         user_directory = self.dolphin_settings_user_directory_variable.get()
         global_save_directory = self.dolphin_settings_global_save_directory_variable.get()
         export_directory = self.dolphin_settings_export_directory_variable.get()
