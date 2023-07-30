@@ -160,4 +160,4 @@ cython_debug/
 #.idea/
 
 # App specific folders 
-.User Data/
+User Data/
