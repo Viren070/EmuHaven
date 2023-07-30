@@ -30,7 +30,7 @@ You can choose either the:
 
  The .exe will take longer to launch but has no clutter. The .zip includes a smaller sized .exe and will launch faster but has a lot of files. 
 
- If you download the .exe file, you will be unable to change the [resource files within the exe itself](https://github.com/Viren070/Emulator-Manager#Resource-Files). You can still set the paths in the settings to other files but that will mean that the resource files within the exe are unused and are wasting space. 
+ If you download the .exe file, you will be unable to change the [resource files within the exe itself](https://github.com/Viren070/Emulator-Manager#resource-files). You can still set the paths in the settings to other files but that will mean that the resource files within the exe are unused and are wasting space. 
  ## Resource Files
   (as of v0.6.2)
 - Firmware 16.0.3 (Rebootless Update 2).zip
