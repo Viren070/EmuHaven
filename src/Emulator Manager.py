@@ -18,11 +18,11 @@ from SwitchEmuTool import Application as FirmwareManager
 from SwitchEmuTool import DownloadStatusFrame as InstallStatus
 
 ERROR_INVALID_NAME = 123
-class MainScreen(customtkinter.CTk):
+class MainScreen(customtkinter.CTk):    # create class 
     def __init__(self, opening_frames=['home', None]):
         start = perf_counter()
         print("Initialising...", end="\r")
-        self.settings_unlocked = True if opening_frames[1] == 'appearance' else False
+        self.settings_unlocked = True if opening_frames[1] == 'appearance' else False   # unlock settings if opening frames is appearance as user has only changed colour theme
         super().__init__()
         self.just_opened = True
         self.dolphin_is_running = False
@@ -31,21 +31,21 @@ class MainScreen(customtkinter.CTk):
         self.dolphin_installer_available = True
         try:
             self.define_images()
-        except FileNotFoundError:
+        except FileNotFoundError:   # image file was not found 
             messagebox.showerror("Image Error", "You are missing the image files. Please download the latest release from GitHub again and do not delete any folders.\n\nIf the GitHub repository is unavailable or you believe this was a mistake, contact the creator.")
-            self.destroy()
+            self.destroy()  # destroy app
             return
-        self.create_widgets()
-        self.select_frame_by_name(opening_frames[0])
+        self.create_widgets()   # create widgets
+        self.select_frame_by_name(opening_frames[0])  # use opening frame in argument and set opening frames to them. 
         self.select_settings_frame_by_name(opening_frames[1])
         self.just_opened = False
-        self.protocol("WM_DELETE_WINDOW", self.close_button_event)
+        self.protocol("WM_DELETE_WINDOW", self.close_button_event)  # set function to be called when window is closed
         self.validate_optional_paths()
-        Thread(target=self.delete_temp_folders).start()
+        Thread(target=self.delete_temp_folders).start()  # start new thread to delete temp folders. 
         print(f"Initialised in {(perf_counter() - start):.2}s")
-        self.mainloop()
+        self.mainloop()  # start mainloop that allows tkinter window to function and respond.
 
-    def define_images(self):
+    def define_images(self):   # set images as attributes for later use
         image_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "images")
         self.dolphin_image = customtkinter.CTkImage(Image.open(os.path.join(image_path, "dolphin_logo.png")), size=(26, 26))
         self.yuzu_image = customtkinter.CTkImage(Image.open(os.path.join(image_path, "yuzu_logo.png")), size=(26, 26))
@@ -57,24 +57,26 @@ class MainScreen(customtkinter.CTk):
                                                      dark_image=Image.open(os.path.join(image_path, "padlock_dark.png")), size=(20, 20))
     def create_widgets(self):
         
-        self.resizable(False, False)
-        self.title("Emulator Manager")
+        self.resizable(False, False)  # disable resizing of window
+        self.title("Emulator Manager")  # set title of window
         
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
         
-        self.minsize(800,500)
+        self.minsize(800,500) # set the minimum size of the window 
         
         
-
+        # create navigation frame 
         self.navigation_frame = customtkinter.CTkFrame(self, corner_radius=0)
         self.navigation_frame.grid(row=0, column=0, sticky="nsew")
         self.navigation_frame.grid_rowconfigure(4, weight=1)
 
+        # create navigation frame title. 
         self.navigation_frame_label = customtkinter.CTkLabel(self.navigation_frame, text= "Emulator Manager v0.6.2",
                                                              compound="left", padx=5, font=customtkinter.CTkFont(size=12, weight="bold"))
         self.navigation_frame_label.grid(row=0, column=0, padx=20, pady=20)
 
+        # create navigation menu buttons
         self.dolphin_button = customtkinter.CTkButton(self.navigation_frame, corner_radius=0, height=40, image = self.dolphin_image, border_spacing=10, text="Dolphin",
                                                    fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
                                                    anchor="w", command=self.dolphin_button_event)
@@ -84,8 +86,6 @@ class MainScreen(customtkinter.CTk):
                                                       fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
                                                       anchor="w", command=self.yuzu_button_event)
         self.yuzu_button.grid(row=2, column=0, sticky="ew")
-
-       
 
         self.settings_button = customtkinter.CTkButton(self.navigation_frame, corner_radius=0, height=40, image = self.settings_image, border_spacing=10, text="Settings",
                                                       fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
@@ -175,15 +175,20 @@ class MainScreen(customtkinter.CTk):
         self.yuzu_navigation_frame = customtkinter.CTkFrame(self.yuzu_frame, corner_radius=0, width=20, border_width=2, border_color=("white","black"))
         self.yuzu_navigation_frame.grid(row=0, column=0, sticky="nsew")
         self.yuzu_navigation_frame.grid_rowconfigure(4, weight=1)
-
+        # create yuzu menu buttons
         self.yuzu_start_button = customtkinter.CTkButton(self.yuzu_navigation_frame, corner_radius=0, width=20, height=25, image = self.play_image, border_spacing=10, text="Play",
                                                    fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
                                                    anchor="w", command=self.yuzu_start_button_event)
         self.yuzu_start_button.grid(row=1, column=0, sticky="ew", padx=2, pady=(2,0))
 
+        self.yuzu_manage_data_button = customtkinter.CTkButton(self.yuzu_navigation_frame, corner_radius=0, width=20, height=25, border_spacing=10, text="Manage Data",
+                                                   fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
+                                                   anchor="w", command=self.yuzu_manage_data_button_event)
+        self.yuzu_manage_data_button.grid(row=2, column=0, padx=2, sticky="ew")
+        
+        # create yuzu 'Play' frame and widgets
         self.yuzu_start_frame = customtkinter.CTkFrame(self.yuzu_frame, corner_radius=0, fg_color="transparent")
-        
-        
+
         self.yuzu_actions_frame = customtkinter.CTkFrame(self.yuzu_start_frame)
         self.yuzu_actions_frame.grid(row=0, column=0, padx=40, pady=40)
         self.yuzu_actions_frame.grid_columnconfigure(3, weight=1)
@@ -192,27 +197,16 @@ class MainScreen(customtkinter.CTk):
         self.yuzu_launch_yuzu_button.grid(row=0, column=2, padx=30, pady=15, sticky="n")
 
         self.yuzu_global_data = customtkinter.StringVar(value="1")
-        self.yuzu_global_user_data_checkbox = customtkinter.CTkCheckBox(self.yuzu_actions_frame, text = "Use Global Saves",
-                                     variable=self.yuzu_global_data, onvalue="1", offvalue="0")
+        self.yuzu_global_user_data_checkbox = customtkinter.CTkCheckBox(self.yuzu_actions_frame, text = "Use Global Saves", variable=self.yuzu_global_data, onvalue="1", offvalue="0")
         self.yuzu_global_user_data_checkbox.grid(row=0,column=3, padx=(0,35))
-        
 
         self.yuzu_install_yuzu_button = customtkinter.CTkButton(self.yuzu_actions_frame, text="Run Yuzu Installer", command=self.run_yuzu_install_wrapper)
         self.yuzu_install_yuzu_button.grid(row=0, column=1,padx=10, pady=5)
-
-        
-        
+          
         self.yuzu_log_frame = customtkinter.CTkFrame(self.yuzu_start_frame)
         self.yuzu_log_frame.grid(row=1, column=0, sticky="nsew", padx=40)
         self.yuzu_log_frame.grid_columnconfigure(0, weight=3)
-        
-        
-        
-        
-        self.yuzu_manage_data_button = customtkinter.CTkButton(self.yuzu_navigation_frame, corner_radius=0, width=20, height=25, border_spacing=10, text="Manage Data",
-                                                   fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
-                                                   anchor="w", command=self.yuzu_manage_data_button_event)
-        self.yuzu_manage_data_button.grid(row=2, column=0, padx=2, sticky="ew")
+        # create yuzu 'Manage Data' frame and widgets
         self.yuzu_manage_data_frame = customtkinter.CTkFrame(self.yuzu_frame, corner_radius=0, fg_color="transparent")
         self.yuzu_manage_data_frame.grid_columnconfigure(0, weight=1)
         self.yuzu_manage_data_frame.grid_columnconfigure(1, weight=1)
@@ -241,7 +235,7 @@ class MainScreen(customtkinter.CTk):
         self.yuzu_data_log.grid(row=1, column=0, padx=20, pady=20, columnspan=3, sticky="new")
         self.yuzu_data_log.grid_columnconfigure(0, weight=1)
         self.yuzu_data_log.grid_rowconfigure(1, weight=1)
-        
+        # create yuzu downloader button, frame and widgets
         self.yuzu_firmware_button = customtkinter.CTkButton(self.yuzu_navigation_frame, corner_radius=0, width=20, height=25, border_spacing=10, text="Downloader",
                                                    fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
                                                    anchor="w", command=self.yuzu_firmware_button_event)
@@ -254,17 +248,17 @@ class MainScreen(customtkinter.CTk):
         self.yuzu_firmware.grid(row=0, column=1, padx=20, pady=20, sticky="nsew")
         self.yuzu_firmware_options_button = customtkinter.CTkButton(self.yuzu_firmware_frame, text="Options", command=self.yuzu_firmware.options_menu)
         self.yuzu_firmware_options_button.grid(row=1, column=1, pady=(0,30))
-# create settings frame 
+        # create settings frame 
         
         self.settings_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent", width=20)
         self.settings_frame.grid_columnconfigure(1, weight=1)
         self.settings_frame.grid_rowconfigure(0, weight=1)
-# create navigation frame      
+        # create settings navigation frame      
         self.settings_navigation_frame = customtkinter.CTkFrame(self.settings_frame, corner_radius=0, width=20, border_width=2, border_color=("white","black"))
         self.settings_navigation_frame.grid(row=0, column=0, sticky="nsew")
         self.settings_navigation_frame.grid_rowconfigure(4, weight=1)
 
-     
+        # create settings navigation menu buttons
         self.dolphin_settings_button = customtkinter.CTkButton(self.settings_navigation_frame, corner_radius=0, width=20, height=25, border_spacing=10, text="Dolphin",
                                                    fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
                                                    anchor="w", command=self.dolphin_settings_button_event)
@@ -282,24 +276,19 @@ class MainScreen(customtkinter.CTk):
         self.settings_lock_button = customtkinter.CTkButton(self.settings_navigation_frame, text="Lock", image = self.lock_image, anchor="w", command = self.lock_settings)
         self.settings_lock_button.grid(row=6, column=0, padx = 20, pady=20)
 
-        self.dolphin_settings_frame = customtkinter.CTkFrame(self.settings_frame, corner_radius=0, fg_color="transparent")
-        self.dolphin_settings_frame.grid_columnconfigure(0, weight=1)
-       
+        # set default paths and other useful paths 
         installer_paths = os.path.join(os.path.dirname(os.path.realpath(__file__)), "resources")
         user_saves_directory = os.path.join(os.getcwd(), "User Data")
         switch_firmware_keys_folder_path = os.path.join(installer_paths, "Yuzu Files")
         self.user_profile = os.path.expanduser('~')
         self.temp_extract_directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Temp")
-        
-        
          
         self.default_dolphin_settings_install_directory = os.path.join(self.user_profile, "AppData\\Local\\Dolphin Emulator\\")
         self.default_dolphin_settings_user_directory = os.path.join(self.user_profile, "AppData\\Roaming\\Dolphin Emulator")
         self.default_dolphin_settings_global_save_directory = os.path.join(user_saves_directory, "Dolphin")
         self.default_dolphin_settings_export_directory = os.path.join(user_saves_directory, "Dolphin")
         self.default_dolphin_settings_dolphin_zip_directory = os.path.join(installer_paths, 'Dolphin 5.0-19368.zip')
-        
-        
+            
         self.default_yuzu_settings_install_directory = os.path.join(self.user_profile, "AppData\\Local\\yuzu\\yuzu-windows-msvc\\")
         self.default_yuzu_settings_user_directory = os.path.join(self.user_profile, "AppData\\Roaming\\yuzu\\")
         self.default_yuzu_settings_global_save_directory = os.path.join(user_saves_directory, "Yuzu")
@@ -308,11 +297,9 @@ class MainScreen(customtkinter.CTk):
         self.default_yuzu_settings_firmware_path = os.path.join(switch_firmware_keys_folder_path, "Firmware 16.0.3 (Rebootless Update 2).zip")
         self.default_yuzu_settings_key_path = os.path.join(switch_firmware_keys_folder_path, "Keys 16.0.3.zip")
 
-        
-        
-       
-       
 # create dolphin settings widgets          
+        self.dolphin_settings_frame = customtkinter.CTkFrame(self.settings_frame, corner_radius=0, fg_color="transparent")
+        self.dolphin_settings_frame.grid_columnconfigure(0, weight=1)
         
         self.dolphin_settings_user_directory_variable = customtkinter.StringVar()
         self.dolphin_settings_install_directory_variable = customtkinter.StringVar()
@@ -358,19 +345,11 @@ class MainScreen(customtkinter.CTk):
         self.dolphin_settings_actions_frame.grid(row=10,sticky="ew", columnspan=5, padx=10, pady=10)
         customtkinter.CTkButton(self.dolphin_settings_actions_frame, text="Apply", command=self.apply_dolphin_settings).grid(row=10,column=3,padx=10,pady=10, sticky="e")
         customtkinter.CTkButton(self.dolphin_settings_actions_frame, text="Restore Defaults", command=self.restore_default_dolphin_settings).grid(row=10, column=0, padx=10,pady=10, sticky="w")
-
-        
-        
-        
-        
  
-# create yuzu settings widgets        
+        # create yuzu settings widgets        
         self.yuzu_settings_frame = customtkinter.CTkFrame(self.settings_frame, corner_radius=0, fg_color="transparent")
         self.yuzu_settings_frame.grid_columnconfigure(0, weight=1)
-        
-        
-        
-        
+            
         self.yuzu_settings_install_directory_variable = customtkinter.StringVar()
         self.yuzu_settings_user_directory_variable = customtkinter.StringVar()
         self.yuzu_settings_global_save_directory_variable = customtkinter.StringVar()
@@ -385,44 +364,36 @@ class MainScreen(customtkinter.CTk):
         self.yuzu_settings_user_directory_entry.grid(row=0, column=2, padx=10, pady=10, sticky="e")
         customtkinter.CTkButton(self.yuzu_settings_frame, text="Browse", width=50, command=lambda entry_widget=self.yuzu_settings_user_directory_entry: self.update_yuzu_setting_with_explorer(entry_widget)).grid(row=0, column=3, padx=5, pady=10, sticky="e")
         ttk.Separator(self.yuzu_settings_frame, orient='horizontal').grid(row=1, columnspan=4, sticky="ew")
-    
-    
         #2
         customtkinter.CTkLabel(self.yuzu_settings_frame, text="yuzu Install Directory: ").grid(row=2, column=0, padx=10, pady=10, sticky="w")
         self.yuzu_settings_install_directory_entry = customtkinter.CTkEntry(self.yuzu_settings_frame, width=300)
         self.yuzu_settings_install_directory_entry.grid(row=2, column=2, padx=10, pady=10, sticky="e")
         customtkinter.CTkButton(self.yuzu_settings_frame, text="Browse", width=50, command=lambda entry_widget=self.yuzu_settings_install_directory_entry: self.update_yuzu_setting_with_explorer(entry_widget)).grid(row=2,column=3, padx=5, pady=5, sticky="E")
         ttk.Separator(self.yuzu_settings_frame, orient='horizontal').grid(row=3, columnspan=4, sticky="ew")
-
-
         #3
         customtkinter.CTkLabel(self.yuzu_settings_frame, text="Global Save Directory: ").grid(row=4, column=0, padx=10, pady=10, sticky="w")
         self.yuzu_settings_global_save_directory_entry = customtkinter.CTkEntry(self.yuzu_settings_frame, width=300)
         self.yuzu_settings_global_save_directory_entry.grid(row=4, column=2, padx=10, pady=10, sticky="e")
         customtkinter.CTkButton(self.yuzu_settings_frame, text="Browse", width=50, command=lambda entry_widget=self.yuzu_settings_global_save_directory_entry: self.update_yuzu_setting_with_explorer(entry_widget)).grid(row=4, column=3, padx=5, sticky="E")
         ttk.Separator(self.yuzu_settings_frame, orient='horizontal').grid(row=5, columnspan=4, sticky="ew")
-
         #4
         customtkinter.CTkLabel(self.yuzu_settings_frame, text="Export Directory: ").grid(row=6, column=0, padx=10, pady=10, sticky="w")
         self.yuzu_settings_export_directory_entry = customtkinter.CTkEntry(self.yuzu_settings_frame, width=300)
         self.yuzu_settings_export_directory_entry.grid(row=6, column=2, padx=10, pady=10, sticky="e")
         customtkinter.CTkButton(self.yuzu_settings_frame, text="Browse", width=50, command=lambda entry_widget=self.yuzu_settings_export_directory_entry: self.update_yuzu_setting_with_explorer(entry_widget)).grid(row=6, column=3, padx=5, sticky="E")
-        ttk.Separator(self.yuzu_settings_frame, orient='horizontal').grid(row=7, columnspan=4, sticky="ew")
-        
+        ttk.Separator(self.yuzu_settings_frame, orient='horizontal').grid(row=7, columnspan=4, sticky="ew")      
         #5
         customtkinter.CTkLabel(self.yuzu_settings_frame, text="Yuzu Installer: ").grid(row=8, column=0, padx=10, pady=10, sticky="w")
         self.yuzu_settings_yuzu_installer_path_entry = customtkinter.CTkEntry(self.yuzu_settings_frame, width=300)
         self.yuzu_settings_yuzu_installer_path_entry.grid(row=8, column=2, padx=10, pady=10, sticky="e")
         customtkinter.CTkButton(self.yuzu_settings_frame, text="Browse", width=50, command=lambda entry_widget=self.yuzu_settings_yuzu_installer_path_entry: self.update_yuzu_setting_with_explorer(entry_widget)).grid(row=8, column=3, padx=5, sticky="E")
         ttk.Separator(self.yuzu_settings_frame, orient='horizontal').grid(row=9, columnspan=4, sticky="ew")
-        
         #6
         customtkinter.CTkLabel(self.yuzu_settings_frame, text="Switch Firmware: ").grid(row=10, column=0, padx=10, pady=10, sticky="w")
         self.yuzu_settings_firmware_path_entry = customtkinter.CTkEntry(self.yuzu_settings_frame, width=300)
         self.yuzu_settings_firmware_path_entry.grid(row=10, column=2, padx=10, pady=10, sticky="e")
         customtkinter.CTkButton(self.yuzu_settings_frame, text="Browse", width=50, command=lambda entry_widget=self.yuzu_settings_firmware_path_entry: self.update_yuzu_setting_with_explorer(entry_widget)).grid(row=10, column=3, padx=5, sticky="E")
         ttk.Separator(self.yuzu_settings_frame, orient='horizontal').grid(row=11, columnspan=4, sticky="ew")
-     
         #7
         customtkinter.CTkLabel(self.yuzu_settings_frame, text="Switch Keys: ").grid(row=12, column=0, padx=10, pady=10, sticky="w")
         self.yuzu_settings_key_path_entry = customtkinter.CTkEntry(self.yuzu_settings_frame, width=300)
@@ -436,7 +407,7 @@ class MainScreen(customtkinter.CTk):
         customtkinter.CTkButton(self.yuzu_settings_actions_frame, text="Apply", command=self.apply_yuzu_settings).grid(row=10,column=3,padx=10,pady=10, sticky="e")
         customtkinter.CTkButton(self.yuzu_settings_actions_frame, text="Restore Defaults", command=self.restore_default_yuzu_settings).grid(row=10, column=0, padx=10,pady=10, sticky="w")
 
-
+        # define settings dictionaries 
         self.dolphin_settings_dict = {
             "1" : {
                 "var" : self.dolphin_settings_user_directory_variable,
@@ -513,9 +484,8 @@ class MainScreen(customtkinter.CTk):
                 "name" : "Yuzu Key ZIP Path"
             }
         }
+        # load settings from settings.json if found
         self.settings_path = os.path.join(self.user_profile, "AppData","Roaming","Emulator Manager", "config")
-        
-        
         self.settings_file = os.path.join(self.settings_path, 'settings.json')
         if not os.path.exists(self.settings_file): 
             self.previous_settings_available = False
@@ -527,7 +497,7 @@ class MainScreen(customtkinter.CTk):
         else:
             self.restore_default_dolphin_settings()
             self.restore_default_yuzu_settings()
-# create appearance and themes widgets
+        # create appearance and themes widgets for settings menu 'Appearance'
         self.appearance_settings_frame = customtkinter.CTkFrame(self.settings_frame, corner_radius=0, fg_color="transparent")
         self.appearance_settings_frame.grid_columnconfigure(0, weight=1)
         
@@ -545,21 +515,22 @@ class MainScreen(customtkinter.CTk):
         ttk.Separator(self.appearance_settings_frame, orient='horizontal').grid(row=3, columnspan=4, sticky="ew")
     
     def change_colour_theme(self, theme, startup=False):
-        if customtkinter.ThemeManager._currently_loaded_theme.replace("-"," ").title() == theme:
+        if customtkinter.ThemeManager._currently_loaded_theme.replace("-"," ").title() == theme: # if current theme is the same as the proposed theme, return
             return
-        customtkinter.set_default_color_theme(theme.replace(" ","-").lower())
-        if not startup:
-            self.update_settings()
-        self.destroy()
-        MainScreen(['settings','appearance'])
+        customtkinter.set_default_color_theme(theme.replace(" ","-").lower())  #set the theme to the proposed theme after converting to proper theme name
+        if not startup: # if the colour theme is being changed in the settings page and not when loading from settings.json
+            self.update_settings()   # update settings to reflect latest change in appearance settings
+        self.destroy()   # destroy current window (because changing colour theme directly does not work)
+        MainScreen(['settings','appearance'])  # create new window and open on the Appearance page 
         
     def change_appearance_mode(self, mode, startup=False):
-        customtkinter.set_appearance_mode(mode.lower())
+        customtkinter.set_appearance_mode(mode.lower()) # change appearance mode using customtkinters function 
         if not startup:
-            self.update_settings()
+            self.update_settings()   # update settings.json if change was through settings menu
             
     def update_settings(self):
-        settings = {
+        # define settings by using variables
+        settings = { 
             "dolphin_settings": {
                 "Dolphin User Directory": self.dolphin_settings_dict["1"]['var'].get(),
                 "Dolphin Installation Directory": self.dolphin_settings_dict["2"]['var'].get(),
@@ -583,46 +554,49 @@ class MainScreen(customtkinter.CTk):
                 "Colour Theme" : self.colour_theme_variable.get()
             }
         }
+        # create settings.json at the correct path if it doesn't already exist
         if not(os.path.exists(self.settings_path)):
-            os.makedirs(self.settings_path)
+            os.makedirs(self.settings_path) # makes the necessary folders 
         try:
             with open(self.settings_file, "w") as file:
-                json.dump(settings, file)
+                json.dump(settings, file)   # writes settings to settings.json
             self.load_settings()
         except Exception as error:
-            messagebox.showerror("Error", error)
+            messagebox.showerror("Error", error)  # show error if raised
       
     def load_settings(self):
         if not os.path.exists(self.settings_file): 
             self.previous_settings_available = False
             return 
         self.previous_settings_available = True
-        with open(self.settings_file, 'r') as file:
+        with open(self.settings_file, 'r') as file: # open settings.json as file
             try:
-                loaded_settings = json.load(file)
+                loaded_settings = json.load(file) # store dictionary in 'loaded_settings'
             except json.decoder.JSONDecodeError:
-                self.restore_default_dolphin_settings()
+                self.restore_default_dolphin_settings()   # if any error raised then restore the default settings. 
                 self.restore_default_yuzu_settings()
                 messagebox.showerror("Error", "Unable to load settings")
+                return
+        # define indiviudal dictonaries for each emulator.
         dolphin_settings = loaded_settings["dolphin_settings"]
         yuzu_settings = loaded_settings["yuzu_settings"]
-        for entry_id, setting in self.dolphin_settings_dict.items():
-            setting_name = setting['name']
-            previous_setting_value = dolphin_settings[setting_name]
-            if entry_id == "5" and "Temp\\_MEI" in previous_setting_value:
-                self.restore_default_dolphin_settings(entry_id)
-                continue
-            setting['var'].set(previous_setting_value)
-            setting['entry'].delete(0, 'end')
+        for entry_id, setting in self.dolphin_settings_dict.items(): # iterate through each setting in the current settings dictonary
+            setting_name = setting['name']      # get the name of the setting 
+            previous_setting_value = dolphin_settings[setting_name]  # get the previous value of the setting from the dictonary using the name as a key
+            if entry_id == "5" and "Temp\\_MEI" in previous_setting_value: # if Temp\\_MEI is in the previous setting value, then it means that it was from the -onefile exe and the path needs to be updated as it changes each time the app is opened
+                self.restore_default_dolphin_settings(entry_id) # the default value will hold the new path 
+                continue # go to next setting
+            setting['var'].set(previous_setting_value)  # set the variable value to previous_value 
+            setting['entry'].delete(0, 'end')   # set the value of the entry widget to the previous value 
             setting['entry'].insert(0, previous_setting_value)
         for entry_id, setting in self.yuzu_settings_dict.items():
             setting_name = setting['name']
             previous_setting_value = yuzu_settings[setting_name]
-            if int(entry_id) >= 5 and "Temp\\_MEI" in previous_setting_value:
+            if int(entry_id) >= 5 and "Temp\\_MEI" in previous_setting_value: # if Temp\\_MEI is in the previous setting value, then it means that it was from the -onefile exe and the path needs to be updated as it changes each time the app is opened
                 self.restore_default_yuzu_settings(entry_id)
                 continue
-            setting['var'].set(previous_setting_value)
-            setting['entry'].delete(0, 'end')
+            setting['var'].set(previous_setting_value)  # set the variable value to previous_value 
+            setting['entry'].delete(0, 'end')   # set the value of the entry widget to the previous value 
             setting['entry'].insert(0, previous_setting_value)
             
     def dolphin_button_event(self):
@@ -1503,12 +1477,7 @@ class MainScreen(customtkinter.CTk):
                     shutil.rmtree(item_path)
                 except:
                     print(f"Error deleting temp folder: {item_path}")
-                    pass
-    
-
-    
-
-
+                
 if __name__=="__main__":
     try:
         path_to_settings = os.path.join(os.path.expanduser('~'), "AppData", "Roaming", "Emulator Manager", "config", "settings.json")
@@ -1531,6 +1500,3 @@ if __name__=="__main__":
     customtkinter.set_default_color_theme(theme)
     customtkinter.set_appearance_mode(appearance_mode)
     app = MainScreen()
-
-   
-
