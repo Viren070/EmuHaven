@@ -1020,6 +1020,9 @@ class MainScreen(customtkinter.CTk):
     
     
     def copy_directory_with_progress(self, source_dir, target_dir, title, log_frame):
+        if not os.path.exists(source_dir):
+            messagebox.showerror("Path Error", f"Path does not exist: {source_dir}")
+            return
         progress_bar = InstallStatus(log_frame, title, self)
         progress_bar.skip_to_installation()
         progress_bar.grid(row=0, column=0, sticky="nsew")
