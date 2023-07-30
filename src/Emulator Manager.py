@@ -45,7 +45,7 @@ class MainScreen(customtkinter.CTk):
         self.protocol("WM_DELETE_WINDOW", self.close_button_event)
         
         self.validate_optional_paths()
-        #print("Starting Mainloop")
+        Thread(target=self.delete_temp_folders).start()
         print(f"Initialised in {(perf_counter() - start):.2}s")
         self.mainloop()
 
@@ -1528,6 +1528,18 @@ class MainScreen(customtkinter.CTk):
             return False
               
             
+    def delete_temp_folders(self):
+        current_path = os.path.dirname(os.path.realpath(__file__))   
+        temp_directory = (os.getenv("TEMP"))
+        for item in os.listdir(temp_directory):
+            item_path = os.path.join(temp_directory, item)
+            # Check if the item is a directory
+            if os.path.isdir(item_path) and "_MEI" in item_path and item_path != current_path:
+                try:
+                    shutil.rmtree(item_path)
+                except:
+                    print(f"Error deleting temp folder: {item_path}")
+                    pass
     
 
     
