@@ -935,7 +935,7 @@ class MainScreen(customtkinter.CTk):
         self.check_yuzu_firmware_and_keys()
         if not self.yuzu_keys_installed:
             status_frame = InstallStatus(
-            self.yuzu_log_frame, (self.yuzu_settings_key_path_variable.get().split("\\")[-1]), self)
+            self.yuzu_log_frame, (os.path.basename(self.yuzu_settings_key_path_variable.get())), self)
             status_frame.grid(row=0, pady=10, sticky="EW")
             status_frame.skip_to_installation()
             try:
@@ -946,7 +946,7 @@ class MainScreen(customtkinter.CTk):
                 return False
             status_frame.destroy()
         if not self.firmware_installed:
-            status_frame = InstallStatus(self.yuzu_log_frame, (self.yuzu_settings_firmware_path_variable.get().split("\\")[-1]), self)
+            status_frame = InstallStatus(self.yuzu_log_frame, (os.path.basename(self.yuzu_settings_firmware_path_variable.get())), self)
             status_frame.grid(row=0, pady=10, sticky="EW")
             status_frame.skip_to_installation()
             try:
