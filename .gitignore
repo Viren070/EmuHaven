@@ -26,7 +26,7 @@ share/python-wheels/
 *.egg
 MANIFEST
 Emulator Manager Releases/
-create-releases.bat
+create-release.bat
 resources/
 
 # PyInstaller
