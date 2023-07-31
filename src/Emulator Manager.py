@@ -17,6 +17,7 @@ from PasswordDialog import PasswordDialog
 from SwitchEmuTool import Application as FirmwareManager
 from SwitchEmuTool import DownloadStatusFrame as InstallStatus
 ERROR_INVALID_NAME = 123
+just_fix_windows_console()
 class MainScreen(customtkinter.CTk):    # create class 
     def __init__(self, opening_frames=['home', None]):
         start = perf_counter()
