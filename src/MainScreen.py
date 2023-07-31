@@ -1482,7 +1482,7 @@ class MainScreen(customtkinter.CTk):    # create class
         if os.path.exists(self.dolphin_settings_dolphin_zip_directory_variable.get()):
             self.dolphin_installer_available = True 
         else:
-            print(Fore.LIGHTYELLOW_EX+"[CONSOLE][WARNING] MainScreen.validate_optional_paths: Dolphin-x64.zip at given path doesn't exist")
+            print(Fore.LIGHTYELLOW_EX+"[CONSOLE][WARNING] MainScreen.validate_optional_paths: Dolphin-x64.zip at given path doesn't exist"+Style.RESET_ALL)
             self.dolphin_installer_available = False
         print("[CONSOLE] MainScreen.validate_optional_paths [END]")
     def close_button_event(self):
