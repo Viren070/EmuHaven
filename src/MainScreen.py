@@ -115,7 +115,7 @@ class MainScreen(customtkinter.CTk):    # create class
         self.dolphin_actions_frame.grid(row=0, column=0, padx=40, pady=40)
         self.dolphin_actions_frame.grid_columnconfigure(3, weight=1)
         
-        self.dolphin_launch_dolphin_button = customtkinter.CTkButton(self.dolphin_actions_frame, height=40, text="Launch Dolphin  ", image = self.play_image, font=customtkinter.CTkFont(size=15, weight="bold"), command=self.start_dolphin_wrapper)
+        self.dolphin_launch_dolphin_button = customtkinter.CTkButton(self.dolphin_actions_frame, height=40, width=180, text="Launch Dolphin  ", image = self.play_image, font=customtkinter.CTkFont(size=15, weight="bold"), command=self.start_dolphin_wrapper)
         self.dolphin_launch_dolphin_button.grid(row=0, column=1, padx=30, pady=15, sticky="n")
 
         self.dolphin_global_data = customtkinter.StringVar(value="1")
@@ -195,7 +195,7 @@ class MainScreen(customtkinter.CTk):    # create class
         self.yuzu_actions_frame.grid(row=0, column=0, padx=40, pady=40)
         self.yuzu_actions_frame.grid_columnconfigure(3, weight=1)
         
-        self.yuzu_launch_yuzu_button = customtkinter.CTkButton(self.yuzu_actions_frame, height=40, image=self.play_image, text="Launch Yuzu  ", font=customtkinter.CTkFont(size=15, weight="bold"), command=self.start_yuzu_wrapper)
+        self.yuzu_launch_yuzu_button = customtkinter.CTkButton(self.yuzu_actions_frame, height=40, width=170, image=self.play_image, text="Launch Yuzu  ", font=customtkinter.CTkFont(size=15, weight="bold"), command=self.start_yuzu_wrapper)
         self.yuzu_launch_yuzu_button.grid(row=0, column=2, padx=30, pady=15, sticky="n")
 
         self.yuzu_global_data = customtkinter.StringVar(value="1")
@@ -832,7 +832,7 @@ class MainScreen(customtkinter.CTk):    # create class
         print("[CONSOLE] MainScreen.start_dolphin_wrapper [START]")
         if self.check_dolphin_installation():
             self.dolphin_is_running = True
-            self.dolphin_launch_dolphin_button.configure(state="disabled")
+            self.dolphin_launch_dolphin_button.configure(state="disabled", text="Launching...  ")
             self.dolphin_install_dolphin_button.configure(state="disabled")
             print("[CONSOLE] MainScreen.start_dolphin_wrapper: Start Dolphin Thread")
             Thread(target=self.start_dolphin).start()
@@ -846,12 +846,14 @@ class MainScreen(customtkinter.CTk):    # create class
             print("[CONSOLE] MainScreen.start_dolphin: Loading Data")
             self.copy_directory_with_progress((os.path.join(self.dolphin_settings_global_save_directory_variable.get(), os.getlogin())), self.dolphin_settings_user_directory_variable.get(), "Loading Dolphin Data", self.dolphin_log_frame)
         print("[CONSOLE] MainScreen.start_dolphin: Starting Dolphin...")
+        self.dolphin_launch_dolphin_button.configure(state="disabled", text="Launched!  ")
         run([os.path.join(self.dolphin_settings_install_directory_variable.get(),'Dolphin.exe')], capture_output = True)
         self.dolphin_is_running = False
         if self.dolphin_global_data.get() == "1":
+            self.dolphin_launch_dolphin_button.configure(state="disabled", text="Launch Dolphin  ")
             print("[CONSOLE] MainScreen.start_dolphin: Saving Data")
             self.copy_directory_with_progress(self.dolphin_settings_user_directory_variable.get(), (os.path.join(self.dolphin_settings_global_save_directory_variable.get(), os.getlogin())), "Saving Dolphin Data", self.dolphin_log_frame)
-        self.dolphin_launch_dolphin_button.configure(state="normal", text="Launch Dolphin  ", width=50)
+        self.dolphin_launch_dolphin_button.configure(state="normal", text="Launch Dolphin  ")
         self.dolphin_install_dolphin_button.configure(state="normal")
         print("[CONSOLE] MainScreen.start_dolphin [END]")
     def check_dolphin_installation(self):
@@ -982,6 +984,8 @@ class MainScreen(customtkinter.CTk):    # create class
             print("[CONSOLE] MainScreen.start_yuzu_wrapper [END]")
             return
         print("[CONSOLE] MainScreen.start_yuzu_wrapper: Starting yuzu thread [END]")
+        self.yuzu_install_yuzu_button.configure(state="disabled")
+        self.yuzu_launch_yuzu_button.configure(state="disabled", text="Launching...  ")
         Thread(target=self.start_yuzu).start()
     
     def start_yuzu(self):
@@ -1005,20 +1009,20 @@ class MainScreen(customtkinter.CTk):    # create class
                 self.install_missing_firmware_or_keys()
             
         self.yuzu_is_running = True
-        self.yuzu_launch_yuzu_button.configure(state="disabled", text="Launched!")
-        self.yuzu_install_yuzu_button.configure(state="disabled")
+        self.yuzu_launch_yuzu_button.configure(text="Launched!  ")
         print("[CONSOLE] MainScreen.start_yuzu: Running yuzu.exe")
         run([os.path.join(self.yuzu_settings_install_directory_variable.get(),'yuzu.exe')], capture_output = True)
         
         self.yuzu_is_running = False
         if self.yuzu_global_data.get() == "1":
             try:
+                self.yuzu_launch_yuzu_button.configure(state="disabled", text="Launch Yuzu  ")
                 print("[CONSOLE] MainScreen.start_yuzu: Saving Yuzu Data")
                 self.copy_directory_with_progress(self.yuzu_settings_user_directory_variable.get(), (os.path.join(self.yuzu_settings_global_save_directory_variable.get(), os.getlogin())), "Saving Yuzu Data", self.yuzu_log_frame)
             except Exception as error:
                 print(Fore.RED + f"[CONSOLE][ERROR] MainScreen.start_yuzu: {error}" + Style.RESET_ALL)
                 messagebox.showerror("Save Error", f"Unable to save your data\n\nFull Error: {error}")
-        self.yuzu_launch_yuzu_button.configure(state="normal", text="Launch")
+        self.yuzu_launch_yuzu_button.configure(state="normal", text="Launch Yuzu  ")
         self.yuzu_install_yuzu_button.configure(state="normal")
         print("[CONSOLE] MainScreen.start_yuzu [END]")
     
