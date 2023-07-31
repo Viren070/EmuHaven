@@ -9,7 +9,7 @@ from threading import Thread
 from time import perf_counter, sleep
 from tkinter import filedialog, messagebox, ttk
 from zipfile import ZipFile
-
+from colorama import Fore
 import customtkinter
 from PIL import Image
 
@@ -21,7 +21,7 @@ ERROR_INVALID_NAME = 123
 class MainScreen(customtkinter.CTk):    # create class 
     def __init__(self, opening_frames=['home', None]):
         start = perf_counter()
-        print("Initialising...", end="\r")
+        print("[CONSOLE] MainScreen.__init__: Initialising Object....")
         self.settings_unlocked = True if opening_frames[1] == 'appearance' else False   # unlock settings if opening frames is appearance as user has only changed colour theme
         super().__init__()
         self.just_opened = True
@@ -35,14 +35,16 @@ class MainScreen(customtkinter.CTk):    # create class
             messagebox.showerror("Image Error", "You are missing the image files. Please download the latest release from GitHub again and do not delete any folders.\n\nIf the GitHub repository is unavailable or you believe this was a mistake, contact the creator.")
             self.destroy()  # destroy app
             return
+        print("[CONSOLE] MainScreen.__init__: Creating widgets...")
         self.create_widgets()   # create widgets
+        print("[CONSOLE] MainScreen.__init__: Created widgets")
         self.select_frame_by_name(opening_frames[0])  # use opening frame in argument and set opening frames to them. 
         self.select_settings_frame_by_name(opening_frames[1])
         self.just_opened = False
         self.protocol("WM_DELETE_WINDOW", self.close_button_event)  # set function to be called when window is closed
         self.validate_optional_paths()
         Thread(target=self.delete_temp_folders).start()  # start new thread to delete temp folders. 
-        print(f"Initialised in {(perf_counter() - start):.2}s")
+        print(f"[CONSOLE] MainScreen.__init__: Initialised in {(perf_counter() - start):.2}s")
         self.mainloop()  # start mainloop that allows tkinter window to function and respond.
 
     def define_images(self):   # set images as attributes for later use
@@ -515,21 +517,26 @@ class MainScreen(customtkinter.CTk):    # create class
         ttk.Separator(self.appearance_settings_frame, orient='horizontal').grid(row=3, columnspan=4, sticky="ew")
     
     def change_colour_theme(self, theme, startup=False):
+        print(f"[CONSOLE] MainScreen.change_colour_theme: Changing colour theme to {theme} with startup as {startup}")
         if customtkinter.ThemeManager._currently_loaded_theme.replace("-"," ").title() == theme: # if current theme is the same as the proposed theme, return
+            print(f"[CONSOLE] MainScreen.change_colour_theme: Theme is already {theme}")
             return
         customtkinter.set_default_color_theme(theme.replace(" ","-").lower())  #set the theme to the proposed theme after converting to proper theme name
         if not startup: # if the colour theme is being changed in the settings page and not when loading from settings.json
             self.update_settings()   # update settings to reflect latest change in appearance settings
+        print(f"[CONSOLE] MainScreen.change_colour_theme: Theme changed to {theme}\n[CONSOLE] MainScreen.change_colour_theme: Destroying Current object") 
         self.destroy()   # destroy current window (because changing colour theme directly does not work)
         MainScreen(['settings','appearance'])  # create new window and open on the Appearance page 
         
     def change_appearance_mode(self, mode, startup=False):
+        print(f"[CONSOLE] MainScreen.change_appearance_mode: changing appearance mode to {mode} with startup as {startup}")
         customtkinter.set_appearance_mode(mode.lower()) # change appearance mode using customtkinters function 
         if not startup:
             self.update_settings()   # update settings.json if change was through settings menu
             
     def update_settings(self):
         # define settings by using variables
+        print("[CONSOLE] MainScreen.update_settings: Defining new settings")
         settings = { 
             "dolphin_settings": {
                 "Dolphin User Directory": self.dolphin_settings_dict["1"]['var'].get(),
@@ -556,25 +563,32 @@ class MainScreen(customtkinter.CTk):    # create class
         }
         # create settings.json at the correct path if it doesn't already exist
         if not(os.path.exists(self.settings_path)):
+            print("[CONSOLE] MainScreen.update_settings: Making folders for settings path")
             os.makedirs(self.settings_path) # makes the necessary folders 
         try:
             with open(self.settings_file, "w") as file:
+                print("[CONSOLE] MainScreen.update_settings: Writing settings to settings.json")
                 json.dump(settings, file)   # writes settings to settings.json
             self.load_settings()
         except Exception as error:
+            print(Fore.RED + f"[CONSOLE][ERROR] MainScreen.update_settings: {error}" + Fore.WHITE)
             messagebox.showerror("Error", error)  # show error if raised
       
     def load_settings(self):
+        print("[CONSOLE] MainScreen.load_settings [START]")
         if not os.path.exists(self.settings_file): 
             self.previous_settings_available = False
+            print("[CONSOLE] MainScreen.load_settings: No settings file found")
             return 
         self.previous_settings_available = True
         with open(self.settings_file, 'r') as file: # open settings.json as file
             try:
+                print("[CONSOLE] MainScreen.load_settings: Reading settings.json")
                 loaded_settings = json.load(file) # store dictionary in 'loaded_settings'
-            except json.decoder.JSONDecodeError:
+            except json.decoder.JSONDecodeError as error:
                 self.restore_default_dolphin_settings()   # if any error raised then restore the default settings. 
                 self.restore_default_yuzu_settings()
+                print(Fore.RED + f"[CONSOLE][ERROR] MainScreen.load_settings: {error}" + Fore.WHITE)
                 messagebox.showerror("Error", "Unable to load settings")
                 return
         # define indiviudal dictonaries for each emulator.
@@ -584,6 +598,7 @@ class MainScreen(customtkinter.CTk):    # create class
             setting_name = setting['name']      # get the name of the setting 
             previous_setting_value = dolphin_settings[setting_name]  # get the previous value of the setting from the dictonary using the name as a key
             if entry_id == "5" and "Temp\\_MEI" in previous_setting_value: # if Temp\\_MEI is in the previous setting value, then it means that it was from the -onefile exe and the path needs to be updated as it changes each time the app is opened
+                print(f"[CONSOLE] MainScreen.load_settings: Restoring {setting_name} to default as it uses old exe path")
                 self.restore_default_dolphin_settings(entry_id) # the default value will hold the new path 
                 continue # go to next setting
             setting['var'].set(previous_setting_value)  # set the variable value to previous_value 
@@ -593,12 +608,13 @@ class MainScreen(customtkinter.CTk):    # create class
             setting_name = setting['name']
             previous_setting_value = yuzu_settings[setting_name]
             if int(entry_id) >= 5 and "Temp\\_MEI" in previous_setting_value: # if Temp\\_MEI is in the previous setting value, then it means that it was from the -onefile exe and the path needs to be updated as it changes each time the app is opened
+                print(f"[CONSOLE] MainScreen.load_settings: Restoring {setting_name} to default as it uses old exe path")
                 self.restore_default_yuzu_settings(entry_id)
                 continue
             setting['var'].set(previous_setting_value)  # set the variable value to previous_value 
             setting['entry'].delete(0, 'end')   # set the value of the entry widget to the previous value 
             setting['entry'].insert(0, previous_setting_value)
-            
+        print("[CONSOLE] MainScreen.load_settings [END]")    
     def dolphin_button_event(self):
         self.select_frame_by_name("dolphin")
 
@@ -609,9 +625,8 @@ class MainScreen(customtkinter.CTk):    # create class
         self.select_frame_by_name("settings")
     
     def select_frame_by_name(self, name):
-        if self.just_opened and (self.dolphin_settings_changed() or self.yuzu_settings_changed):
-            pass
-        elif ( self.dolphin_settings_changed() or self.yuzu_settings_changed() ) and name != "settings":
+        if not self.just_opened and ( self.dolphin_settings_changed() or self.yuzu_settings_changed() ) and name != "settings":
+            print("[CONSOLE] MainScreen.select_frame_by_name: Settings changed")
             if messagebox.askyesno("Confirmation", "You have unsaved changes in the settings, leave anyways?"):
                 self.revert_settings()
             else:
@@ -622,6 +637,7 @@ class MainScreen(customtkinter.CTk):    # create class
             self.validate_password()
             return
         if name == "settings" and self.settings_unlocked:
+            print("[CONSOLE] MainScreen.select_frame_by_name: Settings Unlocked, showing settings frame")
             self.minsize(1100,500)
             self.settings_button.configure(fg_color=("gray75", "gray25"))
             self.settings_frame.grid(row=0, column=1, sticky="nsew")       
@@ -633,33 +649,40 @@ class MainScreen(customtkinter.CTk):    # create class
         self.yuzu_button.configure(fg_color=("gray75", "gray25") if name == "yuzu" else "transparent")
         
         if name == "dolphin":
+            print("[CONSOLE] MainScreen.select_frame_by_name: grid dolphin frame")
             self.dolphin_frame.grid(row=0, column=1, sticky="nsew")
         else:
             self.dolphin_frame.grid_forget()
             self.select_dolphin_frame_by_name(None)
         if name == "yuzu":
+            print("[CONSOLE] MainScreen.select_frame_by_name: grid yuzu frame")
             self.yuzu_frame.grid(row=0, column=1, sticky="nsew")
         else:
             self.yuzu_frame.grid_forget()
             self.select_yuzu_frame_by_name(None)
         
     def validate_password(self):
+        print("[CONSOLE] MainScreen.validate_password: creating password dialog")
         dialog = PasswordDialog(text="Enter password:", title="Settings Password")
         guess = dialog.get_input()
+        print(f"[CONSOLE] MainScreen.validate_password: received input of {guess}")
         if guess == "" or guess is None:
+            print(f"[CONSOLE] MainScreen.validate_password [END]")
             return
+        print(f"[CONSOLE] MainScreen.validate_password: Comparing hashes")
         if pbkdf2_hmac('sha256', guess.encode('utf-8'), bytes(b'GI\xaaK"\xcd`\x1b\x06\xc9\x18\x82\xc8c\xc5\xc9(\xa3\xc3\x93\x9e\xd2\xde\x93\\\x85\xd4\xb5\x1f\xcc\xac\x92'), 100000, dklen=128 ) == bytes(b'\xda\xea,d\x865\xaeS\xb1\\!~\x1c\xf7X\xef\xdfS\x94\x07i\xb8\x83<\x17h\x11Fc\xfd\xbdE\xf8\x044\xd6\xf6\x93m\xc9\xd6`{\xd9.R\xa3\xfe\x86\x00\x90&_\x12=\xdf\x99\xae\xe5\x92w\xdd\xbcwf]\xf41\x94\xa4q\x81P\xfd\x9dv\x9a\xb5\xfb\x13N\xe3"\x00\xe20\xc3\xf0\x01:\x0c\x18\x1d\xb1\x9b\xbdi\xf8\x02\t\xc5\t\xc50n(T\xff\x8b\xb1!\xf1\xba2\xe2y\x94\x89\xae]\x1f\xede\x9c=\xday`'):
+            print(f"[CONSOLE] MainScreen.validate_password: Correct password given")
             self.settings_unlocked = True
             self.select_frame_by_name("settings")
             self.minsize(1100,500)
             return
         else:
+            print(f"[CONSOLE] MainScreen.validate_password: Incorrect password given")
             messagebox.showerror("Incorrect", "That is the incorrect password, to make changes to the settings you require a password")
             return 
         
     def dolphin_settings_button_event(self):
         self.select_settings_frame_by_name("dolphin")
-    
     def yuzu_settings_button_event(self):
         self.select_settings_frame_by_name("yuzu")
     def appearance_settings_button_event(self):
@@ -695,6 +718,7 @@ class MainScreen(customtkinter.CTk):    # create class
         else:
             self.appearance_settings_frame.grid_forget()
     def lock_settings(self):
+        print("[CONSOLE] MainScreen.lock_settings: Locking settings")
         self.settings_unlocked = False
         self.select_frame_by_name("None")
     
@@ -742,9 +766,11 @@ class MainScreen(customtkinter.CTk):    # create class
 
 
     def install_dolphin_wrapper(self):
+        print("[CONSOLE] MainScreen.install_dolphin_wrapper")
         if self.check_dolphin_installation() and not messagebox.askyesno("Confirmation", "Dolphin seems to already be installed, install anyways?"):
             return 
         if not self.dolphin_installer_available:
+            print(Fore.RED + "[CONSOLE][ERROR] MainScreen.install_dolphin_wrapper: path to zip archive of dolphin has not been set" + Fore.WHITE)
             messagebox.showerror("Error", "The path to the Dolphin ZIP has not been set or is invalid, please check the settings")
             return
         
@@ -752,32 +778,34 @@ class MainScreen(customtkinter.CTk):    # create class
         
    
     def extract_dolphin_install(self): 
+        print("[CONSOLE] MainScreen.extract_dolphin_install: Extracting Dolphin")
         self.dolphin_install_dolphin_button.configure(state="disabled")
         self.dolphin_delete_dolphin_button.configure(state="disabled")
         self.dolphin_launch_dolphin_button.configure(state="disabled")
-        self.dolphin_install_frame = InstallStatus(self.dolphin_log_frame, "Extracting Dolphin", self)
-        self.dolphin_install_frame.skip_to_installation()
-        self.dolphin_install_frame.grid(row=0, column=0, sticky="nsew")
+        dolphin_install_frame = InstallStatus(self.dolphin_log_frame, "Extracting Dolphin", self)
+        dolphin_install_frame.skip_to_installation()
+        dolphin_install_frame.grid(row=0, column=0, sticky="nsew")
         with ZipFile(self.dolphin_settings_dolphin_zip_directory_variable.get(), 'r') as archive:
             total_files = len(archive.namelist())
             extracted_files = 0
             
             for file in archive.namelist():
-                
                 archive.extract(file, self.dolphin_settings_install_directory_variable.get())
                 extracted_files += 1
                 # Calculate and display progress
-                self.dolphin_install_frame.update_extraction_progress(extracted_files / total_files) 
-                
+                dolphin_install_frame.update_extraction_progress(extracted_files / total_files) 
+        print("[CONSOLE] MainScreen.extract_dolphin_install: Finished extracting dolphin")        
         messagebox.showinfo("Done", f"Installed Dolphin to {self.dolphin_settings_install_directory_variable.get()}")
-        self.dolphin_install_frame.destroy()
+        dolphin_install_frame.destroy()
         self.dolphin_install_dolphin_button.configure(state="normal")
         self.dolphin_delete_dolphin_button.configure(state="normal")
         self.dolphin_launch_dolphin_button.configure(state="normal")
         self.check_dolphin_installation()
     
     def delete_dolphin_button_event(self):
+        print("[CONSOLE] MainScreen.delete_dolphin_button_event")
         if self.dolphin_is_running:
+            print(Fore.RED+"[CONSOLE][ERROR] MainScreen.delete_dolphin_button_event: Dolphin is running, cannot delete"+Fore.WHITE)
             messagebox.showerror("Error", "Please close Dolphin before trying to delete it. If dolphin is not open, try restarting the application")
             return
         if messagebox.askyesno("Confirmation", "Are you sure you wish to delete the Dolphin Installation. This will not delete your user data."):
@@ -785,68 +813,92 @@ class MainScreen(customtkinter.CTk):    # create class
             Thread(target=self.delete_dolphin).start()
         
     def delete_dolphin(self):
+        print("[CONSOLE] MainScreen.delete_dolphin: Started")
         try:
+            print(f"[CONSOLE] MainScreen.delete_dolphin: Deleting from {self.dolphin_settings_install_directory_variable.get()}")
             shutil.rmtree(self.dolphin_settings_install_directory_variable.get())
             self.dolphin_delete_dolphin_button.configure(state="normal", text="Delete")
-        except FileNotFoundError:
+        except FileNotFoundError as error:
+            print(Fore.RED+"[CONSOLE][ERROR] MainScreen.delete_dolphin: {error}"+Fore.WHITE)
             messagebox.showinfo("Dolphin", "Installation of dolphin not found")
             self.dolphin_delete_dolphin_button.configure(state="normal", text="Delete")
             return
         except Exception as e:
+            print(Fore.RED+"[CONSOLE][ERROR] MainScreen.delete_dolphin: {e}"+Fore.WHITE)
             messagebox.showerror("Error", e)
             self.dolphin_delete_dolphin_button.configure(state="normal", text="Delete")
             return
+        print("[CONSOLE] MainScreen.delete_dolphin [END]")
         messagebox.showinfo("Success", "The Dolphin installation was successfully was removed")
         
     def start_dolphin_wrapper(self):
+        print("[CONSOLE] MainScreen.start_dolphin_wrapper [START]")
         if self.check_dolphin_installation():
             self.dolphin_is_running = True
             self.dolphin_launch_dolphin_button.configure(state="disabled")
             self.dolphin_install_dolphin_button.configure(state="disabled")
-            
+            print("[CONSOLE] MainScreen.start_dolphin_wrapper: Start Dolphin Thread")
             Thread(target=self.start_dolphin).start()
         else:
+            print(Fore.RED+"[CONSOLE][ERROR] MainScreen.start_dolphin_wrapper: No dolphin installation found"+Fore.WHITE)
             messagebox.showerror("Error","A dolphin installation was not found. Please press Install Dolphin below to begin.")
-    
+        print("[CONSOLE] MainScreen.start_dolphin_wrapper [END]")
     def start_dolphin(self):
+        print("[CONSOLE] MainScreen.start_dolphin [START]")
         if self.dolphin_global_data.get() == "1":
+            print("[CONSOLE] MainScreen.start_dolphin: Loading Data")
             self.copy_directory_with_progress((os.path.join(self.dolphin_settings_global_save_directory_variable.get(), os.getlogin())), self.dolphin_settings_user_directory_variable.get(), "Loading Dolphin Data", self.dolphin_log_frame)
+        print("[CONSOLE] MainScreen.start_dolphin: Starting Dolphin...")
         run([os.path.join(self.dolphin_settings_install_directory_variable.get(),'Dolphin.exe')], capture_output = True)
         self.dolphin_is_running = False
         if self.dolphin_global_data.get() == "1":
+            print("[CONSOLE] MainScreen.start_dolphin: Saving Data")
             self.copy_directory_with_progress(self.dolphin_settings_user_directory_variable.get(), (os.path.join(self.dolphin_settings_global_save_directory_variable.get(), os.getlogin())), "Saving Dolphin Data", self.dolphin_log_frame)
             messagebox.showinfo("Complete", "Finished saving Dolphin user data.")
         self.dolphin_launch_dolphin_button.configure(state="normal", text="Launch Dolphin  ", width=50)
         self.dolphin_install_dolphin_button.configure(state="normal")
-    
+        print("[CONSOLE] MainScreen.start_dolphin [END]")
     def check_dolphin_installation(self):
+        print("[CONSOLE] MainScreen.check_dolphin_installation [START]")
         default_dolphin_location = os.path.join(self.dolphin_settings_install_directory_variable.get(),'Dolphin.exe')
         if os.path.exists(default_dolphin_location):
+            print("[CONSOLE] MainScreen.check_dolphin_installation: Returning True")
             self.dolphin_installed = True
+            print("[CONSOLE] MainScreen.check_dolphin_installation [END]")
             return True
         else:
+            print("[CONSOLE] MainScreen.check_dolphin_installation: Returning False")
             self.dolphin_installed = False
+            print("[CONSOLE] MainScreen.check_dolphin_installation [END]")
             return False
     
     def check_yuzu_installation(self):
-        
+        print("[CONSOLE] MainScreen.check_yuzu_installation [START]")
         self.check_yuzu_firmware_and_keys()
         if os.path.exists(os.path.join(self.yuzu_settings_install_directory_variable.get(),'yuzu.exe')):
+            print("[CONSOLE] MainScreen.check_yuzu_installation: Returning True")
             self.yuzu_installed = True
+            print("[CONSOLE] MainScreen.check_yuzu_installation [END]")
             return True
         else:
+            print("[CONSOLE] MainScreen.check_yuzu_installation: Returning False")
             self.yuzu_installed = False
+            print("[CONSOLE] MainScreen.check_yuzu_installation [END]")
             return False
     
     def run_yuzu_install_wrapper(self):
+        print("[CONSOLE] MainScreen.run_yuzu_install_wrapper [START]")
         if not self.yuzu_installer_available:
+            print(Fore.RED+f"[CONSOLE][ERROR] MainScreen.start_yuzu_install_wrapper: Yuzu installer not found at {self.yuzu_settings_installer_path_variable.get()}"+Fore.WHITE)
             messagebox.showerror("Error", "The path to the yuzu installer has not been set in the settings or is invalid, please check the settings page.")
             return 
         self.yuzu_install_yuzu_button.configure(state="disabled")
         self.yuzu_launch_yuzu_button.configure(state="disabled")
+        print("[CONSOLE] MainScreen.run_yuzu_install_wrapper: Start yuzu installer thread.")
         Thread(target=self.run_yuzu_install).start()
-        
+        print("[CONSOLE] MainScreen.run_yuzu_install_wrapper [END]")
     def run_yuzu_install(self):
+        print("[CONSOLE] MainScreen.run_yuzu_install: Creating copy of yuzu_install.exe [START]")
         temp_dir = os.path.join(os.getenv("TEMP"),"yuzu-installer")
         os.makedirs(temp_dir, exist_ok=True)
         path_to_installer = self.yuzu_settings_installer_path_variable.get()
@@ -854,36 +906,46 @@ class MainScreen(customtkinter.CTk):    # create class
         try:
             shutil.copy(path_to_installer, target_installer)
         except Exception as error:
+            print(Fore.RED+ f"[CONSOLE] MainScreen.run_yuzu_install: Error while copying - {error}"+Fore.WHITE)
             messagebox.showerror("Copy Error", f"Unable to make a copy of yuzu_install.exe\n\n{error}")
+        print("[CONSOLE] MainScreen.run_yuzu_install: Running yuzu_install.exe")
         run([target_installer], capture_output = True)
         sleep(0.3) # trying to delete instantly causes PermissionError
         try:
             shutil.rmtree(temp_dir)
         except PermissionError as error:
+            print(Fore.RED+ f"[CONSOLE] MainScreen.run_yuzu_install: Error while deleting temp dir - {error}"+Fore.WHITE)
             messagebox.showerror("Delete Error", "Unable to delete temporary yuzu installer directory.")
+        except Exception as error:
+            print(Fore.RED+ f"[CONSOLE] MainScreen.run_yuzu_install: Error while deleting temp dir - {error}"+Fore.WHITE)
         self.yuzu_install_yuzu_button.configure(state="normal")
         self.yuzu_launch_yuzu_button.configure(state="normal")
-           
+        print("[CONSOLE] MainScreen.run_yuzu_install [END]")
     def check_yuzu_firmware_and_keys(self):
+        print("[CONSOLE] MainScreen.check_yuzu_firmware_and_keys [START]")
         to_return = True
         if os.path.exists( os.path.join(self.yuzu_settings_user_directory_variable.get(), "keys\\prod.keys")):
+            print("[CONSOLE] MainScreen.check_yuzu_firmware_and_keys: Found keys")
             self.yuzu_keys_installed = True
         else:
+            print(f"[CONSOLE] MainScreen.check_yuzu_firmware_and_keys: No prod.keys found at {self.yuzu_settings_user_directory_variable.get()}")
             self.yuzu_keys_installed = False
             to_return = False
         if os.path.exists ( os.path.join(self.yuzu_settings_user_directory_variable.get(), "nand\\system\\Contents\\registered")) and os.listdir(os.path.join(self.yuzu_settings_user_directory_variable.get(), "nand\\system\\Contents\\registered")):
+            print("[CONSOLE] MainScreen.check_yuzu_firmware_and_keys: Found firmware files")
             self.firmware_installed = True
         else:
+            print(f"[CONSOLE] MainScreen.check_yuzu_firmware_and_keys: No Firmware files found at {self.yuzu_settings_user_directory_variable.get()}")
             self.firmware_installed = False
             to_return = False
-        if to_return:
-            return True
-        else:
-            return False
+        print(f"[CONSOLE] MainScreen.check_yuzu_firmware_and_keys: returning={to_return} [END]")
+        return to_return
     
     def install_missing_firmware_or_keys(self):
+        print("[CONSOLE] MainScreen.install_missing_firmware_or_keys [START]")
         self.check_yuzu_firmware_and_keys()
         if not self.yuzu_keys_installed:
+            print("[CONSOLE] MainScreen.install_missing_firmware_or_keys: Installing Keys")
             status_frame = InstallStatus(
             self.yuzu_log_frame, (os.path.basename(self.yuzu_settings_key_path_variable.get())), self)
             status_frame.grid(row=0, pady=10, sticky="EW")
@@ -891,67 +953,86 @@ class MainScreen(customtkinter.CTk):    # create class
             try:
                 self.yuzu_firmware.start_key_installation_custom(self.yuzu_settings_key_path_variable.get(), status_frame)
             except Exception as error:
+                print(Fore.RED + f"[CONSOLE][ERROR] MainScreen.install_missing_firmware_or_keys: During keys - {error}" + Fore.WHITE)
                 messagebox.showerror("Unknown Error", f"An unknown error occured during key installation \n\n {error}")
                 status_frame.destroy()
                 return False
             status_frame.destroy()
         if not self.firmware_installed:
+            print("[CONSOLE] MainScreen.install_missing_firmware_or_keys: Installing Firmware")
             status_frame = InstallStatus(self.yuzu_log_frame, (os.path.basename(self.yuzu_settings_firmware_path_variable.get())), self)
             status_frame.grid(row=0, pady=10, sticky="EW")
             status_frame.skip_to_installation()
             try:
                 self.yuzu_firmware.start_firmware_installation_from_custom_zip(self.yuzu_settings_firmware_path_variable.get(), status_frame)
             except Exception as error:
+                print(Fore.RED + f"[CONSOLE][ERROR] MainScreen.install_missing_firmware_or_keys: During firmware - {error}" + Fore.WHITE)
                 messagebox.showerror("Unknown Error", f"An unknown error occured during firmware installation \n\n {error}")
                 status_frame.destroy()
                 return False
             status_frame.destroy()
         if self.check_yuzu_firmware_and_keys():
-            
+            print("[CONSOLE] MainScreen.install_missing_firmware_or_keys: Returning True [END]")
             return True
         else:
+            print(Fore.RED + f"[CONSOLE][ERROR] MainScreen.install_missing_firmware_or_keys: Still missing firmware/keys after installing" + Fore.WHITE)
             messagebox.showerror("Install Error", "Unable to install keys or firmware. Try using the SwitchEmuTool to manually install through the options Menu")
-    
+            
     def start_yuzu_wrapper(self):
+        print("[CONSOLE] MainScreen.start_yuzu_wrapper [START]")
         if not self.check_yuzu_installation():
-            messagebox.showerror("Error","A yuzu installation was not found. Please press Install Yuzu below to begin.")
+            print(Fore.RED + f"[CONSOLE][ERROR] MainScreen.start_yuzu_wrapper: no yuzu_installation found" + Fore.WHITE)
+            messagebox.showerror("Error","A yuzu installation was not found. Please run the yuzu installer.")
+            print("[CONSOLE] MainScreen.start_yuzu_wrapper [END]")
             return
+        print("[CONSOLE] MainScreen.start_yuzu_wrapper: Starting yuzu thread [END]")
         Thread(target=self.start_yuzu).start()
     
     def start_yuzu(self):
+        print("[CONSOLE] MainScreen.start_yuzu [START]")
         if self.yuzu_global_data.get() == "1":
             try:
+                print("[CONSOLE] MainScreen.start_yuzu: Loading Data")
                 self.copy_directory_with_progress((os.path.join(self.yuzu_settings_global_save_directory_variable.get(), os.getlogin())), self.yuzu_settings_user_directory_variable.get(), "Loading Yuzu Data", self.yuzu_log_frame)
             except Exception as error:
+                print(Fore.RED + f"[CONSOLE][ERROR] MainScreen.start_yuzu: {error}" + Fore.WHITE)
                 if not messagebox.askyesno("Error", f"Unable to load your data, would you like to continue\n\n Full Error: {error}"):
+                    print("[CONSOLE] MainScreen.start_yuzu [END]")
                     return 
                     
         if not self.check_yuzu_firmware_and_keys():
             if messagebox.askyesno("Error","You are missing your keys or firmware. Without these files, the games will not run. Would you like to install the missing files?"):
                 if not self.yuzu_automatic_firmwarekeys_install:
                     messagebox.showerror("Error", "The paths to the firmware and key archives have not been set or are invalid, please check the settings page.")
+                    print("[CONSOLE] MainScreen.start_yuzu [END]")
                     return
                 self.install_missing_firmware_or_keys()
             
         self.yuzu_is_running = True
         self.yuzu_launch_yuzu_button.configure(state="disabled", text="Launched!")
         self.yuzu_install_yuzu_button.configure(state="disabled")
+        print("[CONSOLE] MainScreen.start_yuzu: Running yuzu.exe")
         run([os.path.join(self.yuzu_settings_install_directory_variable.get(),'yuzu.exe')], capture_output = True)
         
         self.yuzu_is_running = False
         if self.yuzu_global_data.get() == "1":
             try:
+                print("[CONSOLE] MainScreen.start_yuzu: Saving Yuzu Data")
                 self.copy_directory_with_progress(self.yuzu_settings_user_directory_variable.get(), (os.path.join(self.yuzu_settings_global_save_directory_variable.get(), os.getlogin())), "Saving Yuzu Data", self.yuzu_log_frame)
                 messagebox.showinfo("Complete","Finished saving yuzu data.")
             except Exception as error:
+                print(Fore.RED + f"[CONSOLE][ERROR] MainScreen.start_yuzu: {error}" + Fore.WHITE)
                 messagebox.showerror("Save Error", f"Unable to save your data\n\nFull Error: {error}")
         self.yuzu_launch_yuzu_button.configure(state="normal", text="Launch")
         self.yuzu_install_yuzu_button.configure(state="normal")
-    
+        print("[CONSOLE] MainScreen.start_yuzu [END]")
     
     def copy_directory_with_progress(self, source_dir, target_dir, title, log_frame):
+        print(f"[CONSOLE] MainScreen.copy_directory_with_progress [START]")
         if not os.path.exists(source_dir):
+            print(Fore.RED+f"[CONSOLE][ERROR] MainScreen.copy_directory_with_progress: {source_dir} does not exist"+Fore.WHITE)
             messagebox.showerror("Path Error", f"Path does not exist: {source_dir}")
+            print(f"[CONSOLE] MainScreen.copy_directory_with_progress [END]")
             return
         progress_bar = InstallStatus(log_frame, title, self)
         progress_bar.skip_to_installation()
@@ -968,16 +1049,28 @@ class MainScreen(customtkinter.CTk):    # create class
         # Create the target directory if it doesn't exist
         if not os.path.exists(target_dir):
             os.makedirs(target_dir)
+            
+        def find_common_suffix(self, file_path, target_file_path):
+            file_parts = file_path.split(os.sep)
+            target_parts = target_file_path.split(os.sep)
+
+            common_suffix = []
+            while file_parts and target_parts and file_parts[-1] == target_parts[-1]:
+                common_suffix.insert(0, file_parts.pop())
+                target_parts.pop()
+
+            return os.path.join(*common_suffix)
 
         # Copy files from source to target directory and display progress
         copied_files = 0
+        print(f"[CONSOLE] MainScreen.copy_directory_with_progress: Copying {source_dir} to {target_dir}")
         for file in all_files:
             
             
             target_file = os.path.join(target_dir, os.path.relpath(file, source_dir))
             target_dirname = os.path.dirname(target_file)
             
-            progress_bar.install_status_label.configure(text=self.find_common_suffix(file, target_file))
+            progress_bar.install_status_label.configure(text=find_common_suffix(file, target_file))
             # Create the necessary directories in the target if they don't exist
             if not os.path.exists(target_dirname):
                 os.makedirs(target_dirname)
@@ -989,21 +1082,14 @@ class MainScreen(customtkinter.CTk):    # create class
             progress = (copied_files / total_files) 
             progress_bar.update_extraction_progress(progress)
         progress_bar.destroy()
+        print(f"[CONSOLE] MainScreen.copy_directory_with_progress [END]")
+    
         
-    
-    def find_common_suffix(self, file_path, target_file_path):
-        file_parts = file_path.split(os.sep)
-        target_parts = target_file_path.split(os.sep)
-
-        common_suffix = []
-        while file_parts and target_parts and file_parts[-1] == target_parts[-1]:
-            common_suffix.insert(0, file_parts.pop())
-            target_parts.pop()
-
-        return os.path.join(*common_suffix)
-    
+        
     def export_yuzu_data(self):
+        
         mode = self.yuzu_export_optionmenu.get()
+        print(f"[CONSOLE] MainScreen.export_yuzu_data, mode={mode} [START]")
         user_directory = self.yuzu_settings_user_directory_variable.get()
         export_directory = self.yuzu_settings_export_directory_variable.get()
         users_global_save_directory = os.path.join(export_directory, os.getlogin())
@@ -1011,6 +1097,7 @@ class MainScreen(customtkinter.CTk):    # create class
         
         if not os.path.exists(user_directory):
             messagebox.showerror("Missing Folder", "No yuzu data on local drive found")
+            print(Fore.RED+f"[CONSOLE][ERROR] MainScreen.export_yuzu_data:mode={mode}: {user_directory} does not exist [END]"+Fore.WHITE)
             return  # Handle the case when the user directory doesn't exist.
 
         if mode == "All Data":
@@ -1018,24 +1105,28 @@ class MainScreen(customtkinter.CTk):    # create class
         elif mode == "Save Data":
             save_dir = os.path.join(user_directory, 'nand', 'user', 'save')
             self.start_copy_thread(save_dir, os.path.join(users_export_directory, 'nand', 'user', 'save'), "Exporting Yuzu Save Data", self.yuzu_data_log)
-
+        print(f"[CONSOLE] MainScreen.export_yuzu_data: mode={mode} [END]")
     def import_yuzu_data(self):
         mode = self.yuzu_import_optionmenu.get()
+        print(f"[CONSOLE] MainScreen.import_yuzu_data: mode={mode} [START]")
         export_directory = self.yuzu_settings_export_directory_variable.get()
         user_directory = self.yuzu_settings_user_directory_variable.get()
         users_export_directory = os.path.join(export_directory, os.getlogin())
         
         if not os.path.exists(users_export_directory):
             messagebox.showerror("Missing Folder", "No yuzu data associated with your username found")
+            print(Fore.RED+f"[CONSOLE][ERROR] MainScreen.import_yuzu_data:mode={mode}: {users_export_directory} does not exist [END]"+Fore.WHITE)
             return
         if mode == "All Data":
             self.start_copy_thread(users_export_directory, user_directory, "Import All Yuzu Data", self.yuzu_data_log)
         elif mode == "Save Data":
             save_dir = os.path.join(users_export_directory, 'nand', 'user', 'save')
             self.start_copy_thread(save_dir, os.path.join(user_directory, 'nand', 'user', 'save'), "Importing Yuzu Save Data", self.yuzu_data_log)
-
+        print(f"[CONSOLE] MainScreen.import_yuzu_data: mode={mode} [END]")
     def delete_yuzu_data(self):
+        print("[CONSOLE] MainScreen.delete_yuzu_data [START]")
         if not messagebox.askyesno("Confirmation", "This will delete the data from Yuzu's directory and from the global saves directory. This action cannot be undone, are you sure you wish to continue?"):
+            print("[CONSOLE] MainScreen.delete_yuzu_data [END]")
             return
 
         mode = self.yuzu_delete_optionmenu.get()
@@ -1048,9 +1139,12 @@ class MainScreen(customtkinter.CTk):    # create class
         users_export_directory = os.path.join(export_directory, os.getlogin())
         
         def delete_directory(directory):
+            print(f"[CONSOLE] MainScreen.delete_yuzu_data.delete_directory: directory={directory} [START]")
             if os.path.exists(directory):
                 shutil.rmtree(directory)
+                print(f"[CONSOLE] MainScreen.delete_yuzu_data.delete_directory: Deleted Directory. [END]")
                 return True
+            print(f"[CONSOLE] MainScreen.delete_yuzu_data.delete_directory: Nothing Deleted [END]")
             return False
 
         if mode == "All Data":
@@ -1070,29 +1164,32 @@ class MainScreen(customtkinter.CTk):    # create class
             messagebox.showinfo("Delete result", result)
         else:
             messagebox.showinfo("Delete result", "Nothing was deleted.")
+        print("[CONSOLE] MainScreen.delete_yuzu_data [END]")
     
     def export_dolphin_data(self):
         mode = self.dolphin_export_optionmenu.get()
+        print(f"[CONSOLE] MainScreen.export_dolphin_data: mode={mode} [START]")
         user_directory = self.dolphin_settings_user_directory_variable.get()
         export_directory = self.dolphin_settings_export_directory_variable.get()
-        users_global_save_directory = os.path.join(export_directory, os.getlogin())
         users_export_directory = os.path.join(export_directory, os.getlogin())
         
         if not os.path.exists(user_directory):
             messagebox.showerror("Missing Folder", "No dolphin data on local drive found")
+            print(Fore.RED+f"[CONSOLE][ERROR] MainScreen.export_dolphin_data:mode={mode}: {user_directory} does not exist [END]"+Fore.WHITE)
             return  # Handle the case when the user directory doesn't exist.
         if mode == "All Data":
             self.start_copy_thread(user_directory, users_export_directory, "Exporting All Dolphin Data", self.dolphin_data_log)
-            
+        print(f"[CONSOLE] MainScreen.export_dolphin_data: mode={mode} [END]")    
     def import_dolphin_data(self):
         mode = self.dolphin_export_optionmenu.get()
+        print(f"[CONSOLE] MainScreen.import_dolphin_data: mode={mode} [START]")
         user_directory = self.dolphin_settings_user_directory_variable.get()
         export_directory = self.dolphin_settings_export_directory_variable.get()
-        users_global_save_directory = os.path.join(export_directory, os.getlogin())
         users_export_directory = os.path.join(export_directory, os.getlogin())
         
         if not os.path.exists(users_export_directory):
             messagebox.showerror("Missing Folder", "No dolphin data associated with your username was found")
+            print(Fore.RED+f"[CONSOLE][ERROR] MainScreen.import_dolphin_data:mode={mode}: {users_export_directory} does not exist [END]"+Fore.WHITE)
             return  # Handle the case when the user directory doesn't exist.
         if mode == "All Data":
             self.start_copy_thread(users_export_directory, user_directory, "Importing All Dolphin Data", self.dolphin_data_log)
@@ -1108,9 +1205,12 @@ class MainScreen(customtkinter.CTk):    # create class
         users_export_directory = os.path.join(export_directory, os.getlogin())
         
         def delete_directory(directory):
+            print(f"[CONSOLE] MainScreen.delete_dolphin_data.delete_directory: directory={directory} [START]")
             if os.path.exists(directory):
                 shutil.rmtree(directory)
+                print(f"[CONSOLE] MainScreen.delete_dolphin_data.delete_directory: Deleted directory. [END]")
                 return True
+            print(f"[CONSOLE] MainScreen.delete_dolphin_data.delete_directory: Nothing Deleted [END]")
             return False
         if mode == "All Data":
             result += f"Data Deleted from {user_directory}\n" if delete_directory(user_directory) else ""
@@ -1121,33 +1221,38 @@ class MainScreen(customtkinter.CTk):    # create class
             messagebox.showinfo("Delete result", result)
         else:
             messagebox.showinfo("Delete result", "Nothing was deleted.")
+        print("[CONSOLE] MainScreen.delete_dolphin_data [END]")
     def start_copy_thread(self, *args):
         Thread(target=self.copy_directory_with_progress, args=args).start()
     def update_dolphin_setting_with_explorer(self, entry_widget):
-        
-        entry_id = self.find_dolphin_entry_id_by_entry_widget(entry_widget)
+        def find_dolphin_entry_id_by_entry_widget(entry_widget):
+            for entry_id, settings in self.dolphin_settings_dict.items():
+                if settings["entry"] == entry_widget:
+                    return entry_id
+
+            # If the entry widget is not found in the dictionary, return None or any other value to indicate not found.
+            return None
+        entry_id = find_dolphin_entry_id_by_entry_widget(entry_widget)
+        print(f"[CONSOLE] MainScreen.update_dolphin_setting_with_explorer: Setting id {entry_id} [START]")
         if entry_id == '5':
             dolphin_zip = filedialog.askopenfilename(initialfile=self.dolphin_settings_dict[entry_id]['var'].get(), filetypes=[("ZIP Archive of Dolphin", "*zip")])
             if dolphin_zip is None or dolphin_zip == "":
+                print(f"[CONSOLE] MainScreen.update_dolphin_setting_with_explorer: Setting id {entry_id} Not updated as no input was given [END]")
                 return 
             entry_widget.delete(0, 'end')
             entry_widget.insert(0, dolphin_zip)
         else:
             directory = filedialog.askdirectory(initialdir = self.dolphin_settings_dict[entry_id]['var'].get())
             if directory is None or directory == "":
+                print(f"[CONSOLE] MainScreen.update_dolphin_setting_with_explorer: Setting id {entry_id} Not updated as no input was given [END]")
                 return 
             entry_widget.delete(0, 'end')
             entry_widget.insert(0, directory)
+        print("[CONSOLE] MainScreen.update_dolphin_setting_with_explorer [END]")
         
-    def find_dolphin_entry_id_by_entry_widget(self, entry_widget):
-        for entry_id, settings in self.dolphin_settings_dict.items():
-            if settings["entry"] == entry_widget:
-                return entry_id
-
-        # If the entry widget is not found in the dictionary, return None or any other value to indicate not found.
-        return None
             
     def apply_dolphin_settings(self):
+        print("[CONSOLE] MainScreen.apply_dolphin_settings [START]")
         errors = ""
         for entry_id, settings in self.dolphin_settings_dict.items():
             entry_widget = settings["entry"]
@@ -1174,8 +1279,9 @@ class MainScreen(customtkinter.CTk):    # create class
         if errors != "": messagebox.showerror("Incorrect Paths", errors)
         self.validate_optional_paths()
         self.update_settings()
-    
+        print("[CONSOLE] MainScreen.apply_dolphin_settings [END]")
     def restore_default_dolphin_settings(self, entry_id=None):
+        print(f"[CONSOLE] MainScreen.restore_default_dolphin_settings: entry_id={entry_id} [START]")
         if entry_id:
             # Restore the specific setting with the provided entry_id
             if entry_id in self.dolphin_settings_dict:
@@ -1198,40 +1304,47 @@ class MainScreen(customtkinter.CTk):    # create class
                 entry_widget.insert(0, default_value)  # Set the default value to the entry widget
                 var.set(default_value)  # Update the associated StringVar variable with the default value
 
-    
+        print(f"[CONSOLE] MainScreen.restore_default_dolphin_settings: entry_id={entry_id} [END]")
         
         
     def update_yuzu_setting_with_explorer(self, entry_widget):
         
-        entry_id = self.find_yuzu_entry_id_by_entry_widget(entry_widget)
+        
+        def find_yuzu_entry_id_by_entry_widget(entry_widget):
+            for entry_id, settings in self.yuzu_settings_dict.items():
+                if settings["entry"] == entry_widget:
+                    return entry_id
+
+            # If the entry widget is not found in the dictionary, return None or any other value to indicate not found.
+            return None
+        entry_id = find_yuzu_entry_id_by_entry_widget(entry_widget)
+        print(f"[CONSOLE] MainScreen.update_yuzu_settings_with_explorer: entry_id={entry_id} [START]")
         if entry_id == '5':
             yuzu_zip = filedialog.askopenfilename(initialfile=self.yuzu_settings_dict[entry_id]['var'].get(), filetypes=[("yuzu-install.exe", "*exe")])
             if yuzu_zip is None or yuzu_zip == "":
+                print(f"[CONSOLE] MainScreen.update_yuzu_settings_with_explorer: entry_id={entry_id} Not updated as input empty [END]")
                 return 
             entry_widget.delete(0, 'end')
             entry_widget.insert(0, yuzu_zip)
         elif int(entry_id) > 5:
             zip_archive = filedialog.askopenfilename(initialfile=self.yuzu_settings_dict[entry_id]['var'].get(), filetypes=[("ZIP", "*zip")])
             if zip_archive is None or zip_archive == "":
+                print(f"[CONSOLE] MainScreen.update_yuzu_settings_with_explorer: entry_id={entry_id} Not updated as input empty [END]")
                 return 
             entry_widget.delete(0, 'end')
             entry_widget.insert(0, zip_archive)
         else:
             directory = filedialog.askdirectory(initialdir=self.yuzu_settings_dict[entry_id]['var'].get())
             if directory is None or directory == "":
+                print(f"[CONSOLE] MainScreen.update_yuzu_settings_with_explorer: entry_id={entry_id} Not updated as input empty [END]")
                 return 
             entry_widget.delete(0, 'end')
             entry_widget.insert(0, directory)
-        
-    def find_yuzu_entry_id_by_entry_widget(self, entry_widget):
-        for entry_id, settings in self.yuzu_settings_dict.items():
-            if settings["entry"] == entry_widget:
-                return entry_id
-
-        # If the entry widget is not found in the dictionary, return None or any other value to indicate not found.
-        return None
+        print(f"[CONSOLE] MainScreen.update_yuzu_settings_with_explorer: entry_id={entry_id} [END]")
+    
             
     def apply_yuzu_settings(self):
+        print("[CONSOLE] MainScreen.apply_yuzu_settings [START]")
         errors = ""
         for entry_id, settings in self.yuzu_settings_dict.items():
             entry_widget = settings["entry"]
@@ -1281,8 +1394,9 @@ class MainScreen(customtkinter.CTk):    # create class
         # have variables for entries, when apply clicked check values (use previous value in StringVar) and then if correct, set values to variables otherwise take value from StringVar and place in entry. 
         self.validate_optional_paths()
         self.update_settings()
-    
+        print("[CONSOLE] MainScreen.apply_yuzu_settings [END]")
     def restore_default_yuzu_settings(self, entry_id=None):
+        print(f"[CONSOLE] MainScreen.restore_default_yuzu_settings: entry_id={entry_id} [START]")
         if entry_id:
             # Restore the specific setting with the provided entry_id
             if entry_id in self.yuzu_settings_dict:
@@ -1304,25 +1418,34 @@ class MainScreen(customtkinter.CTk):    # create class
                 entry_widget.delete(0, 'end')  # Clear the entry widget
                 entry_widget.insert(0, default_value)  # Set the default value to the entry widget
                 var.set(default_value)  # Update the associated StringVar variable with the default value
+        print(f"[CONSOLE] MainScreen.restore_default_yuzu_settings: entry_id={entry_id} [END]")
     def dolphin_settings_changed(self):
+        print(f"[CONSOLE] MainScreen.dolphin_settings_changed [START]")
         for entry_id, settings in self.dolphin_settings_dict.items():
             entry_widget = settings["entry"]
             var = settings["var"]
             current_value = entry_widget.get()
             if current_value != var.get():
+                print(f"[CONSOLE] MainScreen.dolphin_settings_changed Returning True [END]")
                 return True
+        print(f"[CONSOLE] MainScreen.dolphin_settings_changed Returning False [END]")
         return False
     def yuzu_settings_changed(self):
+        print(f"[CONSOLE] MainScreen.yuzu_settings_changed [START]")
         for entry_id, settings in self.yuzu_settings_dict.items():
             entry_widget = settings["entry"]
             var = settings["var"]
             current_value = entry_widget.get()
             
             if current_value != var.get():
+                print(f"[CONSOLE] MainScreen.yuzu_settings_changed Returning True [END]")
                 return True
+        print(f"[CONSOLE] MainScreen.yuzu_settings_changed: Returning False [END]")
         return False
     def revert_settings(self, mode="both"):
+        print(f"[CONSOLE] MainScreen.revert_settings: mode={mode} [START]")
         if mode != "dolphin":
+            print(f"[CONSOLE] MainScreen.revert_settings: Reverting yuzu settings")
             for entry_id, settings in self.yuzu_settings_dict.items():
                 entry_widget = settings["entry"]
                 var = settings["var"]
@@ -1332,6 +1455,7 @@ class MainScreen(customtkinter.CTk):    # create class
                     entry_widget.delete(0, 'end')
                     entry_widget.insert(0, var.get())
         if mode != "yuzu":
+            print(f"[CONSOLE] MainScreen.revert_settings: Reverting dolphin settings")
             for entry_id, settings in self.dolphin_settings_dict.items():
                 entry_widget = settings["entry"]
                 var = settings["var"]
@@ -1340,20 +1464,26 @@ class MainScreen(customtkinter.CTk):    # create class
                 if current_value != var.get():
                     entry_widget.delete(0, 'end')
                     entry_widget.insert(0, var.get())
+        print(f"[CONSOLE] MainScreen.revert_settings: mode={mode} [END]")
                     
     def validate_optional_paths(self):
+        print("[CONSOLE] MainScreen.validate_optional_paths [START]")
         if ( not os.path.exists(self.yuzu_settings_firmware_path_variable.get()) ) or ( not os.path.exists(self.yuzu_settings_key_path_variable.get())):
+            print(Fore.YELLOW+"[CONSOLE][WARNING] MainScreen.validate_optional_paths: Key path or firmware path doesn't exist "+Fore.WHITE)
             self.yuzu_automatic_firmwarekeys_install = False
         else:
             self.yuzu_automatic_firmwarekeys_install = True
         if os.path.exists(self.yuzu_settings_installer_path_variable.get()):
             self.yuzu_installer_available = True 
         else:
+            print(Fore.LIGHTYELLOW_EX+"[CONSOLE][WARNING] MainScreen.validate_optional_paths: yuzu_install.exe at given path doesn't exist"+Fore.WHITE)
             self.yuzu_installer_available = False
         if os.path.exists(self.dolphin_settings_dolphin_zip_directory_variable.get()):
             self.dolphin_installer_available = True 
         else:
+            print(Fore.LIGHTYELLOW_EX+"[CONSOLE][WARNING] MainScreen.validate_optional_paths: Dolphin-x64.zip at given path doesn't exist")
             self.dolphin_installer_available = False
+        print("[CONSOLE] MainScreen.validate_optional_paths [END]")
     def close_button_event(self):
         if messagebox.askyesno("Confirmation","Are you sure you want to exit?"):
             self.destroy()
@@ -1467,6 +1597,7 @@ class MainScreen(customtkinter.CTk):    # create class
               
             
     def delete_temp_folders(self):
+        print("[CONSOLE] MainScreen.delete_temp_folders: Deleting temp folders")
         current_path = os.path.dirname(os.path.realpath(__file__))   
         temp_directory = (os.getenv("TEMP"))
         for item in os.listdir(temp_directory):
@@ -1474,11 +1605,14 @@ class MainScreen(customtkinter.CTk):    # create class
             # Check if the item is a directory
             if os.path.isdir(item_path) and "_MEI" in item_path and item_path != current_path:
                 try:
+                    print(f"[CONSOLE] MainScreen.delete_temp_folders: Deleting {item_path}")
                     shutil.rmtree(item_path)
                 except:
-                    print(f"Error deleting temp folder: {item_path}")
+                    print(Fore.RED + f"[CONSOLE][ERROR] MainScreen.delete_temp_folders: {item_path}" + Fore.WHITE)
+        print("[CONSOLE] MainScreen.delete_temp_folders [END]")
                 
 if __name__=="__main__":
+    print("[CONSOLE] Loading appearance settings")
     try:
         path_to_settings = os.path.join(os.path.expanduser('~'), "AppData", "Roaming", "Emulator Manager", "config", "settings.json")
         if os.path.exists(path_to_settings):
@@ -1491,12 +1625,13 @@ if __name__=="__main__":
         else:
             appearance_mode = "system"
             theme = "blue"   
-    except Exception as error:
+    except Exception as error_msg:
         appearance_mode = "system"
         theme = "blue"
-        messagebox.showerror("Settings Error", f"Unable to load appearance settings\n\n{error}")
+        messagebox.showerror("Settings Error", f"Unable to load appearance settings\n\n{error_msg}")
 
-    print("Creating Object...")
+    
     customtkinter.set_default_color_theme(theme)
     customtkinter.set_appearance_mode(appearance_mode)
+    print("[CONSOLE] Loaded appearance settings")
     app = MainScreen()
