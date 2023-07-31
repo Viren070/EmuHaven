@@ -1,11 +1,11 @@
-import base64
+from base64 import b64decode
 import os
 import re
-import sys
-import shutil
-import threading
+from sys import exit as sysexit
+from shutil import copy, rmtree
+from threading import Thread
 import tkinter as tk
-import zipfile
+from zipfile import ZipFile 
 from io import BytesIO
 from time import perf_counter, sleep
 from tkinter import filedialog, messagebox
@@ -285,7 +285,7 @@ class Application(customtkinter.CTkFrame):
             if not messagebox.askyesno("Confirmation", "Are you sure you want to quit? The download in progress will be stopped"):
                 return
 
-        sys.exit()
+        sysexit()
 
     def fetch_versions(self):
 
@@ -305,9 +305,9 @@ class Application(customtkinter.CTkFrame):
         self.fetched_versions = 0
         self.error_encountered = None
         self.error_fetching_versions = False
-        threading.Thread(target=self.fetch_firmware_versions).start()
-        threading.Thread(target=self.fetch_key_versions).start()
-        threading.Thread(target=self.display_both_versions).start()
+        Thread(target=self.fetch_firmware_versions).start()
+        Thread(target=self.fetch_key_versions).start()
+        Thread(target=self.display_both_versions).start()
 
     def display_both_versions(self):
         while self.fetched_versions < 2:
@@ -364,7 +364,7 @@ class Application(customtkinter.CTkFrame):
 
     def fetch_firmware_versions(self):
 
-        url = base64.b64decode(
+        url = b64decode(
             'aHR0cHM6Ly9kYXJ0aHN0ZXJuaWUubmV0L3N3aXRjaC1maXJtd2FyZXMv'.encode("ascii")).decode("ascii")
         try:
             page = requests.get(url)
@@ -447,14 +447,14 @@ class Application(customtkinter.CTkFrame):
                     "Error", "There is already a firmware or key installation in progress!")
                 return
 
-            threading.Thread(target=self.install_both, args=(link,)).start()
+            Thread(target=self.install_both, args=(link,)).start()
         elif mode == "Keys":
             if self.key_installation_in_progress:
                 messagebox.showerror(
                     "Error", "There is already a key installation in progress!")
                 return
 
-            threading.Thread(target=self.start_key_installation,
+            Thread(target=self.start_key_installation,
                              args=(link,)).start()
         elif mode == "Firmware":
             if self.firmware_installation_in_progress:
@@ -462,7 +462,7 @@ class Application(customtkinter.CTkFrame):
                     "Error", "There is already a firmware installation in progress!")
                 return
 
-            threading.Thread(
+            Thread(
                 target=self.start_firmware_installation, args=(link,)).start()
 
     def install_both(self, links):
@@ -515,7 +515,7 @@ class Application(customtkinter.CTkFrame):
         dst_file = os.path.join(dst_folder, "prod.keys")
         if os.path.exists(dst_file):
             os.remove(dst_file)
-        shutil.copy(keys, dst_folder)
+        copy(keys, dst_folder)
         if status_frame is not None:
             status_frame.update_extraction_progress(1)
 
@@ -574,14 +574,14 @@ class Application(customtkinter.CTkFrame):
         with open(firmware_source, 'rb') as file:
             if ext == ".zip":
 
-                with zipfile.ZipFile(file) as archive:
+                with ZipFile(file) as archive:
                     self.extract_firmware_from_zip(
                         archive, install_directory, emulator, status_frame)
             else:
                 raise Exception("Error: Firmware file is not a zip file.")
 
     def install_keys_button_wrapper(self):
-        threading.Thread(target=self.start_key_installation_custom).start()
+        Thread(target=self.start_key_installation_custom).start()
 
     def start_key_installation_custom(self, path_to_key = None, status_frame = None):
         if self.key_installation_in_progress:
@@ -632,7 +632,7 @@ class Application(customtkinter.CTkFrame):
             messagebox.showerror("Error", Error)
             self.key_installation_in_progress = False
             return
-        shutil.rmtree(self.temp_directory)
+        rmtree(self.temp_directory)
         status_frame.finish_installation()
         self.key_installation_in_progress = False
 
@@ -640,7 +640,7 @@ class Application(customtkinter.CTkFrame):
         self.temp_directory = os.path.join(os.getenv("TEMP"), "Emulator Manager Extracts")
         with open(zip_location, 'rb') as file:
 
-            with zipfile.ZipFile(file) as archive:
+            with ZipFile(file) as archive:
                 return self.extract_keys_from_zip(archive, self.temp_directory, status_frame)
         
 
@@ -673,7 +673,7 @@ class Application(customtkinter.CTkFrame):
             raise Exception("prod.keys not found within .ZIP file.")
 
     def install_from_zip_button_wrapper(self):
-        threading.Thread(
+        Thread(
             target=self.start_firmware_installation_from_custom_zip).start()
 
     def start_firmware_installation_from_custom_zip(self, path_to_zip=None, status_frame=None):
