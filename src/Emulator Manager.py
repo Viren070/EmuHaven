@@ -9,14 +9,13 @@ from threading import Thread
 from time import perf_counter, sleep
 from tkinter import filedialog, messagebox, ttk
 from zipfile import ZipFile
-from colorama import Fore
+from colorama import Fore, Style, just_fix_windows_console
 import customtkinter
 from PIL import Image
 
 from PasswordDialog import PasswordDialog
 from SwitchEmuTool import Application as FirmwareManager
 from SwitchEmuTool import DownloadStatusFrame as InstallStatus
-
 ERROR_INVALID_NAME = 123
 class MainScreen(customtkinter.CTk):    # create class 
     def __init__(self, opening_frames=['home', None]):
@@ -571,7 +570,7 @@ class MainScreen(customtkinter.CTk):    # create class
                 json.dump(settings, file)   # writes settings to settings.json
             self.load_settings()
         except Exception as error:
-            print(Fore.RED + f"[CONSOLE][ERROR] MainScreen.update_settings: {error}" + Fore.WHITE)
+            print(Fore.RED + f"[CONSOLE][ERROR] MainScreen.update_settings: {error}" + Style.RESET_ALL)
             messagebox.showerror("Error", error)  # show error if raised
       
     def load_settings(self):
@@ -588,7 +587,7 @@ class MainScreen(customtkinter.CTk):    # create class
             except json.decoder.JSONDecodeError as error:
                 self.restore_default_dolphin_settings()   # if any error raised then restore the default settings. 
                 self.restore_default_yuzu_settings()
-                print(Fore.RED + f"[CONSOLE][ERROR] MainScreen.load_settings: {error}" + Fore.WHITE)
+                print(Fore.RED + f"[CONSOLE][ERROR] MainScreen.load_settings: {error}" + Style.RESET_ALL)
                 messagebox.showerror("Error", "Unable to load settings")
                 return
         # define indiviudal dictonaries for each emulator.
@@ -770,7 +769,7 @@ class MainScreen(customtkinter.CTk):    # create class
         if self.check_dolphin_installation() and not messagebox.askyesno("Confirmation", "Dolphin seems to already be installed, install anyways?"):
             return 
         if not self.dolphin_installer_available:
-            print(Fore.RED + "[CONSOLE][ERROR] MainScreen.install_dolphin_wrapper: path to zip archive of dolphin has not been set" + Fore.WHITE)
+            print(Fore.RED + "[CONSOLE][ERROR] MainScreen.install_dolphin_wrapper: path to zip archive of dolphin has not been set" + Style.RESET_ALL)
             messagebox.showerror("Error", "The path to the Dolphin ZIP has not been set or is invalid, please check the settings")
             return
         
@@ -805,7 +804,7 @@ class MainScreen(customtkinter.CTk):    # create class
     def delete_dolphin_button_event(self):
         print("[CONSOLE] MainScreen.delete_dolphin_button_event")
         if self.dolphin_is_running:
-            print(Fore.RED+"[CONSOLE][ERROR] MainScreen.delete_dolphin_button_event: Dolphin is running, cannot delete"+Fore.WHITE)
+            print(Fore.RED+"[CONSOLE][ERROR] MainScreen.delete_dolphin_button_event: Dolphin is running, cannot delete"+Style.RESET_ALL)
             messagebox.showerror("Error", "Please close Dolphin before trying to delete it. If dolphin is not open, try restarting the application")
             return
         if messagebox.askyesno("Confirmation", "Are you sure you wish to delete the Dolphin Installation. This will not delete your user data."):
@@ -819,12 +818,12 @@ class MainScreen(customtkinter.CTk):    # create class
             shutil.rmtree(self.dolphin_settings_install_directory_variable.get())
             self.dolphin_delete_dolphin_button.configure(state="normal", text="Delete")
         except FileNotFoundError as error:
-            print(Fore.RED+"[CONSOLE][ERROR] MainScreen.delete_dolphin: {error}"+Fore.WHITE)
+            print(Fore.RED+"[CONSOLE][ERROR] MainScreen.delete_dolphin: {error}"+Style.RESET_ALL)
             messagebox.showinfo("Dolphin", "Installation of dolphin not found")
             self.dolphin_delete_dolphin_button.configure(state="normal", text="Delete")
             return
         except Exception as e:
-            print(Fore.RED+"[CONSOLE][ERROR] MainScreen.delete_dolphin: {e}"+Fore.WHITE)
+            print(Fore.RED+"[CONSOLE][ERROR] MainScreen.delete_dolphin: {e}"+Style.RESET_ALL)
             messagebox.showerror("Error", e)
             self.dolphin_delete_dolphin_button.configure(state="normal", text="Delete")
             return
@@ -840,7 +839,7 @@ class MainScreen(customtkinter.CTk):    # create class
             print("[CONSOLE] MainScreen.start_dolphin_wrapper: Start Dolphin Thread")
             Thread(target=self.start_dolphin).start()
         else:
-            print(Fore.RED+"[CONSOLE][ERROR] MainScreen.start_dolphin_wrapper: No dolphin installation found"+Fore.WHITE)
+            print(Fore.RED+"[CONSOLE][ERROR] MainScreen.start_dolphin_wrapper: No dolphin installation found"+Style.RESET_ALL)
             messagebox.showerror("Error","A dolphin installation was not found. Please press Install Dolphin below to begin.")
         print("[CONSOLE] MainScreen.start_dolphin_wrapper [END]")
     def start_dolphin(self):
@@ -889,7 +888,7 @@ class MainScreen(customtkinter.CTk):    # create class
     def run_yuzu_install_wrapper(self):
         print("[CONSOLE] MainScreen.run_yuzu_install_wrapper [START]")
         if not self.yuzu_installer_available:
-            print(Fore.RED+f"[CONSOLE][ERROR] MainScreen.start_yuzu_install_wrapper: Yuzu installer not found at {self.yuzu_settings_installer_path_variable.get()}"+Fore.WHITE)
+            print(Fore.RED+f"[CONSOLE][ERROR] MainScreen.start_yuzu_install_wrapper: Yuzu installer not found at {self.yuzu_settings_installer_path_variable.get()}"+Style.RESET_ALL)
             messagebox.showerror("Error", "The path to the yuzu installer has not been set in the settings or is invalid, please check the settings page.")
             return 
         self.yuzu_install_yuzu_button.configure(state="disabled")
@@ -906,7 +905,7 @@ class MainScreen(customtkinter.CTk):    # create class
         try:
             shutil.copy(path_to_installer, target_installer)
         except Exception as error:
-            print(Fore.RED+ f"[CONSOLE] MainScreen.run_yuzu_install: Error while copying - {error}"+Fore.WHITE)
+            print(Fore.RED+ f"[CONSOLE] MainScreen.run_yuzu_install: Error while copying - {error}"+Style.RESET_ALL)
             messagebox.showerror("Copy Error", f"Unable to make a copy of yuzu_install.exe\n\n{error}")
         print("[CONSOLE] MainScreen.run_yuzu_install: Running yuzu_install.exe")
         run([target_installer], capture_output = True)
@@ -914,10 +913,10 @@ class MainScreen(customtkinter.CTk):    # create class
         try:
             shutil.rmtree(temp_dir)
         except PermissionError as error:
-            print(Fore.RED+ f"[CONSOLE] MainScreen.run_yuzu_install: Error while deleting temp dir - {error}"+Fore.WHITE)
+            print(Fore.RED+ f"[CONSOLE] MainScreen.run_yuzu_install: Error while deleting temp dir - {error}"+Style.RESET_ALL)
             messagebox.showerror("Delete Error", "Unable to delete temporary yuzu installer directory.")
         except Exception as error:
-            print(Fore.RED+ f"[CONSOLE] MainScreen.run_yuzu_install: Error while deleting temp dir - {error}"+Fore.WHITE)
+            print(Fore.RED+ f"[CONSOLE] MainScreen.run_yuzu_install: Error while deleting temp dir - {error}"+Style.RESET_ALL)
         self.yuzu_install_yuzu_button.configure(state="normal")
         self.yuzu_launch_yuzu_button.configure(state="normal")
         print("[CONSOLE] MainScreen.run_yuzu_install [END]")
@@ -953,7 +952,7 @@ class MainScreen(customtkinter.CTk):    # create class
             try:
                 self.yuzu_firmware.start_key_installation_custom(self.yuzu_settings_key_path_variable.get(), status_frame)
             except Exception as error:
-                print(Fore.RED + f"[CONSOLE][ERROR] MainScreen.install_missing_firmware_or_keys: During keys - {error}" + Fore.WHITE)
+                print(Fore.RED + f"[CONSOLE][ERROR] MainScreen.install_missing_firmware_or_keys: During keys - {error}" + Style.RESET_ALL)
                 messagebox.showerror("Unknown Error", f"An unknown error occured during key installation \n\n {error}")
                 status_frame.destroy()
                 return False
@@ -966,7 +965,7 @@ class MainScreen(customtkinter.CTk):    # create class
             try:
                 self.yuzu_firmware.start_firmware_installation_from_custom_zip(self.yuzu_settings_firmware_path_variable.get(), status_frame)
             except Exception as error:
-                print(Fore.RED + f"[CONSOLE][ERROR] MainScreen.install_missing_firmware_or_keys: During firmware - {error}" + Fore.WHITE)
+                print(Fore.RED + f"[CONSOLE][ERROR] MainScreen.install_missing_firmware_or_keys: During firmware - {error}" + Style.RESET_ALL)
                 messagebox.showerror("Unknown Error", f"An unknown error occured during firmware installation \n\n {error}")
                 status_frame.destroy()
                 return False
@@ -975,13 +974,13 @@ class MainScreen(customtkinter.CTk):    # create class
             print("[CONSOLE] MainScreen.install_missing_firmware_or_keys: Returning True [END]")
             return True
         else:
-            print(Fore.RED + f"[CONSOLE][ERROR] MainScreen.install_missing_firmware_or_keys: Still missing firmware/keys after installing" + Fore.WHITE)
+            print(Fore.RED + f"[CONSOLE][ERROR] MainScreen.install_missing_firmware_or_keys: Still missing firmware/keys after installing" + Style.RESET_ALL)
             messagebox.showerror("Install Error", "Unable to install keys or firmware. Try using the SwitchEmuTool to manually install through the options Menu")
             
     def start_yuzu_wrapper(self):
         print("[CONSOLE] MainScreen.start_yuzu_wrapper [START]")
         if not self.check_yuzu_installation():
-            print(Fore.RED + f"[CONSOLE][ERROR] MainScreen.start_yuzu_wrapper: no yuzu_installation found" + Fore.WHITE)
+            print(Fore.RED + f"[CONSOLE][ERROR] MainScreen.start_yuzu_wrapper: no yuzu_installation found" + Style.RESET_ALL)
             messagebox.showerror("Error","A yuzu installation was not found. Please run the yuzu installer.")
             print("[CONSOLE] MainScreen.start_yuzu_wrapper [END]")
             return
@@ -995,7 +994,7 @@ class MainScreen(customtkinter.CTk):    # create class
                 print("[CONSOLE] MainScreen.start_yuzu: Loading Data")
                 self.copy_directory_with_progress((os.path.join(self.yuzu_settings_global_save_directory_variable.get(), os.getlogin())), self.yuzu_settings_user_directory_variable.get(), "Loading Yuzu Data", self.yuzu_log_frame)
             except Exception as error:
-                print(Fore.RED + f"[CONSOLE][ERROR] MainScreen.start_yuzu: {error}" + Fore.WHITE)
+                print(Fore.RED + f"[CONSOLE][ERROR] MainScreen.start_yuzu: {error}" + Style.RESET_ALL)
                 if not messagebox.askyesno("Error", f"Unable to load your data, would you like to continue\n\n Full Error: {error}"):
                     print("[CONSOLE] MainScreen.start_yuzu [END]")
                     return 
@@ -1021,7 +1020,7 @@ class MainScreen(customtkinter.CTk):    # create class
                 self.copy_directory_with_progress(self.yuzu_settings_user_directory_variable.get(), (os.path.join(self.yuzu_settings_global_save_directory_variable.get(), os.getlogin())), "Saving Yuzu Data", self.yuzu_log_frame)
                 messagebox.showinfo("Complete","Finished saving yuzu data.")
             except Exception as error:
-                print(Fore.RED + f"[CONSOLE][ERROR] MainScreen.start_yuzu: {error}" + Fore.WHITE)
+                print(Fore.RED + f"[CONSOLE][ERROR] MainScreen.start_yuzu: {error}" + Style.RESET_ALL)
                 messagebox.showerror("Save Error", f"Unable to save your data\n\nFull Error: {error}")
         self.yuzu_launch_yuzu_button.configure(state="normal", text="Launch")
         self.yuzu_install_yuzu_button.configure(state="normal")
@@ -1030,7 +1029,7 @@ class MainScreen(customtkinter.CTk):    # create class
     def copy_directory_with_progress(self, source_dir, target_dir, title, log_frame):
         print(f"[CONSOLE] MainScreen.copy_directory_with_progress [START]")
         if not os.path.exists(source_dir):
-            print(Fore.RED+f"[CONSOLE][ERROR] MainScreen.copy_directory_with_progress: {source_dir} does not exist"+Fore.WHITE)
+            print(Fore.RED+f"[CONSOLE][ERROR] MainScreen.copy_directory_with_progress: {source_dir} does not exist"+Style.RESET_ALL)
             messagebox.showerror("Path Error", f"Path does not exist: {source_dir}")
             print(f"[CONSOLE] MainScreen.copy_directory_with_progress [END]")
             return
@@ -1097,7 +1096,7 @@ class MainScreen(customtkinter.CTk):    # create class
         
         if not os.path.exists(user_directory):
             messagebox.showerror("Missing Folder", "No yuzu data on local drive found")
-            print(Fore.RED+f"[CONSOLE][ERROR] MainScreen.export_yuzu_data:mode={mode}: {user_directory} does not exist [END]"+Fore.WHITE)
+            print(Fore.RED+f"[CONSOLE][ERROR] MainScreen.export_yuzu_data:mode={mode}: {user_directory} does not exist [END]"+Style.RESET_ALL)
             return  # Handle the case when the user directory doesn't exist.
 
         if mode == "All Data":
@@ -1115,7 +1114,7 @@ class MainScreen(customtkinter.CTk):    # create class
         
         if not os.path.exists(users_export_directory):
             messagebox.showerror("Missing Folder", "No yuzu data associated with your username found")
-            print(Fore.RED+f"[CONSOLE][ERROR] MainScreen.import_yuzu_data:mode={mode}: {users_export_directory} does not exist [END]"+Fore.WHITE)
+            print(Fore.RED+f"[CONSOLE][ERROR] MainScreen.import_yuzu_data:mode={mode}: {users_export_directory} does not exist [END]"+Style.RESET_ALL)
             return
         if mode == "All Data":
             self.start_copy_thread(users_export_directory, user_directory, "Import All Yuzu Data", self.yuzu_data_log)
@@ -1175,7 +1174,7 @@ class MainScreen(customtkinter.CTk):    # create class
         
         if not os.path.exists(user_directory):
             messagebox.showerror("Missing Folder", "No dolphin data on local drive found")
-            print(Fore.RED+f"[CONSOLE][ERROR] MainScreen.export_dolphin_data:mode={mode}: {user_directory} does not exist [END]"+Fore.WHITE)
+            print(Fore.RED+f"[CONSOLE][ERROR] MainScreen.export_dolphin_data:mode={mode}: {user_directory} does not exist [END]"+Style.RESET_ALL)
             return  # Handle the case when the user directory doesn't exist.
         if mode == "All Data":
             self.start_copy_thread(user_directory, users_export_directory, "Exporting All Dolphin Data", self.dolphin_data_log)
@@ -1189,7 +1188,7 @@ class MainScreen(customtkinter.CTk):    # create class
         
         if not os.path.exists(users_export_directory):
             messagebox.showerror("Missing Folder", "No dolphin data associated with your username was found")
-            print(Fore.RED+f"[CONSOLE][ERROR] MainScreen.import_dolphin_data:mode={mode}: {users_export_directory} does not exist [END]"+Fore.WHITE)
+            print(Fore.RED+f"[CONSOLE][ERROR] MainScreen.import_dolphin_data:mode={mode}: {users_export_directory} does not exist [END]"+Style.RESET_ALL)
             return  # Handle the case when the user directory doesn't exist.
         if mode == "All Data":
             self.start_copy_thread(users_export_directory, user_directory, "Importing All Dolphin Data", self.dolphin_data_log)
@@ -1469,14 +1468,14 @@ class MainScreen(customtkinter.CTk):    # create class
     def validate_optional_paths(self):
         print("[CONSOLE] MainScreen.validate_optional_paths [START]")
         if ( not os.path.exists(self.yuzu_settings_firmware_path_variable.get()) ) or ( not os.path.exists(self.yuzu_settings_key_path_variable.get())):
-            print(Fore.YELLOW+"[CONSOLE][WARNING] MainScreen.validate_optional_paths: Key path or firmware path doesn't exist "+Fore.WHITE)
+            print(Fore.LIGHTYELLOW_EX+"[CONSOLE][WARNING] MainScreen.validate_optional_paths: Key path or firmware path doesn't exist "+Style.RESET_ALL)
             self.yuzu_automatic_firmwarekeys_install = False
         else:
             self.yuzu_automatic_firmwarekeys_install = True
         if os.path.exists(self.yuzu_settings_installer_path_variable.get()):
             self.yuzu_installer_available = True 
         else:
-            print(Fore.LIGHTYELLOW_EX+"[CONSOLE][WARNING] MainScreen.validate_optional_paths: yuzu_install.exe at given path doesn't exist"+Fore.WHITE)
+            print(Fore.LIGHTYELLOW_EX+"[CONSOLE][WARNING] MainScreen.validate_optional_paths: yuzu_install.exe at given path doesn't exist"+Style.RESET_ALL)
             self.yuzu_installer_available = False
         if os.path.exists(self.dolphin_settings_dolphin_zip_directory_variable.get()):
             self.dolphin_installer_available = True 
@@ -1608,7 +1607,7 @@ class MainScreen(customtkinter.CTk):    # create class
                     print(f"[CONSOLE] MainScreen.delete_temp_folders: Deleting {item_path}")
                     shutil.rmtree(item_path)
                 except:
-                    print(Fore.RED + f"[CONSOLE][ERROR] MainScreen.delete_temp_folders: {item_path}" + Fore.WHITE)
+                    print(Fore.RED + f"[CONSOLE][ERROR] MainScreen.delete_temp_folders: {item_path}" + Style.RESET_ALL)
         print("[CONSOLE] MainScreen.delete_temp_folders [END]")
                 
 if __name__=="__main__":
