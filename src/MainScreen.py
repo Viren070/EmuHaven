@@ -637,7 +637,6 @@ class MainScreen(customtkinter.CTk):    # create class
             self.validate_password()
             return
         if name == "settings" and self.settings_unlocked:
-            print("[CONSOLE] MainScreen.select_frame_by_name: Settings Unlocked, showing settings frame")
             self.minsize(1100,500)
             self.settings_button.configure(fg_color=("gray75", "gray25"))
             self.settings_frame.grid(row=0, column=1, sticky="nsew")       
@@ -649,13 +648,11 @@ class MainScreen(customtkinter.CTk):    # create class
         self.yuzu_button.configure(fg_color=("gray75", "gray25") if name == "yuzu" else "transparent")
         
         if name == "dolphin":
-            print("[CONSOLE] MainScreen.select_frame_by_name: grid dolphin frame")
             self.dolphin_frame.grid(row=0, column=1, sticky="nsew")
         else:
             self.dolphin_frame.grid_forget()
             self.select_dolphin_frame_by_name(None)
         if name == "yuzu":
-            print("[CONSOLE] MainScreen.select_frame_by_name: grid yuzu frame")
             self.yuzu_frame.grid(row=0, column=1, sticky="nsew")
         else:
             self.yuzu_frame.grid_forget()
@@ -854,7 +851,6 @@ class MainScreen(customtkinter.CTk):    # create class
         if self.dolphin_global_data.get() == "1":
             print("[CONSOLE] MainScreen.start_dolphin: Saving Data")
             self.copy_directory_with_progress(self.dolphin_settings_user_directory_variable.get(), (os.path.join(self.dolphin_settings_global_save_directory_variable.get(), os.getlogin())), "Saving Dolphin Data", self.dolphin_log_frame)
-            messagebox.showinfo("Complete", "Finished saving Dolphin user data.")
         self.dolphin_launch_dolphin_button.configure(state="normal", text="Launch Dolphin  ", width=50)
         self.dolphin_install_dolphin_button.configure(state="normal")
         print("[CONSOLE] MainScreen.start_dolphin [END]")
@@ -1019,7 +1015,6 @@ class MainScreen(customtkinter.CTk):    # create class
             try:
                 print("[CONSOLE] MainScreen.start_yuzu: Saving Yuzu Data")
                 self.copy_directory_with_progress(self.yuzu_settings_user_directory_variable.get(), (os.path.join(self.yuzu_settings_global_save_directory_variable.get(), os.getlogin())), "Saving Yuzu Data", self.yuzu_log_frame)
-                messagebox.showinfo("Complete","Finished saving yuzu data.")
             except Exception as error:
                 print(Fore.RED + f"[CONSOLE][ERROR] MainScreen.start_yuzu: {error}" + Style.RESET_ALL)
                 messagebox.showerror("Save Error", f"Unable to save your data\n\nFull Error: {error}")
@@ -1050,7 +1045,7 @@ class MainScreen(customtkinter.CTk):    # create class
         if not os.path.exists(target_dir):
             os.makedirs(target_dir)
             
-        def find_common_suffix(self, file_path, target_file_path):
+        def find_common_suffix(file_path, target_file_path):
             file_parts = file_path.split(os.sep)
             target_parts = target_file_path.split(os.sep)
 
@@ -1082,6 +1077,7 @@ class MainScreen(customtkinter.CTk):    # create class
             progress = (copied_files / total_files) 
             progress_bar.update_extraction_progress(progress)
         progress_bar.destroy()
+        messagebox.showinfo(title, "Copy Complete!")
         print(f"[CONSOLE] MainScreen.copy_directory_with_progress [END]")
     
         
@@ -1303,8 +1299,8 @@ class MainScreen(customtkinter.CTk):    # create class
                 entry_widget.delete(0, 'end')  # Clear the entry widget
                 entry_widget.insert(0, default_value)  # Set the default value to the entry widget
                 var.set(default_value)  # Update the associated StringVar variable with the default value
-
-        print(f"[CONSOLE] MainScreen.restore_default_dolphin_settings: entry_id={entry_id} [END]")
+        self.apply_dolphin_settings()
+        print(f"[CONSOLE] MainScreen.restore_default_dolphin_settings [END]")
         
         
     def update_yuzu_setting_with_explorer(self, entry_widget):
@@ -1418,7 +1414,8 @@ class MainScreen(customtkinter.CTk):    # create class
                 entry_widget.delete(0, 'end')  # Clear the entry widget
                 entry_widget.insert(0, default_value)  # Set the default value to the entry widget
                 var.set(default_value)  # Update the associated StringVar variable with the default value
-        print(f"[CONSOLE] MainScreen.restore_default_yuzu_settings: entry_id={entry_id} [END]")
+        self.apply_yuzu_settings()
+        print(f"[CONSOLE] MainScreen.restore_default_yuzu_settings [END]")
     def dolphin_settings_changed(self):
         print(f"[CONSOLE] MainScreen.dolphin_settings_changed [START]")
         for entry_id, settings in self.dolphin_settings_dict.items():
@@ -1611,10 +1608,10 @@ class MainScreen(customtkinter.CTk):    # create class
                     print(Fore.RED + f"[CONSOLE][ERROR] MainScreen.delete_temp_folders: {item_path}" + Style.RESET_ALL)
         print("[CONSOLE] MainScreen.delete_temp_folders [END]")
                 
-if __name__=="__main__":
+def load_appearance_settings():
     print("[CONSOLE] Loading appearance settings")
     try:
-        path_to_settings = os.path.join(os.path.expanduser('~'), "AppData", "Roaming", "Emulator Manager", "config", "settings.json")
+        path_to_settings = os.path.join(os.getenv("APPDATA"), "Emulator Manager", "config", "settings.json")
         if os.path.exists(path_to_settings):
             with open(path_to_settings) as file:
         
@@ -1634,4 +1631,3 @@ if __name__=="__main__":
     customtkinter.set_default_color_theme(theme)
     customtkinter.set_appearance_mode(appearance_mode)
     print("[CONSOLE] Loaded appearance settings")
-    app = MainScreen()
