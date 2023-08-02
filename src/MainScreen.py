@@ -1262,6 +1262,8 @@ class MainScreen(customtkinter.CTk):    # create class
                 return 
             entry_widget.delete(0, 'end')
             entry_widget.insert(0, dolphin_zip)
+            if self.dolphin_settings_dict[entry_id]['default'] == "":
+                self.dolphin_settings_dict[entry_id]['default'] = dolphin_zip
         else:
             directory = filedialog.askdirectory(initialdir = self.dolphin_settings_dict[entry_id]['var'].get())
             if directory is None or directory == "":
@@ -1293,6 +1295,7 @@ class MainScreen(customtkinter.CTk):    # create class
                     continue
             if self.is_path_exists_or_creatable(current_value):
                 var.set(current_value)
+                if settings['default'] == "": settings['default'] = current_value
             else:
                 errors+=f"'{name}' is Invalid\n"
                 entry_widget.delete(0, 'end')
@@ -1339,12 +1342,14 @@ class MainScreen(customtkinter.CTk):    # create class
         entry_id = find_yuzu_entry_id_by_entry_widget(entry_widget)
         print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.update_yuzu_settings_with_explorer: entry_id={entry_id} [START]")
         if entry_id == '5':
-            yuzu_zip = filedialog.askopenfilename(initialfile=self.yuzu_settings_dict[entry_id]['var'].get(), filetypes=[("yuzu-install.exe", "*exe")])
-            if yuzu_zip is None or yuzu_zip == "":
+            yuzu_installer = filedialog.askopenfilename(initialfile=self.yuzu_settings_dict[entry_id]['var'].get(), filetypes=[("yuzu-install.exe", "*exe")])
+            if yuzu_installer is None or yuzu_installer == "":
                 print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.update_yuzu_settings_with_explorer: entry_id={entry_id} Not updated as input empty [END]")
                 return 
             entry_widget.delete(0, 'end')
-            entry_widget.insert(0, yuzu_zip)
+            entry_widget.insert(0, yuzu_installer)
+            if self.yuzu_settings_dict[entry_id]['default'] == "":
+                self.yuzu_settings_dict[entry_id]['default'] = yuzu_installer
         elif int(entry_id) > 5:
             zip_archive = filedialog.askopenfilename(initialfile=self.yuzu_settings_dict[entry_id]['var'].get(), filetypes=[("ZIP", "*zip")])
             if zip_archive is None or zip_archive == "":
@@ -1352,6 +1357,8 @@ class MainScreen(customtkinter.CTk):    # create class
                 return 
             entry_widget.delete(0, 'end')
             entry_widget.insert(0, zip_archive)
+            if self.yuzu_settings_dict[entry_id]['default'] == "":
+                self.yuzu_settings_dict[entry_id]['default'] = zip_archive
         else:
             directory = filedialog.askdirectory(initialdir=self.yuzu_settings_dict[entry_id]['var'].get())
             if directory is None or directory == "":
@@ -1405,6 +1412,7 @@ class MainScreen(customtkinter.CTk):    # create class
                     continue
             if self.is_path_exists_or_creatable(current_value):
                 var.set(current_value)
+                if settings['default'] == "": settings['default'] = current_value
             else:
                 errors+=f"'{name}' is Invalid\n"
                 entry_widget.delete(0, 'end')
