@@ -1373,7 +1373,7 @@ class MainScreen(customtkinter.CTk):    # create class
             name  = settings['name']
             if entry_id == "5":
                 if (current_value == "" or current_value is None):
-                    warnings+="Leaving the yuzu installer path empty will result in the button for the yuzu installer not working."
+                    warnings+="Leaving the yuzu installer path empty will result in the button for the yuzu installer not working.\n\n"
                     self.yuzu_installer_available = False
                     var.set(current_value)
                     continue
@@ -1389,7 +1389,7 @@ class MainScreen(customtkinter.CTk):    # create class
                     continue 
             elif int(entry_id) > 5:
                 if (current_value == "" or current_value is None):
-                    warnings+="Leaving the paths for the firmware or key archives will result in the automatic installation not working."
+                    warnings+="Leaving the paths for the firmware or key archives will result in the automatic installation not working.\n\n"
                     self.yuzu_automatic_firmwarekeys_install = False
                     var.set(current_value)
                     continue
