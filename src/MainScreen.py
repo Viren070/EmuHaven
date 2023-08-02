@@ -1664,5 +1664,9 @@ def load_appearance_settings():
     print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] Loaded appearance settings")
 def print_and_write_to_log(str):
     print(str)
-    with open("emulator_manager.log", "a") as f:
-        f.write(comp(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])').sub('', str)+"\n")
+    try:
+        with open("emulator_manager.log", "a") as f:
+            f.write(comp(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])').sub('', str)+"\n")
+    except:
+        print(Fore.RED + f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE][ERROR] COULD NOT WRITE TO LOG FILE" + Style.RESET_ALL)
+        
