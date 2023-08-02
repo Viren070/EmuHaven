@@ -42,7 +42,6 @@ class MainScreen(customtkinter.CTk):    # create class
         self.select_settings_frame_by_name(opening_frames[1])
         self.just_opened = False
         self.protocol("WM_DELETE_WINDOW", self.close_button_event)  # set function to be called when window is closed
-        self.validate_optional_paths()
         Thread(target=self.delete_temp_folders).start()  # start new thread to delete temp folders. 
         print(f"[CONSOLE] MainScreen.__init__: Initialised in {(perf_counter() - start):.2}s")
         self.mainloop()  # start mainloop that allows tkinter window to function and respond.
@@ -489,16 +488,7 @@ class MainScreen(customtkinter.CTk):    # create class
         # load settings from settings.json if found
         self.settings_path = os.path.join(self.user_profile, "AppData","Roaming","Emulator Manager", "config")
         self.settings_file = os.path.join(self.settings_path, 'settings.json')
-        if not os.path.exists(self.settings_file): 
-            self.previous_settings_available = False
-        else:
-            self.previous_settings_available = True
-            
-        if self.previous_settings_available:
-            self.load_settings()
-        else:
-            self.restore_default_dolphin_settings()
-            self.restore_default_yuzu_settings()
+        
         # create appearance and themes widgets for settings menu 'Appearance'
         self.appearance_settings_frame = customtkinter.CTkFrame(self.settings_frame, corner_radius=0, fg_color="transparent")
         self.appearance_settings_frame.grid_columnconfigure(0, weight=1)
@@ -515,7 +505,18 @@ class MainScreen(customtkinter.CTk):    # create class
         customtkinter.CTkLabel(self.appearance_settings_frame, text="Colour Theme: ").grid(row=2, column=0, padx=10, pady=10, sticky="w")
         customtkinter.CTkOptionMenu(self.appearance_settings_frame, variable=self.colour_theme_variable, values=["Blue", "Dark Blue", "Green"], command=self.change_colour_theme).grid(row=2, column=2, padx=10, pady=10, sticky="e")
         ttk.Separator(self.appearance_settings_frame, orient='horizontal').grid(row=3, columnspan=4, sticky="ew")
-    
+        
+        if not os.path.exists(self.settings_file): 
+            self.previous_settings_available = False
+        else:
+            self.previous_settings_available = True
+            
+        if self.previous_settings_available:
+            self.load_settings()
+        else:
+            self.restore_default_dolphin_settings()
+            self.restore_default_yuzu_settings()
+        print("[CONSOLE] MainScreen.create_widgets [END]")
     def change_colour_theme(self, theme, startup=False):
         print(f"[CONSOLE] MainScreen.change_colour_theme: Changing colour theme to {theme} with startup as {startup}")
         if customtkinter.ThemeManager._currently_loaded_theme.replace("-"," ").title() == theme: # if current theme is the same as the proposed theme, return
@@ -569,7 +570,6 @@ class MainScreen(customtkinter.CTk):    # create class
             with open(self.settings_file, "w") as file:
                 print("[CONSOLE] MainScreen.update_settings: Writing settings to settings.json")
                 json.dump(settings, file)   # writes settings to settings.json
-            self.load_settings()
         except Exception as error:
             print(Fore.RED + f"[CONSOLE][ERROR] MainScreen.update_settings: {error}" + Style.RESET_ALL)
             messagebox.showerror("Error", error)  # show error if raised
@@ -764,6 +764,7 @@ class MainScreen(customtkinter.CTk):    # create class
 
     def install_dolphin_wrapper(self):
         print("[CONSOLE] MainScreen.install_dolphin_wrapper")
+        self.validate_optional_paths()
         if self.check_dolphin_installation() and not messagebox.askyesno("Confirmation", "Dolphin seems to already be installed, install anyways?"):
             return 
         if not self.dolphin_installer_available:
@@ -829,6 +830,7 @@ class MainScreen(customtkinter.CTk):    # create class
         messagebox.showinfo("Success", "The Dolphin installation was successfully was removed")
         
     def start_dolphin_wrapper(self):
+        self.validate_optional_paths()
         print("[CONSOLE] MainScreen.start_dolphin_wrapper [START]")
         if self.check_dolphin_installation():
             self.dolphin_is_running = True
@@ -885,6 +887,7 @@ class MainScreen(customtkinter.CTk):    # create class
             return False
     
     def run_yuzu_install_wrapper(self):
+        self.validate_optional_paths()
         print("[CONSOLE] MainScreen.run_yuzu_install_wrapper [START]")
         if not self.yuzu_installer_available:
             print(Fore.RED+f"[CONSOLE][ERROR] MainScreen.start_yuzu_install_wrapper: Yuzu installer not found at {self.yuzu_settings_installer_path_variable.get()}"+Style.RESET_ALL)
@@ -1277,7 +1280,6 @@ class MainScreen(customtkinter.CTk):    # create class
                 entry_widget.delete(0, 'end')
                 entry_widget.insert(0, var.get())
         if errors != "": messagebox.showerror("Incorrect Paths", errors)
-        self.validate_optional_paths()
         self.update_settings()
         print("[CONSOLE] MainScreen.apply_dolphin_settings [END]")
     def restore_default_dolphin_settings(self, entry_id=None):
@@ -1303,7 +1305,6 @@ class MainScreen(customtkinter.CTk):    # create class
                 entry_widget.delete(0, 'end')  # Clear the entry widget
                 entry_widget.insert(0, default_value)  # Set the default value to the entry widget
                 var.set(default_value)  # Update the associated StringVar variable with the default value
-        self.apply_dolphin_settings()
         print(f"[CONSOLE] MainScreen.restore_default_dolphin_settings [END]")
         
         
@@ -1346,6 +1347,7 @@ class MainScreen(customtkinter.CTk):    # create class
     def apply_yuzu_settings(self):
         print("[CONSOLE] MainScreen.apply_yuzu_settings [START]")
         errors = ""
+        warnings = ""
         for entry_id, settings in self.yuzu_settings_dict.items():
             entry_widget = settings["entry"]
             var = settings["var"]
@@ -1353,7 +1355,7 @@ class MainScreen(customtkinter.CTk):    # create class
             name  = settings['name']
             if entry_id == "5":
                 if (current_value == "" or current_value is None):
-                    messagebox.showwarning("Warning", "Leaving the yuzu installer path empty will result in the button for the yuzu installer not working.")
+                    warnings+="Leaving the yuzu installer path empty will result in the button for the yuzu installer not working."
                     self.yuzu_installer_available = False
                     var.set(current_value)
                     continue
@@ -1369,7 +1371,7 @@ class MainScreen(customtkinter.CTk):    # create class
                     continue 
             elif int(entry_id) > 5:
                 if (current_value == "" or current_value is None):
-                    messagebox.showwarning("Warning", "Leaving the paths for the firmware and key archives will result in the automatic installation not working.")
+                    warnings+="Leaving the paths for the firmware or key archives will result in the automatic installation not working."
                     self.yuzu_automatic_firmwarekeys_install = False
                     var.set(current_value)
                     continue
@@ -1390,9 +1392,9 @@ class MainScreen(customtkinter.CTk):    # create class
                 entry_widget.delete(0, 'end')
                 entry_widget.insert(0, var.get())
                 
-        if errors != "": messagebox.showerror("Incorrect Paths", errors)
+        if errors != "" and not self.just_opened: messagebox.showerror("Incorrect Paths", errors)
+        if warnings != "" and not self.just_opened: messagebox.showwarning("Warning(s)", warnings)
         # have variables for entries, when apply clicked check values (use previous value in StringVar) and then if correct, set values to variables otherwise take value from StringVar and place in entry. 
-        self.validate_optional_paths()
         self.update_settings()
         print("[CONSOLE] MainScreen.apply_yuzu_settings [END]")
     def restore_default_yuzu_settings(self, entry_id=None):
@@ -1418,7 +1420,6 @@ class MainScreen(customtkinter.CTk):    # create class
                 entry_widget.delete(0, 'end')  # Clear the entry widget
                 entry_widget.insert(0, default_value)  # Set the default value to the entry widget
                 var.set(default_value)  # Update the associated StringVar variable with the default value
-        self.apply_yuzu_settings()
         print(f"[CONSOLE] MainScreen.restore_default_yuzu_settings [END]")
     def dolphin_settings_changed(self):
         print(f"[CONSOLE] MainScreen.dolphin_settings_changed [START]")
