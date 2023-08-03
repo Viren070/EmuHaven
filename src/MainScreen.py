@@ -1355,6 +1355,8 @@ class MainScreen(customtkinter.CTk):    # create class
                         entry_widget.insert(0, var.get())
                     else:
                         var.set("")
+                    if not os.path.exists(settings['default']):
+                        settings['default'] = ""
                     continue
             if self.is_path_exists_or_creatable(current_value):
                 var.set(current_value)
@@ -1454,6 +1456,8 @@ class MainScreen(customtkinter.CTk):    # create class
                         entry_widget.insert(0, var.get())
                     else:
                         var.set("")
+                    if not os.path.exists(settings['default']):
+                        settings['default'] = ""
                     continue
             elif int(entry_id) > 5:
                 if (current_value == "" or current_value is None):
@@ -1469,6 +1473,8 @@ class MainScreen(customtkinter.CTk):    # create class
                         entry_widget.insert(0, var.get())
                     else:
                         var.set("")
+                    if not os.path.exists(settings['default']):
+                        settings['default'] = ""
                     continue
             if self.is_path_exists_or_creatable(current_value):
                 var.set(current_value)
