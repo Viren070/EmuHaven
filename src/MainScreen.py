@@ -606,6 +606,12 @@ class MainScreen(customtkinter.CTk):    # create class
                 print_and_write_to_log(Fore.RED + f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE][ERROR] MainScreen.load_settings: {error}" + Style.RESET_ALL)
                 messagebox.showerror("Error", "Unable to load settings")
                 return
+            except KeyError as error:
+                self.restore_default_dolphin_settings()
+                self.restore_default_yuzu_settings()
+                print_and_write_to_log(Fore.RED + f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE][ERROR] MainScreen.load_settings: {error}" + Style.RESET_ALL)
+                messagebox.showerror("Error", "Unable to load settings")
+                
         # define indiviudal dictonaries for each emulator.
         self.global_saves_default_value_variable.set(global_saves)
         global_saves = "1" if global_saves == "True" else "0"
