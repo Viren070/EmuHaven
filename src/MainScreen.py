@@ -1062,15 +1062,16 @@ class MainScreen(customtkinter.CTk):    # create class
                 print_and_write_to_log(Fore.RED + f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE][ERROR] MainScreen.start_yuzu: {error}" + Style.RESET_ALL)
                 if not messagebox.askyesno("Error", f"Unable to load your data, would you like to continue\n\n Full Error: {error}"):
                     print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.start_yuzu [END]")
+                    self.yuzu_launch_yuzu_button.configure(state="normal", text="Launch Yuzu  ")
+                    self.yuzu_install_yuzu_button.configure(state="normal")
                     return 
                     
         if not self.check_yuzu_firmware_and_keys():
             if messagebox.askyesno("Error","You are missing your keys or firmware. Without these files, the games will not run. Would you like to install the missing files?"):
                 if not self.yuzu_automatic_firmwarekeys_install:
                     messagebox.showerror("Error", "The paths to the firmware and key archives have not been set or are invalid, please check the settings page.")
-                    print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.start_yuzu [END]")
-                    return
-                self.install_missing_firmware_or_keys()
+                        self.yuzu_launch_yuzu_button.configure(state="normal", text="Launch Yuzu  ")
+                        self.yuzu_install_yuzu_button.configure(state="normal")
             
         self.yuzu_is_running = True
         self.yuzu_launch_yuzu_button.configure(text="Launched!  ")
