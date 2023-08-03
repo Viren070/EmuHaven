@@ -1038,6 +1038,7 @@ class MainScreen(customtkinter.CTk):    # create class
             messagebox.showerror("Install Error", "Unable to install keys or firmware. Try using the SwitchEmuTool to manually install through the options Menu")
             
     def start_yuzu_wrapper(self):
+        self.validate_optional_paths()
         print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.start_yuzu_wrapper [START]")
         if not self.check_yuzu_installation():
             print_and_write_to_log(Fore.RED + f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE][ERROR] MainScreen.start_yuzu_wrapper: no yuzu_installation found" + Style.RESET_ALL)
