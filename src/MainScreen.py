@@ -45,7 +45,6 @@ class MainScreen(customtkinter.CTk):    # create class
         self.select_frame_by_name(opening_frames[0])  # use opening frame in argument and set opening frames to them. 
         self.select_settings_frame_by_name(opening_frames[1])
         self.just_opened = False
-        self.protocol("WM_DELETE_WINDOW", self.close_button_event)  # set function to be called when window is closed
         Thread(target=self.delete_temp_folders).start()  # start new thread to delete temp folders. 
         print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.__init__: Initialised in {(perf_counter() - start):.2}s")
         self.mainloop()  # start mainloop that allows tkinter window to function and respond.
@@ -1573,9 +1572,6 @@ class MainScreen(customtkinter.CTk):    # create class
             print_and_write_to_log(Fore.LIGHTYELLOW_EX+f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE][WARNING] MainScreen.validate_optional_paths: Dolphin-x64.zip at given path doesn't exist"+Style.RESET_ALL)
             self.dolphin_installer_available = False
         print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.validate_optional_paths [END]")
-    def close_button_event(self):
-        if messagebox.askyesno("Confirmation","Are you sure you want to exit?"):
-            self.destroy()
         
     def is_pathname_valid(self, pathname: str) -> bool:
           
