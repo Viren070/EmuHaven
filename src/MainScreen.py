@@ -499,6 +499,7 @@ class MainScreen(customtkinter.CTk):    # create class
         
         self.appearance_mode_variable = customtkinter.StringVar()
         self.colour_theme_variable = customtkinter.StringVar()
+        self.global_saves_default_value_variable = customtkinter.StringVar()
         
         self.appearance_mode_variable.set(self._get_appearance_mode().title())
         self.colour_theme_variable.set(customtkinter.ThemeManager._currently_loaded_theme.replace("-"," ").title())
@@ -510,6 +511,9 @@ class MainScreen(customtkinter.CTk):    # create class
         customtkinter.CTkOptionMenu(self.appearance_settings_frame, variable=self.colour_theme_variable, values=["Blue", "Dark Blue", "Green"], command=self.change_colour_theme).grid(row=2, column=2, padx=10, pady=10, sticky="e")
         ttk.Separator(self.appearance_settings_frame, orient='horizontal').grid(row=3, columnspan=4, sticky="ew")
         
+        customtkinter.CTkLabel(self.appearance_settings_frame, text="Global Saves Default Value").grid(row=4, column=0, padx=10, pady=10, sticky="w")
+        customtkinter.CTkOptionMenu(self.appearance_settings_frame, variable=self.global_saves_default_value_variable, values=["True", "False"], command=self.update_settings).grid(row=4, column=2, padx=10, pady=10, sticky="e")
+        ttk.Separator(self.appearance_settings_frame, orient='horizontal').grid(row=5, columnspan=4, sticky="ew")
         if not os.path.exists(self.settings_file): 
             self.previous_settings_available = False
         else:
@@ -539,7 +543,7 @@ class MainScreen(customtkinter.CTk):    # create class
         if not startup:
             self.update_settings()   # update settings.json if change was through settings menu
             
-    def update_settings(self):
+    def update_settings(self, *args):
         # define settings by using variables
         print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.update_settings: Defining new settings")
         settings = { 
@@ -563,7 +567,8 @@ class MainScreen(customtkinter.CTk):    # create class
             },
             "appearance_settings": {
                 "Appearance Mode" : self.appearance_mode_variable.get(),
-                "Colour Theme" : self.colour_theme_variable.get()
+                "Colour Theme" : self.colour_theme_variable.get(),
+                "Global Saves Default Value": self.global_saves_default_value_variable.get()
             }
         }
         # create settings.json at the correct path if it doesn't already exist
@@ -589,6 +594,10 @@ class MainScreen(customtkinter.CTk):    # create class
             try:
                 print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.load_settings: Reading settings.json")
                 loaded_settings = json.load(file) # store dictionary in 'loaded_settings'
+                dolphin_settings = loaded_settings["dolphin_settings"]
+                yuzu_settings = loaded_settings["yuzu_settings"]
+                appearance_settings = loaded_settings["appearance_settings"]
+                global_saves = appearance_settings["Global Saves Default Value"]
             except json.decoder.JSONDecodeError as error:
                 self.restore_default_dolphin_settings()   # if any error raised then restore the default settings. 
                 self.restore_default_yuzu_settings()
@@ -596,8 +605,10 @@ class MainScreen(customtkinter.CTk):    # create class
                 messagebox.showerror("Error", "Unable to load settings")
                 return
         # define indiviudal dictonaries for each emulator.
-        dolphin_settings = loaded_settings["dolphin_settings"]
-        yuzu_settings = loaded_settings["yuzu_settings"]
+        self.global_saves_default_value_variable.set(global_saves)
+        global_saves = "1" if global_saves == "True" else "0"
+        self.yuzu_global_data.set(global_saves)
+        self.dolphin_global_data.set(global_saves)
         for entry_id, setting in self.dolphin_settings_dict.items(): # iterate through each setting in the current settings dictonary
             setting_name = setting['name']      # get the name of the setting 
             previous_setting_value = dolphin_settings[setting_name]  # get the previous value of the setting from the dictonary using the name as a key
