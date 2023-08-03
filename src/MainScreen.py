@@ -490,7 +490,7 @@ class MainScreen(customtkinter.CTk):    # create class
             }
         }
         # load settings from settings.json if found
-        self.settings_path = os.path.join(self.user_profile, "AppData","Roaming","Emulator Manager", "config")
+        self.settings_path = os.path.join(os.getenv("APPDATA"),"Emulator Manager", "config")
         self.settings_file = os.path.join(self.settings_path, 'settings.json')
         
         # create appearance and themes widgets for settings menu 'Appearance'
