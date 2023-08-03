@@ -1151,7 +1151,7 @@ class MainScreen(customtkinter.CTk):    # create class
             progress = (copied_files / total_files) 
             progress_bar.update_extraction_progress(progress)
         progress_bar.destroy()
-        messagebox.showinfo(title, "Copy Complete!")
+        messagebox.showinfo("Copy Complete!", f"{title} Complete!")
         print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.copy_directory_with_progress [END]")
     
         
