@@ -892,8 +892,19 @@ class MainScreen(customtkinter.CTk):    # create class
     def start_dolphin(self):
         print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.start_dolphin [START]")
         if self.dolphin_global_data.get() == "1":
-            print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.start_dolphin: Loading Data")
-            self.copy_directory_with_progress((os.path.join(self.dolphin_settings_global_save_directory_variable.get(), os.getlogin())), self.dolphin_settings_user_directory_variable.get(), "Loading Dolphin Data", self.dolphin_log_frame)
+            try:
+                print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.start_dolphin: Loading Data")
+                self.copy_directory_with_progress((os.path.join(self.dolphin_settings_global_save_directory_variable.get(), os.getlogin())), self.dolphin_settings_user_directory_variable.get(), "Loading Dolphin Data", self.dolphin_log_frame)
+            except Exception as error:
+                for widget in self.dolphin_log_frame.winfo_children():
+                        widget.destroy()
+                print_and_write_to_log(Fore.RED + f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE][ERROR] MainScreen.start_dolphin > MainScreen.copy_directory_with_progress: {error}" + Style.RESET_ALL)
+                if not messagebox.askyesno("Error", f"Unable to load your data, would you like to continue\n\n Full Error: {error}"):
+                    print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.start_dolphin [END]")
+                    self.dolphin_launch_dolphin_button.configure(state="normal", text="Launch Dolphin  ")
+                    self.dolphin_install_dolphin_button.configure(state="normal")
+                    return 
+        
         print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.start_dolphin: Starting Dolphin...")
         self.dolphin_launch_dolphin_button.configure(state="disabled", text="Launched!  ")
         run([os.path.join(self.dolphin_settings_install_directory_variable.get(),'Dolphin.exe')], capture_output = True)
