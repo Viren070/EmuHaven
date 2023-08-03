@@ -1352,7 +1352,10 @@ class MainScreen(customtkinter.CTk):    # create class
                 elif not os.path.exists(current_value):
                     errors+=f"'{name}' is Invalid. File does not exist\n"
                     entry_widget.delete(0, 'end')
-                    entry_widget.insert(0, var.get())
+                    if os.path.exists(var.get()):
+                        entry_widget.insert(0, var.get())
+                    else:
+                        var.set("")
                     continue
             if self.is_path_exists_or_creatable(current_value):
                 var.set(current_value)
@@ -1445,31 +1448,28 @@ class MainScreen(customtkinter.CTk):    # create class
                     self.yuzu_installer_available = False
                     var.set(current_value)
                     continue
-                elif current_value.split(".")[-1] != "exe":
-                    errors+=f"'{name}' is Invalid. Must be an exe file\n"
+                elif current_value.split(".")[-1] != "exe" or not os.path.exists(current_value):
+                    errors+=f"'{name}' is Invalid. Must be an exe file that exists\n"
                     entry_widget.delete(0, 'end')
-                    entry_widget.insert(0, var.get())
+                    if os.path.exists(var.get()):
+                        entry_widget.insert(0, var.get())
+                    else:
+                        var.set("")
                     continue
-                elif not os.path.exists(current_value):
-                    errors+=f"'{name}' is Invalid. File does not exist\n"
-                    entry_widget.delete(0, 'end')
-                    entry_widget.insert(0, var.get())
-                    continue 
             elif int(entry_id) > 5:
                 if (current_value == "" or current_value is None):
-                    warnings+="Leaving the paths for the firmware or key archives will result in the automatic installation not working.\n\n"
+                    missing = 'firmware' if entry_id=="6" else 'key'
+                    warnings+=f"Leaving the paths for the {missing} archives will result in the automatic installation not working.\n\n"
                     self.yuzu_automatic_firmwarekeys_install = False
                     var.set(current_value)
                     continue
-                elif current_value.split(".")[-1] != "zip":
-                    errors+=f"'{name}' is Invalid. Must be a ZIP File\n"
+                elif current_value.split(".")[-1] != "zip" or not os.path.exists(current_value):
+                    errors+=f"'{name}' is Invalid. Must be a ZIP File that exists\n"
                     entry_widget.delete(0, 'end')
-                    entry_widget.insert(0, var.get())
-                    continue
-                elif not os.path.exists(current_value):
-                    errors+=f"'{name}' is Invalid. File does not exist\n"
-                    entry_widget.delete(0, 'end')
-                    entry_widget.insert(0, var.get())
+                    if os.path.exists(var.get()):
+                        entry_widget.insert(0, var.get())
+                    else:
+                        var.set("")
                     continue
             if self.is_path_exists_or_creatable(current_value):
                 var.set(current_value)
