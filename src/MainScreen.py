@@ -1194,6 +1194,7 @@ class MainScreen(customtkinter.CTk):    # create class
             self.start_copy_thread(save_dir, os.path.join(user_directory, 'nand', 'user', 'save'), "Importing Yuzu Save Data", self.yuzu_data_log)
         print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.import_yuzu_data: mode={mode} [END]")
     def delete_yuzu_data(self):
+        
         print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.delete_yuzu_data [START]")
         if not messagebox.askyesno("Confirmation", "This will delete the data from Yuzu's directory and from the global saves directory. This action cannot be undone, are you sure you wish to continue?"):
             print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.delete_yuzu_data [END]")
@@ -1211,9 +1212,14 @@ class MainScreen(customtkinter.CTk):    # create class
         def delete_directory(directory):
             print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.delete_yuzu_data.delete_directory: directory={directory} [START]")
             if os.path.exists(directory):
-                shutil.rmtree(directory)
-                print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.delete_yuzu_data.delete_directory: Deleted Directory. [END]")
-                return True
+                try:
+                    shutil.rmtree(directory)
+                    print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.delete_yuzu_data.delete_directory: Deleted Directory. [END]")
+                    return True
+                except:
+                    print_and_write_to_log(Fore.RED+f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE][ERROR] MainScreen.delete_yuzu_data.delete_directory: Unable to delete directory: {directory} [END]"+Style.RESET_ALL)
+                    messagebox.showerror("Delete Yuzu Data", f"Unable to delete {directory}")
+                    return False
             print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.delete_yuzu_data.delete_directory: Nothing Deleted [END]")
             return False
 
@@ -1277,9 +1283,15 @@ class MainScreen(customtkinter.CTk):    # create class
         def delete_directory(directory):
             print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.delete_dolphin_data.delete_directory: directory={directory} [START]")
             if os.path.exists(directory):
-                shutil.rmtree(directory)
-                print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.delete_dolphin_data.delete_directory: Deleted directory. [END]")
-                return True
+                try:
+                    shutil.rmtree(directory)
+                    print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.delete_dolphin_data.delete_directory: Deleted directory. [END]")
+                    return True
+                except:
+                    print_and_write_to_log(Fore.RED+f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE][ERROR] MainScreen.delete_dolphin_data.delete_directory: Unable to delete directory: {directory} [END]"+Style.RESET_ALL)
+                    messagebox.showerror("Delete Dolphin Data", f"Unable to delete {directory}")
+                    return False
+                
             print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.delete_dolphin_data.delete_directory: Nothing Deleted [END]")
             return False
         if mode == "All Data":
