@@ -1057,6 +1057,8 @@ class MainScreen(customtkinter.CTk):    # create class
                 print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.start_yuzu: Loading Data")
                 self.copy_directory_with_progress((os.path.join(self.yuzu_settings_global_save_directory_variable.get(), os.getlogin())), self.yuzu_settings_user_directory_variable.get(), "Loading Yuzu Data", self.yuzu_log_frame)
             except Exception as error:
+                for widget in self.yuzu_log_frame.winfo_children():
+                        widget.destroy()
                 print_and_write_to_log(Fore.RED + f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE][ERROR] MainScreen.start_yuzu: {error}" + Style.RESET_ALL)
                 if not messagebox.askyesno("Error", f"Unable to load your data, would you like to continue\n\n Full Error: {error}"):
                     print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.start_yuzu [END]")
