@@ -121,7 +121,7 @@ class MainScreen(customtkinter.CTk):    # create class
         self.dolphin_launch_dolphin_button = customtkinter.CTkButton(self.dolphin_actions_frame, height=40, width=180, text="Launch Dolphin  ", image = self.play_image, font=customtkinter.CTkFont(size=15, weight="bold"), command=self.start_dolphin_wrapper)
         self.dolphin_launch_dolphin_button.grid(row=0, column=1, padx=30, pady=15, sticky="n")
 
-        self.dolphin_global_data = customtkinter.StringVar(value="1")
+        self.dolphin_global_data = customtkinter.StringVar(value="0")
         self.dolphin_global_user_data_checkbox = customtkinter.CTkCheckBox(self.dolphin_actions_frame, text = "Use Global Saves",
                                      variable=self.dolphin_global_data, onvalue="1", offvalue="0")
         self.dolphin_global_user_data_checkbox.grid(row=1,column=1, pady=(0,5))
@@ -201,7 +201,7 @@ class MainScreen(customtkinter.CTk):    # create class
         self.yuzu_launch_yuzu_button = customtkinter.CTkButton(self.yuzu_actions_frame, height=40, width=170, image=self.play_image, text="Launch Yuzu  ", font=customtkinter.CTkFont(size=15, weight="bold"), command=self.start_yuzu_wrapper)
         self.yuzu_launch_yuzu_button.grid(row=0, column=2, padx=30, pady=15, sticky="n")
 
-        self.yuzu_global_data = customtkinter.StringVar(value="1")
+        self.yuzu_global_data = customtkinter.StringVar(value="0")
         self.yuzu_global_user_data_checkbox = customtkinter.CTkCheckBox(self.yuzu_actions_frame, text = "Use Global Saves", variable=self.yuzu_global_data, onvalue="1", offvalue="0")
         self.yuzu_global_user_data_checkbox.grid(row=0,column=3, padx=(0,35))
 
