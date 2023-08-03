@@ -534,6 +534,8 @@ class MainScreen(customtkinter.CTk):    # create class
         if not startup: # if the colour theme is being changed in the settings page and not when loading from settings.json
             self.update_settings()   # update settings to reflect latest change in appearance settings
         print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.change_colour_theme: Theme changed to {theme}\n[CONSOLE] MainScreen.change_colour_theme: Destroying Current object") 
+        for after_id in self.tk.eval('after info').split():
+            self.after_cancel(after_id)
         self.destroy()   # destroy current window (because changing colour theme directly does not work)
         MainScreen(['settings','appearance'])  # create new window and open on the Appearance page 
         
