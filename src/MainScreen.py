@@ -1266,7 +1266,7 @@ class MainScreen(customtkinter.CTk):    # create class
         entry_id = find_dolphin_entry_id_by_entry_widget(entry_widget)
         print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.update_dolphin_setting_with_explorer: Setting id {entry_id} [START]")
         if entry_id == '5':
-            dolphin_zip = filedialog.askopenfilename(initialfile=self.dolphin_settings_dict[entry_id]['var'].get(), filetypes=[("ZIP Archive of Dolphin", "*zip")])
+            dolphin_zip = filedialog.askopenfilename(initialdir=os.path.dirname(self.dolphin_settings_dict[entry_id]['var'].get()) if os.path.exists(self.dolphin_settings_dict[entry_id]['var'].get()) else os.getcwd(), filetypes=[("Dolphin 5.0-xxxxx.zip", "*zip")])
             if dolphin_zip is None or dolphin_zip == "":
                 print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.update_dolphin_setting_with_explorer: Setting id {entry_id} Not updated as no input was given [END]")
                 return 
@@ -1275,7 +1275,7 @@ class MainScreen(customtkinter.CTk):    # create class
             if self.dolphin_settings_dict[entry_id]['default'] == "":
                 self.dolphin_settings_dict[entry_id]['default'] = dolphin_zip
         else:
-            directory = filedialog.askdirectory(initialdir = self.dolphin_settings_dict[entry_id]['var'].get())
+            directory = filedialog.askdirectory(initialdir=os.path.dirname(self.dolphin_settings_dict[entry_id]['var'].get()) if os.path.exists(self.dolphin_settings_dict[entry_id]['var'].get()) else os.getcwd())
             if directory is None or directory == "":
                 print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.update_dolphin_setting_with_explorer: Setting id {entry_id} Not updated as no input was given [END]")
                 return 
@@ -1352,7 +1352,7 @@ class MainScreen(customtkinter.CTk):    # create class
         entry_id = find_yuzu_entry_id_by_entry_widget(entry_widget)
         print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.update_yuzu_settings_with_explorer: entry_id={entry_id} [START]")
         if entry_id == '5':
-            yuzu_installer = filedialog.askopenfilename(initialfile=self.yuzu_settings_dict[entry_id]['var'].get(), filetypes=[("yuzu-install.exe", "*exe")])
+            yuzu_installer = filedialog.askopenfilename(initialdir=os.path.dirname(self.yuzu_settings_dict[entry_id]['var'].get()) if os.path.exists(self.yuzu_settings_dict[entry_id]['var'].get()) else os.getcwd(), filetypes=[("yuzu_install.exe", "*exe")])
             if yuzu_installer is None or yuzu_installer == "":
                 print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.update_yuzu_settings_with_explorer: entry_id={entry_id} Not updated as input empty [END]")
                 return 
@@ -1361,7 +1361,7 @@ class MainScreen(customtkinter.CTk):    # create class
             if self.yuzu_settings_dict[entry_id]['default'] == "":
                 self.yuzu_settings_dict[entry_id]['default'] = yuzu_installer
         elif int(entry_id) > 5:
-            zip_archive = filedialog.askopenfilename(initialfile=self.yuzu_settings_dict[entry_id]['var'].get(), filetypes=[("ZIP", "*zip")])
+            zip_archive = filedialog.askopenfilename(initialdir=os.path.dirname(self.yuzu_settings_dict[entry_id]['var'].get()) if os.path.exists(self.yuzu_settings_dict[entry_id]['var'].get()) else os.getcwd(), filetypes=[("Firmware" if entry_id=="6" else "Keys", "*zip")])
             if zip_archive is None or zip_archive == "":
                 print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.update_yuzu_settings_with_explorer: entry_id={entry_id} Not updated as input empty [END]")
                 return 
@@ -1370,7 +1370,7 @@ class MainScreen(customtkinter.CTk):    # create class
             if self.yuzu_settings_dict[entry_id]['default'] == "":
                 self.yuzu_settings_dict[entry_id]['default'] = zip_archive
         else:
-            directory = filedialog.askdirectory(initialdir=self.yuzu_settings_dict[entry_id]['var'].get())
+            directory = filedialog.askdirectory(initialdir=os.path.dirname(self.yuzu_settings_dict[entry_id]['var'].get()) if os.path.exists(self.yuzu_settings_dict[entry_id]['var'].get()) else os.getcwd())
             if directory is None or directory == "":
                 print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.update_yuzu_settings_with_explorer: entry_id={entry_id} Not updated as input empty [END]")
                 return 
