@@ -1070,8 +1070,13 @@ class MainScreen(customtkinter.CTk):    # create class
             if messagebox.askyesno("Error","You are missing your keys or firmware. Without these files, the games will not run. Would you like to install the missing files?"):
                 if not self.yuzu_automatic_firmwarekeys_install:
                     messagebox.showerror("Error", "The paths to the firmware and key archives have not been set or are invalid, please check the settings page.")
+                    if not messagebox.askyesno("Missing Firmware or Keys",  "Would you like to launch yuzu anyways?"):
+                        print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.start_yuzu [END]")
                         self.yuzu_launch_yuzu_button.configure(state="normal", text="Launch Yuzu  ")
                         self.yuzu_install_yuzu_button.configure(state="normal")
+                        return
+                else:
+                    self.install_missing_firmware_or_keys()
             
         self.yuzu_is_running = True
         self.yuzu_launch_yuzu_button.configure(text="Launched!  ")
