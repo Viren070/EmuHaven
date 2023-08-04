@@ -602,14 +602,15 @@ class MainScreen(customtkinter.CTk):    # create class
             except json.decoder.JSONDecodeError as error:
                 self.restore_default_dolphin_settings()   # if any error raised then restore the default settings. 
                 self.restore_default_yuzu_settings()
-                print_and_write_to_log(Fore.RED + f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE][ERROR] MainScreen.load_settings: {error}" + Style.RESET_ALL)
+                print_and_write_to_log(Fore.RED + f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE][ERROR] MainScreen.load_settings: JSONDecodeError: {error}" + Style.RESET_ALL)
                 messagebox.showerror("Error", "Unable to load settings")
                 return
             except KeyError as error:
                 self.restore_default_dolphin_settings()
                 self.restore_default_yuzu_settings()
-                print_and_write_to_log(Fore.RED + f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE][ERROR] MainScreen.load_settings: {error}" + Style.RESET_ALL)
+                print_and_write_to_log(Fore.RED + f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE][ERROR] MainScreen.load_settings: KeyError: {error}" + Style.RESET_ALL)
                 messagebox.showerror("Error", "Unable to load settings")
+                return
                 
         # define indiviudal dictonaries for each emulator.
         self.global_saves_default_value_variable.set(global_saves)
