@@ -27,7 +27,7 @@ share/python-wheels/
 MANIFEST
 Emulator Manager Releases/
 create-release.bat
-resources/
+Emulator Files
 
 # PyInstaller
 #  Usually these files are written by a python script from a template

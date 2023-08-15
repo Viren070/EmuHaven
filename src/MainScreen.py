@@ -281,7 +281,7 @@ class MainScreen(customtkinter.CTk):    # create class
         self.settings_lock_button.grid(row=6, column=0, padx = 20, pady=20)
 
         # set default paths and other useful paths 
-        installer_paths = os.path.join(os.path.dirname(os.path.realpath(__file__)), "resources")
+        installer_paths = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Emulator Files")
         user_saves_directory = os.path.join(os.getcwd(), "User Data")
         switch_firmware_keys_folder_path = os.path.join(installer_paths, "Yuzu Files")
         self.user_profile = os.path.expanduser('~')
