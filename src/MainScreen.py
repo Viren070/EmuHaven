@@ -291,7 +291,7 @@ class MainScreen(customtkinter.CTk):    # create class
         self.default_dolphin_settings_user_directory = os.path.join(self.user_profile, "AppData\\Roaming\\Dolphin Emulator")
         self.default_dolphin_settings_global_save_directory = os.path.join(user_saves_directory, "Dolphin")
         self.default_dolphin_settings_export_directory = os.path.join(user_saves_directory, "Dolphin")
-        self.default_dolphin_settings_dolphin_zip_directory = os.path.join(installer_paths, 'Dolphin 5.0-19368.zip')
+        self.default_dolphin_settings_dolphin_zip_directory = os.path.join(installer_paths, 'Dolphin 5.0-19870.zip')
             
         self.default_yuzu_settings_install_directory = os.path.join(self.user_profile, "AppData\\Local\\yuzu\\yuzu-windows-msvc\\")
         self.default_yuzu_settings_user_directory = os.path.join(self.user_profile, "AppData\\Roaming\\yuzu\\")
