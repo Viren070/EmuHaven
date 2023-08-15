@@ -32,8 +32,8 @@ You can choose either the:
 
  If you download the .exe file, you will be unable to change the [resource files within the exe itself](https://github.com/Viren070/Emulator-Manager#resource-files). You can still set the paths in the settings to other files but that will mean that the resource files within the exe are unused and are wasting space. 
  ## Resource Files
-  (as of v0.6.2)
+  (as of v0.6.5)
 - Firmware 16.0.3 (Rebootless Update 2).zip
 - Keys 16.0.3.zip
 - yuzu_install.exe v0.9
-- Dolphin 5.0-19368.zip 
+- Dolphin 5.0-19870.zip 
