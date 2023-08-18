@@ -197,7 +197,7 @@ class MainScreen(customtkinter.CTk):    # create class
         self.yuzu_actions_frame.grid(row=0, column=0, padx=40, pady=40)
         self.yuzu_actions_frame.grid_columnconfigure(3, weight=1)
         
-        self.yuzu_launch_yuzu_button = customtkinter.CTkButton(self.yuzu_actions_frame, height=40, width=170, image=self.play_image, text="Launch Yuzu  ", font=customtkinter.CTkFont(size=15, weight="bold"))
+        self.yuzu_launch_yuzu_button = customtkinter.CTkButton(self.yuzu_actions_frame, height=40, width=170, image=self.play_image, text="Launch Yuzu  ", command=self.start_yuzu_wrapper, font=customtkinter.CTkFont(size=15, weight="bold"))
         self.yuzu_launch_yuzu_button.grid(row=0, column=2, padx=30, pady=15, sticky="n")
         self.yuzu_launch_yuzu_button.bind("<Button-1>", command=lambda event: self.start_yuzu_wrapper(event))
         self.yuzu_global_data = customtkinter.StringVar(value="0")
@@ -1038,7 +1038,10 @@ class MainScreen(customtkinter.CTk):    # create class
             messagebox.showerror("Install Error", "Unable to install keys or firmware. Try using the SwitchEmuTool to manually install through the options Menu")
             
     def start_yuzu_wrapper(self, event=None):
- 
+        if self.yuzu_launch_yuzu_button.cget("state") == "disabled":
+            return
+        if event==None:
+            return
         self.validate_optional_paths()
         print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.start_yuzu_wrapper [START]")
         if not self.check_yuzu_installation():
