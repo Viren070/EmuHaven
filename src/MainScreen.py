@@ -5,7 +5,7 @@ import shutil
 from datetime import datetime
 from re import compile as comp
 from hashlib import pbkdf2_hmac
-from subprocess import run
+from subprocess import run, call
 from sys import platform
 from threading import Thread
 from time import perf_counter, sleep
@@ -197,9 +197,9 @@ class MainScreen(customtkinter.CTk):    # create class
         self.yuzu_actions_frame.grid(row=0, column=0, padx=40, pady=40)
         self.yuzu_actions_frame.grid_columnconfigure(3, weight=1)
         
-        self.yuzu_launch_yuzu_button = customtkinter.CTkButton(self.yuzu_actions_frame, height=40, width=170, image=self.play_image, text="Launch Yuzu  ", font=customtkinter.CTkFont(size=15, weight="bold"), command=self.start_yuzu_wrapper)
+        self.yuzu_launch_yuzu_button = customtkinter.CTkButton(self.yuzu_actions_frame, height=40, width=170, image=self.play_image, text="Launch Yuzu  ", font=customtkinter.CTkFont(size=15, weight="bold"))
         self.yuzu_launch_yuzu_button.grid(row=0, column=2, padx=30, pady=15, sticky="n")
-
+        self.yuzu_launch_yuzu_button.bind("<Button-1>", command=lambda event: self.start_yuzu_wrapper(event))
         self.yuzu_global_data = customtkinter.StringVar(value="0")
         self.yuzu_global_user_data_checkbox = customtkinter.CTkCheckBox(self.yuzu_actions_frame, text = "Use Global Saves", variable=self.yuzu_global_data, onvalue="1", offvalue="0")
         self.yuzu_global_user_data_checkbox.grid(row=0,column=3, padx=(0,35))
@@ -1037,7 +1037,8 @@ class MainScreen(customtkinter.CTk):    # create class
             print_and_write_to_log(Fore.RED + f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE][ERROR] MainScreen.install_missing_firmware_or_keys: Still missing firmware/keys after installing" + Style.RESET_ALL)
             messagebox.showerror("Install Error", "Unable to install keys or firmware. Try using the SwitchEmuTool to manually install through the options Menu")
             
-    def start_yuzu_wrapper(self):
+    def start_yuzu_wrapper(self, event=None):
+ 
         self.validate_optional_paths()
         print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.start_yuzu_wrapper [START]")
         if not self.check_yuzu_installation():
@@ -1048,9 +1049,9 @@ class MainScreen(customtkinter.CTk):    # create class
         print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.start_yuzu_wrapper: Starting yuzu thread [END]")
         self.yuzu_install_yuzu_button.configure(state="disabled")
         self.yuzu_launch_yuzu_button.configure(state="disabled", text="Launching...  ")
-        Thread(target=self.start_yuzu).start()
+        Thread(target=self.start_yuzu, args=(event,)).start()
     
-    def start_yuzu(self):
+    def start_yuzu(self, event=None):
         print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.start_yuzu [START]")
         if self.yuzu_global_data.get() == "1":
             try:
@@ -1079,10 +1080,19 @@ class MainScreen(customtkinter.CTk):    # create class
                     self.install_missing_firmware_or_keys()
             
         self.yuzu_is_running = True
-        self.yuzu_launch_yuzu_button.configure(text="Launched!  ")
-        print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.start_yuzu: Running yuzu.exe")
-        run([os.path.join(self.yuzu_settings_install_directory_variable.get(),'yuzu.exe')], capture_output = True)
         
+        print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.start_yuzu: Running yuzu.exe")
+        maintenance_tool = os.path.join(os.path.dirname(os.path.abspath(self.yuzu_settings_install_directory_variable.get())), "maintenancetool.exe")
+        yuzu_exe = os.path.join(self.yuzu_settings_install_directory_variable.get(),'yuzu.exe')
+
+        if not event.state & 1 and os.path.exists(maintenance_tool):
+            print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.start_yuzu: Running updater")
+            self.yuzu_launch_yuzu_button.configure(text="Running Updater...  ")
+            os.system(f"{maintenance_tool} --launcher {yuzu_exe}")  #run maintenancetool and update yuzu before launching yuzu
+            sleep(0.5)
+        call(["taskkill","/F","/IM","yuzu.exe"])  #end yuzu.exe processes before creating new one. Can't capture output of yuzu.exe that was created by maintenancetool.exe so create new proces.
+        self.yuzu_launch_yuzu_button.configure(text="Launched!  ")
+        run([yuzu_exe], capture_output = True)
         self.yuzu_is_running = False
         if self.yuzu_global_data.get() == "1":
             try:
