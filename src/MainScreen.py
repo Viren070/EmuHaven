@@ -226,7 +226,7 @@ class MainScreen(customtkinter.CTk):    # create class
         
         self.yuzu_import_button = customtkinter.CTkButton(self.yuzu_data_actions_frame, text="Import", command=self.import_yuzu_data)
         self.yuzu_export_button = customtkinter.CTkButton(self.yuzu_data_actions_frame, text="Export", command=self.export_yuzu_data)
-        self.yuzu_delete_button = customtkinter.CTkButton(self.yuzu_data_actions_frame, text="Delete", command=self.delete_yuzu_data, fg_color="red", hover_color="red")
+        self.yuzu_delete_button = customtkinter.CTkButton(self.yuzu_data_actions_frame, text="Delete", command=self.delete_yuzu_data, fg_color="red", hover_color="darkred")
 
         self.yuzu_import_optionmenu.grid(row=0, column=0, padx=10, pady=10, sticky="w")
         self.yuzu_import_button.grid(row=0, column=1, padx=10, pady=10, sticky="e")
