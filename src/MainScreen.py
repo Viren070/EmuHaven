@@ -79,7 +79,7 @@ class MainScreen(customtkinter.CTk):    # create class
         self.navigation_frame_label = customtkinter.CTkLabel(self.navigation_frame, text= "Emulator Manager v0.7.1",
                                                              compound="left", padx=5, font=customtkinter.CTkFont(size=12, weight="bold"))
         self.navigation_frame_label.grid(row=0, column=0, padx=20, pady=20)
-
+        self.navigation_frame_label.bind('<Double-Button-1>', command=lambda event: messagebox.showinfo("About", "Emulator Manager v0.7.1, made by Viren070 on GitHub."))
         # create navigation menu buttons
         self.dolphin_button = customtkinter.CTkButton(self.navigation_frame, corner_radius=0, height=40, image = self.dolphin_image, border_spacing=10, text="Dolphin",
                                                    fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
