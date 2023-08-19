@@ -1088,13 +1088,15 @@ class MainScreen(customtkinter.CTk):    # create class
         yuzu_exe = os.path.join(self.yuzu_settings_install_directory_variable.get(),'yuzu.exe')
 
         if not event.state & 1 and os.path.exists(maintenance_tool):
-            print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.start_yuzu: Running updater")
-            self.yuzu_launch_yuzu_button.configure(text="Running Updater...  ")
-            os.system(f"{maintenance_tool} --launcher {yuzu_exe}")  #run maintenancetool and update yuzu before launching yuzu
-            sleep(0.5)
-        call(["taskkill","/F","/IM","yuzu.exe"])  #end yuzu.exe processes before creating new one. Can't capture output of yuzu.exe that was created by maintenancetool.exe so create new proces.
-        self.yuzu_launch_yuzu_button.configure(text="Launched!  ")
-        run([yuzu_exe], capture_output = True)
+            print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.start_yuzu: launching maintenace tool to update yuzu")
+            args = [maintenance_tool, "--launcher", yuzu_exe]  # run the maintenance tool to update yuzu before launching yuzu
+        else:
+            print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.start_yuzu: Detected shift click or maintenance tool was not found and skipping update")
+            args = [yuzu_exe]    # directly run the yuzu exe
+        
+        self.yuzu_launch_yuzu_button.configure(text="Launched!  ")      
+        run(args, capture_output=True) #run maintenancetool and update yuzu before launching yuzu
+        
         self.yuzu_is_running = False
         if self.yuzu_global_data.get() == "1":
             try:
