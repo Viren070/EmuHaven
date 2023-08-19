@@ -1080,8 +1080,6 @@ class MainScreen(customtkinter.CTk):    # create class
                         return
                 else:
                     self.install_missing_firmware_or_keys()
-            
-        self.yuzu_is_running = True
         
         print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.start_yuzu: Running yuzu.exe")
         maintenance_tool = os.path.join(os.path.dirname(os.path.abspath(self.yuzu_settings_install_directory_variable.get())), "maintenancetool.exe")
@@ -1096,8 +1094,7 @@ class MainScreen(customtkinter.CTk):    # create class
         
         self.yuzu_launch_yuzu_button.configure(text="Launched!  ")      
         run(args, capture_output=True) #run maintenancetool and update yuzu before launching yuzu
-        
-        self.yuzu_is_running = False
+        print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.start_yuzu: Detected that yuzu was closed.")
         if self.yuzu_global_data.get() == "1":
             try:
                 self.yuzu_launch_yuzu_button.configure(state="disabled", text="Launch Yuzu  ")
