@@ -5,7 +5,7 @@ import shutil
 from datetime import datetime
 from re import compile as comp
 from hashlib import pbkdf2_hmac
-from subprocess import run, call
+from subprocess import run
 from sys import platform
 from threading import Thread
 from time import perf_counter, sleep
@@ -906,7 +906,10 @@ class MainScreen(customtkinter.CTk):    # create class
         
         print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.start_dolphin: Starting Dolphin...")
         self.dolphin_launch_dolphin_button.configure(state="disabled", text="Launched!  ")
-        run([os.path.join(self.dolphin_settings_install_directory_variable.get(),'Dolphin.exe')], capture_output = True)
+        try:
+            run([os.path.join(self.dolphin_settings_install_directory_variable.get(),'Dolphin.exe')], capture_output = True)
+        except Exception as error_msg:
+            messagebox.showerror("Error", f"Error when running Dolphin: \n{error_msg}")
         self.dolphin_is_running = False
         if self.dolphin_global_data.get() == "1":
             self.dolphin_launch_dolphin_button.configure(state="disabled", text="Launch Dolphin  ")
@@ -1092,8 +1095,11 @@ class MainScreen(customtkinter.CTk):    # create class
             print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.start_yuzu: Detected shift click or maintenance tool was not found and skipping update")
             args = [yuzu_exe]    # directly run the yuzu exe
         
-        self.yuzu_launch_yuzu_button.configure(text="Launched!  ")      
-        run(args, capture_output=True) #run maintenancetool and update yuzu before launching yuzu
+        self.yuzu_launch_yuzu_button.configure(text="Launched!  ") 
+        try:     
+            run(args, capture_output=True) #run maintenancetool and update yuzu before launching yuzu
+        except Exception as error_msg:
+            messagebox.showerror("Error", f"Error when running Yuzu: \n{error_msg}")
         print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.start_yuzu: Detected that yuzu was closed.")
         if self.yuzu_global_data.get() == "1":
             try:
