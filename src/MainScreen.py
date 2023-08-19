@@ -624,7 +624,7 @@ class MainScreen(customtkinter.CTk):    # create class
                 if "Temp\\_MEI" in previous_setting_value: # if Temp\\_MEI is in the previous setting value, then it means that it was from the -onefile exe and the path needs to be updated as it changes each time the app is opened
                     print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.load_settings: Restoring {setting_name} to default as it uses old exe path")
                     self.restore_default_dolphin_settings(entry_id) # the default value will hold the new path 
-                if not os.path.exists(previous_setting_value) and not os.path.exists(setting["default"]):
+                elif not os.path.exists(previous_setting_value) and not os.path.exists(setting["default"]):
                     setting["var"].set("")
                     setting["entry"].delete(0, 'end')
                     setting["default"] = ""
@@ -646,7 +646,7 @@ class MainScreen(customtkinter.CTk):    # create class
                 if "Temp\\_MEI" in previous_setting_value: # if Temp\\_MEI is in the previous setting value, then it means that it was from the -onefile exe and the path needs to be updated as it changes each time the app is opened
                     print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.load_settings: Restoring {setting_name} to default as it uses old exe path")
                     self.restore_default_yuzu_settings(entry_id)
-                if not os.path.exists(previous_setting_value) and not os.path.exists(setting["default"]):
+                elif not os.path.exists(previous_setting_value) and not os.path.exists(setting["default"]):
                     setting["var"].set("")
                     setting["entry"].delete(0, 'end')
                     setting["default"] = ""
