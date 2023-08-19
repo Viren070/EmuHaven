@@ -1090,14 +1090,14 @@ class MainScreen(customtkinter.CTk):    # create class
 
         if not event.state & 1 and os.path.exists(maintenance_tool):
             print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.start_yuzu: launching maintenace tool to update yuzu")
-            args = [maintenance_tool, "--launcher", yuzu_exe]  # run the maintenance tool to update yuzu before launching yuzu
+            args = [maintenance_tool, "--launcher", yuzu_exe]  # run the maintenance tool to update yuzu before automatically launching yuzu
         else:
             print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.start_yuzu: Detected shift click or maintenance tool was not found and skipping update")
             args = [yuzu_exe]    # directly run the yuzu exe
         
         self.yuzu_launch_yuzu_button.configure(text="Launched!  ") 
         try:     
-            run(args, capture_output=True) #run maintenancetool and update yuzu before launching yuzu
+            run(args, capture_output=True) # subprocess.run with arguments defined earlier
         except Exception as error_msg:
             messagebox.showerror("Error", f"Error when running Yuzu: \n{error_msg}")
         print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.start_yuzu: Detected that yuzu was closed.")
