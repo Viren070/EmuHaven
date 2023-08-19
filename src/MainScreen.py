@@ -890,7 +890,7 @@ class MainScreen(customtkinter.CTk):    # create class
         print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.start_dolphin_wrapper [END]")
     def start_dolphin(self):
         print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.start_dolphin [START]")
-        if self.dolphin_global_data.get() == "1":
+        if self.dolphin_global_data.get() == "1" and os.path.exists(os.path.join(self.dolphin_settings_global_save_directory_variable.get(), os.getlogin())):
             try:
                 print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.start_dolphin: Loading Data")
                 self.copy_directory_with_progress((os.path.join(self.dolphin_settings_global_save_directory_variable.get(), os.getlogin())), self.dolphin_settings_user_directory_variable.get(), "Loading Dolphin Data", self.dolphin_log_frame)
@@ -1055,7 +1055,7 @@ class MainScreen(customtkinter.CTk):    # create class
     
     def start_yuzu(self, event=None):
         print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.start_yuzu [START]")
-        if self.yuzu_global_data.get() == "1":
+        if self.yuzu_global_data.get() == "1" and os.path.exists(os.path.join(self.yuzu_settings_global_save_directory_variable.get(), os.getlogin())):
             try:
                 print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.start_yuzu: Loading Data")
                 self.copy_directory_with_progress((os.path.join(self.yuzu_settings_global_save_directory_variable.get(), os.getlogin())), self.yuzu_settings_user_directory_variable.get(), "Loading Yuzu Data", self.yuzu_log_frame)
