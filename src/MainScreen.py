@@ -220,9 +220,9 @@ class MainScreen(customtkinter.CTk):    # create class
         self.yuzu_data_actions_frame.grid(row=0, column=0, padx=20, columnspan=3, pady=20, sticky="ew")
         self.yuzu_data_actions_frame.grid_columnconfigure(1, weight=1)
 
-        self.yuzu_import_optionmenu = customtkinter.CTkOptionMenu(self.yuzu_data_actions_frame, width=300, values=["All Data", "Save Data"])
-        self.yuzu_export_optionmenu = customtkinter.CTkOptionMenu(self.yuzu_data_actions_frame, width=300, values=["All Data", "Save Data"])
-        self.yuzu_delete_optionmenu = customtkinter.CTkOptionMenu(self.yuzu_data_actions_frame, width=300, values=["All Data", "Save Data"])
+        self.yuzu_import_optionmenu = customtkinter.CTkOptionMenu(self.yuzu_data_actions_frame, width=300, values=["All Data", "Save Data", "Exclude 'nand' & 'keys'"])
+        self.yuzu_export_optionmenu = customtkinter.CTkOptionMenu(self.yuzu_data_actions_frame, width=300, values=["All Data", "Save Data", "Exclude 'nand' & 'keys'"])
+        self.yuzu_delete_optionmenu = customtkinter.CTkOptionMenu(self.yuzu_data_actions_frame, width=300, values=["All Data", "Save Data", "Exclude 'nand' & 'keys'"])
         
         self.yuzu_import_button = customtkinter.CTkButton(self.yuzu_data_actions_frame, text="Import", command=self.import_yuzu_data)
         self.yuzu_export_button = customtkinter.CTkButton(self.yuzu_data_actions_frame, text="Export", command=self.export_yuzu_data)
@@ -818,7 +818,6 @@ class MainScreen(customtkinter.CTk):    # create class
             print_and_write_to_log(Fore.RED + f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE][ERROR] MainScreen.install_dolphin_wrapper: path to zip archive of dolphin has not been set" + Style.RESET_ALL)
             messagebox.showerror("Error", "The path to the Dolphin ZIP has not been set or is invalid, please check the settings")
             return
-        
         Thread(target=self.extract_dolphin_install).start()
         
    
@@ -827,7 +826,7 @@ class MainScreen(customtkinter.CTk):    # create class
         self.dolphin_install_dolphin_button.configure(state="disabled")
         self.dolphin_delete_dolphin_button.configure(state="disabled")
         self.dolphin_launch_dolphin_button.configure(state="disabled")
-        dolphin_install_frame = InstallStatus(self.dolphin_log_frame, "Extracting Dolphin", self)
+        dolphin_install_frame = InstallStatus(self.dolphin_log_frame, f"Extracting {os.path.basename(self.dolphin_settings_dolphin_zip_directory_variable.get())}", self)
         dolphin_install_frame.skip_to_installation()
         dolphin_install_frame.grid(row=0, column=0, sticky="nsew")
         with ZipFile(self.dolphin_settings_dolphin_zip_directory_variable.get(), 'r') as archive:
@@ -1109,7 +1108,7 @@ class MainScreen(customtkinter.CTk):    # create class
         self.yuzu_install_yuzu_button.configure(state="normal")
         print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.start_yuzu [END]")
     
-    def copy_directory_with_progress(self, source_dir, target_dir, title, log_frame):
+    def copy_directory_with_progress(self, source_dir, target_dir, title, log_frame, exclude=None):
         print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.copy_directory_with_progress [START]")
         if not os.path.exists(source_dir):
             print_and_write_to_log(Fore.RED+f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE][ERROR] MainScreen.copy_directory_with_progress: {source_dir} does not exist"+Style.RESET_ALL)
@@ -1124,7 +1123,9 @@ class MainScreen(customtkinter.CTk):    # create class
         all_files = []
         for root, dirs, files in os.walk(source_dir):
             all_files.extend([os.path.join(root, file) for file in files])
-
+            
+        if exclude:
+            all_files = [file for file in all_files if not any(excl_folder in file for excl_folder in exclude)]
         # Get the total number of files to copy
         total_files = len(all_files)
 
@@ -1150,6 +1151,7 @@ class MainScreen(customtkinter.CTk):    # create class
             
             
             target_file = os.path.join(target_dir, os.path.relpath(file, source_dir))
+            
             target_dirname = os.path.dirname(target_file)
             
             progress_bar.install_status_label.configure(text=find_common_suffix(file, target_file))
@@ -1188,6 +1190,10 @@ class MainScreen(customtkinter.CTk):    # create class
         elif mode == "Save Data":
             save_dir = os.path.join(user_directory, 'nand', 'user', 'save')
             self.start_copy_thread(save_dir, os.path.join(users_export_directory, 'nand', 'user', 'save'), "Exporting Yuzu Save Data", self.yuzu_data_log)
+        elif mode == "Exclude 'nand' & 'keys'":
+            self.start_copy_thread(user_directory, users_export_directory, "Exporting All Yuzu Data", self.yuzu_data_log, ["nand", "keys"])
+        else:
+            messagebox.showerror("Error", f"An unexpected error has occured, {mode} is an invalid option.")
         print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.export_yuzu_data: mode={mode} [END]")
     def import_yuzu_data(self):
         mode = self.yuzu_import_optionmenu.get()
@@ -1205,6 +1211,10 @@ class MainScreen(customtkinter.CTk):    # create class
         elif mode == "Save Data":
             save_dir = os.path.join(users_export_directory, 'nand', 'user', 'save')
             self.start_copy_thread(save_dir, os.path.join(user_directory, 'nand', 'user', 'save'), "Importing Yuzu Save Data", self.yuzu_data_log)
+        elif mode == "Exclude 'nand' & 'keys'":
+            self.start_copy_thread(users_export_directory, user_directory, "Import All Yuzu Data", self.yuzu_data_log, ["nand", "keys"])
+        else:
+            messagebox.showerror("Error", f"An unexpected error has occured, {mode} is an invalid option.")
         print_and_write_to_log(f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.import_yuzu_data: mode={mode} [END]")
     def delete_yuzu_data(self):
         
@@ -1248,6 +1258,27 @@ class MainScreen(customtkinter.CTk):    # create class
             if export_directory != global_save_directory:
                 save_dir = os.path.join(export_directory, os.getlogin(), 'nand', 'user', 'save')
                 result += f"Data deleted from {save_dir}\n" if delete_directory(save_dir) else ""
+        elif mode == "Exclude 'nand' & 'keys'":
+            # Iterate through each of the 3 root folders and exclude 'nand' subfolder
+            for root_folder in [user_directory, users_global_save_directory, users_export_directory]:
+                if os.path.exists(root_folder) and os.listdir(root_folder):
+                    subfolders_failed = []
+                    deleted = False
+                    for folder_name in os.listdir(root_folder):
+                        folder_path = os.path.join(root_folder, folder_name)
+                        print(folder_name)
+                        if os.path.isdir(folder_path) and not(folder_name == 'nand' or folder_name == 'keys'):
+                            deleted = True
+                            if not delete_directory(folder_path):
+                                subfolders_failed.append(folder_name)
+
+                    if subfolders_failed:
+                        failed_subfolders_message = ", ".join(subfolders_failed)
+                        result += f"Deletion failed in {root_folder} for subfolders: {failed_subfolders_message}\n"
+                    else:
+                        result += f"Data deleted from {root_folder}\n"
+                    if not deleted:
+                        result = ""
 
         if result:
             messagebox.showinfo("Delete result", result)
