@@ -7,34 +7,22 @@
 beautifulsoup4==4.12.2
     # via -r requirements.in
 certifi==2023.7.22
-    # via
-    #   -r requirements.in
-    #   requests
+    # via requests
 charset-normalizer==3.2.0
-    # via
-    #   -r requirements.in
-    #   requests
+    # via requests
 colorama==0.4.6
     # via -r requirements.in
 customtkinter==5.1.2
     # via -r requirements.in
 darkdetect==0.8.0
-    # via
-    #   -r requirements.in
-    #   customtkinter
+    # via customtkinter
 idna==3.4
-    # via
-    #   -r requirements.in
-    #   requests
+    # via requests
 pillow==10.0.0
     # via -r requirements.in
 requests==2.31.0
     # via -r requirements.in
 soupsieve==2.4.1
-    # via
-    #   -r requirements.in
-    #   beautifulsoup4
+    # via beautifulsoup4
 urllib3==2.0.4
-    # via
-    #   -r requirements.in
-    #   requests
+    # via requests
