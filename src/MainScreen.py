@@ -2034,7 +2034,7 @@ class MainScreen(customtkinter.CTk):  # create class
     def start_yuzu_wrapper(self, event=None):
         if self.yuzu_launch_yuzu_button.cget("state") == "disabled":
             return
-        if event == None:
+        if event is None:
             return
         self.validate_optional_paths()
         print_and_write_to_log(

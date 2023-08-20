@@ -771,7 +771,7 @@ class Application(customtkinter.CTkFrame):
                 "There is already a firmware installation in progress. Please cancel the current installation to continue",
             )
             return
-        if path_to_zip == None:
+        if path_to_zip is None:
             path_to_zip = filedialog.askopenfilename(filetypes=[("Zip files", "*.zip")])
         if path_to_zip is not None and path_to_zip != "":
             self.downloads_in_progress += 1
