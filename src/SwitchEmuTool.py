@@ -336,7 +336,7 @@ class Application(customtkinter.CTkFrame):
             firmware_version_number = firmware_version[0].split(
                 "Firmware ")[-1]
             firmware_version_number = (
-                "".join(re.split("\(|\)|\[|\]", firmware_version_number)[::2])).replace(" ", "")
+                "".join(re.split(r"\(|\)|\[|\]", firmware_version_number)[::2])).replace(" ", "")
             if firmware_version_number in firmware_versions_dict:
                 continue
             firmware_versions_dict[firmware_version_number] = (
