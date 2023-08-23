@@ -134,14 +134,15 @@ class DownloadStatusFrame(customtkinter.CTkFrame):
         self.cancel_download_button.configure(state="disabled")
         self.progress_label.grid_forget()
 
-    def complete_download(self, emulator):
+    def complete_download(self, emulator=None, text=None):
         self.cancel_download_button.configure(state="disabled")
         self.install_status_label.configure(
-            text=f"Status: Installing for {emulator}...."
+            text=f"Status: Installing for {emulator}...." if not emulator else text
         )
         self.progress_bar.set(0)
         self.percentage_complete.configure(text="0%")
-
+    def update_status_label(self, text):
+        self.install_status_label.configure(text=text)
     def finish_installation(self):
         minutes, seconds = divmod(int(perf_counter() - self.start_time), 60)
         hours, minutes = divmod(minutes, 60)

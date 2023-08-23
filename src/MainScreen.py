@@ -3,8 +3,8 @@ import json
 import os
 import shutil
 from datetime import datetime
-from re import compile as comp
 from hashlib import pbkdf2_hmac
+from re import compile as comp
 from subprocess import run
 from sys import platform
 from threading import Thread
@@ -13,6 +13,7 @@ from tkinter import filedialog, messagebox, ttk
 from zipfile import ZipFile
 
 import customtkinter
+import requests
 from colorama import Fore, Style, just_fix_windows_console
 from PIL import Image
 
@@ -399,6 +400,7 @@ class MainScreen(customtkinter.CTk):  # create class
         self.yuzu_launch_yuzu_button.bind(
             "<Button-1>", command=lambda event: self.start_yuzu_wrapper(event)
         )
+        self.yuzu_launch_yuzu_button.bind("<Shift-Control-Button-1>", command=lambda event: self.start_yuzu_wrapper(event, True))
         self.yuzu_global_data = customtkinter.StringVar(value="0")
         self.yuzu_global_user_data_checkbox = customtkinter.CTkCheckBox(
             self.yuzu_actions_frame,
@@ -412,8 +414,12 @@ class MainScreen(customtkinter.CTk):  # create class
         self.yuzu_install_yuzu_button = customtkinter.CTkButton(
             self.yuzu_actions_frame,
             text="Run Yuzu Installer",
-            command=self.run_yuzu_install_wrapper,
+            command=lambda event: self.run_yuzu_install_wrapper(event),
         )
+        self.yuzu_install_yuzu_button.bind(
+            "<Button-1>", command=lambda event: self.run_yuzu_install_wrapper(event)
+        )
+        self.yuzu_install_yuzu_button.bind("<Shift-Control-Button-1>", command=lambda event: self.install_ea_yuzu_wrapper(event))
         self.yuzu_install_yuzu_button.grid(row=0, column=1, padx=10, pady=5)
 
         self.yuzu_log_frame = customtkinter.CTkFrame(self.yuzu_start_frame)
@@ -1797,15 +1803,15 @@ class MainScreen(customtkinter.CTk):  # create class
                 f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.check_dolphin_installation [END]"
             )
             return True
-        else:
-            print_and_write_to_log(
-                f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.check_dolphin_installation: Returning False"
-            )
-            self.dolphin_installed = False
-            print_and_write_to_log(
-                f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.check_dolphin_installation [END]"
-            )
-            return False
+
+        print_and_write_to_log(
+            f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.check_dolphin_installation: Returning False"
+        )
+        self.dolphin_installed = False
+        print_and_write_to_log(
+            f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.check_dolphin_installation [END]"
+        )
+        return False
 
     def check_yuzu_installation(self):
         print_and_write_to_log(
@@ -1835,7 +1841,11 @@ class MainScreen(customtkinter.CTk):  # create class
             )
             return False
 
-    def run_yuzu_install_wrapper(self):
+    def run_yuzu_install_wrapper(self, event=None):
+        if self.yuzu_install_yuzu_button.cget("state") == "disabled":
+            return
+        if event is None:
+            return
         self.validate_optional_paths()
         print_and_write_to_log(
             f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.run_yuzu_install_wrapper [START]"
@@ -1907,7 +1917,150 @@ class MainScreen(customtkinter.CTk):  # create class
         print_and_write_to_log(
             f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.run_yuzu_install [END]"
         )
+        
+    def install_ea_yuzu_wrapper(self, event):
+        if not messagebox.askyesno("Confirmation", "This will require an internet connection and will download the files from the internet, continue?"):
+            return 
+        self.yuzu_install_yuzu_button.configure(state="disabled")
+        self.yuzu_launch_yuzu_button.configure(state="disabled")
+        Thread(target=self.install_ea_yuzu).start()
+        
+        
+    def get_launcher_file_content(self):
+        launcher_file = os.path.join(
+            os.getenv("APPDATA"), "Emulator Manager", "launcher.json"
+        )
+        if os.path.exists(launcher_file):
+            with open(launcher_file, 'r') as f:
+                contents = json.load(f)
+                if contents["yuzu"]["ea_version"] and not os.path.exists(os.path.join(os.path.dirname(os.path.abspath(self.yuzu_settings_install_directory_variable.get())),"yuzu-windows-msvc-early-access", "yuzu.exe")):
+                    contents["yuzu"]["ea_version"] = ''
+                return contents
+        else:
+            return None
+        
+    def get_latest_yuzu_ea_release(self):
+        class Release:
+            pass
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246'
+        }
+        api_url = 'https://api.github.com/repos/pineappleEA/pineapple-src/releases'
+        try:
+            response = requests.get(api_url, headers=headers, timeout=10)
+        except requests.exceptions.RequestException:
+            messagebox.showerror("Requests Error", "Failed to connect to API")
+            return None
+        try:
+            release_info = json.loads(response.text)[0]
+        except KeyError:
+            messagebox.showerror("API Error", "Unable to handle response, could be an API ratelimit")
+            return None
+        latest_version = release_info["tag_name"].split("-")[-1]
+        assets = release_info['assets']
+        for asset in assets:
+            if 'Windows' in asset['name']:
+                url = asset['browser_download_url']
+                size = asset['size']
+                break
+        release=Release()
+        release.version = latest_version
+        release.download_url = url
+        release.size = size
 
+        return release   
+    def install_ea_yuzu(self):
+        # Get latest release info 
+        self.updating_ea = True
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246'
+        }
+        
+        yuzu_path = os.path.join(os.path.dirname(os.path.abspath(self.yuzu_settings_install_directory_variable.get())),"yuzu-windows-msvc-early-access")
+        temp_path = os.path.join(os.getenv("TEMP"), "Emulator Manager", "Yuzu Early Access Files")
+        download_path = os.path.join(temp_path, "yuzu-ea.zip")
+        
+        if os.path.exists(yuzu_path):
+                shutil.rmtree(yuzu_path)
+        
+        if not os.path.exists(temp_path):
+            os.makedirs(temp_path)
+            
+        launcher_file = os.path.join(
+            os.getenv("APPDATA"), "Emulator Manager", "launcher.json"
+        )
+        # Parse asset info
+        try:
+            contents = self.get_launcher_file_content()
+            if contents:
+                installed = contents["yuzu"]["ea_version"]
+            else:
+                installed = ''
+        except (KeyError, json.decoder.JSONDecodeError):
+            installed = ''
+        if not installed:
+            contents = {
+                "dolphin": {
+                    "": ""
+                    },
+                "yuzu": {
+                    "ea_version": ""
+                }
+            }
+            
+        latest_release = self.get_latest_yuzu_ea_release()
+        if not latest_release:
+            self.updating_ea = False
+            self.yuzu_install_yuzu_button.configure(state="normal")
+            self.yuzu_launch_yuzu_button.configure(state="normal")
+            return
+        
+        if installed == latest_release.version:
+            messagebox.showinfo("Info", "You already have the latest version of yuzu EA installed!")
+        else:    
+            
+            # Download file
+            
+            response = requests.get(latest_release.download_url, stream=True, headers=headers, timeout=10)
+            progress_frame = InstallStatus(self.yuzu_log_frame, f"Installing Yuzu EA {latest_release.version}", self)
+            progress_frame.grid(row=0, column=0, sticky="ew")
+            progress_frame.total_size = latest_release.size
+            with open(download_path, 'wb') as f:
+                downloaded_bytes = 0
+                for chunk in response.iter_content(chunk_size=1024*512): 
+                    if progress_frame.cancel_download_raised:
+                        self.updating_ea = False
+                        self.yuzu_install_yuzu_button.configure(state="normal")
+                        self.yuzu_launch_yuzu_button.configure(state="normal")
+                        progress_frame.destroy()
+                        return
+                    f.write(chunk)
+                    downloaded_bytes += len(chunk)
+                    progress_frame.update_download_progress(downloaded_bytes, 1024*512)
+            progress_frame.complete_download(None, "Status: Extracting...")
+            progress_frame.progress_bar.set(0)
+            # Extract
+            extract_folder = os.path.join(temp_path, "yuzu-ea")
+            with ZipFile(download_path, 'r') as zip_file:
+                zip_file.extractall(extract_folder)
+            progress_frame.progress_bar.set(1)
+            # Move and delete zip   
+            try:
+                shutil.move(os.path.join(extract_folder, "yuzu-windows-msvc-early-access"), yuzu_path) 
+                installed = latest_release.version
+            except Exception as error:
+                messagebox.showerror("Error", error)
+            with open(launcher_file, "w") as f:
+                contents["yuzu"]["ea_version"] = installed
+                json.dump(contents, f)
+            progress_frame.finish_installation()
+            progress_frame.destroy()
+        if os.path.exists(temp_path):
+            shutil.rmtree(temp_path)
+        self.yuzu_install_yuzu_button.configure(state="normal")
+        self.yuzu_launch_yuzu_button.configure(state="normal")
+        
+        self.updating_ea = False
     def check_yuzu_firmware_and_keys(self):
         print_and_write_to_log(
             f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.check_yuzu_firmware_and_keys [START]"
@@ -2030,12 +2183,46 @@ class MainScreen(customtkinter.CTk):  # create class
                 "Install Error",
                 "Unable to install keys or firmware. Try using the SwitchEmuTool to manually install through the options Menu",
             )
-
-    def start_yuzu_wrapper(self, event=None):
+    def compare_yuzu_ea_version_and_update(self, installed_version):
+        self.updating_ea = True 
+        latest_release = self.get_latest_yuzu_ea_release()
+        if not latest_release:
+            self.updating_ea = None
+            return
+        if installed_version != latest_release.version and messagebox.askyesno("Yuzu EA Update", "There is an update available for yuzu EA, would you like to download it?"):
+                self.updating_ea = True
+                self.install_ea_yuzu_wrapper(None)
+        else:
+            self.updating_ea = False      
+            self.start_yuzu_wrapper(1, True, True)
+            return
+        while self.updating_ea:
+            import time
+            time.sleep(1)
+        self.start_yuzu_wrapper(1, True, True)
+            
+    def start_yuzu_wrapper(self, event=None, ea_mode=None, skip_check=False):
         if self.yuzu_launch_yuzu_button.cget("state") == "disabled":
             return
         if event is None:
             return
+        if ea_mode and not skip_check:
+            try:
+                contents = self.get_launcher_file_content() #
+                if contents:
+                    installed = contents["yuzu"]["ea_version"]
+                else:
+                    installed = ''
+            except (KeyError, json.decoder.JSONDecodeError):
+                installed = ''
+            if not installed:
+                messagebox.showerror("Error", "You need to have the early access version of yuzu installed first to use this feature")
+                return
+            self.updating_ea = True
+            Thread(target=self.compare_yuzu_ea_version_and_update, args=(installed,)).start()
+            return
+                
+            
         self.validate_optional_paths()
         print_and_write_to_log(
             f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.start_yuzu_wrapper [START]"
@@ -2059,9 +2246,9 @@ class MainScreen(customtkinter.CTk):  # create class
         )
         self.yuzu_install_yuzu_button.configure(state="disabled")
         self.yuzu_launch_yuzu_button.configure(state="disabled", text="Launching...  ")
-        Thread(target=self.start_yuzu, args=(event,)).start()
+        Thread(target=self.start_yuzu, args=(event, ea_mode, )).start()
 
-    def start_yuzu(self, event=None):
+    def start_yuzu(self, event=None, ea_mode=None):
         print_and_write_to_log(
             f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.start_yuzu [START]"
         )
@@ -2142,9 +2329,12 @@ class MainScreen(customtkinter.CTk):  # create class
         )
         yuzu_exe = os.path.join(
             self.yuzu_settings_install_directory_variable.get(), "yuzu.exe"
-        )
-
-        if not event.state & 1 and os.path.exists(maintenance_tool):
+        ) if not ea_mode else os.path.join(os.path.dirname(
+                os.path.abspath(self.yuzu_settings_install_directory_variable.get())
+            ), "yuzu-windows-msvc-early-access", "yuzu.exe")
+        if ea_mode:
+            args = [yuzu_exe]
+        elif not event.state & 1 and os.path.exists(maintenance_tool):
             print_and_write_to_log(
                 f"[{datetime.now().strftime('%H:%M:%S')}][CONSOLE] MainScreen.start_yuzu: launching maintenace tool to update yuzu"
             )
