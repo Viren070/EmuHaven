@@ -414,11 +414,9 @@ class MainScreen(customtkinter.CTk):  # create class
         self.yuzu_install_yuzu_button = customtkinter.CTkButton(
             self.yuzu_actions_frame,
             text="Run Yuzu Installer",
-            command=lambda event: self.run_yuzu_install_wrapper(event),
+            command=self.run_yuzu_install_wrapper
         )
-        self.yuzu_install_yuzu_button.bind(
-            "<Button-1>", command=lambda event: self.run_yuzu_install_wrapper(event)
-        )
+        self.yuzu_install_yuzu_button.bind("<Button-1>", command=lambda event: self.run_yuzu_install_wrapper(event))
         self.yuzu_install_yuzu_button.bind("<Shift-Control-Button-1>", command=lambda event: self.install_ea_yuzu_wrapper(event))
         self.yuzu_install_yuzu_button.grid(row=0, column=1, padx=10, pady=5)
 
