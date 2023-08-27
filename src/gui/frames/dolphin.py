@@ -4,17 +4,17 @@ from PIL import Image
 
 class DolphinFrame(customtkinter.CTkFrame):
     def __init__(self, parent_frame, settings):
-        super().__init__(parent_frame)
+        super().__init__(parent_frame, corner_radius=0, fg_color="transparent")
         self.dolphin = Dolphin()
         self.settings = settings
+        self.build_frame()
     def build_frame(self):
         self.play_image = customtkinter.CTkImage(light_image=Image.open(self.settings.get_image_path("play_light")),
                                                      dark_image=Image.open(self.settings.get_image_path("play_dark")), size=(20, 20))
-        self.dolphin_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
-        self.dolphin_frame.grid_columnconfigure(1, weight=1)
-        self.dolphin_frame.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=1)
+        self.grid_rowconfigure(0, weight=1)
         
-        self.dolphin_navigation_frame = customtkinter.CTkFrame(self.dolphin_frame, corner_radius=0, width=20, border_width=2, border_color=("white","black"))
+        self.dolphin_navigation_frame = customtkinter.CTkFrame(self, corner_radius=0, width=20, border_width=2, border_color=("white","black"))
         self.dolphin_navigation_frame.grid(row=0, column=0, sticky="nsew")
         self.dolphin_navigation_frame.grid_rowconfigure(4, weight=1)
 
@@ -23,14 +23,14 @@ class DolphinFrame(customtkinter.CTkFrame):
                                                    anchor="w", command=self.dolphin_start_button_event)
         self.dolphin_start_button.grid(row=1, column=0, sticky="ew", padx=2, pady=(2,0))
         
-        self.dolphin_start_frame = customtkinter.CTkFrame(self.dolphin_frame, corner_radius=0, fg_color="transparent")
+        self.dolphin_start_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
         
         
         self.dolphin_actions_frame = customtkinter.CTkFrame(self.dolphin_start_frame)
         self.dolphin_actions_frame.grid(row=0, column=0, padx=40, pady=40)
         self.dolphin_actions_frame.grid_columnconfigure(3, weight=1)
         
-        self.dolphin_launch_dolphin_button = customtkinter.CTkButton(self.dolphin_actions_frame, height=40, width=180, text="Launch Dolphin  ", image = self.play_image, font=customtkinter.CTkFont(size=15, weight="bold"), command=self.start_dolphin_wrapper)
+        self.dolphin_launch_dolphin_button = customtkinter.CTkButton(self.dolphin_actions_frame, height=40, width=180, text="Launch Dolphin  ", image = self.play_image, font=customtkinter.CTkFont(size=15, weight="bold"), command=self.dolphin.start_dolphin_wrapper)
         self.dolphin_launch_dolphin_button.grid(row=0, column=1, padx=30, pady=15, sticky="n")
 
         self.dolphin_global_data = customtkinter.StringVar(value="0")
@@ -55,7 +55,7 @@ class DolphinFrame(customtkinter.CTkFrame):
                                                    fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
                                                    anchor="w", command=self.dolphin_manage_data_button_event)
         self.dolphin_manage_data_button.grid(row=2, column=0, sticky="ew", padx=2)
-        self.dolphin_manage_data_frame = customtkinter.CTkFrame(self.dolphin_frame, corner_radius=0, fg_color="transparent")
+        self.dolphin_manage_data_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
         self.dolphin_manage_data_frame.grid_columnconfigure(0, weight=1)
         self.dolphin_manage_data_frame.grid_columnconfigure(1, weight=1)
         self.dolphin_manage_data_frame.grid_rowconfigure(0, weight=1)

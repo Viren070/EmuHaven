@@ -1,24 +1,29 @@
 import os
+from hashlib import pbkdf2_hmac
 from tkinter import messagebox
 
 import customtkinter
 from PIL import Image
 
 from gui.frames.dolphin import DolphinFrame
-from gui.frames.yuzu import YuzuFrame
 from gui.frames.settings import SettingsFrame
+from gui.frames.yuzu import YuzuFrame
 from gui.password_dialog import PasswordDialog
 from settings.settings import Settings
 
 
 class EmulatorManager(customtkinter.CTk):
-    def __init__(self):
+    def __init__(self, open_app_settings=False):
         self.just_opened = True
         super().__init__()
         self.settings = Settings()
+        self.settings_unlocked = False
         self.define_images()
         self.build_gui()
         self.just_opened = False
+        if open_app_settings:
+            self.select_frame_by_name("settings")
+            self.settings_frame.select_settings_frame_by_name("appearance")
         self.mainloop()
     def define_images(self):
         self.dolphin_image = customtkinter.CTkImage(Image.open(self.settings.get_image_path("dolphin_logo")), size=(26, 26))
@@ -65,9 +70,9 @@ class EmulatorManager(customtkinter.CTk):
                                                       anchor="w", command=self.settings_button_event)
         self.settings_button.grid(row=6, column=0, sticky="ew")
         
-        self.yuzu_frame = YuzuFrame(self.navigation_frame, self.settings)
-        self.dolphin_frame = DolphinFrame(self.navigation_frame, self.settings)
-        self.settings_frame = SettingsFrame(self.navigation_frame, self.settings)
+        self.yuzu_frame = YuzuFrame(self, self.settings)
+        self.dolphin_frame = DolphinFrame(self, self.settings)
+        self.settings_frame = SettingsFrame(self, self.settings)
     def dolphin_button_event(self):
         self.select_frame_by_name("dolphin")
 
@@ -94,7 +99,7 @@ class EmulatorManager(customtkinter.CTk):
             self.settings_frame.grid(row=0, column=1, sticky="nsew")       
         else:
             self.settings_frame.grid_forget()
-            self.select_settings_frame_by_name(None)
+            self.settings_frame.select_settings_frame_by_name(None)
             self.minsize(800,500)
         self.dolphin_button.configure(fg_color=("gray75", "gray25") if name == "dolphin" else "transparent")
         self.yuzu_button.configure(fg_color=("gray75", "gray25") if name == "yuzu" else "transparent")
@@ -103,12 +108,10 @@ class EmulatorManager(customtkinter.CTk):
             self.dolphin_frame.grid(row=0, column=1, sticky="nsew")
         else:
             self.dolphin_frame.grid_forget()
-            self.select_dolphin_frame_by_name(None)
         if name == "yuzu":
             self.yuzu_frame.grid(row=0, column=1, sticky="nsew")
         else:
             self.yuzu_frame.grid_forget()
-            self.select_yuzu_frame_by_name(None)
         
     def validate_password(self):
         dialog = PasswordDialog(text="Enter password:", title="Settings Password")
@@ -124,42 +127,7 @@ class EmulatorManager(customtkinter.CTk):
             messagebox.showerror("Incorrect", "That is the incorrect password, to make changes to the settings you require a password")
             return 
         
-    def dolphin_settings_button_event(self):
-        self.select_settings_frame_by_name("dolphin")
-    def yuzu_settings_button_event(self):
-        self.select_settings_frame_by_name("yuzu")
-    def appearance_settings_button_event(self):
-        self.select_settings_frame_by_name("appearance")
-        
-    def select_settings_frame_by_name(self, name):
-        # set button color for selected button
-        if not self.just_opened:
-            if self.dolphin_settings_changed() and name != "dolphin":
-                if messagebox.askyesno("Confirmation", "You have unsaved changes in the settings for dolphin, leave anyways?"):
-                    self.revert_settings("dolphin")
-                else:
-                    return 
-            if self.yuzu_settings_changed() and name != "yuzu":
-                if messagebox.askyesno("Confirmation", "You have unsaved changes in the settings for dolphin, leave anyways?"):
-                    self.revert_settings("yuzu")
-                else:
-                    return 
-        self.yuzu_settings_button.configure(fg_color=("gray75", "gray25") if name == "yuzu" else "transparent")
-        self.dolphin_settings_button.configure(fg_color=("gray75", "gray25") if name == "dolphin" else "transparent")
-        self.appearance_settings_button.configure(fg_color=("gray75", "gray25") if name == "appearance" else "transparent")
-        # show selected frame
-        if name == "dolphin":
-            self.dolphin_settings_frame.grid(row=0, column=1, sticky="nsew")
-        else:
-            self.dolphin_settings_frame.grid_forget()
-        if name == "yuzu":
-            self.yuzu_settings_frame.grid(row=0, column=1, sticky="nsew")
-        else:
-            self.yuzu_settings_frame.grid_forget()
-        if name == "appearance":
-            self.appearance_settings_frame.grid(row=0, column=1, sticky="nsew")
-        else:
-            self.appearance_settings_frame.grid_forget()
+    
     def lock_settings(self):
         self.settings_unlocked = False
         self.select_frame_by_name("None")
