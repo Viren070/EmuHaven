@@ -1,16 +1,25 @@
-import gui.frames as frames
-from gui.password_dialog import PasswordDialog()
-from settings.settings import Settings
-import customtkinter
+import os
 from tkinter import messagebox
+
+import customtkinter
 from PIL import Image
-import os 
+
+from gui.frames.dolphin import DolphinFrame
+from gui.frames.yuzu import YuzuFrame
+from gui.frames.settings import SettingsFrame
+from gui.password_dialog import PasswordDialog
+from settings.settings import Settings
+
+
 class EmulatorManager(customtkinter.CTk):
     def __init__(self):
+        self.just_opened = True
         super().__init__()
         self.settings = Settings()
         self.define_images()
         self.build_gui()
+        self.just_opened = False
+        self.mainloop()
     def define_images(self):
         self.dolphin_image = customtkinter.CTkImage(Image.open(self.settings.get_image_path("dolphin_logo")), size=(26, 26))
         self.yuzu_image = customtkinter.CTkImage(Image.open(self.settings.get_image_path("yuzu_logo")), size=(26, 26))
@@ -55,6 +64,10 @@ class EmulatorManager(customtkinter.CTk):
                                                       fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
                                                       anchor="w", command=self.settings_button_event)
         self.settings_button.grid(row=6, column=0, sticky="ew")
+        
+        self.yuzu_frame = YuzuFrame(self.navigation_frame, self.settings)
+        self.dolphin_frame = DolphinFrame(self.navigation_frame, self.settings)
+        self.settings_frame = SettingsFrame(self.navigation_frame, self.settings)
     def dolphin_button_event(self):
         self.select_frame_by_name("dolphin")
 
@@ -150,3 +163,9 @@ class EmulatorManager(customtkinter.CTk):
     def lock_settings(self):
         self.settings_unlocked = False
         self.select_frame_by_name("None")
+        
+    def dolphin_settings_changed(self):
+        return False
+    def yuzu_settings_changed(self):
+        
+        return False
