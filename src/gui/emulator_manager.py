@@ -83,8 +83,8 @@ class EmulatorManager(customtkinter.CTk):
         self.select_frame_by_name("settings")
     
     def select_frame_by_name(self, name):
-        if not self.just_opened and ( self.dolphin_settings_changed() or self.yuzu_settings_changed() ) and name != "settings":
-            if messagebox.askyesno("Confirmation", "You have unsaved changes in the settings, leave anyways?"):
+        if not self.just_opened and ( self.settings_changed()) and name != "settings":
+            if messagebox.askyesno("Confirmation", "You have unsaved changes in the settings. If you leave now, the changes you made will be discarded. Continue?"):
                 self.revert_settings()
             else:
                 return 
@@ -134,8 +134,8 @@ class EmulatorManager(customtkinter.CTk):
         self.settings_unlocked = False
         self.select_frame_by_name("None")
         
-    def dolphin_settings_changed(self):
-        return False
-    def yuzu_settings_changed(self):
-        
-        return False
+    def settings_changed(self):
+        to_return = self.settings_frame.settings_changed()
+        return to_return
+    def revert_settings(self):
+        self.settings_frame.revert_settings()

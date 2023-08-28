@@ -97,7 +97,12 @@ class YuzuSettings(customtkinter.CTkFrame):
             match["entry_widget"].delete(0, 'end')
             match["entry_widget"].insert(0, match["variable"])
 
-    
+    def settings_changed(self):
+        for setting_name, match in self.matching_dict.items():
+            if match["entry_widget"].get() != getattr(self.settings.yuzu, setting_name):
+                return True
+      
+        return False
     def update_with_explorer(self, entry_widget, dialogtype=None):
         if dialogtype is None:
             new_directory = filedialog.askdirectory(initialdir=entry_widget.get())

@@ -96,4 +96,9 @@ class SettingsFrame(customtkinter.CTkFrame):
     def lock_settings(self):
         self.parent_frame.settings_unlocked = False
         self.parent_frame.select_frame_by_name("None")
+    def settings_changed(self):
+        return (self.yuzu_settings_frame.settings_changed() or self.dolphin_settings_frame.settings_changed() )
+    def revert_settings(self):
+        self.yuzu_settings_frame.update_entry_widgets()
+        self.dolphin_settings_frame.update_entry_widgets()
     

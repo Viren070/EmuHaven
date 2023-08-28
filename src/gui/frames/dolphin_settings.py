@@ -72,6 +72,12 @@ class DolphinSettings(customtkinter.CTkFrame):
                 "variable": self.settings.dolphin.zip_path
             }
         }
+        
+    def settings_changed(self):
+        for setting_name, match in self.matching_dict.items():
+            if match["entry_widget"].get() != getattr(self.settings.dolphin, setting_name):
+                return True 
+        return False
     def update_entry_widgets(self):
         for setting_name, match in self.matching_dict.items():
             match["entry_widget"].delete(0, 'end')
