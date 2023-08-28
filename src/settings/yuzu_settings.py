@@ -17,6 +17,9 @@ class YuzuSettings:
         }
         self._settings = self._default_settings
 
+    def restore_default(self):
+        for name, value in self._default_settings.items():
+            setattr(self, name, value)
     def _set_directory_property(self, property_name, value):
         if is_path_exists_or_creatable(value):
             self._settings[property_name] = value

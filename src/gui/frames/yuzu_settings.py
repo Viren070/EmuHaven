@@ -60,7 +60,7 @@ class YuzuSettings(customtkinter.CTkFrame):
         self.actions_frame.grid_columnconfigure(0, weight=1)
         self.actions_frame.grid(row=14,sticky="ew", columnspan=4, padx=10, pady=10)
         customtkinter.CTkButton(self.actions_frame, text="Apply", command=self.apply).grid(row=10,column=3,padx=10,pady=10, sticky="e")
-        customtkinter.CTkButton(self.actions_frame, text="Restore Defaults").grid(row=10, column=0, padx=10,pady=10, sticky="w")
+        customtkinter.CTkButton(self.actions_frame, text="Restore Defaults", command=self.restore_defaults).grid(row=10, column=0, padx=10,pady=10, sticky="w")
 
         self.matching_dict = {
             "user_directory": {
@@ -128,4 +128,7 @@ class YuzuSettings(customtkinter.CTkFrame):
             self.update_entry_widgets()
             messagebox.showerror("Settings Error", errors)
         self.settings.update_file()
+    def restore_defaults(self):
+        self.settings.yuzu.restore_default()
+        self.update_entry_widgets()
         
