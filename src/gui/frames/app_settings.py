@@ -18,7 +18,7 @@ class AppSettings(customtkinter.CTkFrame):
         self.appearance_mode_variable = customtkinter.StringVar()
         self.colour_theme_variable = customtkinter.StringVar()
         self.global_saves_default_value_variable = customtkinter.StringVar()
-        
+        self.global_saves_default_value_variable.set(self.settings.app.global_saves_default_value)
         self.appearance_mode_variable.set(self._get_appearance_mode().title())
         self.colour_theme_variable.set(customtkinter.ThemeManager._currently_loaded_theme.replace("-"," ").title())
         customtkinter.CTkLabel(self, text="Appearance Mode: ").grid(row=0, column=0, padx=10, pady=10, sticky="w")
@@ -30,18 +30,14 @@ class AppSettings(customtkinter.CTkFrame):
         ttk.Separator(self, orient='horizontal').grid(row=3, columnspan=4, sticky="ew")
         
         customtkinter.CTkLabel(self, text="Global Saves Default Value").grid(row=4, column=0, padx=10, pady=10, sticky="w")
-        customtkinter.CTkOptionMenu(self, variable=self.global_saves_default_value_variable, values=["True", "False"]).grid(row=4, column=2, padx=10, pady=10, sticky="e")
+        customtkinter.CTkOptionMenu(self, variable=self.global_saves_default_value_variable, values=["True", "False"], command=self.change_default_global_saves_value).grid(row=4, column=2, padx=10, pady=10, sticky="e")
         ttk.Separator(self, orient='horizontal').grid(row=5, columnspan=4, sticky="ew")
     def change_colour_theme(self, theme):
         if customtkinter.ThemeManager._currently_loaded_theme.replace("-"," ").title() == theme: # if current theme is the same as the proposed theme, return
             return
-        
-        customtkinter.set_default_color_theme(theme.replace(" ","-").lower())  #set the theme to the proposed theme after converting to proper theme name
-        self.settings.app.colour_theme = theme.replace(" ","-").lower()
-        self.update_settings()   # update settings to reflect latest change in appearance settings
-        for after_id in self.tk.eval('after info').split():
-            self.after_cancel(after_id)
-        messagebox.showerror("Sorry", "This feature is currently not working as intended. You will have to manually restart the application for these changes to take effect.")    
+        self.settings.app.colour_theme = theme.lower().replace(" ", "-")
+        self.update_settings()
+        messagebox.showinfo("Change Theme","The application must be restarted for these changes to take effect")    
         # destroy current window (because changing colour theme directly does not work)
         # self.parent_frame.parent_frame.destroy()
 
@@ -51,5 +47,8 @@ class AppSettings(customtkinter.CTkFrame):
         customtkinter.set_appearance_mode(mode.lower()) # change appearance mode using customtkinters function 
         self.settings.app.appearance_mode = mode.lower()
         self.update_settings()   # update settings.json if change was through settings menu
+    def change_default_global_saves_value(self, value):
+        self.settings.app.global_saves_default_value = value
+        self.update_settings()
     def update_settings(self):
         self.settings.update_file()

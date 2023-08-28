@@ -17,7 +17,9 @@ class Dolphin:
     def install_dolphin_wrapper(self):
         if self.check_dolphin_installation() and not messagebox.askyesno("Confirmation", "Dolphin seems to already be installed, install anyways?"):
             return 
-                        # add check for dolphin zip
+        if not self.verify_dolphin_zip():
+            messagebox.showerror("Dolphin ZIP Error", "Please verify that you have specified a path to a ZIP archive of a Dolphin Installation in the settings")
+            return
          
         Thread(target=self.extract_dolphin_install).start()
         
@@ -57,6 +59,7 @@ class Dolphin:
         try:
             shutil.rmtree(self.settings.dolphin.install_directory)
             self.gui.dolphin_delete_dolphin_button.configure(state="normal", text="Delete")
+            messagebox.showinfo("Success", "The Dolphin installation was successfully was removed")
         except FileNotFoundError as error:
             messagebox.showinfo("Dolphin", "Installation of dolphin not found")
             self.gui.dolphin_delete_dolphin_button.configure(state="normal", text="Delete")
@@ -65,7 +68,7 @@ class Dolphin:
             messagebox.showerror("Error", e)
             self.gui.dolphin_delete_dolphin_button.configure(state="normal", text="Delete")
             return
-        messagebox.showinfo("Success", "The Dolphin installation was successfully was removed")
+       
         
     def start_dolphin_wrapper(self):
         if self.check_dolphin_installation():
@@ -76,7 +79,7 @@ class Dolphin:
         else:
             messagebox.showerror("Error","A dolphin installation was not found. Please press Install Dolphin below to begin.")
     def start_dolphin(self):
-        if self.gui.dolphin_global_data.get() == "1" and os.path.exists(os.path.join(self.settings.dolphin.global_save_directory, os.getlogin())):
+        if self.gui.dolphin_global_data.get() == "True" and os.path.exists(os.path.join(self.settings.dolphin.global_save_directory, os.getlogin())):
             try:
                 copy_directory_with_progress((os.path.join(self.settings.dolphin.global_save_directory, os.getlogin())), self.settings.dolphin.user_directory, "Loading Dolphin Data", self.gui.dolphin_log_frame)
             except Exception as error:
@@ -99,14 +102,6 @@ class Dolphin:
         self.gui.dolphin_launch_dolphin_button.configure(state="normal", text="Launch Dolphin  ")
         self.gui.dolphin_install_dolphin_button.configure(state="normal")
     
-    def check_dolphin_installation(self):
-        default_dolphin_location = os.path.join(self.settings.dolphin.install_directory,'Dolphin.exe')
-        if os.path.exists(default_dolphin_location):
-            self.dolphin_installed = True
-            return True
-        else:
-            self.dolphin_installed = False
-            return False
     
     def export_dolphin_data(self):
         mode = self.gui.dolphin_export_optionmenu.get()
@@ -162,3 +157,28 @@ class Dolphin:
             messagebox.showinfo("Delete result", "Nothing was deleted.")
     def start_copy_thread(self, *args):
         Thread(target=copy_directory_with_progress, args=args).start()
+        
+        
+    def check_dolphin_installation(self):
+        default_dolphin_location = os.path.join(self.settings.dolphin.install_directory,'Dolphin.exe')
+        if os.path.exists(default_dolphin_location):
+            self.dolphin_installed = True
+            return True
+        else:
+            self.dolphin_installed = False
+            return False
+        
+    def verify_dolphin_zip(self):
+        if not os.path.exists(self.settings.dolphin.zip_path):
+            print("does not exist")
+            return False
+        if not self.settings.dolphin.zip_path.endswith(".zip"):
+            print("does not end with zip")
+            return False 
+        with ZipFile(self.settings.dolphin.zip_path, 'r') as archive:
+            if 'Dolphin.exe' in archive.namelist():
+                return True 
+            else:
+                return False
+                
+    

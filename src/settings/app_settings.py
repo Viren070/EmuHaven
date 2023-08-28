@@ -5,7 +5,7 @@ class AppSettings:
         self._app_settings = {
             'colour_theme': "green",
             'appearance_mode': "dark",
-            'global_saves_default_value': 0
+            'global_saves_default_value': "False"
             
         }    
         
