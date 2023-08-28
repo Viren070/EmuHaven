@@ -251,7 +251,7 @@ class OptionsMenu(customtkinter.CTkToplevel):
         )
 
 
-class Application(customtkinter.CTkFrame):
+class FirmwareDownloader(customtkinter.CTkFrame):
     def __init__(self, parent_frame):
         super().__init__(parent_frame)
 
