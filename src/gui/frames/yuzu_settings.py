@@ -95,7 +95,7 @@ class YuzuSettings(customtkinter.CTkFrame):
     def update_entry_widgets(self):
         for setting_name, match in self.matching_dict.items():
             match["entry_widget"].delete(0, 'end')
-            match["entry_widget"].insert(0, match["variable"])
+            match["entry_widget"].insert(0, getattr(self.settings.yuzu, setting_name))
 
     def settings_changed(self):
         for setting_name, match in self.matching_dict.items():

@@ -81,7 +81,7 @@ class DolphinSettings(customtkinter.CTkFrame):
     def update_entry_widgets(self):
         for setting_name, match in self.matching_dict.items():
             match["entry_widget"].delete(0, 'end')
-            match["entry_widget"].insert(0, match["variable"])
+            match["entry_widget"].insert(0, getattr(self.settings.dolphin, setting_name))
 
     
     def update_with_explorer(self, entry_widget, dialogtype=None):
