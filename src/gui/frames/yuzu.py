@@ -1,7 +1,10 @@
 import customtkinter
-from gui.firmware_downloader import FirmwareDownloader
-from emulators.yuzu import Yuzu
 from PIL import Image
+
+from emulators.yuzu import Yuzu
+from gui.firmware_downloader import FirmwareDownloader
+
+
 class YuzuFrame(customtkinter.CTkFrame):
     def __init__(self, parent_frame, settings):
         super().__init__(parent_frame,  corner_radius=0, fg_color="transparent")

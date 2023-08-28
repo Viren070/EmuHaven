@@ -1,10 +1,14 @@
-import customtkinter 
+import os
+from tkinter import messagebox
+
+import customtkinter
+from PIL import Image
+
+from gui.frames.app_settings import AppSettings
 from gui.frames.dolphin_settings import DolphinSettings
 from gui.frames.yuzu_settings import YuzuSettings
-from gui.frames.app_settings import AppSettings
-import os 
-from PIL import Image
-from tkinter import messagebox
+
+
 class SettingsFrame(customtkinter.CTkFrame):
     def __init__(self, parent_frame, settings):
         super().__init__(parent_frame, corner_radius=0, fg_color="transparent", width=20)

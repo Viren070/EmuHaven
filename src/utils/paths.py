@@ -1,6 +1,7 @@
-import os
 import errno
+import os
 from sys import platform
+
 ERROR_INVALID_NAME = 123
 def is_pathname_valid(pathname: str) -> bool:
           

@@ -1,6 +1,9 @@
-import customtkinter 
-from tkinter import ttk, messagebox, filedialog
 import os
+from tkinter import filedialog, messagebox, ttk
+
+import customtkinter
+
+
 class YuzuSettings(customtkinter.CTkFrame):
     def __init__(self, parent_frame, settings):
         super().__init__(parent_frame, corner_radius=0, fg_color="transparent")
