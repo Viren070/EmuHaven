@@ -18,16 +18,26 @@ class DolphinSettings:
 
     def restore_default(self):
         for name, value in self.default_settings.items():
-            setattr(self, name, value)
+            try:
+                setattr(self, name, value)
+            except(ValueError, FileNotFoundError):
+                if name == "zip_path":
+                    setattr(self, name, "")
+                else:
+                    os.makedirs(value)
+                    setattr(self, name, value)
     def _set_directory_property(self, property_name, value):
         if is_path_exists_or_creatable(value):
             self._settings[property_name] = value
         else:
             raise ValueError(f"{property_name} - Invalid Path: {value}")
     def _set_path_property(self, property_name, value):
+        if value == "":
+            self._settings[property_name] = value
+            return
         if not os.path.exists(value):
             raise FileNotFoundError(f"{property_name} - File Not Found: {value}")
-        if property_name == "zip_path" and not value.endswith(".zip"):
+        if not value.endswith(".zip"):
             raise ValueError("Expected filetype of .zip")
         self._settings[property_name] = value
     def _get_property(self, property_name):

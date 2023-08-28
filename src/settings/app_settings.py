@@ -10,7 +10,6 @@ class AppSettings:
         self._app_settings = self.default_settings.copy()
         
     def _set_property(self, property_name, value):
-        print(f"Setting {property_name} to {value}")
         self._app_settings[property_name] = value
     def _get_property(self, property_name):
         return self._app_settings[property_name]

@@ -19,14 +19,22 @@ class YuzuSettings:
 
     def restore_default(self):
         for name, value in self.default_settings.items():
-            print(f"setting {name} to {value}")
-            setattr(self, name, value)
+            try:
+                setattr(self, name, value)
+            except (ValueError, FileNotFoundError):
+                if "path" in name:
+                    setattr(self, name, "")
+                else:
+                    os.makedirs(value)
+                    setattr(self, name, value)
     def _set_directory_property(self, property_name, value):
         if is_path_exists_or_creatable(value):
             self._settings[property_name] = value
         else:
             raise ValueError(f"{property_name} - Invalid Path: {value}")
     def _set_path_property(self, property_name, value):
+        if value == "":
+            self._settings[property_name] = value
         if not os.path.exists(value):
             raise FileNotFoundError(f"{property_name} - Path does not exist: {value}")
         if (property_name == "firmware_path" or property_name == "key_path") and not value.endswith(".zip"):
