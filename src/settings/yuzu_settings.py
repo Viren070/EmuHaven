@@ -6,7 +6,7 @@ from utils.paths import is_path_exists_or_creatable
 class YuzuSettings:
     def __init__(self, master):
         self.emulator_file_path = os.path.join(master.root_dir,"Emulator Files")
-        self._default_settings = {
+        self.default_settings = {
             'user_directory': os.path.join(os.getenv("APPDATA"), "Yuzu"),
             'install_directory': os.path.join(os.getenv("LOCALAPPDATA"), "Yuzu"),
             'global_save_directory': os.path.join(os.getcwd(), "User Data","Yuzu"),
@@ -15,10 +15,11 @@ class YuzuSettings:
             'firmware_path': os.path.join(self.emulator_file_path, "Yuzu Files", "Firmware 16.0.3 (Rebootless Update 2).zip"),
             'key_path': os.path.join(self.emulator_file_path, "Yuzu Files", "Keys 16.0.3.zip")
         }
-        self._settings = self._default_settings
+        self._settings = self.default_settings.copy()
 
     def restore_default(self):
-        for name, value in self._default_settings.items():
+        for name, value in self.default_settings.items():
+            print(f"setting {name} to {value}")
             setattr(self, name, value)
     def _set_directory_property(self, property_name, value):
         if is_path_exists_or_creatable(value):

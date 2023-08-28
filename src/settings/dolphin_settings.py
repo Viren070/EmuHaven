@@ -7,17 +7,17 @@ class DolphinSettings:
     def __init__(self, master):
         self.emulator_file_path = os.path.join(master.root_dir,"Emulator Files")
         print(self.emulator_file_path)
-        self._default_settings = {
+        self.default_settings = {
             'user_directory': os.path.join(os.getenv("APPDATA"), "Dolphin Emulator"),
             'install_directory': os.path.join(os.getenv("LOCALAPPDATA"), "Dolphin Emulator"),
             'global_save_directory': os.path.join(os.getcwd(), "User Data","Dolphin"),
             'export_directory': os.path.join(os.getcwd(), "User Data","Dolphin"),
             'zip_path': os.path.join(self.emulator_file_path, "Dolphin 5.0-19870.zip")
         }
-        self._settings = self._default_settings
+        self._settings = self.default_settings.copy()
 
     def restore_default(self):
-        for name, value in self._default_settings.items():
+        for name, value in self.default_settings.items():
             setattr(self, name, value)
     def _set_directory_property(self, property_name, value):
         if is_path_exists_or_creatable(value):

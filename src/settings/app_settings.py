@@ -1,13 +1,13 @@
 
 class AppSettings:
     def __init__(self, master):
-        
-        self._app_settings = {
-            'colour_theme': "green",
+        self.default_settings = {
+            'colour_theme': "dark-blue",
             'appearance_mode': "dark",
             'global_saves_default_value': "False"
             
-        }    
+        }
+        self._app_settings = self.default_settings.copy()
         
     def _set_property(self, property_name, value):
         print(f"Setting {property_name} to {value}")
