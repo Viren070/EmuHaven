@@ -1,14 +1,18 @@
-from tkinter import messagebox
-import os
-from threading import Thread
-import shutil 
 import json
-import time
-import requests
+import os
+import shutil
 import subprocess
+import time
+from threading import Thread
+from tkinter import messagebox
 from zipfile import ZipFile
-from utils.file_utils import copy_directory_with_progress
+
+import requests
+
 from gui.progress_frame import ProgressFrame
+from utils.file_utils import copy_directory_with_progress
+
+
 class Yuzu:
     def __init__(self, gui, settings):
         self.settings = settings

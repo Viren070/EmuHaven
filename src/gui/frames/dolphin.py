@@ -1,6 +1,8 @@
 import customtkinter
-from emulators.dolphin import Dolphin
 from PIL import Image
+
+from emulators.dolphin import Dolphin
+
 
 class DolphinFrame(customtkinter.CTkFrame):
     def __init__(self, parent_frame, settings):

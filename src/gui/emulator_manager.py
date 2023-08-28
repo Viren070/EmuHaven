@@ -1,4 +1,3 @@
-import os
 from hashlib import pbkdf2_hmac
 from tkinter import messagebox
 

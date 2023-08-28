@@ -1,12 +1,13 @@
 import os
 import shutil
+import subprocess
 from threading import Thread
 from tkinter import messagebox
 from zipfile import ZipFile
 
 from gui.progress_frame import ProgressFrame
-import subprocess
 from utils.file_utils import copy_directory_with_progress
+
 
 class Dolphin:
     def __init__(self, gui, settings):

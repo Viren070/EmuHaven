@@ -1,6 +1,8 @@
-import customtkinter 
-from tkinter import ttk, messagebox
-import os 
+import os
+from tkinter import messagebox, ttk
+
+import customtkinter
+
 
 class AppSettings(customtkinter.CTkFrame):
     def __init__(self, parent_frame, settings):

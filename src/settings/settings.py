@@ -1,8 +1,11 @@
+import json
+import os
+
+from settings.app_settings import AppSettings
 from settings.dolphin_settings import DolphinSettings
 from settings.yuzu_settings import YuzuSettings
-from settings.app_settings import AppSettings
-import os
-import json
+
+
 class Settings:
     def __init__(self, master, root_dir):
         self.root_dir = root_dir

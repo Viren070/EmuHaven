@@ -1,6 +1,9 @@
-import customtkinter 
 import os
-from tkinter import ttk, filedialog, messagebox
+from tkinter import filedialog, messagebox, ttk
+
+import customtkinter
+
+
 class DolphinSettings(customtkinter.CTkFrame):
     def __init__(self, parent_frame, settings):
         super().__init__(parent_frame, corner_radius=0, fg_color="transparent")
