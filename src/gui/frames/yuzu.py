@@ -6,7 +6,7 @@ class YuzuFrame(customtkinter.CTkFrame):
     def __init__(self, parent_frame, settings):
         super().__init__(parent_frame,  corner_radius=0, fg_color="transparent")
         self.settings = settings
-        self.yuzu = Yuzu(settings)
+        self.yuzu = Yuzu(self, settings)
         self.build_frame()
     def build_frame(self):
         self.play_image = customtkinter.CTkImage(light_image=Image.open(self.settings.get_image_path("play_light")),

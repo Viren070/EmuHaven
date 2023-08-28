@@ -2,13 +2,13 @@ import customtkinter
 from time import perf_counter
 from tkinter import messagebox
 class ProgressFrame(customtkinter.CTkFrame):
-    def __init__(self, parent_frame, filename, parent):
+    def __init__(self, parent_frame, filename):
         super().__init__(parent_frame)
         self.grid_columnconfigure(0, weight=1)
         self.cancel_download_raised = False
         self.filename = filename
         self.start_time = perf_counter()
-        self.parent = parent
+
         self.total_size = 0
         self.time_during_cancel = 0
         self._current_width = 200
@@ -91,14 +91,12 @@ class ProgressFrame(customtkinter.CTkFrame):
         ):
             self.install_status_label.configure(text="Status: Cancelled")
             self.cancel_download_raised = True
-            self.parent.firmware_installation_in_progress = False
             return True
         else:
             self.time_during_cancel += perf_counter() - start_time
             return False
 
     def remove_status_frame(self):
-        self.parent.downloads_in_progress -= 1
         self.destroy()
 
     def update_extraction_progress(self, value):

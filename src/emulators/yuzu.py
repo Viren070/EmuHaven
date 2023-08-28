@@ -6,15 +6,18 @@ import json
 import time
 import requests
 import subprocess
-
+from zipfile import ZipFile
+from utils.file_utils import copy_directory_with_progress
+from gui.progress_frame import ProgressFrame
 class Yuzu:
-    def __init__(self, settings):
-        pass
+    def __init__(self, gui, settings):
+        self.settings = settings
+        self.gui = gui
     def start(self):
         print("starting yuzu")
     def check_yuzu_installation(self):
         self.check_yuzu_firmware_and_keys()
-        if os.path.exists(os.path.join(self.yuzu_settings_install_directory_variable.get(),'yuzu.exe')):
+        if os.path.exists(os.path.join(self.settings.yuzu.install_directory,'yuzu.exe')):
             self.yuzu_installed = True
             return True
         else:
@@ -22,22 +25,20 @@ class Yuzu:
             return False
     
     def run_yuzu_install_wrapper(self, event=None):
-        if self.yuzu_install_yuzu_button.cget("state") == "disabled":
+        if self.gui.yuzu_install_yuzu_button.cget("state") == "disabled":
             return
         if event is None:
             return
-        self.validate_optional_paths()
-        if not self.yuzu_installer_available:
-            messagebox.showerror("Error", "The path to the yuzu installer has not been set in the settings or is invalid, please check the settings page.")
-            return 
-        self.yuzu_install_yuzu_button.configure(state="disabled")
-        self.yuzu_launch_yuzu_button.configure(state="disabled")
+                                                                        # add checks for appropriate paths here
+        
+        self.gui.yuzu_install_yuzu_button.configure(state="disabled")
+        self.gui.yuzu_launch_yuzu_button.configure(state="disabled")
         Thread(target=self.run_yuzu_install).start()
     
     def run_yuzu_install(self):
         temp_dir = os.path.join(os.getenv("TEMP"),"yuzu-installer")
         os.makedirs(temp_dir, exist_ok=True)
-        path_to_installer = self.yuzu_settings_installer_path_variable.get()
+        path_to_installer = self.settings.yuzu.installer_path
         target_installer = os.path.join(temp_dir, 'yuzu_install.exe')
         try:
             shutil.copy(path_to_installer, target_installer)
@@ -51,14 +52,14 @@ class Yuzu:
             messagebox.showerror("Delete Error", "Unable to delete temporary yuzu installer directory.")
         except Exception as error:
             messagebox.showerror("Error", f"An unexpected error has occured: \n{error}")
-        self.yuzu_install_yuzu_button.configure(state="normal")
-        self.yuzu_launch_yuzu_button.configure(state="normal")
+        self.gui.yuzu_install_yuzu_button.configure(state="normal")
+        self.gui.yuzu_launch_yuzu_button.configure(state="normal")
     
     def install_ea_yuzu_wrapper(self, event):
         if not messagebox.askyesno("Confirmation", "This will require an internet connection and will download the files from the internet, continue?"):
             return 
-        self.yuzu_install_yuzu_button.configure(state="disabled")
-        self.yuzu_launch_yuzu_button.configure(state="disabled")
+        self.gui.yuzu_install_yuzu_button.configure(state="disabled")
+        self.gui.yuzu_launch_yuzu_button.configure(state="disabled")
         Thread(target=self.install_ea_yuzu).start()
 
 
@@ -69,7 +70,7 @@ class Yuzu:
         if os.path.exists(launcher_file):
             with open(launcher_file, 'r') as f:
                 contents = json.load(f)
-                if contents["yuzu"]["ea_version"] and not os.path.exists(os.path.join(os.path.dirname(os.path.abspath(self.yuzu_settings_install_directory_variable.get())),"yuzu-windows-msvc-early-access", "yuzu.exe")):
+                if contents["yuzu"]["ea_version"] and not os.path.exists(os.path.join(self.settings.yuzu.install_directory,"yuzu-windows-msvc-early-access", "yuzu.exe")):
                     contents["yuzu"]["ea_version"] = ''
                 return contents
         else:
@@ -77,7 +78,10 @@ class Yuzu:
 
     def get_latest_yuzu_ea_release(self):
         class Release:
-            pass
+            def __init__(self) -> None:
+                self.version = None
+                self.download_url = None
+                self.size = None 
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246'
         }
@@ -112,7 +116,7 @@ class Yuzu:
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246'
         }
 
-        yuzu_path = os.path.join(os.path.dirname(os.path.abspath(self.yuzu_settings_install_directory_variable.get())),"yuzu-windows-msvc-early-access")
+        yuzu_path = os.path.join(self.settings.yuzu.install_directory,"yuzu-windows-msvc-early-access")
         temp_path = os.path.join(os.getenv("TEMP"), "Emulator Manager", "Yuzu Early Access Files")
         download_path = os.path.join(temp_path, "yuzu-ea.zip")
 
@@ -147,8 +151,8 @@ class Yuzu:
         latest_release = self.get_latest_yuzu_ea_release()
         if not latest_release:
             self.updating_ea = False
-            self.yuzu_install_yuzu_button.configure(state="normal")
-            self.yuzu_launch_yuzu_button.configure(state="normal")
+            self.gui.yuzu_install_yuzu_button.configure(state="normal")
+            self.gui.yuzu_launch_yuzu_button.configure(state="normal")
             return
 
         if installed == latest_release.version:
@@ -158,7 +162,7 @@ class Yuzu:
             # Download file
 
             response = requests.get(latest_release.download_url, stream=True, headers=headers, timeout=10)
-            progress_frame = InstallStatus(self.yuzu_log_frame, f"Installing Yuzu EA {latest_release.version}", self)
+            progress_frame = ProgressFrame(self.gui.yuzu_log_frame, f"Yuzu EA {latest_release.version}")
             progress_frame.grid(row=0, column=0, sticky="ew")
             progress_frame.total_size = latest_release.size
             with open(download_path, 'wb') as f:
@@ -166,8 +170,8 @@ class Yuzu:
                 for chunk in response.iter_content(chunk_size=1024*512): 
                     if progress_frame.cancel_download_raised:
                         self.updating_ea = False
-                        self.yuzu_install_yuzu_button.configure(state="normal")
-                        self.yuzu_launch_yuzu_button.configure(state="normal")
+                        self.gui.yuzu_install_yuzu_button.configure(state="normal")
+                        self.gui.yuzu_launch_yuzu_button.configure(state="normal")
                         progress_frame.destroy()
                         return
                     f.write(chunk)
@@ -193,8 +197,8 @@ class Yuzu:
             progress_frame.destroy()
         if os.path.exists(temp_path):
             shutil.rmtree(temp_path)
-        self.yuzu_install_yuzu_button.configure(state="normal")
-        self.yuzu_launch_yuzu_button.configure(state="normal")
+        self.gui.yuzu_install_yuzu_button.configure(state="normal")
+        self.gui.yuzu_launch_yuzu_button.configure(state="normal")
 
         self.updating_ea = False
     
@@ -203,12 +207,12 @@ class Yuzu:
     
     def check_yuzu_firmware_and_keys(self):
         to_return = True
-        if os.path.exists( os.path.join(self.yuzu_settings_user_directory_variable.get(), "keys\\prod.keys")):
+        if os.path.exists( os.path.join(self.settings.yuzu.user_directory, "keys\\prod.keys")):
             self.yuzu_keys_installed = True
         else:
             self.yuzu_keys_installed = False
             to_return = False
-        if os.path.exists ( os.path.join(self.yuzu_settings_user_directory_variable.get(), "nand\\system\\Contents\\registered")) and os.listdir(os.path.join(self.yuzu_settings_user_directory_variable.get(), "nand\\system\\Contents\\registered")):
+        if os.path.exists ( os.path.join(self.settings.yuzu.user_directory, "nand\\system\\Contents\\registered")) and os.listdir(os.path.join(self.settings.yuzu.user_directory, "nand\\system\\Contents\\registered")):
             self.firmware_installed = True
         else:
             self.firmware_installed = False
@@ -218,23 +222,23 @@ class Yuzu:
     def install_missing_firmware_or_keys(self):
         self.check_yuzu_firmware_and_keys()
         if not self.yuzu_keys_installed:
-            status_frame = InstallStatus(
-            self.yuzu_log_frame, (os.path.basename(self.yuzu_settings_key_path_variable.get())), self)
+            status_frame = ProgressFrame(
+            self.yuzu_log_frame, (os.path.basename(self.settings.yuzu.key_path)), self)
             status_frame.grid(row=0, pady=10, sticky="EW")
             status_frame.skip_to_installation()
             try:
-                self.yuzu_firmware.start_key_installation_custom(self.yuzu_settings_key_path_variable.get(), status_frame)
+                self.yuzu_firmware.start_key_installation_custom(self.settings.yuzu.key_path, status_frame)
             except Exception as error:
                 messagebox.showerror("Unknown Error", f"An unknown error occured during key installation \n\n {error}")
                 status_frame.destroy()
                 return False
             status_frame.destroy()
         if not self.firmware_installed:
-            status_frame = InstallStatus(self.yuzu_log_frame, (os.path.basename(self.yuzu_settings_firmware_path_variable.get())), self)
+            status_frame = ProgressFrame(self.yuzu_log_frame, (os.path.basename(self.settings.yuzu.firmware_path)), self)
             status_frame.grid(row=0, pady=10, sticky="EW")
             status_frame.skip_to_installation()
             try:
-                self.yuzu_firmware.start_firmware_installation_from_custom_zip(self.yuzu_settings_firmware_path_variable.get(), status_frame)
+                self.yuzu_firmware.start_firmware_installation_from_custom_zip(self.settings.yuzu.firmware_path, status_frame)
             except Exception as error:
                 messagebox.showerror("Unknown Error", f"An unknown error occured during firmware installation \n\n {error}")
                 status_frame.destroy()
@@ -260,18 +264,18 @@ class Yuzu:
             self.start_yuzu_wrapper(1, True, True)
             return
         while self.updating_ea:
-            import time
             time.sleep(1)
         self.start_yuzu_wrapper(1, True, True)
 
     def start_yuzu_wrapper(self, event=None, ea_mode=None, skip_check=False):
-        if self.yuzu_launch_yuzu_button.cget("state") == "disabled":
+        if self.gui.yuzu_launch_yuzu_button.cget("state") == "disabled":
             return
         if event==None:
             return
         if ea_mode and not skip_check:
             try:
                 contents = self.get_launcher_file_content() #
+                print(contents)
                 if contents:
                     installed = contents["yuzu"]["ea_version"]
                 else:
@@ -284,24 +288,22 @@ class Yuzu:
             self.updating_ea = True
             Thread(target=self.compare_yuzu_ea_version_and_update, args=(installed,)).start()
             return
-        self.validate_optional_paths()
-        if not self.check_yuzu_installation():
-            messagebox.showerror("Error","A yuzu installation was not found. Please run the yuzu installer.")
-            return
-        self.yuzu_install_yuzu_button.configure(state="disabled")
-        self.yuzu_launch_yuzu_button.configure(state="disabled", text="Launching...  ")
+                       # add checks for appropriate paths here 
+        
+        self.gui.yuzu_install_yuzu_button.configure(state="disabled")
+        self.gui.yuzu_launch_yuzu_button.configure(state="disabled", text="Launching...  ")
         Thread(target=self.start_yuzu, args=(event,ea_mode,)).start()
     
     def start_yuzu(self, event=None, ea_mode=False):
-        if self.yuzu_global_data.get() == "1" and os.path.exists(os.path.join(self.yuzu_settings_global_save_directory_variable.get(), os.getlogin())):
+        if self.gui.yuzu_global_data.get() == "1" and os.path.exists(os.path.join(self.settings.yuzu.global_save_directory, os.getlogin())):
             try:
-                self.copy_directory_with_progress((os.path.join(self.yuzu_settings_global_save_directory_variable.get(), os.getlogin())), self.yuzu_settings_user_directory_variable.get(), "Loading Yuzu Data", self.yuzu_log_frame)
+                copy_directory_with_progress((os.path.join(self.settings.yuzu.global_save_directory, os.getlogin())), self.settings.yuzu.user_directory, "Loading Yuzu Data", self.gui.yuzu_log_frame)
             except Exception as error:
-                for widget in self.yuzu_log_frame.winfo_children():
+                for widget in self.gui.yuzu_log_frame.winfo_children():
                         widget.destroy()
                 if not messagebox.askyesno("Error", f"Unable to load your data, would you like to continue\n\n Full Error: {error}"):
-                    self.yuzu_launch_yuzu_button.configure(state="normal", text="Launch Yuzu  ")
-                    self.yuzu_install_yuzu_button.configure(state="normal")
+                    self.gui.yuzu_launch_yuzu_button.configure(state="normal", text="Launch Yuzu  ")
+                    self.gui.yuzu_install_yuzu_button.configure(state="normal")
                     return 
                     
         if not self.check_yuzu_firmware_and_keys():
@@ -315,34 +317,34 @@ class Yuzu:
                 else:
                     self.install_missing_firmware_or_keys()
         
-        local_yuzu_directory = os.path.dirname(os.path.abspath(self.yuzu_settings_install_directory_variable.get()))
-        maintenance_tool = os.path.join(local_yuzu_directory, "maintenancetool.exe")
-        yuzu_exe = os.path.join(self.yuzu_settings_install_directory_variable.get(), "yuzu.exe") if not ea_mode else os.path.join(local_yuzu_directory, "yuzu-windows-msvc-early-access", "yuzu.exe")
         
+        maintenance_tool = os.path.join(self.settings.yuzu.install_directory, "maintenancetool.exe")
+        yuzu_exe = os.path.join(self.settings.yuzu.install_directory, "yuzu-windows-msvc","yuzu.exe") if not ea_mode else os.path.join(self.settings.yuzu.install_directory, "yuzu-windows-msvc-early-access", "yuzu.exe")
+        print(maintenance_tool)
         if ea_mode or event.state & 1:  # either shift key was pressed or launching yuzu EA
             args = [yuzu_exe]
         elif not event.state & 1 and os.path.exists(maintenance_tool):  # Button was clicked normally so run maintenance tool to update yuzu and then launch
             args = [maintenance_tool,"--launcher",yuzu_exe,]  
-        self.yuzu_launch_yuzu_button.configure(text="Launched!  ")
+        self.gui.yuzu_launch_yuzu_button.configure(text="Launched!  ")
         
         try:     
-            run(args, capture_output=True) # subprocess.run with arguments defined earlier
+            subprocess.run(args, capture_output=True) # subprocess.run with arguments defined earlier
         except Exception as error_msg:
             messagebox.showerror("Error", f"Error when running Yuzu: \n{error_msg}")
-        if self.yuzu_global_data.get() == "1":
+        if self.gui.yuzu_global_data.get() == "1":
             try:
-                self.yuzu_launch_yuzu_button.configure(state="disabled", text="Launch Yuzu  ")
-                self.copy_directory_with_progress(self.yuzu_settings_user_directory_variable.get(), (os.path.join(self.yuzu_settings_global_save_directory_variable.get(), os.getlogin())), "Saving Yuzu Data", self.yuzu_log_frame)
+                self.gui.yuzu_launch_yuzu_button.configure(state="disabled", text="Launch Yuzu  ")
+                copy_directory_with_progress(self.settings.yuzu.user_directory, (os.path.join(self.settings.yuzu.global_save_directory, os.getlogin())), "Saving Yuzu Data", self.gui.yuzu_log_frame)
             except Exception as error:
                 messagebox.showerror("Save Error", f"Unable to save your data\n\nFull Error: {error}")
-        self.yuzu_launch_yuzu_button.configure(state="normal", text="Launch Yuzu  ")
-        self.yuzu_install_yuzu_button.configure(state="normal")
+        self.gui.yuzu_launch_yuzu_button.configure(state="normal", text="Launch Yuzu  ")
+        self.gui.yuzu_install_yuzu_button.configure(state="normal")
         
     def export_yuzu_data(self):
         
-        mode = self.yuzu_export_optionmenu.get()
-        user_directory = self.yuzu_settings_user_directory_variable.get()
-        export_directory = self.yuzu_settings_export_directory_variable.get()
+        mode = self.gui.yuzu_export_optionmenu.get()
+        user_directory = self.settings.yuzu.user_directory
+        export_directory = self.settings.yuzu.export_directory
         users_global_save_directory = os.path.join(export_directory, os.getlogin())
         users_export_directory = os.path.join(export_directory, os.getlogin())
         
@@ -351,30 +353,30 @@ class Yuzu:
             return  # Handle the case when the user directory doesn't exist.
 
         if mode == "All Data":
-            self.start_copy_thread(user_directory, users_export_directory, "Exporting All Yuzu Data", self.yuzu_data_log)
+            self.start_copy_thread(user_directory, users_export_directory, "Exporting All Yuzu Data", self.gui.yuzu_data_log)
         elif mode == "Save Data":
             save_dir = os.path.join(user_directory, 'nand', 'user', 'save')
-            self.start_copy_thread(save_dir, os.path.join(users_export_directory, 'nand', 'user', 'save'), "Exporting Yuzu Save Data", self.yuzu_data_log)
+            self.start_copy_thread(save_dir, os.path.join(users_export_directory, 'nand', 'user', 'save'), "Exporting Yuzu Save Data", self.gui.yuzu_data_log)
         elif mode == "Exclude 'nand' & 'keys'":
-            self.start_copy_thread(user_directory, users_export_directory, "Exporting All Yuzu Data", self.yuzu_data_log, ["nand", "keys"])
+            self.start_copy_thread(user_directory, users_export_directory, "Exporting All Yuzu Data", self.gui.yuzu_data_log, ["nand", "keys"])
         else:
             messagebox.showerror("Error", f"An unexpected error has occured, {mode} is an invalid option.")
     def import_yuzu_data(self):
-        mode = self.yuzu_import_optionmenu.get()
-        export_directory = self.yuzu_settings_export_directory_variable.get()
-        user_directory = self.yuzu_settings_user_directory_variable.get()
+        mode = self.gui.yuzu_import_optionmenu.get()
+        export_directory = self.settings.yuzu.export_directory
+        user_directory = self.settings.yuzu.user_directory
         users_export_directory = os.path.join(export_directory, os.getlogin())
         
         if not os.path.exists(users_export_directory):
             messagebox.showerror("Missing Folder", "No yuzu data associated with your username found")
             return
         if mode == "All Data":
-            self.start_copy_thread(users_export_directory, user_directory, "Import All Yuzu Data", self.yuzu_data_log)
+            self.start_copy_thread(users_export_directory, user_directory, "Import All Yuzu Data", self.gui.yuzu_data_log)
         elif mode == "Save Data":
             save_dir = os.path.join(users_export_directory, 'nand', 'user', 'save')
-            self.start_copy_thread(save_dir, os.path.join(user_directory, 'nand', 'user', 'save'), "Importing Yuzu Save Data", self.yuzu_data_log)
+            self.start_copy_thread(save_dir, os.path.join(user_directory, 'nand', 'user', 'save'), "Importing Yuzu Save Data", self.gui.yuzu_data_log)
         elif mode == "Exclude 'nand' & 'keys'":
-            self.start_copy_thread(users_export_directory, user_directory, "Import All Yuzu Data", self.yuzu_data_log, ["nand", "keys"])
+            self.start_copy_thread(users_export_directory, user_directory, "Import All Yuzu Data", self.gui.yuzu_data_log, ["nand", "keys"])
         else:
             messagebox.showerror("Error", f"An unexpected error has occured, {mode} is an invalid option.")
     def delete_yuzu_data(self):
@@ -382,12 +384,12 @@ class Yuzu:
         if not messagebox.askyesno("Confirmation", "This will delete the data from Yuzu's directory and from the global saves directory. This action cannot be undone, are you sure you wish to continue?"):
             return
 
-        mode = self.yuzu_delete_optionmenu.get()
+        mode = self.gui.yuzu_delete_optionmenu.get()
         result = ""
 
-        user_directory = self.yuzu_settings_user_directory_variable.get()
-        global_save_directory = self.yuzu_settings_global_save_directory_variable.get()
-        export_directory = self.yuzu_settings_export_directory_variable.get()
+        user_directory = self.settings.yuzu.user_directory
+        global_save_directory = self.settings.yuzu.global_save_directory
+        export_directory = self.settings.yuzu.export_directory
         users_global_save_directory = os.path.join(global_save_directory, os.getlogin())
         users_export_directory = os.path.join(export_directory, os.getlogin())
         
@@ -439,3 +441,5 @@ class Yuzu:
             messagebox.showinfo("Delete result", result)
         else:
             messagebox.showinfo("Delete result", "Nothing was deleted.")
+    def start_copy_thread(self, *args):
+        Thread(target=copy_directory_with_progress, args=args).start()

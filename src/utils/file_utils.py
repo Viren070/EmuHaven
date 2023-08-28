@@ -1,12 +1,12 @@
-import messagebox
+from tkinter import messagebox
 from gui.progress_frame import ProgressFrame
 import os 
 import shutil 
-def copy_directory_with_progress(self, source_dir, target_dir, title, log_frame, exclude=None):
+def copy_directory_with_progress(source_dir, target_dir, title, log_frame, exclude=None):
         if not os.path.exists(source_dir):
             messagebox.showerror("Path Error", f"Path does not exist: {source_dir}")
             return
-        progress_bar = ProgressFrame(log_frame, title, self)
+        progress_bar = ProgressFrame(log_frame, title)
         progress_bar.skip_to_installation()
         progress_bar.grid(row=0, column=0, sticky="nsew")
         progress_bar.grid_propagate(False)

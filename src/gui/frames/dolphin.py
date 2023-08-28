@@ -5,7 +5,7 @@ from PIL import Image
 class DolphinFrame(customtkinter.CTkFrame):
     def __init__(self, parent_frame, settings):
         super().__init__(parent_frame, corner_radius=0, fg_color="transparent")
-        self.dolphin = Dolphin()
+        self.dolphin = Dolphin(self, settings)
         self.settings = settings
         self.build_frame()
     def build_frame(self):
