@@ -90,13 +90,14 @@ class EmulatorManager(customtkinter.CTk):
                 return 
         self.settings_button.configure(fg_color=("transparent"))
         # show selected frame
-        if name == "settings" and not self.settings_unlocked: 
-            self.validate_password()
-            return
-        if name == "settings" and self.settings_unlocked:
-            self.minsize(1100,500)
-            self.settings_button.configure(fg_color=("gray75", "gray25"))
-            self.settings_frame.grid(row=0, column=1, sticky="nsew")       
+        if name == "settings":
+            if not self.settings_unlocked: 
+                self.validate_password()
+                return
+            else:
+                self.minsize(1100,500)
+                self.settings_button.configure(fg_color=("gray75", "gray25"))
+                self.settings_frame.grid(row=0, column=1, sticky="nsew")       
         else:
             self.settings_frame.grid_forget()
             self.settings_frame.select_settings_frame_by_name(None)
