@@ -24,6 +24,8 @@ class DolphinSettings:
     def _set_path_property(self, property_name, value):
         if not os.path.exists(value):
             raise FileNotFoundError(f"{property_name} - File Not Found: {value}")
+        if property_name == "zip_path" and not value.endswith(".zip"):
+            raise ValueError("Expected filetype of .zip")
         self._settings[property_name] = value
     def _get_property(self, property_name):
         return self._settings[property_name]
