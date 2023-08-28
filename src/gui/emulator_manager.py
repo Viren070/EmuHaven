@@ -16,7 +16,7 @@ class EmulatorManager(customtkinter.CTk):
         self.just_opened = True
         super().__init__()
         self.settings = Settings(self, root_dir)
-    
+        self.version = "v0.8.0-b01"
         self.settings_unlocked = False
         self.define_images()
         self.build_gui()
@@ -50,10 +50,10 @@ class EmulatorManager(customtkinter.CTk):
         self.navigation_frame.grid_rowconfigure(4, weight=1)
 
         # create navigation frame title. 
-        self.navigation_frame_label = customtkinter.CTkLabel(self.navigation_frame, text= "Emulator Manager v0.7.1",
+        self.navigation_frame_label = customtkinter.CTkLabel(self.navigation_frame, text= f"Emulator Manager {self.version}",
                                                              compound="left", padx=5, font=customtkinter.CTkFont(size=12, weight="bold"))
         self.navigation_frame_label.grid(row=0, column=0, padx=20, pady=20)
-        self.navigation_frame_label.bind('<Double-Button-1>', command=lambda event: messagebox.showinfo("About", "Emulator Manager v0.7.1, made by Viren070 on GitHub."))
+        self.navigation_frame_label.bind('<Double-Button-1>', command=lambda event: messagebox.showinfo("About", f"Emulator Manager {self.version}, made by Viren070 on GitHub."))
         # create navigation menu buttons
         self.dolphin_button = customtkinter.CTkButton(self.navigation_frame, corner_radius=0, height=40, image = self.dolphin_image, border_spacing=10, text="Dolphin",
                                                    fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
