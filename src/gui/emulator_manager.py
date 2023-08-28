@@ -13,10 +13,11 @@ from settings.settings import Settings
 
 
 class EmulatorManager(customtkinter.CTk):
-    def __init__(self, open_app_settings=False):
+    def __init__(self, root_dir, open_app_settings=False):
         self.just_opened = True
         super().__init__()
-        self.settings = Settings()
+        self.settings = Settings(self, root_dir)
+    
         self.settings_unlocked = False
         self.define_images()
         self.build_gui()
@@ -108,10 +109,12 @@ class EmulatorManager(customtkinter.CTk):
             self.dolphin_frame.grid(row=0, column=1, sticky="nsew")
         else:
             self.dolphin_frame.grid_forget()
+            self.dolphin_frame.select_dolphin_frame_by_name(None)
         if name == "yuzu":
             self.yuzu_frame.grid(row=0, column=1, sticky="nsew")
         else:
             self.yuzu_frame.grid_forget()
+            self.yuzu_frame.select_yuzu_frame_by_name(None)
         
     def validate_password(self):
         dialog = PasswordDialog(text="Enter password:", title="Settings Password")

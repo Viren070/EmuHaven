@@ -2,7 +2,7 @@ from utils.paths import is_path_exists_or_creatable
 import os
 class DolphinSettings:
     def __init__(self, master):
-        self.emulator_file_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(master.get_image_path("dolphin_logo")))),"Emulator Files")
+        self.emulator_file_path = os.path.join(master.root_dir,"Emulator Files")
         print(self.emulator_file_path)
         self._default_settings = {
             'user_directory': os.path.join(os.getenv("APPDATA"), "Dolphin Emulator"),
@@ -15,12 +15,12 @@ class DolphinSettings:
 
     def _set_directory_property(self, property_name, value):
         if is_path_exists_or_creatable(value):
-            print(f"Setting {property_name} to {value}")
             self._settings[property_name] = value
         else:
-            raise ValueError
+            raise ValueError(f"{property_name} - Invalid Path: {value}")
     def _set_path_property(self, property_name, value):
-        print(f"Setting {property_name} to {value}")
+        if not os.path.exists(value):
+            raise FileNotFoundError(f"{property_name} - File Not Found: {value}")
         self._settings[property_name] = value
     def _get_property(self, property_name):
         return self._settings[property_name]

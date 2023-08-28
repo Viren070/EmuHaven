@@ -9,6 +9,7 @@ class SettingsFrame(customtkinter.CTkFrame):
     def __init__(self, parent_frame, settings):
         super().__init__(parent_frame, corner_radius=0, fg_color="transparent", width=20)
         self.settings = settings 
+        self.parent_frame = parent_frame
         self.build_gui()
     def build_gui(self):
         self.lock_image =  customtkinter.CTkImage(light_image=Image.open(self.settings.get_image_path("padlock_light")),
@@ -89,5 +90,6 @@ class SettingsFrame(customtkinter.CTkFrame):
         else:
             self.appearance_settings_frame.grid_forget()
     def lock_settings(self):
-        self.settings_unlocked = False
-        self.select_frame_by_name("None")
+        self.parent_frame.settings_unlocked = False
+        self.parent_frame.select_frame_by_name("None")
+    

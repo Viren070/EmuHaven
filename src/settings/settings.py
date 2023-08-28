@@ -1,66 +1,46 @@
 from settings.dolphin_settings import DolphinSettings
 from settings.yuzu_settings import YuzuSettings
+from settings.app_settings import AppSettings
 import os
 import json
 class Settings:
-    def __init__(self):
-        
+    def __init__(self, master, root_dir):
+        self.root_dir = root_dir
         self.settings_file = os.path.join(os.getenv("APPDATA"), "Emulator Manager", "config", "settings.json")
-        if not os.path.exists(self.settings_file):
-            self.create_settings_file() 
-        self._app_settings = {
-            'colour_theme': "green",
-            'appearance_mode': "dark",
-            'global_saves_value': 0
-            
-        }    
+       
             
         self.yuzu = YuzuSettings(self)
         self.dolphin = DolphinSettings(self)
-    def _set_property(self, property_name, value):
-        print(f"Setting {property_name} to {value}")
-        self._app_settings[property_name] = value
-    def _get_property(self, property_name):
-        return self._app_settings[property_name]
-    
-    user = property(lambda self: self._get_property('user'), 
-                              lambda self, value: self._set_property('user', value))
-    
-    install = property(lambda self: self._get_property('install'), 
-                                 lambda self, value: self._set_property('install', value))
-    
-    global_save = property(lambda self: self._get_property('global_save'), 
-                                     lambda self, value: self._set_property('global_save', value))
-    
-    export = property(lambda self: self._get_property('export'), 
-                                lambda self, value: self._set_property('export', value))
-    
-    zip_path = property(lambda self: self._get_property('zip'), 
-                              lambda self, value: self._set_property('zip', value))
-    
+        self.app = AppSettings(self)
+        if not os.path.exists(self.settings_file):
+            self.create_settings_file() 
+            self.define_image_paths(os.path.join(root_dir, "images"))
+            self.update_file()
+        else:
+            self.load()
    
     def create_settings_file(self):
         settings_template = { 
             "dolphin_settings": {
-                "Dolphin User Directory": "",
-                "Dolphin Installation Directory": "",
-                "Dolphin Global Save Directory": "",
-                "Dolphin Export Directory": "",
-                "Dolphin ZIP Path" : ""
+                "user_directory": "",
+                "install_directory": "",
+                "global_save_directory": "",
+                "export_directory": "",
+                "zip_path" : ""
                 
             },
             "yuzu_settings": {
-                "Yuzu User Directory": "",
-                "Yuzu Installation Directory": "",
-                "Yuzu Global Save Directory" : "",
-                "Yuzu Export Directory" : "",
-                "Yuzu Installer Path" : "",
-                "Yuzu Firmware ZIP Path" : "",
-                "Yuzu Key ZIP Path" : ""
+                "user_directory": "",
+                "install_directory": "",
+                "global_save_directory" : "",
+                "export_directory" : "",
+                "installer_path" : "",
+                "firmware_path" : "",
+                "key_path" : ""
                 
             },
             "app_settings": {
-                "Image Paths": {
+                "image_paths": {
                     "dolphin_logo": '',
                     "yuzu_logo": "", 
                     "padlock_dark": "",
@@ -70,9 +50,9 @@ class Settings:
                     "settings_dark": "",
                     "settings_light": ""
                     },
-                "Appearance Mode" : "",
-                "Colour Theme" : "",
-                "Global Saves Default Value":  ""
+                "appearance_mode" : "",
+                "colour_theme" : "",
+                "global_saves_default_value":  ""
             }
         }
         if not os.path.exists(os.path.dirname(os.path.abspath(self.settings_file))):
@@ -84,18 +64,70 @@ class Settings:
         self.image_path = image_path
         with open(self.settings_file, "r") as f:
             settings = json.load(f)
-        for name, path in settings["app_settings"]["Image Paths"].items():
+        for name, path in settings["app_settings"]["image_paths"].items():
             path = os.path.join(image_path, f"{name}.png")
-            settings["app_settings"]["Image Paths"][name] = path
+            settings["app_settings"]["image_paths"][name] = path
         with open(self.settings_file, "w") as f:
             json.dump(settings, f)
     
     def get_image_path(self, image_name):
         with open(self.settings_file, "r") as f:
             settings=json.load(f)
-
-        image_path = settings["app_settings"]["Image Paths"][image_name]
+        if image_name=="all":
+            return settings["app_settings"]["image_paths"]
+        image_path = settings["app_settings"]["image_paths"][image_name]
         return image_path
 
+
+    def load(self):
+        with open(self.settings_file, "r") as file:
+            settings = json.load(file)
             
+        sections = {
+            "dolphin_settings": self.dolphin,
+            "yuzu_settings": self.yuzu,
+            "app_settings": self.app
+        }
+        
+        for section_name, section_obj in sections.items():
+            section_settings = settings[section_name]
+            for setting_name, value in section_settings.items():
+                if (setting_name == "export_directory" or setting_name == "global_save_directory") and not os.path.exists(value):
+                    os.makedirs(os.path.abspath(value))
+                setattr(section_obj, setting_name, value)
+    def update_file(self):
+        settings = { 
+            "dolphin_settings": {
+                "user_directory": self.dolphin.user_directory,
+                "install_directory": self.dolphin.install_directory,
+                "global_save_directory": self.dolphin.global_save_directory,
+                "export_directory": self.dolphin.export_directory,
+                "zip_path" : self.dolphin.zip_path
+                
+            },
+            "yuzu_settings": {
+                "user_directory": self.yuzu.user_directory,
+                "install_directory": self.yuzu.install_directory,
+                "global_save_directory" : self.yuzu.global_save_directory,
+                "export_directory" : self.yuzu.export_directory,
+                "installer_path" : self.yuzu.installer_path,
+                "firmware_path" : self.yuzu.firmware_path,
+                "key_path" : self.yuzu.key_path
+                
+            },
+            "app_settings": {
+                "image_paths": self.get_image_path("all"),
+                "appearance_mode" : self.app.appearance_mode,
+                "colour_theme" : self.app.colour_theme,
+                "global_saves_default_value":  self.app.global_saves_default_value
+            }
+        }
+        with open(self.settings_file, "w") as f:
+            json.dump(settings, f)
+    
+        '''
+        self.yuzu.update_settings()
+        self.dolphin.update_settings()
+        self.app.update_settings()
+        '''
  
