@@ -9,21 +9,23 @@ from settings.yuzu_settings import YuzuSettings
 class Settings:
     def __init__(self, master, root_dir):
         self.root_dir = root_dir
+        self.version = "2"
         self.settings_file = os.path.join(os.getenv("APPDATA"), "Emulator Manager", "config", "settings.json")
        
             
         self.yuzu = YuzuSettings(self)
         self.dolphin = DolphinSettings(self)
         self.app = AppSettings(self)
-        if not os.path.exists(self.settings_file):
+        if not os.path.exists(self.settings_file) or not self.settings_file_valid():
             self.create_settings_file() 
             self.define_image_paths(os.path.join(root_dir, "images"))
             self.update_file()
         else:
             self.load()
-   
     def create_settings_file(self):
         settings_template = { 
+            "version": "2",
+            
             "dolphin_settings": {
                 "user_directory": "",
                 "install_directory": "",
@@ -100,6 +102,9 @@ class Settings:
                 setattr(section_obj, setting_name, value)
     def update_file(self):
         settings = { 
+                    
+            "version": "2",
+
             "dolphin_settings": {
                 "user_directory": self.dolphin.user_directory,
                 "install_directory": self.dolphin.install_directory,
@@ -128,9 +133,14 @@ class Settings:
         with open(self.settings_file, "w") as f:
             json.dump(settings, f)
     
-        '''
-        self.yuzu.update_settings()
-        self.dolphin.update_settings()
-        self.app.update_settings()
-        '''
- 
+    def settings_file_valid(self):
+        with open(self.settings_file, "r") as file:
+            settings = json.load(file)
+        try:
+            if not settings["version"] == self.version:
+                return False 
+            yuzu_image_path = settings["app_settings"]["image_paths"]["yuzu_logo"]
+            return True
+            
+        except (KeyError, json.JSONDecodeError):
+            return False
