@@ -97,8 +97,20 @@ class Settings:
         for section_name, section_obj in sections.items():
             section_settings = settings[section_name]
             for setting_name, value in section_settings.items():
-                if (setting_name == "export_directory" or setting_name == "global_save_directory") and not os.path.exists(value):
+                if (setting_name == "export_directory" or setting_name == "global_save_directory") and not os.path.exists(os.path.abspath(value)):
                     os.makedirs(os.path.abspath(value))
+                elif setting_name != "image_paths" and os.path.join("Temp", "_MEI") in os.path.normpath(value):
+                    continue # skip as settings file contains old MEI path.
+                elif setting_name == "image_paths":
+                    for image_name, path in value.items():
+                        if os.path.join("Temp", "_MEI") in os.path.normpath(path):
+                            continue
+                if value == "":
+                    if os.path.exists(section_obj.default_settings[setting_name]): 
+                        setattr(section_obj, setting_name, section_obj.default_settings[setting_name])
+                        continue
+                    else:
+                        section_obj.default_settings[setting_name] = ""
                 setattr(section_obj, setting_name, value)
     def update_file(self):
         settings = { 
