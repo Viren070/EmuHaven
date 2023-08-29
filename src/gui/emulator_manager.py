@@ -17,7 +17,6 @@ class EmulatorManager(customtkinter.CTk):
         super().__init__()
         self.settings = Settings(self, root_dir)
         self.version = "v0.8.0"
-        self.settings_unlocked = False
         self.define_images()
         self.build_gui()
         self.just_opened = False
@@ -88,23 +87,21 @@ class EmulatorManager(customtkinter.CTk):
                 self.revert_settings()
             else:
                 return 
-        self.settings_button.configure(fg_color=("transparent"))
+        self.settings_button.configure(fg_color=("gray75", "gray25") if name == "settings" else "transparent")
+        self.dolphin_button.configure(fg_color=("gray75", "gray25") if name == "dolphin" else "transparent")
+        self.yuzu_button.configure(fg_color=("gray75", "gray25") if name == "yuzu" else "transparent")
+        
         # show selected frame
         if name == "settings":
-            if not self.settings_unlocked: 
-                self.validate_password()
-                return
-            else:
-                self.minsize(1100,500)
-                self.settings_button.configure(fg_color=("gray75", "gray25"))
-                self.settings_frame.grid(row=0, column=1, sticky="nsew")       
+
+            self.minsize(1100,500)
+            self.settings_button.configure(fg_color=("gray75", "gray25"))
+            self.settings_frame.grid(row=0, column=1, sticky="nsew")       
         else:
             self.settings_frame.grid_forget()
             self.settings_frame.select_settings_frame_by_name(None)
             self.minsize(800,500)
-        self.dolphin_button.configure(fg_color=("gray75", "gray25") if name == "dolphin" else "transparent")
-        self.yuzu_button.configure(fg_color=("gray75", "gray25") if name == "yuzu" else "transparent")
-        
+
         if name == "dolphin":
             self.dolphin_frame.grid(row=0, column=1, sticky="nsew")
         else:
@@ -116,24 +113,6 @@ class EmulatorManager(customtkinter.CTk):
             self.yuzu_frame.grid_forget()
             self.yuzu_frame.select_yuzu_frame_by_name(None)
         
-    def validate_password(self):
-        dialog = PasswordDialog(text="Enter password:", title="Settings Password")
-        guess = dialog.get_input()
-        if guess == "" or guess is None:
-            return
-        if pbkdf2_hmac('sha256', guess.encode('utf-8'), bytes(b'GI\xaaK"\xcd`\x1b\x06\xc9\x18\x82\xc8c\xc5\xc9(\xa3\xc3\x93\x9e\xd2\xde\x93\\\x85\xd4\xb5\x1f\xcc\xac\x92'), 100000, dklen=128 ) == bytes(b'\xda\xea,d\x865\xaeS\xb1\\!~\x1c\xf7X\xef\xdfS\x94\x07i\xb8\x83<\x17h\x11Fc\xfd\xbdE\xf8\x044\xd6\xf6\x93m\xc9\xd6`{\xd9.R\xa3\xfe\x86\x00\x90&_\x12=\xdf\x99\xae\xe5\x92w\xdd\xbcwf]\xf41\x94\xa4q\x81P\xfd\x9dv\x9a\xb5\xfb\x13N\xe3"\x00\xe20\xc3\xf0\x01:\x0c\x18\x1d\xb1\x9b\xbdi\xf8\x02\t\xc5\t\xc50n(T\xff\x8b\xb1!\xf1\xba2\xe2y\x94\x89\xae]\x1f\xede\x9c=\xday`'):
-            self.settings_unlocked = True
-            self.select_frame_by_name("settings")
-            self.minsize(1100,500)
-            return
-        else:
-            messagebox.showerror("Incorrect", "That is the incorrect password, to make changes to the settings you require a password")
-            return 
-        
-    
-    def lock_settings(self):
-        self.settings_unlocked = False
-        self.select_frame_by_name("None")
         
     def settings_changed(self):
         to_return = self.settings_frame.settings_changed()

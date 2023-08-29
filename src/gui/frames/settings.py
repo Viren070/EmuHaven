@@ -40,8 +40,6 @@ class SettingsFrame(customtkinter.CTkFrame):
                                                    fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
                                                    anchor="w", command=self.appearance_settings_button_event)
         self.appearance_settings_button.grid(row=3, column=0, padx=2, sticky="ew")
-        self.settings_lock_button = customtkinter.CTkButton(self.settings_navigation_frame, text="Lock", image = self.lock_image, anchor="w", command = self.lock_settings)
-        self.settings_lock_button.grid(row=6, column=0, padx = 20, pady=20)
 
         # set default paths and other useful paths 
         installer_paths = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Emulator Files")
@@ -93,9 +91,6 @@ class SettingsFrame(customtkinter.CTkFrame):
             self.appearance_settings_frame.grid(row=0, column=1, sticky="nsew")
         else:
             self.appearance_settings_frame.grid_forget()
-    def lock_settings(self):
-        self.parent_frame.settings_unlocked = False
-        self.parent_frame.select_frame_by_name("None")
     def settings_changed(self):
         return (self.yuzu_settings_frame.settings_changed() or self.dolphin_settings_frame.settings_changed() )
     def revert_settings(self):
