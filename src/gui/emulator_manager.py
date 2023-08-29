@@ -16,7 +16,7 @@ class EmulatorManager(customtkinter.CTk):
         self.just_opened = True
         super().__init__()
         self.settings = Settings(self, root_dir)
-        self.version = "v0.8.0-b01"
+        self.version = "v0.8.0"
         self.settings_unlocked = False
         self.define_images()
         self.build_gui()
