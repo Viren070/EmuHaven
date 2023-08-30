@@ -162,6 +162,7 @@ class Dolphin:
             messagebox.showinfo("Delete result", result)
         else:
             messagebox.showinfo("Delete result", "Nothing was deleted.")
+        self.gui.configure_data_buttons(state="normal")
     def start_copy_thread(self, *args):
         thread=Thread(target=copy_directory_with_progress, args=args)
         thread.start()
