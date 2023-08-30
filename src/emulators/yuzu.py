@@ -19,12 +19,9 @@ class Yuzu:
         self.gui = gui
         self.updating_ea = False
     def check_yuzu_installation(self):
-        self.check_yuzu_firmware_and_keys()
         if os.path.exists(os.path.join(self.settings.yuzu.install_directory, "yuzu-windows-msvc", 'yuzu.exe')):
-            self.yuzu_installed = True
             return True
         else:
-            self.yuzu_installed = False
             return False
     def check_yuzu_installer(self):
         path = self.settings.yuzu.installer_path
@@ -123,7 +120,9 @@ class Yuzu:
             self.gui.yuzu_launch_yuzu_button.configure(state="disabled", text="Checking for Updates...  ", width=220)
             Thread(target=self.check_and_install_yuzu_ea).start()
             return
-        
+        if not self.check_yuzu_installation():
+            messagebox.showerror("Yuzu", "Please ensure that you have installed yuzu before trying to launch it")
+            return
         self.gui.yuzu_install_yuzu_button.configure(state="disabled")
         self.gui.yuzu_launch_yuzu_button.configure(state="disabled", text="Launching...  ")
         Thread(target=self.start_yuzu, args=(event,ea_mode,)).start()
