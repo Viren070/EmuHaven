@@ -1,4 +1,6 @@
-
+import os 
+import json 
+import customtkinter 
 class AppSettings:
     def __init__(self, master):
         self.default_settings = {
@@ -22,5 +24,20 @@ class AppSettings:
     
     global_saves_default_value = property(lambda self: self._get_property('global_saves_default_value'), 
                                      lambda self, value: self._set_property('global_saves_default_value', value))
-    def update_settings(self):
-        pass
+   
+        
+def load_customtkinter_themes():
+    path_to_settings = os.path.join(os.getenv("APPDATA"),"Emulator Manager", "config", "settings.json")
+    if not os.path.exists(path_to_settings):
+        return
+    with open(path_to_settings, "r") as file:
+        settings = json.load(file)
+    try:
+        app_settings = settings["app_settings"]
+        appearance_mode = app_settings["appearance_mode"]
+        colour_theme = app_settings["colour_theme"]
+    except KeyError:
+        appearance_mode = 'dark'
+        colour_theme = 'green'
+    customtkinter.set_appearance_mode(appearance_mode)
+    customtkinter.set_default_color_theme(colour_theme)
