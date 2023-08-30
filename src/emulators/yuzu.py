@@ -393,7 +393,7 @@ class Yuzu:
     
         
     def export_yuzu_data(self):
-        
+        self.gui.configure_data_buttons(state="disabled")
         mode = self.gui.yuzu_export_optionmenu.get()
         user_directory = self.settings.yuzu.user_directory
         export_directory = self.settings.yuzu.export_directory
@@ -402,6 +402,7 @@ class Yuzu:
         
         if not os.path.exists(user_directory):
             messagebox.showerror("Missing Folder", "No yuzu data on local drive found")
+            self.gui.configure_data_buttons(state="normal")
             return  # Handle the case when the user directory doesn't exist.
 
         if mode == "All Data":
@@ -414,6 +415,7 @@ class Yuzu:
         else:
             messagebox.showerror("Error", f"An unexpected error has occured, {mode} is an invalid option.")
     def import_yuzu_data(self):
+        self.gui.configure_data_buttons(state="disabled")
         mode = self.gui.yuzu_import_optionmenu.get()
         export_directory = self.settings.yuzu.export_directory
         user_directory = self.settings.yuzu.user_directory
@@ -421,6 +423,7 @@ class Yuzu:
         
         if not os.path.exists(users_export_directory):
             messagebox.showerror("Missing Folder", "No yuzu data associated with your username found")
+            self.gui.configure_data_buttons(state="normal")
             return
         if mode == "All Data":
             self.start_copy_thread(users_export_directory, user_directory, "Import All Yuzu Data", self.gui.yuzu_data_log)
@@ -432,8 +435,9 @@ class Yuzu:
         else:
             messagebox.showerror("Error", f"An unexpected error has occured, {mode} is an invalid option.")
     def delete_yuzu_data(self):
-        
+        self.gui.configure_data_buttons(state="disabled")
         if not messagebox.askyesno("Confirmation", "This will delete the data from Yuzu's directory and from the global saves directory. This action cannot be undone, are you sure you wish to continue?"):
+            self.gui.configure_data_buttons(state="normal")
             return
 
         mode = self.gui.yuzu_delete_optionmenu.get()
@@ -493,4 +497,9 @@ class Yuzu:
         else:
             messagebox.showinfo("Delete result", "Nothing was deleted.")
     def start_copy_thread(self, *args):
-        Thread(target=copy_directory_with_progress, args=args).start()
+        thread=Thread(target=copy_directory_with_progress, args=args)
+        thread.start()
+        Thread(target=self.wait_on_thread, args=(thread,)).start()
+    def wait_on_thread(self, thread):
+        thread.join()
+        self.gui.configure_data_buttons(state="normal")

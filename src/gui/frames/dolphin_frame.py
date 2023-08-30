@@ -86,6 +86,10 @@ class DolphinFrame(customtkinter.CTkFrame):
         self.dolphin_data_log.grid_columnconfigure(0, weight=1)
         self.dolphin_data_log.grid_rowconfigure(1, weight=1)
         
+    def configure_data_buttons(self, **kwargs):
+        self.dolphin_delete_button.configure(**kwargs)
+        self.dolphin_import_button.configure(**kwargs)
+        self.dolphin_export_button.configure(**kwargs)
     def dolphin_start_button_event(self):
         self.select_dolphin_frame_by_name("start")
     def dolphin_manage_data_button_event(self):

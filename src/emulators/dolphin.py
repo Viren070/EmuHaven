@@ -105,6 +105,7 @@ class Dolphin:
     
     
     def export_dolphin_data(self):
+        self.gui.configure_data_buttons(state="disabled")
         mode = self.gui.dolphin_export_optionmenu.get()
         user_directory = self.settings.dolphin.user_directory
         export_directory = self.settings.dolphin.export_directory
@@ -112,10 +113,12 @@ class Dolphin:
         
         if not os.path.exists(user_directory):
             messagebox.showerror("Missing Folder", "No dolphin data on local drive found")
+            self.gui.configure_data_buttons(state="normal")
             return  # Handle the case when the user directory doesn't exist.
         if mode == "All Data":
             self.start_copy_thread(user_directory, users_export_directory, "Exporting All Dolphin Data", self.gui.dolphin_data_log)
     def import_dolphin_data(self):
+        self.gui.configure_data_buttons(state="disabled")
         mode = self.gui.dolphin_export_optionmenu.get()
         user_directory = self.settings.dolphin.user_directory
         export_directory = self.settings.dolphin.export_directory
@@ -123,11 +126,14 @@ class Dolphin:
         
         if not os.path.exists(users_export_directory):
             messagebox.showerror("Missing Folder", "No dolphin data associated with your username was found")
+            self.gui.configure_data_buttons(state="normal")
             return  # Handle the case when the user directory doesn't exist.
         if mode == "All Data":
             self.start_copy_thread(users_export_directory, user_directory, "Importing All Dolphin Data", self.gui.dolphin_data_log)
     def delete_dolphin_data(self):
+        self.gui.configure_data_buttons(state="disabled")
         if not messagebox.askyesno("Confirmation", "This will delete the data from Dolphin's directory and from the global saves directory. This action cannot be undone, are you sure you wish to continue?"):
+            self.gui.configure_data_buttons(state="normal")
             return
         mode = self.gui.dolphin_delete_optionmenu.get()
         result = ""
@@ -157,8 +163,12 @@ class Dolphin:
         else:
             messagebox.showinfo("Delete result", "Nothing was deleted.")
     def start_copy_thread(self, *args):
-        Thread(target=copy_directory_with_progress, args=args).start()
-        
+        thread=Thread(target=copy_directory_with_progress, args=args)
+        thread.start()
+        Thread(target=self.wait_on_thread, args=(thread,)).start()
+    def wait_on_thread(self, thread):
+        thread.join()
+        self.gui.configure_data_buttons(state="normal")
         
     def check_dolphin_installation(self):
         default_dolphin_location = os.path.join(self.settings.dolphin.install_directory,'Dolphin.exe')

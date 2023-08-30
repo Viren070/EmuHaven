@@ -98,6 +98,11 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.yuzu_firmware_options_button = customtkinter.CTkButton(self.yuzu_firmware_frame, text="Options", command=self.yuzu_firmware.options_menu)
         self.yuzu_firmware_options_button.grid(row=1, column=1, pady=(0,30))
         
+    def configure_data_buttons(self, **kwargs):
+        self.yuzu_delete_button.configure(**kwargs)
+        self.yuzu_import_button.configure(**kwargs)
+        self.yuzu_export_button.configure(**kwargs)
+        
     def yuzu_start_button_event(self):
         self.select_yuzu_frame_by_name("start")
     def yuzu_manage_data_button_event(self):
