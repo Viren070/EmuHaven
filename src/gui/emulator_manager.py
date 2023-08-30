@@ -17,7 +17,11 @@ class EmulatorManager(customtkinter.CTk):
         super().__init__()
         self.settings = Settings(self, root_dir)
         self.version = "v0.8.0"
-        self.define_images()
+        try:
+            self.define_images()
+        except FileNotFoundError as error:
+            messagebox.showerror("Image Error", "The image files could not be found, try re-downloading the latest release from the GitHub repository.", master=self)
+            return
         self.build_gui()
         self.just_opened = False
         if open_app_settings:
