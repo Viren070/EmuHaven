@@ -20,7 +20,7 @@ class DolphinFrame(customtkinter.CTkFrame):
         self.dolphin_navigation_frame.grid(row=0, column=0, sticky="nsew")
         self.dolphin_navigation_frame.grid_rowconfigure(4, weight=1)
 
-        self.dolphin_start_button = customtkinter.CTkButton(self.dolphin_navigation_frame, corner_radius=0, width=50, height=25, image=self.play_image, border_spacing=10, text="Play",
+        self.dolphin_start_button = customtkinter.CTkButton(self.dolphin_navigation_frame, corner_radius=0, width=100, height=25, image=self.play_image, border_spacing=10, text="Play",
                                                    fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
                                                    anchor="w", command=self.dolphin_start_button_event)
         self.dolphin_start_button.grid(row=1, column=0, sticky="ew", padx=2, pady=(2,0))
@@ -53,7 +53,7 @@ class DolphinFrame(customtkinter.CTkFrame):
         self.dolphin_log_frame.grid_columnconfigure(0, weight=2)
 
         
-        self.dolphin_manage_data_button = customtkinter.CTkButton(self.dolphin_navigation_frame, corner_radius=0, width=20, height=25, border_spacing=10, text="Manage Data",
+        self.dolphin_manage_data_button = customtkinter.CTkButton(self.dolphin_navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Manage Data",
                                                    fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
                                                    anchor="w", command=self.dolphin_manage_data_button_event)
         self.dolphin_manage_data_button.grid(row=2, column=0, sticky="ew", padx=2)

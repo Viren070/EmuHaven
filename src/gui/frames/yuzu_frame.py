@@ -21,12 +21,12 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.yuzu_navigation_frame.grid(row=0, column=0, sticky="nsew")
         self.yuzu_navigation_frame.grid_rowconfigure(4, weight=1)
         # create yuzu menu buttons
-        self.yuzu_start_button = customtkinter.CTkButton(self.yuzu_navigation_frame, corner_radius=0, width=20, height=25, image = self.play_image, border_spacing=10, text="Play",
+        self.yuzu_start_button = customtkinter.CTkButton(self.yuzu_navigation_frame, corner_radius=0, width=100, height=25, image = self.play_image, border_spacing=10, text="Play",
                                                    fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
                                                    anchor="w", command=self.yuzu_start_button_event)
         self.yuzu_start_button.grid(row=1, column=0, sticky="ew", padx=2, pady=(2,0))
 
-        self.yuzu_manage_data_button = customtkinter.CTkButton(self.yuzu_navigation_frame, corner_radius=0, width=20, height=25, border_spacing=10, text="Manage Data",
+        self.yuzu_manage_data_button = customtkinter.CTkButton(self.yuzu_navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Manage Data",
                                                    fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
                                                    anchor="w", command=self.yuzu_manage_data_button_event)
         self.yuzu_manage_data_button.grid(row=2, column=0, padx=2, sticky="ew")
@@ -85,7 +85,7 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.yuzu_data_log.grid_columnconfigure(0, weight=1)
         self.yuzu_data_log.grid_rowconfigure(1, weight=1)
         # create yuzu downloader button, frame and widgets
-        self.yuzu_firmware_button = customtkinter.CTkButton(self.yuzu_navigation_frame, corner_radius=0, width=20, height=25, border_spacing=10, text="Downloader",
+        self.yuzu_firmware_button = customtkinter.CTkButton(self.yuzu_navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Downloader",
                                                    fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
                                                    anchor="w", command=self.yuzu_firmware_button_event)
         self.yuzu_firmware_button.grid(row=3, column=0, padx=2, sticky="ew")
