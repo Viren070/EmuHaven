@@ -167,3 +167,6 @@ cython_debug/
 
 # App specific folders 
 User Data/
+
+# Other 
+update_requirements.bat
