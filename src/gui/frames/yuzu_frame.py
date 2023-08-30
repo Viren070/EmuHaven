@@ -33,10 +33,16 @@ class YuzuFrame(customtkinter.CTkFrame):
         
         # create yuzu 'Play' frame and widgets
         self.yuzu_start_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
-
+        self.yuzu_start_frame.grid_columnconfigure(0, weight=1)
+        self.yuzu_start_frame.grid_columnconfigure(1, weight=1)
+        self.yuzu_start_frame.grid_rowconfigure(0, weight=1)
+        self.yuzu_start_frame.grid_rowconfigure(1, weight=2)
+        
         self.yuzu_actions_frame = customtkinter.CTkFrame(self.yuzu_start_frame)
-        self.yuzu_actions_frame.grid(row=0, column=0, padx=40, pady=40)
-        self.yuzu_actions_frame.grid_columnconfigure(3, weight=1)
+        self.yuzu_actions_frame.grid(row=0, column=0, sticky="ew", padx=(80,0), pady=40)
+        self.yuzu_actions_frame.grid_columnconfigure(0, weight=1)  # Stretch horizontally
+        self.yuzu_actions_frame.grid_columnconfigure(1, weight=1)  # Stretch horizontally
+        self.yuzu_actions_frame.grid_columnconfigure(2, weight=1)  # Stretch horizontally
         
         self.yuzu_launch_yuzu_button = customtkinter.CTkButton(self.yuzu_actions_frame, height=40, width=170, image=self.play_image, text="Launch Yuzu  ", command=self.yuzu.start_yuzu_wrapper, font=customtkinter.CTkFont(size=15, weight="bold"))
         self.yuzu_launch_yuzu_button.grid(row=0, column=2, padx=30, pady=15, sticky="n")
@@ -45,15 +51,15 @@ class YuzuFrame(customtkinter.CTkFrame):
         
         self.yuzu_global_data = customtkinter.StringVar(value=self.settings.app.global_saves_default_value)
         self.yuzu_global_user_data_checkbox = customtkinter.CTkCheckBox(self.yuzu_actions_frame, text = "Use Global Saves", variable=self.yuzu_global_data, onvalue="True", offvalue="False")
-        self.yuzu_global_user_data_checkbox.grid(row=0,column=3, padx=(0,35))
+        self.yuzu_global_user_data_checkbox.grid(row=0,column=3, sticky="ew", padx=(0,35))
 
         self.yuzu_install_yuzu_button = customtkinter.CTkButton(self.yuzu_actions_frame, text="Run Yuzu Installer", command=self.yuzu.run_yuzu_install_wrapper)
-        self.yuzu_install_yuzu_button.grid(row=0, column=1,padx=10, pady=5)
+        self.yuzu_install_yuzu_button.grid(row=0, column=1,padx=10, pady=5, sticky="ew")
         self.yuzu_install_yuzu_button.bind("<Button-1>", command=lambda event: self.yuzu.run_yuzu_install_wrapper(event))
         self.yuzu_install_yuzu_button.bind("<Shift-Control-Button-1>", command=lambda event: self.yuzu.install_ea_yuzu_wrapper(event))
         
-        self.yuzu_log_frame = customtkinter.CTkFrame(self.yuzu_start_frame)
-        self.yuzu_log_frame.grid(row=1, column=0, sticky="nsew", padx=40)
+        self.yuzu_log_frame = customtkinter.CTkFrame(self.yuzu_start_frame, fg_color='transparent')
+        self.yuzu_log_frame.grid(row=1, column=0, sticky="ew", padx=(80,0), pady=(0,40))
         self.yuzu_log_frame.grid_columnconfigure(0, weight=3)
         # create yuzu 'Manage Data' frame and widgets
         self.yuzu_manage_data_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")

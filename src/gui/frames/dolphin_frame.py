@@ -26,14 +26,21 @@ class DolphinFrame(customtkinter.CTkFrame):
         self.dolphin_start_button.grid(row=1, column=0, sticky="ew", padx=2, pady=(2,0))
         
         self.dolphin_start_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
-        
+        self.dolphin_start_frame.grid_columnconfigure(0, weight=1)
+        self.dolphin_start_frame.grid_columnconfigure(1, weight=1)
+        self.dolphin_start_frame.grid_rowconfigure(0, weight=1)
+        self.dolphin_start_frame.grid_rowconfigure(1, weight=2)
         
         self.dolphin_actions_frame = customtkinter.CTkFrame(self.dolphin_start_frame)
-        self.dolphin_actions_frame.grid(row=0, column=0, padx=40, pady=40)
-        self.dolphin_actions_frame.grid_columnconfigure(3, weight=1)
+        self.dolphin_actions_frame.grid(row=0, column=0, sticky="ew", padx=(80,0), pady=(40,0))
+        
+        self.dolphin_actions_frame.grid_columnconfigure(0, weight=1)  # Stretch horizontally
+        self.dolphin_actions_frame.grid_columnconfigure(1, weight=1)  # Stretch horizontally
+        self.dolphin_actions_frame.grid_columnconfigure(2, weight=1)  # Stretch horizontally
+
         
         self.dolphin_launch_dolphin_button = customtkinter.CTkButton(self.dolphin_actions_frame, height=40, width=180, text="Launch Dolphin  ", image = self.play_image, font=customtkinter.CTkFont(size=15, weight="bold"), command=self.dolphin.start_dolphin_wrapper)
-        self.dolphin_launch_dolphin_button.grid(row=0, column=1, padx=30, pady=15, sticky="n")
+        self.dolphin_launch_dolphin_button.grid(row=0, column=1, padx=30, pady=15, sticky="nsew")
 
         self.dolphin_global_data = customtkinter.StringVar(value=self.settings.app.global_saves_default_value)
         self.dolphin_global_user_data_checkbox = customtkinter.CTkCheckBox(self.dolphin_actions_frame, text = "Use Global Saves",
@@ -42,14 +49,14 @@ class DolphinFrame(customtkinter.CTkFrame):
         
 
         self.dolphin_install_dolphin_button = customtkinter.CTkButton(self.dolphin_actions_frame, text="Install Dolphin", command=self.dolphin.install_dolphin_wrapper)
-        self.dolphin_install_dolphin_button.grid(row=0, column=0,padx=10, pady=5)
+        self.dolphin_install_dolphin_button.grid(row=0, column=0,padx=10, pady=5, sticky="ew")
 
         self.dolphin_delete_dolphin_button = customtkinter.CTkButton(self.dolphin_actions_frame, text="Delete Dolphin", fg_color="red", hover_color="darkred", command=self.dolphin.delete_dolphin_button_event)
-        self.dolphin_delete_dolphin_button.grid(row=0, column=2,padx=10, pady=5)
+        self.dolphin_delete_dolphin_button.grid(row=0, column=2,padx=10, sticky="ew", pady=5)
 
         
-        self.dolphin_log_frame = customtkinter.CTkFrame(self.dolphin_start_frame)
-        self.dolphin_log_frame.grid(row=1, column=0, sticky="nsew", padx=40)
+        self.dolphin_log_frame = customtkinter.CTkFrame(self.dolphin_start_frame, height=100, fg_color='transparent')
+        self.dolphin_log_frame.grid(row=1, column=0, sticky="ew", padx=(80,0), pady=(0,40))
         self.dolphin_log_frame.grid_columnconfigure(0, weight=2)
 
         
