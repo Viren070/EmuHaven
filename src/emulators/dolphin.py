@@ -82,9 +82,9 @@ class Dolphin:
             messagebox.showerror("Error","A dolphin installation was not found. Please press Install Dolphin below to begin.")
     def start_dolphin(self):
         self.running = True
-        if self.gui.dolphin_global_data.get() == "True" and os.path.exists(os.path.join(self.settings.dolphin.global_save_directory, os.getlogin())):
+        if self.gui.dolphin_global_data.get() == "True" and os.path.exists(os.path.join(self.settings.dolphin.auto_import__export_directory, os.getlogin())):
             try:
-                copy_directory_with_progress((os.path.join(self.settings.dolphin.global_save_directory, os.getlogin())), self.settings.dolphin.user_directory, "Loading Dolphin Data", self.gui.dolphin_log_frame)
+                copy_directory_with_progress((os.path.join(self.settings.dolphin.auto_import__export_directory, os.getlogin())), self.settings.dolphin.user_directory, "Loading Dolphin Data", self.gui.dolphin_log_frame)
             except Exception as error:
                 for widget in self.gui.dolphin_log_frame.winfo_children():
                         widget.destroy()
@@ -102,7 +102,7 @@ class Dolphin:
         self.dolphin_is_running = False
         if self.gui.dolphin_global_data.get() == "True":
             self.gui.dolphin_launch_dolphin_button.configure(state="disabled", text="Launch Dolphin  ")
-            copy_directory_with_progress(self.settings.dolphin.user_directory, (os.path.join(self.settings.dolphin.global_save_directory, os.getlogin())), "Saving Dolphin Data", self.gui.dolphin_log_frame)
+            copy_directory_with_progress(self.settings.dolphin.user_directory, (os.path.join(self.settings.dolphin.auto_import__export_directory, os.getlogin())), "Saving Dolphin Data", self.gui.dolphin_log_frame)
         self.gui.dolphin_launch_dolphin_button.configure(state="normal", text="Launch Dolphin  ")
         self.gui.dolphin_install_dolphin_button.configure(state="normal")
         self.running = False
@@ -142,9 +142,9 @@ class Dolphin:
         mode = self.gui.dolphin_delete_optionmenu.get()
         result = ""
         user_directory = self.settings.dolphin.user_directory
-        global_save_directory = self.settings.dolphin.global_save_directory
+        auto_import__export_directory = self.settings.dolphin.auto_import__export_directory
         export_directory = self.settings.dolphin.export_directory
-        users_global_save_directory = os.path.join(global_save_directory, os.getlogin())
+        users_auto_import__export_directory = os.path.join(auto_import__export_directory, os.getlogin())
         users_export_directory = os.path.join(export_directory, os.getlogin())
         
         def delete_directory(directory):
@@ -159,7 +159,7 @@ class Dolphin:
             return False
         if mode == "All Data":
             result += f"Data Deleted from {user_directory}\n" if delete_directory(user_directory) else ""
-            result += f"Data deleted from {users_global_save_directory}\n" if delete_directory(users_global_save_directory) else ""
+            result += f"Data deleted from {users_auto_import__export_directory}\n" if delete_directory(users_auto_import__export_directory) else ""
             result += f"Data deleted from {users_export_directory}\n" if delete_directory(users_export_directory) else ""
             
         if result:

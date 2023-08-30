@@ -131,9 +131,9 @@ class Yuzu:
         Thread(target=self.start_yuzu, args=(event,ea_mode,)).start()
     
     def start_yuzu(self, event=None, ea_mode=False):
-        if self.gui.yuzu_global_data.get() == "True" and os.path.exists(os.path.join(self.settings.yuzu.global_save_directory, os.getlogin())):
+        if self.gui.yuzu_global_data.get() == "True" and os.path.exists(os.path.join(self.settings.yuzu.auto_import__export_directory, os.getlogin())):
             try:
-                copy_directory_with_progress((os.path.join(self.settings.yuzu.global_save_directory, os.getlogin())), self.settings.yuzu.user_directory, "Loading Yuzu Data", self.gui.yuzu_log_frame)
+                copy_directory_with_progress((os.path.join(self.settings.yuzu.auto_import__export_directory, os.getlogin())), self.settings.yuzu.user_directory, "Loading Yuzu Data", self.gui.yuzu_log_frame)
             except Exception as error:
                 for widget in self.gui.yuzu_log_frame.winfo_children():
                         widget.destroy()
@@ -166,7 +166,7 @@ class Yuzu:
         if self.gui.yuzu_global_data.get() == "True":
             try:
                 self.gui.yuzu_launch_yuzu_button.configure(state="disabled", text="Launch Yuzu  ")
-                copy_directory_with_progress(self.settings.yuzu.user_directory, (os.path.join(self.settings.yuzu.global_save_directory, os.getlogin())), "Saving Yuzu Data", self.gui.yuzu_log_frame)
+                copy_directory_with_progress(self.settings.yuzu.user_directory, (os.path.join(self.settings.yuzu.auto_import__export_directory, os.getlogin())), "Saving Yuzu Data", self.gui.yuzu_log_frame)
             except Exception as error:
                 messagebox.showerror("Save Error", f"Unable to save your data\n\nFull Error: {error}")
         self.gui.yuzu_launch_yuzu_button.configure(state="normal", text="Launch Yuzu  ")
@@ -403,7 +403,7 @@ class Yuzu:
         mode = self.gui.yuzu_export_optionmenu.get()
         user_directory = self.settings.yuzu.user_directory
         export_directory = self.settings.yuzu.export_directory
-        users_global_save_directory = os.path.join(export_directory, os.getlogin())
+        users_auto_import__export_directory = os.path.join(export_directory, os.getlogin())
         users_export_directory = os.path.join(export_directory, os.getlogin())
         
         if not os.path.exists(user_directory):
@@ -450,9 +450,9 @@ class Yuzu:
         result = ""
 
         user_directory = self.settings.yuzu.user_directory
-        global_save_directory = self.settings.yuzu.global_save_directory
+        auto_import__export_directory = self.settings.yuzu.auto_import__export_directory
         export_directory = self.settings.yuzu.export_directory
-        users_global_save_directory = os.path.join(global_save_directory, os.getlogin())
+        users_auto_import__export_directory = os.path.join(auto_import__export_directory, os.getlogin())
         users_export_directory = os.path.join(export_directory, os.getlogin())
         
         def delete_directory(directory):
@@ -467,19 +467,19 @@ class Yuzu:
 
         if mode == "All Data":
             result += f"Data Deleted from {user_directory}\n" if delete_directory(user_directory) else ""
-            result += f"Data deleted from {users_global_save_directory}\n" if delete_directory(users_global_save_directory) else ""
+            result += f"Data deleted from {users_auto_import__export_directory}\n" if delete_directory(users_auto_import__export_directory) else ""
             result += f"Data deleted from {users_export_directory}\n" if delete_directory(users_export_directory) else ""
         elif mode == "Save Data":
             save_dir = os.path.join(user_directory, 'nand', 'user', 'save')
             result += f"Data deleted from {save_dir}\n" if delete_directory(save_dir) else ""
-            save_dir = os.path.join(global_save_directory, os.getlogin(), 'nand', 'user', 'save')
+            save_dir = os.path.join(auto_import__export_directory, os.getlogin(), 'nand', 'user', 'save')
             result += f"Data deleted from {save_dir}\n" if delete_directory(save_dir) else ""
-            if export_directory != global_save_directory:
+            if export_directory != auto_import__export_directory:
                 save_dir = os.path.join(export_directory, os.getlogin(), 'nand', 'user', 'save')
                 result += f"Data deleted from {save_dir}\n" if delete_directory(save_dir) else ""
         elif mode == "Exclude 'nand' & 'keys'":
             # Iterate through each of the 3 root folders and exclude 'nand' subfolder
-            for root_folder in [user_directory, users_global_save_directory, users_export_directory]:
+            for root_folder in [user_directory, users_auto_import__export_directory, users_export_directory]:
                 if os.path.exists(root_folder) and os.listdir(root_folder):
                     subfolders_failed = []
                     deleted = False
