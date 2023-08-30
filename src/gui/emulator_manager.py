@@ -22,7 +22,7 @@ class EmulatorManager(customtkinter.CTk):
         self.just_opened = False
         if open_app_settings:
             self.select_frame_by_name("settings")
-            self.settings_frame.select_settings_frame_by_name("appearance")
+            self.settings_frame.select_settings_frame_by_name("app")
         self.mainloop()
     def define_images(self):
         self.dolphin_image = customtkinter.CTkImage(Image.open(self.settings.get_image_path("dolphin_logo")), size=(26, 26))

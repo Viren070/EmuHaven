@@ -26,20 +26,22 @@ class SettingsFrame(customtkinter.CTkFrame):
         self.settings_navigation_frame.grid_rowconfigure(4, weight=1)
 
         # create settings navigation menu buttons
-        self.dolphin_settings_button = customtkinter.CTkButton(self.settings_navigation_frame, corner_radius=0, width=20, height=25, border_spacing=10, text="Dolphin",
+        self.app_settings_button = customtkinter.CTkButton(self.settings_navigation_frame, corner_radius=0, width=90, height=25, border_spacing=10, text="App",
+                                                   fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
+                                                   anchor="w", command=self.app_settings_button_event)
+        self.app_settings_button.grid(row=1, column=0, padx=2, sticky="ew")
+        
+        self.dolphin_settings_button = customtkinter.CTkButton(self.settings_navigation_frame, corner_radius=0, width=90, height=25, border_spacing=10, text="Dolphin",
                                                    fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
                                                    anchor="w", command=self.dolphin_settings_button_event)
-        self.dolphin_settings_button.grid(row=1, column=0, padx=2, pady=(2,0), sticky="ew")
+        self.dolphin_settings_button.grid(row=2, column=0, padx=2, pady=(2,0), sticky="ew")
         
-        self.yuzu_settings_button = customtkinter.CTkButton(self.settings_navigation_frame, corner_radius=0, width=20, height=25, border_spacing=10, text="Yuzu",
+        self.yuzu_settings_button = customtkinter.CTkButton(self.settings_navigation_frame, corner_radius=0, width=90, height=25, border_spacing=10, text="Yuzu",
                                                    fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
                                                    anchor="w", command=self.yuzu_settings_button_event)
-        self.yuzu_settings_button.grid(row=2, column=0, padx=2, sticky="ew")
+        self.yuzu_settings_button.grid(row=3, column=0, padx=2, sticky="ew")
         
-        self.appearance_settings_button = customtkinter.CTkButton(self.settings_navigation_frame, corner_radius=0, width=20, height=25, border_spacing=10, text="Appearance",
-                                                   fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
-                                                   anchor="w", command=self.appearance_settings_button_event)
-        self.appearance_settings_button.grid(row=3, column=0, padx=2, sticky="ew")
+        
 
         # set default paths and other useful paths 
         installer_paths = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Emulator Files")
@@ -64,20 +66,20 @@ class SettingsFrame(customtkinter.CTkFrame):
         
         self.dolphin_settings_frame = DolphinSettings(self, self.settings)
         self.yuzu_settings_frame = YuzuSettings(self, self.settings)
-        self.appearance_settings_frame = AppSettings(self, self.settings)
+        self.app_settings_frame = AppSettings(self, self.settings)
         
     def dolphin_settings_button_event(self):
         self.select_settings_frame_by_name("dolphin")
     def yuzu_settings_button_event(self):
         self.select_settings_frame_by_name("yuzu")
-    def appearance_settings_button_event(self):
-        self.select_settings_frame_by_name("appearance")
+    def app_settings_button_event(self):
+        self.select_settings_frame_by_name("app")
         
     def select_settings_frame_by_name(self, name):
         # set button color for selected button
         self.yuzu_settings_button.configure(fg_color=("gray75", "gray25") if name == "yuzu" else "transparent")
         self.dolphin_settings_button.configure(fg_color=("gray75", "gray25") if name == "dolphin" else "transparent")
-        self.appearance_settings_button.configure(fg_color=("gray75", "gray25") if name == "appearance" else "transparent")
+        self.app_settings_button.configure(fg_color=("gray75", "gray25") if name == "app" else "transparent")
         # show selected frame
         if name == "dolphin":
             self.dolphin_settings_frame.grid(row=0, column=1, sticky="nsew")
@@ -87,10 +89,10 @@ class SettingsFrame(customtkinter.CTkFrame):
             self.yuzu_settings_frame.grid(row=0, column=1, sticky="nsew")
         else:
             self.yuzu_settings_frame.grid_forget()
-        if name == "appearance":
-            self.appearance_settings_frame.grid(row=0, column=1, sticky="nsew")
+        if name == "app":
+            self.app_settings_frame.grid(row=0, column=1, sticky="nsew")
         else:
-            self.appearance_settings_frame.grid_forget()
+            self.app_settings_frame.grid_forget()
     def settings_changed(self):
         return (self.yuzu_settings_frame.settings_changed() or self.dolphin_settings_frame.settings_changed() )
     def revert_settings(self):
