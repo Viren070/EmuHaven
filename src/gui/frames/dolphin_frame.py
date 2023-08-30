@@ -42,8 +42,8 @@ class DolphinFrame(customtkinter.CTkFrame):
         self.dolphin_launch_dolphin_button = customtkinter.CTkButton(self.dolphin_actions_frame, height=40, width=180, text="Launch Dolphin  ", image = self.play_image, font=customtkinter.CTkFont(size=15, weight="bold"), command=self.dolphin.start_dolphin_wrapper)
         self.dolphin_launch_dolphin_button.grid(row=0, column=1, padx=30, pady=15, sticky="nsew")
 
-        self.dolphin_global_data = customtkinter.StringVar(value=self.settings.app.global_saves_default_value)
-        self.dolphin_global_user_data_checkbox = customtkinter.CTkCheckBox(self.dolphin_actions_frame, text = "Use Global Saves",
+        self.dolphin_global_data = customtkinter.StringVar(value=self.settings.app.auto_import__export_default_value)
+        self.dolphin_global_user_data_checkbox = customtkinter.CTkCheckBox(self.dolphin_actions_frame, text = "Auto Import/Export",
                                      variable=self.dolphin_global_data, onvalue="True", offvalue="False")
         self.dolphin_global_user_data_checkbox.grid(row=1,column=1, pady=(0,5))
         

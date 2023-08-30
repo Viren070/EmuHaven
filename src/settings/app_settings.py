@@ -6,7 +6,7 @@ class AppSettings:
         self.default_settings = {
             'colour_theme': "dark-blue",
             'appearance_mode': "dark",
-            'global_saves_default_value': "False"
+            'auto_import__export_default_value': "False"
             
         }
         self._app_settings = self.default_settings.copy()
@@ -22,8 +22,8 @@ class AppSettings:
     appearance_mode = property(lambda self: self._get_property('appearance_mode'), 
                                  lambda self, value: self._set_property('appearance_mode', value))
     
-    global_saves_default_value = property(lambda self: self._get_property('global_saves_default_value'), 
-                                     lambda self, value: self._set_property('global_saves_default_value', value))
+    auto_import__export_default_value = property(lambda self: self._get_property('auto_import__export_default_value'), 
+                                     lambda self, value: self._set_property('auto_import__export_default_value', value))
    
         
 def load_customtkinter_themes():

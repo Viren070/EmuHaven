@@ -49,8 +49,8 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.yuzu_launch_yuzu_button.bind("<Button-1>", command=lambda event: self.yuzu.start_yuzu_wrapper(event))
         self.yuzu_launch_yuzu_button.bind("<Shift-Control-Button-1>", command=lambda event: self.yuzu.start_yuzu_wrapper(event, True))
         
-        self.yuzu_global_data = customtkinter.StringVar(value=self.settings.app.global_saves_default_value)
-        self.yuzu_global_user_data_checkbox = customtkinter.CTkCheckBox(self.yuzu_actions_frame, text = "Use Global Saves", variable=self.yuzu_global_data, onvalue="True", offvalue="False")
+        self.yuzu_global_data = customtkinter.StringVar(value=self.settings.app.auto_import__export_default_value)
+        self.yuzu_global_user_data_checkbox = customtkinter.CTkCheckBox(self.yuzu_actions_frame, text = "Auto Import/Export", variable=self.yuzu_global_data, onvalue="True", offvalue="False")
         self.yuzu_global_user_data_checkbox.grid(row=0,column=3, sticky="ew", padx=(0,35))
 
         self.yuzu_install_yuzu_button = customtkinter.CTkButton(self.yuzu_actions_frame, text="Run Yuzu Installer", command=self.yuzu.run_yuzu_install_wrapper)

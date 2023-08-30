@@ -26,7 +26,7 @@ class DolphinSettings(customtkinter.CTkFrame):
         customtkinter.CTkButton(self, text="Browse", width=50, command=lambda entry_widget=self.install_directory_entry: self.update_with_explorer(entry_widget)).grid(row=2,column=3, padx=5, pady=5, sticky="E")
         ttk.Separator(self, orient='horizontal').grid(row=3, columnspan=4, sticky="ew")
 
-        customtkinter.CTkLabel(self, text="Global Save Directory: ").grid(row=4, column=0, padx=10, pady=10, sticky="w")
+        customtkinter.CTkLabel(self, text="Auto Import/Export Directory: ").grid(row=4, column=0, padx=10, pady=10, sticky="w")
         self.global_save_directory_entry = customtkinter.CTkEntry(self, width=300)
         self.global_save_directory_entry.grid(row=4, column=2, padx=10, pady=10, sticky="e")
         customtkinter.CTkButton(self, text="Browse", width=50, command=lambda entry_widget=self.global_save_directory_entry: self.update_with_explorer(entry_widget)).grid(row=4, column=3, padx=5, sticky="E")
@@ -59,9 +59,9 @@ class DolphinSettings(customtkinter.CTkFrame):
                 "entry_widget": self.install_directory_entry,
                 "variable": self.settings.dolphin.install_directory
             },
-            "global_save_directory": {
+            "auto_import__export_directory": {
                 "entry_widget": self.global_save_directory_entry,
-                "variable": self.settings.dolphin.global_save_directory
+                "variable": self.settings.dolphin.auto_import__export_directory
             },
             "export_directory": {
                 "entry_widget": self.export_directory_entry,

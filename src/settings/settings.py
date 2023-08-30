@@ -30,7 +30,7 @@ class Settings:
             "dolphin_settings": {
                 "user_directory": "",
                 "install_directory": "",
-                "global_save_directory": "",
+                "auto_import__export_directory": "",
                 "export_directory": "",
                 "zip_path" : ""
                 
@@ -38,7 +38,7 @@ class Settings:
             "yuzu_settings": {
                 "user_directory": "",
                 "install_directory": "",
-                "global_save_directory" : "",
+                "auto_import__export_directory" : "",
                 "export_directory" : "",
                 "installer_path" : "",
                 "firmware_path" : "",
@@ -58,7 +58,7 @@ class Settings:
                     },
                 "appearance_mode" : "",
                 "colour_theme" : "",
-                "global_saves_default_value":  ""
+                "auto_import__export_default_value":  ""
             }
         }
         if not os.path.exists(os.path.dirname(os.path.abspath(self.settings_file))):
@@ -98,7 +98,7 @@ class Settings:
         for section_name, section_obj in sections.items():
             section_settings = settings[section_name]
             for setting_name, value in section_settings.items():
-                if (setting_name == "export_directory" or setting_name == "global_save_directory") and not os.path.exists(os.path.abspath(value)):
+                if (setting_name == "export_directory" or setting_name == "auto_import__export_directory") and not os.path.exists(os.path.abspath(value)):
                     os.makedirs(os.path.abspath(value))
                 elif setting_name != "image_paths" and os.path.join("Temp", "_MEI") in os.path.normpath(value):
                     continue # skip as settings file contains old MEI path.
@@ -121,7 +121,7 @@ class Settings:
             "dolphin_settings": {
                 "user_directory": self.dolphin.user_directory,
                 "install_directory": self.dolphin.install_directory,
-                "global_save_directory": self.dolphin.global_save_directory,
+                "auto_import__export_directory": self.dolphin.auto_import__export_directory,
                 "export_directory": self.dolphin.export_directory,
                 "zip_path" : self.dolphin.zip_path
                 
@@ -129,7 +129,7 @@ class Settings:
             "yuzu_settings": {
                 "user_directory": self.yuzu.user_directory,
                 "install_directory": self.yuzu.install_directory,
-                "global_save_directory" : self.yuzu.global_save_directory,
+                "auto_import__export_directory" : self.yuzu.auto_import__export_directory,
                 "export_directory" : self.yuzu.export_directory,
                 "installer_path" : self.yuzu.installer_path,
                 "firmware_path" : self.yuzu.firmware_path,
@@ -140,7 +140,7 @@ class Settings:
                 "image_paths": self.get_image_path("all"),
                 "appearance_mode" : self.app.appearance_mode,
                 "colour_theme" : self.app.colour_theme,
-                "global_saves_default_value":  self.app.global_saves_default_value
+                "auto_import__export_default_value":  self.app.auto_import__export_default_value
             }
         }
         with open(self.settings_file, "w") as f:
