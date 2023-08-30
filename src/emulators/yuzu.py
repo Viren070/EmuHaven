@@ -305,13 +305,13 @@ class Yuzu:
         else:
             installed = ''
         
-        if not latest_release:
+        if latest_release is None:
             self.updating_ea = False
             self.gui.yuzu_install_yuzu_button.configure(state="normal")
             self.gui.yuzu_launch_yuzu_button.configure(state="normal")
             return
 
-        if installed == latest_release.version:
+        if latest_release == False or installed == latest_release.version:
             messagebox.showinfo("Info", "You already have the latest version of yuzu EA installed!")
         else:    
 
