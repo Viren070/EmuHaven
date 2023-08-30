@@ -29,15 +29,15 @@ class DolphinSettings:
         if is_path_exists_or_creatable(value):
             self._settings[property_name] = value
         else:
-            raise ValueError(f"{property_name} - Invalid Path: {value}")
+            raise ValueError(f"{property_name.replace('__','/').replace('_',' ').title()} - Invalid Path: {value}")
     def _set_path_property(self, property_name, value):
         if value == "":
             self._settings[property_name] = value
             return
         if not os.path.exists(value):
-            raise FileNotFoundError(f"{property_name} - File Not Found: {value}")
+            raise FileNotFoundError(f"{property_name.replace('__','/').replace('_',' ').title()} - File Not Found: {value}")
         if not value.endswith(".zip"):
-            raise ValueError("Expected filetype of .zip")
+            raise ValueError(f"{property_name.replace('__','/').replace('_',' ').title()} - Invalid Filetype: Expected file extension of .zip but got {os.path.splitext(value)[-1]}")
         self._settings[property_name] = value
     def _get_property(self, property_name):
         return self._settings[property_name]
