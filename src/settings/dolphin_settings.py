@@ -6,7 +6,6 @@ from utils.paths import is_path_exists_or_creatable
 class DolphinSettings:
     def __init__(self, master):
         self.emulator_file_path = os.path.join(master.root_dir,"Emulator Files")
-        print(self.emulator_file_path)
         self.default_settings = {
             'user_directory': os.path.join(os.getenv("APPDATA"), "Dolphin Emulator"),
             'install_directory': os.path.join(os.getenv("LOCALAPPDATA"), "Dolphin Emulator"),
