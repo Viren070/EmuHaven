@@ -160,7 +160,7 @@ class OptionsMenu(customtkinter.CTkToplevel):
     def __init__(self, master):
         super().__init__(master)
         self.title("Settings")
-        self.geometry("600x400")
+        self.geometry("450x350")
 
         # Install Firmware section
         self.firmware_frame = customtkinter.CTkFrame(self)
@@ -281,7 +281,7 @@ class FirmwareDownloader(customtkinter.CTkFrame):
         self.grid_columnconfigure(0, weight=1)
 
         self.firmware_versions_frame = customtkinter.CTkScrollableFrame(
-            self.tabview.tab("Firmware"), width=700, height=400
+            self.tabview.tab("Firmware"), width=665, height=300
         )
         self.firmware_versions_frame.grid(row=0, column=0, sticky="nsew")
         self.firmware_versions_frame.grid_columnconfigure(0, weight=1)
@@ -290,7 +290,7 @@ class FirmwareDownloader(customtkinter.CTkFrame):
         )
 
         self.key_versions_frame = customtkinter.CTkScrollableFrame(
-            self.tabview.tab("Keys"), width=700, height=400
+            self.tabview.tab("Keys"), width=665, height=300
         )
         self.key_versions_frame.grid(row=0, column=0)
         self.key_versions_frame.grid_columnconfigure(0, weight=1)
@@ -299,7 +299,7 @@ class FirmwareDownloader(customtkinter.CTkFrame):
         )
 
         self.both_versions_frame = customtkinter.CTkScrollableFrame(
-            self.tabview.tab("Both"), width=700, height=400
+            self.tabview.tab("Both"), width=665, height=300
         )
         self.both_versions_frame.grid(row=0, column=0)
         self.both_versions_frame.grid_columnconfigure(0, weight=1)
@@ -308,7 +308,7 @@ class FirmwareDownloader(customtkinter.CTkFrame):
         )
 
         self.downloads_frame = customtkinter.CTkScrollableFrame(
-            self.tabview.tab("Downloads"), width=700, height=400
+            self.tabview.tab("Downloads"), width=665, height=300
         )
         self.downloads_frame.grid(row=0, column=0)
         self.downloads_frame.grid_columnconfigure(0, weight=1)
@@ -949,4 +949,4 @@ class FirmwareDownloader(customtkinter.CTkFrame):
         elif "MB" in value:
             return int(value.replace(" MB", "")) * 1024**2
         else:
-            return 16000
+            return 16650
