@@ -18,10 +18,11 @@ class Settings:
         self.app = AppSettings(self)
         if not os.path.exists(self.settings_file) or not self.settings_file_valid():
             self.create_settings_file() 
-            self.define_image_paths(os.path.join(root_dir, "images"))
-            self.update_file()
         else:
             self.load()
+                    
+        self.define_image_paths(os.path.join(root_dir, "images"))
+        self.update_file()
     def create_settings_file(self):
         settings_template = { 
             "version": "2",
