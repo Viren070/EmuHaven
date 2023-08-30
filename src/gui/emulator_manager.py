@@ -7,9 +7,8 @@ from PIL import Image
 from gui.frames.dolphin_frame import DolphinFrame
 from gui.frames.settings_frame import SettingsFrame
 from gui.frames.yuzu_frame import YuzuFrame
-from gui.password_dialog import PasswordDialog
-from settings.settings import Settings
 from settings.app_settings import load_customtkinter_themes
+from settings.settings import Settings
 
 
 class EmulatorManager(customtkinter.CTk):
