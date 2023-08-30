@@ -4,9 +4,9 @@ from tkinter import messagebox
 import customtkinter
 from PIL import Image
 
-from gui.frames.dolphin import DolphinFrame
-from gui.frames.settings import SettingsFrame
-from gui.frames.yuzu import YuzuFrame
+from gui.frames.dolphin_frame import DolphinFrame
+from gui.frames.settings_frame import SettingsFrame
+from gui.frames.yuzu_frame import YuzuFrame
 from gui.password_dialog import PasswordDialog
 from settings.settings import Settings
 

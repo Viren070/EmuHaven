@@ -4,9 +4,9 @@ from tkinter import messagebox
 import customtkinter
 from PIL import Image
 
-from gui.frames.app_settings import AppSettings
-from gui.frames.dolphin_settings import DolphinSettings
-from gui.frames.yuzu_settings import YuzuSettings
+from gui.frames.app_settings_frame import AppSettings
+from gui.frames.dolphin_settings_frame import DolphinSettings
+from gui.frames.yuzu_settings_frame import YuzuSettings
 
 
 class SettingsFrame(customtkinter.CTkFrame):
