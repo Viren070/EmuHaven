@@ -97,7 +97,7 @@ class Dolphin:
         except Exception as error_msg:
             messagebox.showerror("Error", f"Error when running Dolphin: \n{error_msg}")
         self.dolphin_is_running = False
-        if self.gui.dolphin_global_data.get() == "1":
+        if self.gui.dolphin_global_data.get() == "True":
             self.gui.dolphin_launch_dolphin_button.configure(state="disabled", text="Launch Dolphin  ")
             copy_directory_with_progress(self.settings.dolphin.user_directory, (os.path.join(self.settings.dolphin.global_save_directory, os.getlogin())), "Saving Dolphin Data", self.gui.dolphin_log_frame)
         self.gui.dolphin_launch_dolphin_button.configure(state="normal", text="Launch Dolphin  ")

@@ -128,7 +128,7 @@ class Yuzu:
         Thread(target=self.start_yuzu, args=(event,ea_mode,)).start()
     
     def start_yuzu(self, event=None, ea_mode=False):
-        if self.gui.yuzu_global_data.get() == "1" and os.path.exists(os.path.join(self.settings.yuzu.global_save_directory, os.getlogin())):
+        if self.gui.yuzu_global_data.get() == "True" and os.path.exists(os.path.join(self.settings.yuzu.global_save_directory, os.getlogin())):
             try:
                 copy_directory_with_progress((os.path.join(self.settings.yuzu.global_save_directory, os.getlogin())), self.settings.yuzu.user_directory, "Loading Yuzu Data", self.gui.yuzu_log_frame)
             except Exception as error:
@@ -159,7 +159,7 @@ class Yuzu:
             subprocess.run(args, capture_output=True) # subprocess.run with arguments defined earlier
         except Exception as error_msg:
             messagebox.showerror("Error", f"Error when running Yuzu: \n{error_msg}")
-        if self.gui.yuzu_global_data.get() == "1":
+        if self.gui.yuzu_global_data.get() == "True":
             try:
                 self.gui.yuzu_launch_yuzu_button.configure(state="disabled", text="Launch Yuzu  ")
                 copy_directory_with_progress(self.settings.yuzu.user_directory, (os.path.join(self.settings.yuzu.global_save_directory, os.getlogin())), "Saving Yuzu Data", self.gui.yuzu_log_frame)
