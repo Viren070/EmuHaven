@@ -18,6 +18,7 @@ class Yuzu:
         self.settings = settings
         self.gui = gui
         self.updating_ea = False
+        self.running = False
     def check_yuzu_installation(self):
         if os.path.exists(os.path.join(self.settings.yuzu.install_directory, "yuzu-windows-msvc", 'yuzu.exe')):
             return True
@@ -91,6 +92,7 @@ class Yuzu:
             shutil.copy(path_to_installer, target_installer)
         except Exception as error:
             messagebox.showerror("Copy Error", f"Unable to make a copy of yuzu_install.exe\n\n{error}")
+        self.running = True
         subprocess.run([target_installer], capture_output = True)
         time.sleep(0.3) # trying to delete instantly causes PermissionError
         try:
@@ -99,6 +101,7 @@ class Yuzu:
             messagebox.showerror("Delete Error", "Unable to delete temporary yuzu installer directory.")
         except Exception as error:
             messagebox.showerror("Error", f"An unexpected error has occured: \n{error}")
+        self.running = False
         self.gui.yuzu_install_yuzu_button.configure(state="normal")
         self.gui.yuzu_launch_yuzu_button.configure(state="normal")
     
@@ -154,11 +157,12 @@ class Yuzu:
         elif not event.state & 1 and os.path.exists(maintenance_tool):  # Button was clicked normally so run maintenance tool to update yuzu and then launch
             args = [maintenance_tool,"--launcher",yuzu_exe,]  
         self.gui.yuzu_launch_yuzu_button.configure(text="Launched!  ")
-        
+        self.running = True
         try:     
             subprocess.run(args, capture_output=True) # subprocess.run with arguments defined earlier
         except Exception as error_msg:
             messagebox.showerror("Error", f"Error when running Yuzu: \n{error_msg}")
+        self.running = False
         if self.gui.yuzu_global_data.get() == "True":
             try:
                 self.gui.yuzu_launch_yuzu_button.configure(state="disabled", text="Launch Yuzu  ")
@@ -179,6 +183,8 @@ class Yuzu:
             installed = ''
         
         latest_release = self.get_latest_yuzu_ea_release()
+        if latest_release is None:
+            return None
         if latest_release.version != installed:
             return latest_release
         else:

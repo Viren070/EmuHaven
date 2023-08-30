@@ -1,3 +1,4 @@
+import sys
 from hashlib import pbkdf2_hmac
 from tkinter import messagebox
 
@@ -28,6 +29,8 @@ class EmulatorManager(customtkinter.CTk):
         if open_app_settings:
             self.select_frame_by_name("settings")
             self.settings_frame.select_settings_frame_by_name("app")
+            
+        self.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.mainloop()
     def define_images(self):
         self.dolphin_image = customtkinter.CTkImage(Image.open(self.settings.get_image_path("dolphin_logo")), size=(26, 26))
@@ -129,3 +132,10 @@ class EmulatorManager(customtkinter.CTk):
         self.destroy()
         load_customtkinter_themes()
         EmulatorManager(self.root_dir)
+    def on_closing(self):
+        if (self.dolphin_frame.dolphin.running or self.yuzu_frame.yuzu.running):
+            messagebox.showerror("", "Please close any emulators before attempting to close Emulator Manager")
+            return 
+        self.destroy()
+        sys.exit()
+        

@@ -13,6 +13,7 @@ class Dolphin:
     def __init__(self, gui, settings):
         self.settings = settings
         self.gui = gui
+        self.running = False
         self.dolphin_is_running = False
         
     def install_dolphin_wrapper(self):
@@ -80,6 +81,7 @@ class Dolphin:
         else:
             messagebox.showerror("Error","A dolphin installation was not found. Please press Install Dolphin below to begin.")
     def start_dolphin(self):
+        self.running = True
         if self.gui.dolphin_global_data.get() == "True" and os.path.exists(os.path.join(self.settings.dolphin.global_save_directory, os.getlogin())):
             try:
                 copy_directory_with_progress((os.path.join(self.settings.dolphin.global_save_directory, os.getlogin())), self.settings.dolphin.user_directory, "Loading Dolphin Data", self.gui.dolphin_log_frame)
@@ -89,6 +91,7 @@ class Dolphin:
                 if not messagebox.askyesno("Error", f"Unable to load your data, would you like to continue\n\n Full Error: {error}"):
                     self.gui.dolphin_launch_dolphin_button.configure(state="normal", text="Launch Dolphin  ")
                     self.gui.dolphin_install_dolphin_button.configure(state="normal")
+                    self.running = False
                     return 
         
         self.gui.dolphin_launch_dolphin_button.configure(state="disabled", text="Launched!  ")
@@ -102,6 +105,7 @@ class Dolphin:
             copy_directory_with_progress(self.settings.dolphin.user_directory, (os.path.join(self.settings.dolphin.global_save_directory, os.getlogin())), "Saving Dolphin Data", self.gui.dolphin_log_frame)
         self.gui.dolphin_launch_dolphin_button.configure(state="normal", text="Launch Dolphin  ")
         self.gui.dolphin_install_dolphin_button.configure(state="normal")
+        self.running = False
     
     
     def export_dolphin_data(self):
