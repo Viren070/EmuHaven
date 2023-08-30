@@ -9,6 +9,7 @@ from gui.frames.settings_frame import SettingsFrame
 from gui.frames.yuzu_frame import YuzuFrame
 from gui.password_dialog import PasswordDialog
 from settings.settings import Settings
+from settings.app_settings import load_customtkinter_themes
 
 
 class EmulatorManager(customtkinter.CTk):
@@ -17,6 +18,7 @@ class EmulatorManager(customtkinter.CTk):
         super().__init__()
         self.settings = Settings(self, root_dir)
         self.version = "v0.8.0"
+        self.root_dir = root_dir
         try:
             self.define_images()
         except FileNotFoundError:
@@ -122,3 +124,9 @@ class EmulatorManager(customtkinter.CTk):
         return self.settings_frame.settings_changed()
     def revert_settings(self):
         self.settings_frame.revert_settings()
+    def restart(self):
+        for after_id in self.tk.eval('after info').split():
+            self.after_cancel(after_id)
+        self.destroy()
+        load_customtkinter_themes()
+        EmulatorManager(self.root_dir)

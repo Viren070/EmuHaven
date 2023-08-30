@@ -39,7 +39,8 @@ class AppSettings(customtkinter.CTkFrame):
             return
         self.settings.app.colour_theme = theme.lower().replace(" ", "-")
         self.update_settings()
-        messagebox.showinfo("Change Theme","The application must be restarted for these changes to take effect")    
+        if messagebox.askyesno("Change Theme","The application must be restarted for these changes to take effect, restart now?"):    
+            self.parent_frame.parent_frame.restart()
         # destroy current window (because changing colour theme directly does not work)
         # self.parent_frame.parent_frame.destroy()
 
