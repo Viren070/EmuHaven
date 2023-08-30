@@ -10,8 +10,6 @@ certifi==2023.7.22
     # via requests
 charset-normalizer==3.2.0
     # via requests
-colorama==0.4.6
-    # via -r requirements.in
 customtkinter==5.1.2
     # via -r requirements.in
 darkdetect==0.8.0
