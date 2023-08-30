@@ -46,7 +46,7 @@ class EmulatorManager(customtkinter.CTk):
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
         
-        self.minsize(800,500) # set the minimum size of the window 
+        self.minsize(1100,500) # set the minimum size of the window 
         
         
         # create navigation frame 
@@ -106,7 +106,7 @@ class EmulatorManager(customtkinter.CTk):
         else:
             self.settings_frame.grid_forget()
             self.settings_frame.select_settings_frame_by_name(None)
-            self.minsize(800,500)
+            self.minsize(1100,500)
 
         if name == "dolphin":
             self.dolphin_frame.grid(row=0, column=1, sticky="nsew")
