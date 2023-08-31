@@ -1,4 +1,5 @@
-import sys
+import os
+import shutil
 from hashlib import pbkdf2_hmac
 from tkinter import messagebox
 
@@ -140,6 +141,12 @@ class EmulatorManager(customtkinter.CTk):
         if (self.dolphin_frame.dolphin.running or self.yuzu_frame.yuzu.running):
             messagebox.showerror("", "Please close any emulators before attempting to close Emulator Manager")
             return 
+        temp_folder = os.path.join(os.getenv("TEMP"), "Emulator Manager")
+        if os.path.exists(temp_folder):
+            try:
+                shutil.rmtree(temp_folder)
+            except:
+                pass
         self.destroy()
-        sys.exit()
+        exit()
         
