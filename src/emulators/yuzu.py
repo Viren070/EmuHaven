@@ -275,16 +275,20 @@ class Yuzu:
             progress_frame.total_size = latest_release.size
             with open(download_path, 'wb') as f:
                 downloaded_bytes = 0
-                for chunk in response.iter_content(chunk_size=1024*512): 
-                    if progress_frame.cancel_download_raised:
-                        self.updating_ea = False
-                        self.gui.yuzu_install_yuzu_button.configure(state="normal")
-                        self.gui.yuzu_launch_yuzu_button.configure(state="normal")
-                        progress_frame.destroy()
-                        return
-                    f.write(chunk)
-                    downloaded_bytes += len(chunk)
-                    progress_frame.update_download_progress(downloaded_bytes, 1024*512)
+                try:
+                    for chunk in response.iter_content(chunk_size=1024*1024): 
+                        if progress_frame.cancel_download_raised:
+                            self.updating_ea = False
+                            self.gui.yuzu_install_yuzu_button.configure(state="normal")
+                            self.gui.yuzu_launch_yuzu_button.configure(state="normal")
+                            progress_frame.destroy()
+                            return
+                        f.write(chunk)
+                        downloaded_bytes += len(chunk)
+                        progress_frame.update_download_progress(downloaded_bytes, 1024*512)
+                except requests.exceptions.RequestException as error:
+                    messagebox.showerror("Requests Error", f"Failed to download file\n\n{error}")
+                    return False
             progress_frame.complete_download(None, "Status: Extracting...")
             progress_frame.progress_bar.set(0)
             return download_path
@@ -326,23 +330,26 @@ class Yuzu:
             early_access_zip = download_latest_release(latest_release)
             
             # Extract
-            extracted_release = extract_release_files(early_access_zip)
+            if early_access_zip:
+                extracted_release = extract_release_files(early_access_zip)
+            
             # Move and delete zip   
           
-            try:
-                if os.path.exists(yuzu_path):
-                    shutil.rmtree(yuzu_path)
-                shutil.move(os.path.join(extracted_release, "yuzu-windows-msvc-early-access"), yuzu_path) 
-                installed = latest_release.version
-            except Exception as error:
-                messagebox.showerror("Error", error)
-            
-            with open(launcher_file, "w") as f:
-                contents["yuzu"]["early_access"]["installed_version"] = installed
-                json.dump(contents, f)
-            progress_frame.finish_installation()
+                try:
+                    if os.path.exists(yuzu_path):
+                        shutil.rmtree(yuzu_path)
+                    shutil.move(os.path.join(extracted_release, "yuzu-windows-msvc-early-access"), yuzu_path) 
+                    installed = latest_release.version
+                except Exception as error:
+                    messagebox.showerror("Error", error)
+                
+                with open(launcher_file, "w") as f:
+                    contents["yuzu"]["early_access"]["installed_version"] = installed
+                    json.dump(contents, f)
+                progress_frame.finish_installation()
             progress_frame.destroy()
-            
+        
+                
         if os.path.exists(temp_path):
             shutil.rmtree(temp_path)
         self.updating_ea = False
