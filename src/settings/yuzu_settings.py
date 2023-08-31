@@ -12,8 +12,8 @@ class YuzuSettings:
             'auto_import__export_directory': os.path.join(os.getcwd(), "User Data","Yuzu"),
             'export_directory': os.path.join(os.getcwd(), "User Data","Yuzu"),
             'installer_path': os.path.join(self.emulator_file_path, "yuzu_install.exe"),
-            'firmware_path': os.path.join(self.emulator_file_path, "Yuzu Files", "Firmware 16.0.3 (Rebootless Update 2).zip"),
-            'key_path': os.path.join(self.emulator_file_path, "Yuzu Files", "Keys 16.0.3.zip")
+            'firmware_path': os.path.join(self.emulator_file_path, "Yuzu Files", "Firmware 16.1.0.zip"),
+            'key_path': os.path.join(self.emulator_file_path, "Yuzu Files", "Keys 16.1.0.zip")
         }
         self._settings = self.default_settings.copy()
 
