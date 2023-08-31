@@ -84,7 +84,7 @@ class Yuzu:
         Thread(target=self.run_yuzu_install).start()
     
     def run_yuzu_install(self):
-        temp_dir = os.path.join(os.getenv("TEMP"),"yuzu-installer")
+        temp_dir = os.path.join(os.getenv("TEMP"),"Emulator Manager")
         os.makedirs(temp_dir, exist_ok=True)
         path_to_installer = self.settings.yuzu.installer_path
         target_installer = os.path.join(temp_dir, 'yuzu_install.exe')
