@@ -198,7 +198,7 @@ class YuzuFrame(customtkinter.CTkFrame):
         else:
             self.early_access_actions_frame.grid_forget()
     def delete_yuzu_ea_button_event(self):
-        if os.path.join(self.settings.yuzu.install_directory,"yuzu-windows-msvc-early-access"):
+        if os.path.exists(os.path.join(self.settings.yuzu.install_directory,"yuzu-windows-msvc-early-access")):
             self.delete_early_access_button.configure(state="disabled")
             self.launch_yuzu_early_access.configure(state="disabled")
             self.install_early_access.configure(state="disabled")
