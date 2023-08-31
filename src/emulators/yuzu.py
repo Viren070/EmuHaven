@@ -379,6 +379,7 @@ class Yuzu:
     def delete_yuzu_ea(self):
         try:
             shutil.rmtree(os.path.join(self.settings.yuzu.install_directory, "yuzu-windows-msvc-early-access"))
+            messagebox.showinfo("Success", "The installation of yuzu EA was successfully deleted!")
         except Exception as error_msg:
             messagebox.showerror("Delete Error", f"Failed to delete yuzu-ea: \n\n{error_msg}")
         self.gui.delete_early_access_button.configure(state="disabled")
