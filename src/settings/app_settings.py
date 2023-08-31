@@ -1,6 +1,10 @@
 import os 
 import json 
 import customtkinter 
+
+VALID_APPEARANCE_MODES = ["dark", "light"]
+VALID_COLOUR_THEMES = ["blue", "dark-blue", "green"]
+    
 class AppSettings:
     def __init__(self, master):
         self.default_settings = {
@@ -12,6 +16,10 @@ class AppSettings:
         self._app_settings = self.default_settings.copy()
         
     def _set_property(self, property_name, value):
+        if property_name == "colour_theme" and not value in VALID_COLOUR_THEMES:
+            value="dark-blue"
+        elif property_name == "appearance_mode" and not value in VALID_APPEARANCE_MODES:
+            value="dark"
         self._app_settings[property_name] = value
     def _get_property(self, property_name):
         return self._app_settings[property_name]
@@ -28,16 +36,19 @@ class AppSettings:
         
 def load_customtkinter_themes():
     path_to_settings = os.path.join(os.getenv("APPDATA"),"Emulator Manager", "config", "settings.json")
-    if not os.path.exists(path_to_settings):
-        return
-    with open(path_to_settings, "r") as file:
-        settings = json.load(file)
-    try:
-        app_settings = settings["app_settings"]
-        appearance_mode = app_settings["appearance_mode"]
-        colour_theme = app_settings["colour_theme"]
-    except KeyError:
-        appearance_mode = 'dark'
-        colour_theme = 'green'
+    appearance_mode = 'dark'
+    colour_theme = 'dark-blue'
+    
+    if os.path.exists(path_to_settings):
+        
+        with open(path_to_settings, "r") as file:
+            settings = json.load(file)
+        try:
+            app_settings = settings["app_settings"]
+            appearance_mode = app_settings["appearance_mode"] if app_settings["appearance_mode"] in VALID_APPEARANCE_MODES else "dark"
+            colour_theme = app_settings["colour_theme"] if app_settings["colour_theme"] in VALID_COLOUR_THEMES else "dark-blue"
+        except KeyError:
+            pass
+    
     customtkinter.set_appearance_mode(appearance_mode)
     customtkinter.set_default_color_theme(colour_theme)
