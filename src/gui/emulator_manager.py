@@ -13,12 +13,14 @@ from settings.settings import Settings
 
 
 class EmulatorManager(customtkinter.CTk):
-    def __init__(self, root_dir, open_app_settings=False):
+    def __init__(self, root_dir, open_app_settings=False, pos=["",""]):
         self.just_opened = True
         super().__init__()
         self.settings = Settings(self, root_dir)
         self.version = "v0.8.1"
         self.root_dir = root_dir
+        self.x = pos[0]
+        self.y = pos[1]
         try:
             self.define_images()
         except FileNotFoundError:
@@ -49,7 +51,7 @@ class EmulatorManager(customtkinter.CTk):
         self.grid_columnconfigure(1, weight=1)
         
         self.minsize(1100,500) # set the minimum size of the window 
-        
+        self.geometry("1100x500+{}+{}".format(self.x, self.y))
         
         # create navigation frame 
         self.navigation_frame = customtkinter.CTkFrame(self, corner_radius=0)
@@ -129,9 +131,11 @@ class EmulatorManager(customtkinter.CTk):
     def restart(self):
         for after_id in self.tk.eval('after info').split():
             self.after_cancel(after_id)
+        pos = [self.winfo_x, self.winfo_y]
         self.destroy()
         load_customtkinter_themes()
-        EmulatorManager(self.root_dir)
+        EmulatorManager(self.root_dir, True, pos)
+        
     def on_closing(self):
         if (self.dolphin_frame.dolphin.running or self.yuzu_frame.yuzu.running):
             messagebox.showerror("", "Please close any emulators before attempting to close Emulator Manager")
