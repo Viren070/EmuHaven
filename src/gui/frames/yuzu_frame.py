@@ -1,3 +1,6 @@
+import os 
+from threading import Thread
+
 import customtkinter
 from PIL import Image
 
@@ -91,10 +94,11 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.launch_yuzu_early_access.grid(row=0, column=2, padx=30, pady=15, sticky="n")
         self.launch_yuzu_early_access.bind("<Button-1>", command=lambda event: self.yuzu.start_yuzu_wrapper(event, True))
         #self.yuzu_launch_yuzu_button.bind("<Shift-Control-Button-1>", command=lambda event: self.yuzu.start_yuzu_wrapper(event, True))
+        self.delete_early_access_button = customtkinter.CTkButton(self.early_access_actions_frame, text="Delete Yuzu EA", command=self.delete_yuzu_ea_button_event)
+        self.delete_early_access_button.grid(row=0, column=3, padx=10, pady=5, sticky="ew")
         
-  
         self.yuzu_global_user_data_checkbox = customtkinter.CTkCheckBox(self.early_access_actions_frame, text = "Auto Import/Export", variable=self.yuzu_global_data, onvalue="True", offvalue="False")
-        self.yuzu_global_user_data_checkbox.grid(row=0,column=3, sticky="ew", padx=(0,35))
+        self.yuzu_global_user_data_checkbox.grid(row=1,column=2, sticky="n", padx=10, pady=5)
 
         self.install_early_access = customtkinter.CTkButton(self.early_access_actions_frame, text="Install Yuzu EA  ", command=self.yuzu.install_ea_yuzu_wrapper)
         self.install_early_access.grid(row=0, column=1,padx=10, pady=5, sticky="ew")
@@ -193,3 +197,9 @@ class YuzuFrame(customtkinter.CTkFrame):
             self.early_access_actions_frame.grid(row=2, column=0, columnspan=3)
         else:
             self.early_access_actions_frame.grid_forget()
+    def delete_yuzu_ea_button_event(self):
+        if os.path.join(self.settings.yuzu.install_directory,"yuzu-windows-msvc-early-access"):
+            self.delete_early_access_button.configure(state="disabled")
+            self.launch_yuzu_early_access.configure(state="disabled")
+            self.install_early_access.configure(state="disabeled")
+            Thread(target=self.yuzu.delete_yuzu_ea).start()
