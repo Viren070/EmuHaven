@@ -11,6 +11,8 @@ class DolphinFrame(customtkinter.CTkFrame):
         self.settings = settings
         self.build_frame()
     def build_frame(self):
+        self.dolphin_banner =  customtkinter.CTkImage(light_image=Image.open(self.settings.get_image_path("dolphin_banner_light")),
+                                                     dark_image=Image.open(self.settings.get_image_path("dolphin_banner_dark")), size=(276, 129))
         self.play_image = customtkinter.CTkImage(light_image=Image.open(self.settings.get_image_path("play_light")),
                                                      dark_image=Image.open(self.settings.get_image_path("play_dark")), size=(20, 20))
         self.grid_columnconfigure(1, weight=1)
@@ -27,12 +29,21 @@ class DolphinFrame(customtkinter.CTkFrame):
         
         self.dolphin_start_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
         self.dolphin_start_frame.grid_columnconfigure(0, weight=1)
-        self.dolphin_start_frame.grid_columnconfigure(1, weight=1)
         self.dolphin_start_frame.grid_rowconfigure(0, weight=1)
-        self.dolphin_start_frame.grid_rowconfigure(1, weight=2)
         
-        self.dolphin_actions_frame = customtkinter.CTkFrame(self.dolphin_start_frame)
-        self.dolphin_actions_frame.grid(row=0, column=0, sticky="ew", padx=(80,0), pady=(40,0))
+        self.center_frame = customtkinter.CTkFrame(self.dolphin_start_frame, fg_color="transparent")
+        self.center_frame.grid(row=0, column=0, sticky="nsew")
+        self.center_frame.grid_columnconfigure(0, weight=1)
+        self.center_frame.grid_rowconfigure(0, weight=1)
+        self.center_frame.grid_rowconfigure(1, weight=1)
+        self.center_frame.grid_rowconfigure(2, weight=1)
+        self.center_frame.grid_rowconfigure(3, weight=2)
+        
+        self.image_button = customtkinter.CTkButton(self.center_frame, text="", fg_color='transparent', hover=False, bg_color='transparent', image=self.dolphin_banner)
+        self.image_button.grid(row=0, column=0, columnspan=3, sticky="n", padx=10, pady=20)
+        
+        self.dolphin_actions_frame = customtkinter.CTkFrame(self.center_frame)
+        self.dolphin_actions_frame.grid(row=1, column=0, columnspan=3)
         
         self.dolphin_actions_frame.grid_columnconfigure(0, weight=1)  # Stretch horizontally
         self.dolphin_actions_frame.grid_columnconfigure(1, weight=1)  # Stretch horizontally
@@ -55,9 +66,10 @@ class DolphinFrame(customtkinter.CTkFrame):
         self.dolphin_delete_dolphin_button.grid(row=0, column=2,padx=10, sticky="ew", pady=5)
 
         
-        self.dolphin_log_frame = customtkinter.CTkFrame(self.dolphin_start_frame, height=100, fg_color='transparent')
-        self.dolphin_log_frame.grid(row=1, column=0, sticky="ew", padx=(80,0), pady=(0,40))
-        self.dolphin_log_frame.grid_columnconfigure(0, weight=2)
+        self.dolphin_log_frame = customtkinter.CTkFrame(self.center_frame, fg_color='transparent')
+        self.dolphin_log_frame.grid(row=3, column=0, padx=80, sticky="ew")
+        self.dolphin_log_frame.grid_propagate(False)
+        self.dolphin_log_frame.grid_columnconfigure(0, weight=3)
 
         
         self.dolphin_manage_data_button = customtkinter.CTkButton(self.dolphin_navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Manage Data",
