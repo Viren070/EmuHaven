@@ -94,7 +94,7 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.launch_yuzu_early_access.grid(row=0, column=2, padx=30, pady=15, sticky="n")
         self.launch_yuzu_early_access.bind("<Button-1>", command=lambda event: self.yuzu.start_yuzu_wrapper(event, True))
         #self.yuzu_launch_yuzu_button.bind("<Shift-Control-Button-1>", command=lambda event: self.yuzu.start_yuzu_wrapper(event, True))
-        self.delete_early_access_button = customtkinter.CTkButton(self.early_access_actions_frame, text="Delete Yuzu EA", command=self.delete_yuzu_ea_button_event)
+        self.delete_early_access_button = customtkinter.CTkButton(self.early_access_actions_frame, text="Delete Yuzu EA", fg_color="red", hover_color="darkred", command=self.delete_yuzu_ea_button_event)
         self.delete_early_access_button.grid(row=0, column=3, padx=10, pady=5, sticky="ew")
         
         self.yuzu_global_user_data_checkbox = customtkinter.CTkCheckBox(self.early_access_actions_frame, text = "Auto Import/Export", variable=self.yuzu_global_data, onvalue="True", offvalue="False")
