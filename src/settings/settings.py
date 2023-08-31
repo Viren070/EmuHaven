@@ -74,6 +74,22 @@ class Settings:
         self.image_path = image_path
         with open(self.settings_file, "r") as f:
             settings = json.load(f)
+        image_paths = settings["app_settings"]["image_paths"]
+        if len(image_paths) != 12:
+            settings["app_settings"]["image_paths"] = {
+                    "dolphin_logo": '',
+                    "dolphin_banner_dark": '',
+                    "dolphin_banner_light": "",
+                    "yuzu_logo": "", 
+                    "yuzu_mainline": "",
+                    "yuzu_early_access": "",
+                    "padlock_dark": "",
+                    "padlock_light": "",
+                    "play_dark": "",
+                    "play_light": "",
+                    "settings_dark": "",
+                    "settings_light": "",
+                    }
         for name, path in settings["app_settings"]["image_paths"].items():
             path = os.path.join(image_path, f"{name}.png")
             settings["app_settings"]["image_paths"][name] = path
