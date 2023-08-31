@@ -5,7 +5,6 @@ from settings.app_settings import AppSettings
 from settings.dolphin_settings import DolphinSettings
 from settings.yuzu_settings import YuzuSettings
 
-
 class Settings:
     def __init__(self, master, root_dir):
         self.root_dir = root_dir
@@ -98,7 +97,7 @@ class Settings:
         for section_name, section_obj in sections.items():
             section_settings = settings[section_name]
             for setting_name, value in section_settings.items():
-                if (setting_name == "export_directory" or setting_name == "auto_import__export_directory") and not os.path.exists(os.path.abspath(value)):
+                if (setting_name == "export_directory" or setting_name == "auto_import__export_directory") and value!="" and not os.path.exists(os.path.abspath(value)):
                     os.makedirs(os.path.abspath(value))
                 elif setting_name != "image_paths" and os.path.join("Temp", "_MEI") in os.path.normpath(value):
                     continue # skip as settings file contains old MEI path.
@@ -112,7 +111,10 @@ class Settings:
                         continue
                     else:
                         section_obj.default_settings[setting_name] = ""
-                setattr(section_obj, setting_name, value)
+                try:
+                    setattr(section_obj, setting_name, value)
+                except:
+                    pass
     def update_file(self):
         settings = { 
                     
