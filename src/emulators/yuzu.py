@@ -106,7 +106,7 @@ class Yuzu:
         self.gui.yuzu_launch_yuzu_button.configure(state="normal")
     
     def check_and_install_yuzu_ea(self):
-        if self.check_for_ea_update():
+        if not self.updating_ea and self.check_for_ea_update():
             if messagebox.askyesno("Yuzu Early Access", "There is an update available, do you wish to download it?"):
                 self.gui.yuzu_launch_yuzu_button.configure(state="disabled", text="Updating...  ", width=170)
                 Thread(target=self.install_ea_yuzu, args=(True, )).start()
@@ -191,7 +191,7 @@ class Yuzu:
             return False
         
     def install_ea_yuzu_wrapper(self, event):
-        if not messagebox.askyesno("Confirmation", "This will require an internet connection and will download the files from the internet, continue?"):
+        if self.updating_ea or not messagebox.askyesno("Confirmation", "This will require an internet connection and will download the files from the internet, continue?"):
             return 
         self.gui.yuzu_install_yuzu_button.configure(state="disabled")
         self.gui.yuzu_launch_yuzu_button.configure(state="disabled")
