@@ -1,5 +1,6 @@
-import os 
+import os
 from threading import Thread
+from tkinter import messagebox
 
 import customtkinter
 from PIL import Image
@@ -203,3 +204,5 @@ class YuzuFrame(customtkinter.CTkFrame):
             self.launch_yuzu_early_access.configure(state="disabled")
             self.install_early_access.configure(state="disabled")
             Thread(target=self.yuzu.delete_yuzu_ea).start()
+        else:
+            messagebox.showinfo("Delete Yuzu EA", f"Could not find a yuzu EA installation at {os.path.join(self.settings.yuzu.install_directory, 'yuzu-windows-msvc-early-access')}")
