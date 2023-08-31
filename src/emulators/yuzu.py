@@ -70,11 +70,7 @@ class Yuzu:
         else:
             return False 
     
-    def run_yuzu_install_wrapper(self, event=None):
-        if self.gui.yuzu_install_yuzu_button.cget("state") == "disabled":
-            return
-        if event is None:
-            return
+    def run_yuzu_install_wrapper(self):
         if not self.check_yuzu_installer():
             messagebox.showerror("Yuzu Error", "Please verify that you have specified the path to the yuzu installer in the settings page.")
             return
@@ -108,21 +104,30 @@ class Yuzu:
     def check_and_install_yuzu_ea(self):
         if not self.updating_ea and self.check_for_ea_update():
             if messagebox.askyesno("Yuzu Early Access", "There is an update available, do you wish to download it?"):
-                self.gui.yuzu_launch_yuzu_button.configure(state="disabled", text="Updating...  ", width=170)
+                self.gui.launch_yuzu_early_access.configure(state="disabled", text="Updating...  ", width=170)
                 Thread(target=self.install_ea_yuzu, args=(True, )).start()
                 return
-        self.gui.yuzu_install_yuzu_button.configure(state="disabled")
-        self.gui.yuzu_launch_yuzu_button.configure(state="disabled", text="Launching...  ", width=170)
+        self.gui.launch_yuzu_early_access.configure(state="disabled")   
+        self.gui.launch_yuzu_early_access.configure(state="disabled", text="Launching...  ", width=170)
         Thread(target=self.start_yuzu, args=(None,True,)).start()
     def start_yuzu_wrapper(self, event=None, ea_mode=None):
-        if self.gui.yuzu_launch_yuzu_button.cget("state") == "disabled":
+        if not ea_mode and self.gui.yuzu_launch_yuzu_button.cget("state") == "disabled":
+            return
+        elif ea_mode and self.gui.launch_yuzu_early_access.cget("state") == "disabled":
             return
         if event==None:
             return
         if ea_mode:
-            self.gui.yuzu_launch_yuzu_button.configure(state="disabled", text="Checking for Updates...  ", width=220)
-            Thread(target=self.check_and_install_yuzu_ea).start()
-            return
+            if not event.state & 1:
+                self.gui.launch_yuzu_early_access.configure(state="disabled", text="Checking for Updates...  ", width=220)
+                self.gui.install_early_access.configure(state="disabled")
+                Thread(target=self.check_and_install_yuzu_ea).start()
+                return
+            else:
+                self.gui.launch_yuzu_early_access.configure(state="disabled")
+                self.gui.install_early_access.configure(state="disabled")
+                Thread(target=self.start_yuzu, args=(None,True,)).start()
+                return
         if not self.check_yuzu_installation():
             messagebox.showerror("Yuzu", "Please ensure that you have installed yuzu before trying to launch it")
             return
@@ -140,6 +145,8 @@ class Yuzu:
                 if not messagebox.askyesno("Error", f"Unable to load your data, would you like to continue\n\n Full Error: {error}"):
                     self.gui.yuzu_launch_yuzu_button.configure(state="normal", text="Launch Yuzu  ")
                     self.gui.yuzu_install_yuzu_button.configure(state="normal")
+                    self.gui.launch_yuzu_early_access.configure(state="normal", text="Launch Yuzu EA  ")
+                    self.gui.install_early_access.configure(state="normal")
                     return 
                     
         if not self.check_current_firmware() or not self.check_current_keys():
@@ -147,6 +154,8 @@ class Yuzu:
                 if not self.install_missing_firmware_or_keys():
                     self.gui.yuzu_launch_yuzu_button.configure(state="normal", text="Launch Yuzu  ")
                     self.gui.yuzu_install_yuzu_button.configure(state="normal")
+                    self.gui.launch_yuzu_early_access.configure(state="normal", text="Launch Yuzu EA  ")
+                    self.gui.install_early_access.configure(state="normal")
                     return
         
         
@@ -156,7 +165,10 @@ class Yuzu:
             args = [yuzu_exe]
         elif not event.state & 1 and os.path.exists(maintenance_tool):  # Button was clicked normally so run maintenance tool to update yuzu and then launch
             args = [maintenance_tool,"--launcher",yuzu_exe,]  
-        self.gui.yuzu_launch_yuzu_button.configure(text="Launched!  ")
+        if ea_mode:
+            self.gui.launch_yuzu_early_access.configure(text="Launched!  ")
+        else:
+            self.gui.yuzu_launch_yuzu_button.configure(text="Launched!  ")
         self.running = True
         try:     
             subprocess.run(args, capture_output=True) # subprocess.run with arguments defined earlier
@@ -166,11 +178,14 @@ class Yuzu:
         if self.gui.yuzu_global_data.get() == "True":
             try:
                 self.gui.yuzu_launch_yuzu_button.configure(state="disabled", text="Launch Yuzu  ")
+                self.gui.launch_yuzu_early_access.configure(text="Launch Yuzu EA  ")
                 copy_directory_with_progress(self.settings.yuzu.user_directory, (os.path.join(self.settings.yuzu.auto_import__export_directory, os.getlogin())), "Saving Yuzu Data", self.gui.yuzu_log_frame)
             except Exception as error:
                 messagebox.showerror("Save Error", f"Unable to save your data\n\nFull Error: {error}")
         self.gui.yuzu_launch_yuzu_button.configure(state="normal", text="Launch Yuzu  ")
         self.gui.yuzu_install_yuzu_button.configure(state="normal")
+        self.gui.launch_yuzu_early_access.configure(state="normal", text="Launch Yuzu EA  ")
+        self.gui.install_early_access.configure(state="normal")
     
     
     def check_for_ea_update(self):
@@ -190,11 +205,11 @@ class Yuzu:
         else:
             return False
         
-    def install_ea_yuzu_wrapper(self, event):
+    def install_ea_yuzu_wrapper(self):
         if self.updating_ea or not messagebox.askyesno("Confirmation", "This will require an internet connection and will download the files from the internet, continue?"):
             return 
-        self.gui.yuzu_install_yuzu_button.configure(state="disabled")
-        self.gui.yuzu_launch_yuzu_button.configure(state="disabled")
+        self.gui.launch_yuzu_early_access.configure(state="disabled")
+        self.gui.install_early_access.configure(state="disabled")
         Thread(target=self.install_ea_yuzu).start()
 
     def reset_launcher_file(self):
@@ -279,8 +294,8 @@ class Yuzu:
                     for chunk in response.iter_content(chunk_size=1024*1024): 
                         if progress_frame.cancel_download_raised:
                             self.updating_ea = False
-                            self.gui.yuzu_install_yuzu_button.configure(state="normal")
-                            self.gui.yuzu_launch_yuzu_button.configure(state="normal")
+                            self.gui.install_early_access.configure(state="normal")
+                            self.gui.launch_yuzu_early_access.configure(state="normal")
                             progress_frame.destroy()
                             return
                         f.write(chunk)
@@ -317,8 +332,8 @@ class Yuzu:
         
         if latest_release is None:
             self.updating_ea = False
-            self.gui.yuzu_install_yuzu_button.configure(state="normal")
-            self.gui.yuzu_launch_yuzu_button.configure(state="normal")
+            self.gui.install_early_access.configure(state="normal")
+            self.gui.launch_yuuz_early_access.configure(state="normal")
             return
 
         if latest_release == False or installed == latest_release.version:
@@ -354,12 +369,12 @@ class Yuzu:
             shutil.rmtree(temp_path)
         self.updating_ea = False
         if start_yuzu:
-            self.gui.yuzu_install_yuzu_button.configure(state="disabled")
-            self.gui.yuzu_launch_yuzu_button.configure(state="disabled", text="Launching...  ")
+            self.gui.install_early_access.configure(state="disabled")
+            self.gui.launch_yuzu_early_access.configure(state="disabled", text="Launching...  ")
             Thread(target=self.start_yuzu, args=(None,True,)).start()
         else:
-            self.gui.yuzu_install_yuzu_button.configure(state="normal")
-            self.gui.yuzu_launch_yuzu_button.configure(state="normal")
+            self.gui.install_early_access.configure(state="normal")
+            self.gui.launch_yuzu_early_access.configure(state="normal")
 
             
     

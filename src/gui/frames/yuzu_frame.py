@@ -14,6 +14,9 @@ class YuzuFrame(customtkinter.CTkFrame):
     def build_frame(self):
         self.play_image = customtkinter.CTkImage(light_image=Image.open(self.settings.get_image_path("play_light")),
                                                      dark_image=Image.open(self.settings.get_image_path("play_dark")), size=(20, 20))
+        self.yuzu_mainline = customtkinter.CTkImage(Image.open(self.settings.get_image_path("yuzu_mainline")), size=(276, 129))
+        self.yuzu_early_access = customtkinter.CTkImage(Image.open(self.settings.get_image_path("yuzu_early_access")), size=(276, 129))
+        
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
         # create yuzu navigation frame
@@ -34,12 +37,31 @@ class YuzuFrame(customtkinter.CTkFrame):
         # create yuzu 'Play' frame and widgets
         self.yuzu_start_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
         self.yuzu_start_frame.grid_columnconfigure(0, weight=1)
-        self.yuzu_start_frame.grid_columnconfigure(1, weight=1)
         self.yuzu_start_frame.grid_rowconfigure(0, weight=1)
-        self.yuzu_start_frame.grid_rowconfigure(1, weight=2)
         
-        self.yuzu_actions_frame = customtkinter.CTkFrame(self.yuzu_start_frame)
-        self.yuzu_actions_frame.grid(row=0, column=0, sticky="ew", padx=(80,0), pady=40)
+        self.center_frame = customtkinter.CTkFrame(self.yuzu_start_frame, fg_color="transparent")
+        self.center_frame.grid(row=0, column=0, sticky="nsew")
+        self.center_frame.grid_propagate(False)
+        self.center_frame.grid_columnconfigure(0, weight=1)
+        self.center_frame.grid_rowconfigure(0, weight=1)
+        self.center_frame.grid_rowconfigure(1, weight=1)
+        self.center_frame.grid_rowconfigure(2, weight=1)
+        self.center_frame.grid_rowconfigure(3, weight=2)
+        
+        ################################################# CONSIDER ADDING SEPARATE FRAMES FOR EARLY ACCESS VERSION WITH EITHER DIFFERENT MENU OR OPTIONMENU IN CORNER
+        self.mainline_image = self.yuzu_mainline
+        self.early_access_image = self.yuzu_early_access
+        self.selected_channel = customtkinter.StringVar()
+        self.version_optionmenu = customtkinter.CTkOptionMenu(self.center_frame, variable=self.selected_channel, command=self.switch_channel, values=["Mainline", "Early Access"])
+        self.version_optionmenu.grid(row=0, column=0, padx=10, pady=20, sticky="ne")
+
+        # Image button
+        self.image_button = customtkinter.CTkButton(self.center_frame, text="", fg_color='transparent', hover=False, bg_color='transparent', image=self.mainline_image)
+        self.image_button.grid(row=0, column=0, columnspan=3, sticky="n", padx=10, pady=20)
+
+        self.yuzu_actions_frame = customtkinter.CTkFrame(self.center_frame)
+        self.yuzu_actions_frame.grid(row=2, column=0, columnspan=3)
+        
         self.yuzu_actions_frame.grid_columnconfigure(0, weight=1)  # Stretch horizontally
         self.yuzu_actions_frame.grid_columnconfigure(1, weight=1)  # Stretch horizontally
         self.yuzu_actions_frame.grid_columnconfigure(2, weight=1)  # Stretch horizontally
@@ -47,22 +69,44 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.yuzu_launch_yuzu_button = customtkinter.CTkButton(self.yuzu_actions_frame, height=40, width=170, image=self.play_image, text="Launch Yuzu  ", command=self.yuzu.start_yuzu_wrapper, font=customtkinter.CTkFont(size=15, weight="bold"))
         self.yuzu_launch_yuzu_button.grid(row=0, column=2, padx=30, pady=15, sticky="n")
         self.yuzu_launch_yuzu_button.bind("<Button-1>", command=lambda event: self.yuzu.start_yuzu_wrapper(event))
-        self.yuzu_launch_yuzu_button.bind("<Shift-Control-Button-1>", command=lambda event: self.yuzu.start_yuzu_wrapper(event, True))
+        #self.yuzu_launch_yuzu_button.bind("<Shift-Control-Button-1>", command=lambda event: self.yuzu.start_yuzu_wrapper(event, True))
         
         self.yuzu_global_data = customtkinter.StringVar(value=self.settings.app.auto_import__export_default_value)
         self.yuzu_global_user_data_checkbox = customtkinter.CTkCheckBox(self.yuzu_actions_frame, text = "Auto Import/Export", variable=self.yuzu_global_data, onvalue="True", offvalue="False")
         self.yuzu_global_user_data_checkbox.grid(row=0,column=3, sticky="ew", padx=(0,35))
 
-        self.yuzu_install_yuzu_button = customtkinter.CTkButton(self.yuzu_actions_frame, text="Run Yuzu Installer", command=self.yuzu.run_yuzu_install_wrapper)
+        self.yuzu_install_yuzu_button = customtkinter.CTkButton(self.yuzu_actions_frame, text="Install Yuzu", command=self.yuzu.run_yuzu_install_wrapper)
         self.yuzu_install_yuzu_button.grid(row=0, column=1,padx=10, pady=5, sticky="ew")
-        self.yuzu_install_yuzu_button.bind("<Button-1>", command=lambda event: self.yuzu.run_yuzu_install_wrapper(event))
-        self.yuzu_install_yuzu_button.bind("<Shift-Control-Button-1>", command=lambda event: self.yuzu.install_ea_yuzu_wrapper(event))
         
-        self.yuzu_log_frame = customtkinter.CTkFrame(self.yuzu_start_frame, fg_color='transparent')
-        self.yuzu_log_frame.grid(row=1, column=0, sticky="ew", padx=(80,0), pady=(0,40))
+        
+        ### Early Access Actions Frame 
+        
+        self.early_access_actions_frame = customtkinter.CTkFrame(self.center_frame)
+       
+        self.early_access_actions_frame.grid_columnconfigure(0, weight=1)  # Stretch horizontally
+        self.early_access_actions_frame.grid_columnconfigure(1, weight=1)  # Stretch horizontally
+        self.early_access_actions_frame.grid_columnconfigure(2, weight=1)  # Stretch horizontally
+        
+        self.launch_yuzu_early_access = customtkinter.CTkButton(self.early_access_actions_frame, height=40, width=170, image=self.play_image, text="Launch Yuzu EA  ", command=self.yuzu.start_yuzu_wrapper, font=customtkinter.CTkFont(size=15, weight="bold"))
+        self.launch_yuzu_early_access.grid(row=0, column=2, padx=30, pady=15, sticky="n")
+        self.launch_yuzu_early_access.bind("<Button-1>", command=lambda event: self.yuzu.start_yuzu_wrapper(event, True))
+        #self.yuzu_launch_yuzu_button.bind("<Shift-Control-Button-1>", command=lambda event: self.yuzu.start_yuzu_wrapper(event, True))
+        
+  
+        self.yuzu_global_user_data_checkbox = customtkinter.CTkCheckBox(self.early_access_actions_frame, text = "Auto Import/Export", variable=self.yuzu_global_data, onvalue="True", offvalue="False")
+        self.yuzu_global_user_data_checkbox.grid(row=0,column=3, sticky="ew", padx=(0,35))
+
+        self.install_early_access = customtkinter.CTkButton(self.early_access_actions_frame, text="Install Yuzu EA", command=self.yuzu.install_ea_yuzu_wrapper)
+        self.install_early_access.grid(row=0, column=1,padx=10, pady=5, sticky="ew")
+
+        
+   
+        self.yuzu_log_frame = customtkinter.CTkFrame(self.center_frame, fg_color='transparent')
+        self.yuzu_log_frame.grid(row=3, column=0, padx=80, sticky="ew")
+        self.yuzu_log_frame.grid_propagate(False)
         self.yuzu_log_frame.grid_columnconfigure(0, weight=3)
         # create yuzu 'Manage Data' frame and widgets
-        self.yuzu_manage_data_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
+        self.yuzu_manage_data_frame = customtkinter.CTkFrame(self, corner_radius=0, bg_color="transparent")
         self.yuzu_manage_data_frame.grid_columnconfigure(0, weight=1)
         self.yuzu_manage_data_frame.grid_columnconfigure(1, weight=1)
         self.yuzu_manage_data_frame.grid_rowconfigure(0, weight=1)
@@ -104,6 +148,10 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.yuzu_firmware_options_button = customtkinter.CTkButton(self.yuzu_firmware_frame, text="Options", command=self.yuzu_firmware.options_menu)
         self.yuzu_firmware_options_button.grid(row=1, column=1, pady=(0,30))
         
+        self.early_access_actions_frame.grid_propagate(False)
+        self.yuzu_actions_frame.grid_propagate(False)
+        self.selected_channel.set(self.settings.app.default_yuzu_channel)
+        self.switch_channel()
     def configure_data_buttons(self, **kwargs):
         self.yuzu_delete_button.configure(**kwargs)
         self.yuzu_import_button.configure(**kwargs)
@@ -133,3 +181,15 @@ class YuzuFrame(customtkinter.CTkFrame):
             self.yuzu_firmware_frame.grid(row=0, column=1, sticky="nsew")
         else:
             self.yuzu_firmware_frame.grid_forget()
+    def switch_channel(self, value=None):
+        value=self.selected_channel.get()
+        if value == "Mainline":
+            self.image_button.configure(image=self.mainline_image)
+            self.yuzu_actions_frame.grid(row=2, column=0, columnspan=3)
+        else:
+            self.yuzu_actions_frame.grid_forget()
+        if value=="Early Access":
+            self.image_button.configure(image=self.early_access_image)
+            self.early_access_actions_frame.grid(row=2, column=0, columnspan=3)
+        else:
+            self.early_access_actions_frame.grid_forget()
