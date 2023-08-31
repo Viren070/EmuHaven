@@ -96,7 +96,7 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.yuzu_global_user_data_checkbox = customtkinter.CTkCheckBox(self.early_access_actions_frame, text = "Auto Import/Export", variable=self.yuzu_global_data, onvalue="True", offvalue="False")
         self.yuzu_global_user_data_checkbox.grid(row=0,column=3, sticky="ew", padx=(0,35))
 
-        self.install_early_access = customtkinter.CTkButton(self.early_access_actions_frame, text="Install Yuzu EA", command=self.yuzu.install_ea_yuzu_wrapper)
+        self.install_early_access = customtkinter.CTkButton(self.early_access_actions_frame, text="Install Yuzu EA  ", command=self.yuzu.install_ea_yuzu_wrapper)
         self.install_early_access.grid(row=0, column=1,padx=10, pady=5, sticky="ew")
 
         
