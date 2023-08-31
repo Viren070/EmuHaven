@@ -23,6 +23,8 @@ class AppSettings(customtkinter.CTkFrame):
         self.auto_import__export_default_value_variable.set(self.settings.app.auto_import__export_default_value)
         self.appearance_mode_variable.set(self._get_appearance_mode().title())
         self.colour_theme_variable.set(customtkinter.ThemeManager._currently_loaded_theme.replace("-"," ").title())
+        self.default_yuzu_channel_variable = customtkinter.StringVar()
+        self.default_yuzu_channel_variable.set(self.settings.app.default_yuzu_channel)
         customtkinter.CTkLabel(self, text="Appearance Mode: ").grid(row=0, column=0, padx=10, pady=10, sticky="w")
         customtkinter.CTkOptionMenu(self, variable=self.appearance_mode_variable, values=["Dark", "Light"], command=self.change_appearance_mode).grid(row=0, column=2, padx=10, pady=10, sticky="e")
         ttk.Separator(self, orient='horizontal').grid(row=1, columnspan=4, sticky="ew")
@@ -34,6 +36,12 @@ class AppSettings(customtkinter.CTkFrame):
         customtkinter.CTkLabel(self, text="Auto Import/Export Default Value").grid(row=4, column=0, padx=10, pady=10, sticky="w")
         customtkinter.CTkOptionMenu(self, variable=self.auto_import__export_default_value_variable, values=["True", "False"], command=self.change_default_auto_import__export_value).grid(row=4, column=2, padx=10, pady=10, sticky="e")
         ttk.Separator(self, orient='horizontal').grid(row=5, columnspan=4, sticky="ew")
+        
+        
+        customtkinter.CTkLabel(self, text="Default Yuzu Channel: ").grid(row=6, column=0, padx=10, pady=10, sticky="w")
+        customtkinter.CTkOptionMenu(self, variable=self.default_yuzu_channel_variable, command=self.change_default_yuzu_channel, values=["Mainline", "Early Access"]).grid(row=6, column=2, padx=10, pady=10, sticky="e")
+        ttk.Separator(self, orient='horizontal').grid(row=7, columnspan=4, sticky="ew")
+        
     def change_colour_theme(self, theme):
         if customtkinter.ThemeManager._currently_loaded_theme.replace("-"," ").title() == theme: # if current theme is the same as the proposed theme, return
             return
@@ -53,5 +61,9 @@ class AppSettings(customtkinter.CTkFrame):
     def change_default_auto_import__export_value(self, value):
         self.settings.app.auto_import__export_default_value = value
         self.update_settings()
+    def change_default_yuzu_channel(self, value):
+        self.settings.app.default_yuzu_channel = value
+        self.update_settings()
+        
     def update_settings(self):
         self.settings.update_file()

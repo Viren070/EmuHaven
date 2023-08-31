@@ -24,7 +24,7 @@ class Settings:
         self.update_file()
     def create_settings_file(self):
         settings_template = { 
-            "version": "2",
+            "version": self.version,
             
             "dolphin_settings": {
                 "user_directory": "",
@@ -47,17 +47,22 @@ class Settings:
             "app_settings": {
                 "image_paths": {
                     "dolphin_logo": '',
+                    "dolphin_banner_dark": '',
+                    "dolphin_banner_light": "",
                     "yuzu_logo": "", 
+                    "yuzu_mainline": "",
+                    "yuzu_early_access": "",
                     "padlock_dark": "",
                     "padlock_light": "",
                     "play_dark": "",
                     "play_light": "",
                     "settings_dark": "",
-                    "settings_light": ""
+                    "settings_light": "",
                     },
                 "appearance_mode" : "",
                 "colour_theme" : "",
-                "auto_import__export_default_value":  ""
+                "auto_import__export_default_value":  "",
+                "default_yuzu_channel": ""
             }
         }
         if not os.path.exists(os.path.dirname(os.path.abspath(self.settings_file))):
@@ -118,7 +123,7 @@ class Settings:
     def update_file(self):
         settings = { 
                     
-            "version": "2",
+            "version": self.version,
 
             "dolphin_settings": {
                 "user_directory": self.dolphin.user_directory,
@@ -142,7 +147,8 @@ class Settings:
                 "image_paths": self.get_image_path("all"),
                 "appearance_mode" : self.app.appearance_mode,
                 "colour_theme" : self.app.colour_theme,
-                "auto_import__export_default_value":  self.app.auto_import__export_default_value
+                "auto_import__export_default_value":  self.app.auto_import__export_default_value,
+                "default_yuzu_channel": self.app.default_yuzu_channel
             }
         }
         with open(self.settings_file, "w") as f:

@@ -10,8 +10,8 @@ class AppSettings:
         self.default_settings = {
             'colour_theme': "dark-blue",
             'appearance_mode': "dark",
-            'auto_import__export_default_value': "False"
-            
+            'auto_import__export_default_value': "False",
+            'default_yuzu_channel': 'Mainline'
         }
         self._app_settings = self.default_settings.copy()
         
@@ -33,7 +33,9 @@ class AppSettings:
     auto_import__export_default_value = property(lambda self: self._get_property('auto_import__export_default_value'), 
                                      lambda self, value: self._set_property('auto_import__export_default_value', value))
    
-        
+    default_yuzu_channel = property(lambda self: self._get_property('default_yuzu_channel'), 
+                                     lambda self, value: self._set_property('default_yuzu_channel', value))
+    
 def load_customtkinter_themes():
     path_to_settings = os.path.join(os.getenv("APPDATA"),"Emulator Manager", "config", "settings.json")
     appearance_mode = 'dark'
