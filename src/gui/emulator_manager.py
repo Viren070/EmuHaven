@@ -136,7 +136,7 @@ class EmulatorManager(customtkinter.CTk):
     def restart(self):
         for after_id in self.tk.eval('after info').split():
             self.after_cancel(after_id)
-        pos = [self.winfo_x, self.winfo_y]
+        pos = [self.winfo_x(), self.winfo_y()]
         self.destroy()
         load_customtkinter_themes()
         EmulatorManager(self.root_dir, True, pos)
