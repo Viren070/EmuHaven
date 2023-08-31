@@ -269,7 +269,7 @@ class Yuzu:
                 os.makedirs(temp_path)
             download_path = os.path.join(temp_path, "yuzu-ea.zip")
             headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246'}
-            response = requests.get(latest_release.download_url, stream=True, headers=headers, timeout=10)
+            response = requests.get(latest_release.download_url, stream=True, headers=headers, timeout=30)
             
             progress_frame.grid(row=0, column=0, sticky="ew")
             progress_frame.total_size = latest_release.size
