@@ -312,6 +312,7 @@ class Yuzu:
                 except requests.exceptions.RequestException as error:
                     messagebox.showerror("Requests Error", f"Failed to download file\n\n{error}")
                     return False
+            progress_frame.skip_to_installation()
             progress_frame.complete_download(None, "Status: Extracting...")
             progress_frame.progress_bar.set(0)
             return download_path
