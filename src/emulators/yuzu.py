@@ -24,6 +24,11 @@ class Yuzu:
             return True
         else:
             return False
+    def check_yuzu_ea_installation(self):
+        if os.path.exists(os.path.join(self.settings.yuzu.install_directory, "yuzu-windows-msvc-early-access", 'yuzu.exe')):
+            return True
+        else:
+            return False
     def check_yuzu_installer(self):
         path = self.settings.yuzu.installer_path
         if os.path.exists(path):
@@ -118,6 +123,9 @@ class Yuzu:
         if event==None:
             return
         if ea_mode:
+            if not self.check_yuzu_ea_installation():
+                messagebox.showerror("Yuzu EA", "Please ensure that you have installed yuzu EA before trying to launch it. Press 'Install Yuzu EA' to the left to install it")
+                return
             if not event.state & 1:
                 self.gui.launch_yuzu_early_access.configure(state="disabled", text="Fetching Updates...  ", width=200)
                 self.gui.install_early_access.configure(state="disabled")
