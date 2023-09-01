@@ -120,7 +120,7 @@ class ProgressFrame(customtkinter.CTkFrame):
     def complete_download(self, emulator=None, text=None):
         self.cancel_download_button.configure(state="disabled")
         self.install_status_label.configure(
-            text=f"Status: Installing for {emulator}...." if not emulator else text
+            text=f"Status: Installing for {emulator}...." if emulator else text
         )
         self.progress_bar.set(0)
         self.percentage_complete.configure(text="0%")
