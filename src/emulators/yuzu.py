@@ -119,7 +119,7 @@ class Yuzu:
             return
         if ea_mode:
             if not event.state & 1:
-                self.gui.launch_yuzu_early_access.configure(state="disabled", text="Checking for Updates...  ", width=220)
+                self.gui.launch_yuzu_early_access.configure(state="disabled", text="Fetching Updates...  ", width=200)
                 self.gui.install_early_access.configure(state="disabled")
                 Thread(target=self.check_and_install_yuzu_ea).start()
                 return
