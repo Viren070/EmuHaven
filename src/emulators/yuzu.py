@@ -323,7 +323,7 @@ class Yuzu:
             extract_folder = os.path.join(temp_path, "yuzu-ea")
             with ZipFile(archive, 'r') as zip_file:
                 zip_file.extractall(extract_folder)
-            progress_frame.progress_bar.set(1)
+            progress_frame.update_extraction_progress(1)
             return extract_folder
         
         yuzu_path = os.path.join(self.settings.yuzu.install_directory,"yuzu-windows-msvc-early-access")
