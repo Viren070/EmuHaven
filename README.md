@@ -25,7 +25,6 @@ A program that will help manage your emulators, currently supports:
 ### App
 
 - Through the settings page, you can customise the app to your liking with the several themes to choose from. These were taken from:
-  - [rigvedmaanas/CustomTkinterThemes](https://github.com/rigvedmaanas/CustomTkinterThemes)
   - [s-liwka/customtkinter-themes](https://github.com/s-liwka/customtkinter-themes)
   - [a13xe/CTkThemesPack](https://github.com/a13xe/CTkThemesPack)
 
