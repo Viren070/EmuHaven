@@ -11,7 +11,7 @@ from gui.firmware_downloader import FirmwareDownloader
 
 class YuzuFrame(customtkinter.CTkFrame):
     def __init__(self, parent_frame, settings):
-        super().__init__(parent_frame,  corner_radius=0, fg_color="transparent")
+        super().__init__(parent_frame,  corner_radius=0, bg_color="transparent")
         self.settings = settings
         self.yuzu = Yuzu(self, settings)
         self.build_frame()
@@ -29,12 +29,12 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.yuzu_navigation_frame.grid_rowconfigure(4, weight=1)
         # create yuzu menu buttons
         self.yuzu_start_button = customtkinter.CTkButton(self.yuzu_navigation_frame, corner_radius=0, width=100, height=25, image = self.play_image, border_spacing=10, text="Play",
-                                                   fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
+                                                   fg_color="transparent", text_color=("gray10", "gray90"),
                                                    anchor="w", command=self.yuzu_start_button_event)
         self.yuzu_start_button.grid(row=1, column=0, sticky="ew", padx=2, pady=(2,0))
 
         self.yuzu_manage_data_button = customtkinter.CTkButton(self.yuzu_navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Manage Data",
-                                                   fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
+                                                   fg_color="transparent", text_color=("gray10", "gray90"),
                                                    anchor="w", command=self.yuzu_manage_data_button_event)
         self.yuzu_manage_data_button.grid(row=2, column=0, padx=2, sticky="ew")
         
@@ -141,7 +141,7 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.yuzu_data_log.grid_rowconfigure(1, weight=1)
         # create yuzu downloader button, frame and widgets
         self.yuzu_firmware_button = customtkinter.CTkButton(self.yuzu_navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Downloader",
-                                                   fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
+                                                   fg_color="transparent", text_color=("gray10", "gray90"),
                                                    anchor="w", command=self.yuzu_firmware_button_event)
         self.yuzu_firmware_button.grid(row=3, column=0, padx=2, sticky="ew")
         
@@ -170,9 +170,9 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.select_yuzu_frame_by_name("firmware")
 
     def select_yuzu_frame_by_name(self, name):
-        self.yuzu_start_button.configure(fg_color=("gray75", "gray25") if name == "start" else "transparent")
-        self.yuzu_manage_data_button.configure(fg_color=("gray75", "gray25") if name == "data" else "transparent")
-        self.yuzu_firmware_button.configure(fg_color=("gray75", "gray25") if name == "firmware" else "transparent")
+        self.yuzu_start_button.configure(fg_color=self.yuzu_start_button.cget("hover_color") if name == "start" else "transparent")
+        self.yuzu_manage_data_button.configure(fg_color=self.yuzu_manage_data_button.cget("hover_color") if name == "data" else "transparent")
+        self.yuzu_firmware_button.configure(fg_color=self.yuzu_firmware_button.cget("hover_color") if name == "firmware" else "transparent")
         if name == "start":
             self.yuzu_start_frame.grid(row=0, column=1, sticky="nsew" )
         else:

@@ -6,7 +6,7 @@ from emulators.dolphin import Dolphin
 
 class DolphinFrame(customtkinter.CTkFrame):
     def __init__(self, parent_frame, settings):
-        super().__init__(parent_frame, corner_radius=0, fg_color="transparent")
+        super().__init__(parent_frame, corner_radius=0, bg_color="transparent")
         self.dolphin = Dolphin(self, settings)
         self.settings = settings
         self.build_frame()
@@ -23,7 +23,7 @@ class DolphinFrame(customtkinter.CTkFrame):
         self.dolphin_navigation_frame.grid_rowconfigure(4, weight=1)
 
         self.dolphin_start_button = customtkinter.CTkButton(self.dolphin_navigation_frame, corner_radius=0, width=100, height=25, image=self.play_image, border_spacing=10, text="Play",
-                                                   fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
+                                                   fg_color="transparent", text_color=("gray10", "gray90"),
                                                    anchor="w", command=self.dolphin_start_button_event)
         self.dolphin_start_button.grid(row=1, column=0, sticky="ew", padx=2, pady=(2,0))
         
@@ -31,7 +31,7 @@ class DolphinFrame(customtkinter.CTkFrame):
         self.dolphin_start_frame.grid_columnconfigure(0, weight=1)
         self.dolphin_start_frame.grid_rowconfigure(0, weight=1)
         
-        self.center_frame = customtkinter.CTkFrame(self.dolphin_start_frame, fg_color="transparent")
+        self.center_frame = customtkinter.CTkFrame(self.dolphin_start_frame)
         self.center_frame.grid(row=0, column=0, sticky="nsew")
         self.center_frame.grid_columnconfigure(0, weight=1)
         self.center_frame.grid_rowconfigure(0, weight=1)
@@ -73,10 +73,10 @@ class DolphinFrame(customtkinter.CTkFrame):
 
         
         self.dolphin_manage_data_button = customtkinter.CTkButton(self.dolphin_navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Manage Data",
-                                                   fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
+                                                   fg_color="transparent", text_color=("gray10", "gray90"), 
                                                    anchor="w", command=self.dolphin_manage_data_button_event)
         self.dolphin_manage_data_button.grid(row=2, column=0, sticky="ew", padx=2)
-        self.dolphin_manage_data_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
+        self.dolphin_manage_data_frame = customtkinter.CTkFrame(self, corner_radius=0, bg_color="transparent")
         self.dolphin_manage_data_frame.grid_columnconfigure(0, weight=1)
         self.dolphin_manage_data_frame.grid_columnconfigure(1, weight=1)
         self.dolphin_manage_data_frame.grid_rowconfigure(0, weight=1)
@@ -115,8 +115,8 @@ class DolphinFrame(customtkinter.CTkFrame):
         self.select_dolphin_frame_by_name("data")
         
     def select_dolphin_frame_by_name(self, name):
-        self.dolphin_start_button.configure(fg_color=("gray75", "gray25") if name == "start" else "transparent")
-        self.dolphin_manage_data_button.configure(fg_color=("gray75", "gray25") if name == "data" else "transparent")
+        self.dolphin_start_button.configure(fg_color=self.dolphin_start_button.cget("hover_color") if name == "start" else "transparent")
+        self.dolphin_manage_data_button.configure(fg_color=self.dolphin_manage_data_button.cget("hover_color") if name == "data" else "transparent")
         if name == "start":
             self.dolphin_start_frame.grid(row=0, column=1, sticky="nsew")
         else:

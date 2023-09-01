@@ -7,6 +7,8 @@ VALID_COLOUR_THEMES = ["blue", "dark-blue", "green"]
     
 class AppSettings:
     def __init__(self, master):
+        global VALID_COLOUR_THEMES
+        VALID_COLOUR_THEMES = get_colour_themes(os.path.join(master.root_dir, "themes"))
         self.default_settings = {
             'colour_theme': "dark-blue",
             'appearance_mode': "dark",
@@ -14,8 +16,9 @@ class AppSettings:
             'default_yuzu_channel': 'Mainline'
         }
         self._app_settings = self.default_settings.copy()
-        
+        self.master=master
     def _set_property(self, property_name, value):
+        value = value.lower().replace(" ","-") if property_name == "colour_theme" else value
         if property_name == "colour_theme" and not value in VALID_COLOUR_THEMES:
             value="dark-blue"
         elif property_name == "appearance_mode" and not value in VALID_APPEARANCE_MODES:
@@ -36,7 +39,21 @@ class AppSettings:
     default_yuzu_channel = property(lambda self: self._get_property('default_yuzu_channel'), 
                                      lambda self, value: self._set_property('default_yuzu_channel', value))
     
-def load_customtkinter_themes():
+    
+  
+
+def get_colour_themes(theme_folder):
+    themes = ["blue", "dark-blue", "green"]
+    theme_path = theme_folder
+    for file in os.listdir(theme_path):
+        if file.endswith(".json"):
+            themes.append(os.path.splitext(file)[0])
+    return themes
+    
+def load_customtkinter_themes(theme_folder):
+    global VALID_COLOUR_THEMES
+    VALID_COLOUR_THEMES = get_colour_themes(theme_folder)
+    default_themes = ["blue", "dark-blue", "green"]
     path_to_settings = os.path.join(os.getenv("APPDATA"),"Emulator Manager", "config", "settings.json")
     appearance_mode = 'dark'
     colour_theme = 'dark-blue'
@@ -49,6 +66,10 @@ def load_customtkinter_themes():
             app_settings = settings["app_settings"]
             appearance_mode = app_settings["appearance_mode"] if app_settings["appearance_mode"] in VALID_APPEARANCE_MODES else "dark"
             colour_theme = app_settings["colour_theme"] if app_settings["colour_theme"] in VALID_COLOUR_THEMES else "dark-blue"
+            if colour_theme not in default_themes and colour_theme in VALID_COLOUR_THEMES:
+                colour_theme = os.path.join(theme_folder, colour_theme+".json")
+                if not os.path.exists(colour_theme):
+                    colour_theme = 'dark-blue'
         except KeyError:
             pass
     

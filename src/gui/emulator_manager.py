@@ -70,17 +70,17 @@ class EmulatorManager(customtkinter.CTk):
         self.navigation_frame_label.bind('<Double-Button-1>', command=lambda event: messagebox.showinfo("About", f"Emulator Manager {self.version}, made by Viren070 on GitHub."))
         # create navigation menu buttons
         self.dolphin_button = customtkinter.CTkButton(self.navigation_frame, corner_radius=0, height=40, image = self.dolphin_logo, border_spacing=10, text="Dolphin",
-                                                   fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
+                                                   fg_color="transparent", text_color=("gray10", "gray90"),
                                                    anchor="w", command=self.dolphin_button_event)
         self.dolphin_button.grid(row=1, column=0, sticky="ew")
 
         self.yuzu_button = customtkinter.CTkButton(self.navigation_frame, corner_radius=0, height=40, image = self.yuzu_logo, border_spacing=10, text="Yuzu",
-                                                      fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
+                                                      fg_color="transparent", text_color=("gray10", "gray90"), 
                                                       anchor="w", command=self.yuzu_button_event)
         self.yuzu_button.grid(row=2, column=0, sticky="ew")
 
         self.settings_button = customtkinter.CTkButton(self.navigation_frame, corner_radius=0, height=40, image = self.settings_image, border_spacing=10, text="Settings",
-                                                      fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
+                                                      fg_color="transparent", text_color=("gray10", "gray90"),
                                                       anchor="w", command=self.settings_button_event)
         self.settings_button.grid(row=6, column=0, sticky="ew")
         
@@ -102,20 +102,16 @@ class EmulatorManager(customtkinter.CTk):
                 self.revert_settings()
             else:
                 return 
-        self.settings_button.configure(fg_color=("gray75", "gray25") if name == "settings" else "transparent")
-        self.dolphin_button.configure(fg_color=("gray75", "gray25") if name == "dolphin" else "transparent")
-        self.yuzu_button.configure(fg_color=("gray75", "gray25") if name == "yuzu" else "transparent")
+        self.settings_button.configure(fg_color=self.settings_button.cget("hover_color") if name == "settings" else "transparent")
+        self.dolphin_button.configure(fg_color=self.dolphin_button.cget("hover_color") if name == "dolphin" else "transparent")
+        self.yuzu_button.configure(fg_color=self.yuzu_button.cget("hover_color") if name == "yuzu" else "transparent")
         
         # show selected frame
         if name == "settings":
-
-            self.minsize(1100,500)
-            self.settings_button.configure(fg_color=("gray75", "gray25"))
             self.settings_frame.grid(row=0, column=1, sticky="nsew")       
         else:
             self.settings_frame.grid_forget()
             self.settings_frame.select_settings_frame_by_name(None)
-            self.minsize(1100,500)
 
         if name == "dolphin":
             self.dolphin_frame.grid(row=0, column=1, sticky="nsew")
@@ -138,7 +134,7 @@ class EmulatorManager(customtkinter.CTk):
             self.after_cancel(after_id)
         pos = [self.winfo_x(), self.winfo_y()]
         self.destroy()
-        load_customtkinter_themes()
+        load_customtkinter_themes(os.path.join(self.root_dir, "themes"))
         EmulatorManager(self.root_dir, True, pos)
         
     def on_closing(self):

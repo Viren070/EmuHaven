@@ -3,6 +3,7 @@ from tkinter import messagebox, ttk
 
 import customtkinter
 
+from settings.app_settings import get_colour_themes
 
 class AppSettings(customtkinter.CTkFrame):
     def __init__(self, parent_frame, settings):
@@ -22,15 +23,18 @@ class AppSettings(customtkinter.CTkFrame):
         self.auto_import__export_default_value_variable = customtkinter.StringVar()
         self.auto_import__export_default_value_variable.set(self.settings.app.auto_import__export_default_value)
         self.appearance_mode_variable.set(self._get_appearance_mode().title())
-        self.colour_theme_variable.set(customtkinter.ThemeManager._currently_loaded_theme.replace("-"," ").title())
+        self.colour_theme_variable.set(os.path.basename(customtkinter.ThemeManager._currently_loaded_theme).replace("-"," ").replace(".json", "").title())
         self.default_yuzu_channel_variable = customtkinter.StringVar()
         self.default_yuzu_channel_variable.set(self.settings.app.default_yuzu_channel)
+        
+        colour_themes = get_colour_themes(os.path.join(self.parent_frame.parent_frame.root_dir, "themes"))
+        colour_themes = [ theme.replace("-", " ").title() for theme in colour_themes ]
         customtkinter.CTkLabel(self, text="Appearance Mode: ").grid(row=0, column=0, padx=10, pady=10, sticky="w")
         customtkinter.CTkOptionMenu(self, variable=self.appearance_mode_variable, values=["Dark", "Light"], command=self.change_appearance_mode).grid(row=0, column=2, padx=10, pady=10, sticky="e")
         ttk.Separator(self, orient='horizontal').grid(row=1, columnspan=4, sticky="ew")
         
         customtkinter.CTkLabel(self, text="Colour Theme: ").grid(row=2, column=0, padx=10, pady=10, sticky="w")
-        customtkinter.CTkOptionMenu(self, variable=self.colour_theme_variable, values=["Blue", "Dark Blue", "Green"], command=self.change_colour_theme).grid(row=2, column=2, padx=10, pady=10, sticky="e")
+        customtkinter.CTkOptionMenu(self, variable=self.colour_theme_variable, values=colour_themes, command=self.change_colour_theme).grid(row=2, column=2, padx=10, pady=10, sticky="e")
         ttk.Separator(self, orient='horizontal').grid(row=3, columnspan=4, sticky="ew")
         
         customtkinter.CTkLabel(self, text="Auto Import/Export Default Value").grid(row=4, column=0, padx=10, pady=10, sticky="w")
