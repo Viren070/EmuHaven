@@ -299,7 +299,7 @@ class Yuzu:
             with open(download_path, 'wb') as f:
                 downloaded_bytes = 0
                 try:
-                    for chunk in response.iter_content(chunk_size=1024*1024): 
+                    for chunk in response.iter_content(chunk_size=1024*203): 
                         if progress_frame.cancel_download_raised:
                             self.updating_ea = False
                             self.gui.install_early_access.configure(state="normal")
