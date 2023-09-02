@@ -36,7 +36,6 @@ class DolphinSettings:
             return
         if not os.path.exists(value):
             if not os.path.exists(self.default_settings[property_name]):
-                self.default_settings[property_name] = ""
                 self._settings[property_name] = ""
             raise FileNotFoundError(f"{property_name.replace('__','/').replace('_',' ').title()} - File Not Found: {value}")
         if not value.endswith(".zip"):

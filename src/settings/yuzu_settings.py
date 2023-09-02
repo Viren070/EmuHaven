@@ -38,7 +38,6 @@ class YuzuSettings:
             return
         if not os.path.exists(value):
             if not os.path.exists(self.default_settings[property_name]):
-                self.default_settings[property_name] = ""
                 self._settings[property_name] = ""
             raise FileNotFoundError(f"{property_name.replace('__','/').replace('_',' ').title()} - Path does not exist: {value}")
         if (property_name == "firmware_path" or property_name == "key_path") and not value.endswith(".zip"):

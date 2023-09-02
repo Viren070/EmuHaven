@@ -130,8 +130,6 @@ class Settings:
                     if os.path.exists(section_obj.default_settings[setting_name]): 
                         setattr(section_obj, setting_name, section_obj.default_settings[setting_name])
                         continue
-                    else:
-                        section_obj.default_settings[setting_name] = ""
                 try:
                     setattr(section_obj, setting_name, value)
                 except:
