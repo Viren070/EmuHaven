@@ -41,9 +41,6 @@ class DolphinSettings:
         if not value.endswith(".zip"):
             raise ValueError(f"{property_name.replace('__','/').replace('_',' ').title()} - Invalid Filetype: Expected file extension of .zip but got {os.path.splitext(value)[-1]}")
         
-        
-        if self.default_settings[property_name]=="":
-            self.default_settings[property_name] = value
         self._settings[property_name] = value
     def _get_property(self, property_name):
         return self._settings[property_name]
