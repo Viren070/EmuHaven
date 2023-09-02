@@ -95,6 +95,8 @@ def load_customtkinter_themes(theme_folder):
                 colour_theme = os.path.join(theme_folder, colour_theme+".json")
                 if not os.path.exists(colour_theme):
                     colour_theme = 'dark-blue'
+            elif colour_theme in default_themes:
+                colour_theme = colour_theme 
             else:
                 colour_theme = "dark-blue"
         except KeyError:
