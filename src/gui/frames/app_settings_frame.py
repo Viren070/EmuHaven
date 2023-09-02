@@ -1,5 +1,5 @@
 import os
-from tkinter import messagebox, ttk
+from tkinter import messagebox, ttk, filedialog
 
 import customtkinter
 
@@ -29,6 +29,7 @@ class AppSettings(customtkinter.CTkFrame):
         
         colour_themes = get_colour_themes(os.path.join(self.parent_frame.parent_frame.root_dir, "themes"))
         colour_themes = [ theme.replace("-", " ").title() for theme in colour_themes ]
+        colour_themes.append("Choose custom theme...")
         customtkinter.CTkLabel(self, text="Appearance Mode: ").grid(row=0, column=0, padx=10, pady=10, sticky="w")
         customtkinter.CTkOptionMenu(self, variable=self.appearance_mode_variable, values=["Dark", "Light"], command=self.change_appearance_mode).grid(row=0, column=2, padx=10, pady=10, sticky="e")
         ttk.Separator(self, orient='horizontal').grid(row=1, columnspan=4, sticky="ew")
@@ -49,7 +50,15 @@ class AppSettings(customtkinter.CTkFrame):
     def change_colour_theme(self, theme):
         if customtkinter.ThemeManager._currently_loaded_theme.replace("-"," ").title() == theme: # if current theme is the same as the proposed theme, return
             return
-        self.settings.app.colour_theme = theme.lower().replace(" ", "-")
+        if theme == "Choose custom theme...":
+            self.colour_theme_variable.set(os.path.basename(customtkinter.ThemeManager._currently_loaded_theme).replace("-"," ").replace(".json", "").title())
+            theme = filedialog.askopenfilename(title="Select a customtkinter theme", filetypes=[("customtkinter theme", "*json")])
+            if not theme:
+                return
+            self.settings.app.colour_theme = theme
+        else:
+           
+            self.settings.app.colour_theme = theme.lower().replace(" ", "-")
         self.update_settings()
         if messagebox.askyesno("Change Theme","The application must be restarted for these changes to take effect, restart now?"):    
             self.parent_frame.parent_frame.restart()

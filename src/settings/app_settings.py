@@ -18,10 +18,12 @@ class AppSettings:
         self._app_settings = self.default_settings.copy()
         self.master=master
     def _set_property(self, property_name, value):
-        value = value.lower().replace(" ","-") if property_name == "colour_theme" else value
-        if property_name == "colour_theme" and not value in VALID_COLOUR_THEMES:
-            value="dark-blue"
-        elif property_name == "appearance_mode" and not value in VALID_APPEARANCE_MODES:
+        if property_name == "colour_theme":
+            if os.path.exists(value) and value.endswith(".json"):
+                value = value
+            elif not value.lower().replace(" ","-")  in VALID_COLOUR_THEMES:
+                value="dark-blue"
+        elif property_name == "appearance_mode" and not value.lower().replace(" ","-") in VALID_APPEARANCE_MODES:
             value="dark"
         self._app_settings[property_name] = value
     def _get_property(self, property_name):
@@ -50,6 +52,25 @@ def get_colour_themes(theme_folder):
             themes.append(os.path.splitext(file)[0])
     return themes
     
+    
+def custom_theme_is_valid(theme):
+    with open(theme, "r") as file:
+        theme = json.load(file)
+        try:
+            theme["CTk"]["fg_color"]
+            theme["CTkToplevel"]["fg_color"]
+            theme["CTkFrame"]["fg_color"]
+            theme["CTkButton"]["fg_color"]
+            theme["CTkLabel"]["fg_color"]
+            theme["CTkEntry"]["fg_color"]
+            theme["CTkProgressBar"]["fg_color"]
+            theme["CTkOptionMenu"]["fg_color"]
+            theme["CTkScrollbar"]["fg_color"]
+            theme["CTkScrollableFrame"]["label_fg_color"]
+            return True
+        except KeyError as error:
+            print(f"[ERROR] app_settings.custom_theme_is_valid: Returning False:  {error}")
+            return False
 def load_customtkinter_themes(theme_folder):
     global VALID_COLOUR_THEMES
     VALID_COLOUR_THEMES = get_colour_themes(theme_folder)
@@ -65,11 +86,17 @@ def load_customtkinter_themes(theme_folder):
         try:
             app_settings = settings["app_settings"]
             appearance_mode = app_settings["appearance_mode"] if app_settings["appearance_mode"] in VALID_APPEARANCE_MODES else "dark"
-            colour_theme = app_settings["colour_theme"] if app_settings["colour_theme"] in VALID_COLOUR_THEMES else "dark-blue"
-            if colour_theme not in default_themes and colour_theme in VALID_COLOUR_THEMES:
+            colour_theme = app_settings["colour_theme"] 
+            if os.path.exists(colour_theme) and colour_theme.endswith(".json"):
+                colour_theme = colour_theme if custom_theme_is_valid(colour_theme) else "dark-blue"
+            elif colour_theme not in VALID_COLOUR_THEMES:
+                colour_theme = "dark-blue"
+            elif colour_theme not in default_themes and colour_theme in VALID_COLOUR_THEMES:
                 colour_theme = os.path.join(theme_folder, colour_theme+".json")
                 if not os.path.exists(colour_theme):
                     colour_theme = 'dark-blue'
+            else:
+                colour_theme = "dark-blue"
         except KeyError:
             pass
     
