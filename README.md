@@ -53,7 +53,7 @@ Download the latest release from [here](https://github.com/Viren070/Emulator-Man
 ![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/1653573c-6b20-441d-b3b0-bf4a2c2100ac)
 
 
-## [Early Access Source](https://github.com/pineappleEA/pineapple-src) | [Firmware](https://archive.org) | [Keys](https://github.com/Viren070/SwitchFirmwareKeysInstaller/tree/main/Keys)  
+## [Early Access Source](https://github.com/pineappleEA/pineapple-src) | [Firmware](https://archive.org/download/nintendo-switch-global-firmwares) | [Keys](https://github.com/Viren070/SwitchFirmwareKeysInstaller/tree/main/Keys)  | [Dolphin](https://github.com/Viren070/dolphin-beta-downloads)
 
 
 
