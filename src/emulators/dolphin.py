@@ -26,25 +26,38 @@ class Dolphin:
             return False
         if not self.settings.dolphin.zip_path.endswith(".zip"):
             return False 
-        with ZipFile(self.settings.dolphin.zip_path, 'r') as archive:
-            if 'Dolphin.exe' in archive.namelist():
-                return True 
-            else:
-                return False
+        try:
+            with ZipFile(self.settings.dolphin.zip_path, 'r') as archive:
+                if 'Dolphin.exe' in archive.namelist():
+                    return True 
+                else:
+                    return False
+        except Exception:
+            return False
+                    
                 
-                
+    def delete_dolphin_zip(self, zip_path):
+        import time 
+        time.sleep(2)
+        os.remove(zip_path)
     def download_dolphin_zip(self):
         download_folder = os.path.dirname(self.settings.dolphin.default_settings["zip_path"])
         try:
             response = requests.get(self.dolphin_download_api, headers=self.headers, timeout=10)
         except requests.exceptions.RequestException:
             messagebox.showerror("Requests Error", "Failed to connect to API")
+            self.gui.dolphin_launch_dolphin_button.configure(state="normal")
+            self.gui.dolphin_install_dolphin_button.configure(state="normal")
+            self.gui.dolphin_delete_dolphin_button.configure(state="normal")
             return None
         
         try:
             release_info = json.loads(response.text)[0]
         except KeyError:
             messagebox.showerror("API Error", "Unable to handle response, could be an API ratelimit")
+            self.gui.dolphin_launch_dolphin_button.configure(state="normal")
+            self.gui.dolphin_install_dolphin_button.configure(state="normal")
+            self.gui.dolphin_delete_dolphin_button.configure(state="normal")
             return None
         
         version = release_info["tag_name"]
@@ -65,25 +78,39 @@ class Dolphin:
                 for chunk in response.iter_content(chunk_size=1024*203): 
                     if progress_frame.cancel_download_raised:
                         self.updating_ea = False
-                        self.gui.install_early_access.configure(state="normal")
-                        self.gui.launch_yuzu_early_access.configure(state="normal")
+                        self.gui.dolphin_launch_dolphin_button.configure(state="normal")
+                        self.gui.dolphin_install_dolphin_button.configure(state="normal")
+                        self.gui.dolphin_delete_dolphin_button.configure(state="normal")
                         progress_frame.destroy()
+                        if os.path.exists(download_path):
+                            Thread(target=self.delete_dolphin_zip, args=(download_path, )).start()
                         return
                     f.write(chunk)
                     downloaded_bytes += len(chunk)
                     progress_frame.update_download_progress(downloaded_bytes, 1024*512)
                 progress_frame.destroy()
-                try:
-                    self.settings.dolphin.zip_path = download_path
-                    messagebox.showinfo("Dolphin Download", f"{os.path.basename(download_path)} was successfully downloaded to {os.path.dirname(download_path)}")
-                    self.install_dolphin_wrapper(True)
-                except Exception as error:
-                    messagebox.showerror("Unknown Error", error)
-                    return False
             except requests.exceptions.RequestException as error:
                 messagebox.showerror("Requests Error", f"Failed to download file\n\n{error}")
+                self.gui.dolphin_launch_dolphin_button.configure(state="normal")
+                self.gui.dolphin_install_dolphin_button.configure(state="normal")
+                self.gui.dolphin_delete_dolphin_button.configure(state="normal")
+                if os.path.exists(download_path):
+                    Thread(target=self.delete_dolphin_zip, args=(download_path, )).start()
                 return False
         
+            try:
+                self.settings.dolphin.zip_path = download_path
+            except Exception as error:
+                messagebox.showerror("Unknown Error", error)
+                self.gui.dolphin_launch_dolphin_button.configure(state="normal")
+                self.gui.dolphin_install_dolphin_button.configure(state="normal")
+                self.gui.dolphin_delete_dolphin_button.configure(state="normal")
+                return False
+            messagebox.showinfo("Dolphin Download", f"{os.path.basename(download_path)} was successfully downloaded to {os.path.dirname(download_path)}")
+            if self.verify_dolphin_zip():
+                self.extract_dolphin_install()
+            
+           
         
         
         
@@ -96,11 +123,7 @@ class Dolphin:
                 self.gui.dolphin_delete_dolphin_button.configure(state="disabled")
                 self.gui.dolphin_launch_dolphin_button.configure(state="disabled")
                 Thread(target=self.download_dolphin_zip).start()
-            self.gui.dolphin_install_dolphin_button.configure(state="normal")
-            self.gui.dolphin_delete_dolphin_button.configure(state="normal")
-            self.gui.dolphin_launch_dolphin_button.configure(state="normal")
-            return
-         
+            return 
         Thread(target=self.extract_dolphin_install).start()
         
    
