@@ -209,7 +209,7 @@ class Yuzu:
         if latest_release is None:
             return None
         if latest_release.version != installed:
-            return latest_release
+            return True
         else:
             return False
         
@@ -288,7 +288,32 @@ class Yuzu:
     def install_ea_yuzu(self, start_yuzu=False):
         # Get latest release info 
         self.updating_ea = True
-        def download_latest_release(latest_release): 
+        
+        def install_yuzu():
+            # Download file
+            progress_frame = ProgressFrame(self.gui.yuzu_log_frame, f"Yuzu EA {latest_release.version}")
+            early_access_zip = download_latest_release(latest_release, progress_frame)
+            
+            # Extract
+            if early_access_zip:
+                extracted_release = extract_release_files(early_access_zip, progress_frame)
+            
+            # Move and delete zip   
+          
+                try:
+                    if os.path.exists(yuzu_path):
+                        shutil.rmtree(yuzu_path)
+                    shutil.move(os.path.join(extracted_release, "yuzu-windows-msvc-early-access"), yuzu_path) 
+                    installed = latest_release.version
+                except Exception as error:
+                    messagebox.showerror("Error", error)
+                
+                with open(launcher_file, "w") as f:
+                    contents["yuzu"]["early_access"]["installed_version"] = installed
+                    json.dump(contents, f)
+                progress_frame.finish_installation()
+            progress_frame.destroy()
+        def download_latest_release(latest_release, progress_frame): 
             if not os.path.exists(temp_path):
                 os.makedirs(temp_path)
             download_path = os.path.join(temp_path, "yuzu-ea.zip")
@@ -318,7 +343,7 @@ class Yuzu:
             progress_frame.progress_bar.set(0)
             return download_path
         
-        def extract_release_files(archive):
+        def extract_release_files(archive, progress_frame):
             if not os.path.exists(temp_path):
                 os.makedirs(temp_path)
             extract_folder = os.path.join(temp_path, "yuzu-ea")
@@ -333,7 +358,7 @@ class Yuzu:
         launcher_file = os.path.join(os.getenv("APPDATA"), "Emulator Manager", "launcher.json")
         # Parse asset info
         contents = self.get_launcher_file_content()
-        latest_release = self.check_for_ea_update()
+        latest_release = self.get_latest_yuzu_ea_release()
         ea_info = contents['yuzu']['early_access']
         if contents:
             installed = ea_info["installed_version"]
@@ -346,35 +371,9 @@ class Yuzu:
             self.gui.launch_yuuz_early_access.configure(state="normal")
             return
 
-        if latest_release == False or installed == latest_release.version:
-            messagebox.showinfo("Info", "You already have the latest version of yuzu EA installed!")
-        else:    
-
-            # Download file
-            progress_frame = ProgressFrame(self.gui.yuzu_log_frame, f"Yuzu EA {latest_release.version}")
-            early_access_zip = download_latest_release(latest_release)
-            
-            # Extract
-            if early_access_zip:
-                extracted_release = extract_release_files(early_access_zip)
-            
-            # Move and delete zip   
-          
-                try:
-                    if os.path.exists(yuzu_path):
-                        shutil.rmtree(yuzu_path)
-                    shutil.move(os.path.join(extracted_release, "yuzu-windows-msvc-early-access"), yuzu_path) 
-                    installed = latest_release.version
-                except Exception as error:
-                    messagebox.showerror("Error", error)
-                
-                with open(launcher_file, "w") as f:
-                    contents["yuzu"]["early_access"]["installed_version"] = installed
-                    json.dump(contents, f)
-                progress_frame.finish_installation()
-            progress_frame.destroy()
-        
-                
+        if installed != latest_release.version or (installed == latest_release.version and messagebox.askyesno("Yuzu EA", "You already have the latest version of yuzu EA installed, would you still like to install yuzu EA?")):
+            install_yuzu()
+      
         if os.path.exists(temp_path):
             shutil.rmtree(temp_path)
         self.updating_ea = False
