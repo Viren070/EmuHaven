@@ -4,7 +4,8 @@ import subprocess
 from threading import Thread
 from tkinter import messagebox
 from zipfile import ZipFile
-
+import requests 
+import json
 from gui.progress_frame import ProgressFrame
 from utils.file_utils import copy_directory_with_progress
 
@@ -15,12 +16,89 @@ class Dolphin:
         self.gui = gui
         self.running = False
         self.dolphin_is_running = False
+        self.headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246'
+        }
+        self.dolphin_download_api = 'https://api.github.com/repos/Viren070/dolphin-beta-downloads/releases'
         
-    def install_dolphin_wrapper(self):
-        if self.check_dolphin_installation() and not messagebox.askyesno("Confirmation", "Dolphin seems to already be installed, install anyways?"):
+    def verify_dolphin_zip(self):
+        if not os.path.exists(self.settings.dolphin.zip_path):
+            return False
+        if not self.settings.dolphin.zip_path.endswith(".zip"):
+            return False 
+        with ZipFile(self.settings.dolphin.zip_path, 'r') as archive:
+            if 'Dolphin.exe' in archive.namelist():
+                return True 
+            else:
+                return False
+                
+                
+    def download_dolphin_zip(self):
+        download_folder = os.path.dirname(self.settings.dolphin.default_settings["zip_path"])
+        try:
+            response = requests.get(self.dolphin_download_api, headers=self.headers, timeout=10)
+        except requests.exceptions.RequestException:
+            messagebox.showerror("Requests Error", "Failed to connect to API")
+            return None
+        
+        try:
+            release_info = json.loads(response.text)[0]
+        except KeyError:
+            messagebox.showerror("API Error", "Unable to handle response, could be an API ratelimit")
+            return None
+        
+        version = release_info["tag_name"]
+        assets = release_info['assets']
+        for asset in assets:
+            url = asset['browser_download_url']
+            size = asset['size']
+            break
+        progress_frame = ProgressFrame(self.gui.dolphin_log_frame, f"Dolphin {version}")
+        download_path = os.path.join(download_folder, f"Dolphin {version}.zip")
+        response = requests.get(url, stream=True, headers=self.headers, timeout=30)
+        
+        progress_frame.grid(row=0, column=0, sticky="ew")
+        progress_frame.total_size = size
+        with open(download_path, 'wb') as f:
+            downloaded_bytes = 0
+            try:
+                for chunk in response.iter_content(chunk_size=1024*203): 
+                    if progress_frame.cancel_download_raised:
+                        self.updating_ea = False
+                        self.gui.install_early_access.configure(state="normal")
+                        self.gui.launch_yuzu_early_access.configure(state="normal")
+                        progress_frame.destroy()
+                        return
+                    f.write(chunk)
+                    downloaded_bytes += len(chunk)
+                    progress_frame.update_download_progress(downloaded_bytes, 1024*512)
+                progress_frame.destroy()
+                try:
+                    self.settings.dolphin.zip_path = download_path
+                    messagebox.showinfo("Dolphin Download", f"{os.path.basename(download_path)} was successfully downloaded to {os.path.dirname(download_path)}")
+                    self.install_dolphin_wrapper(True)
+                except Exception as error:
+                    messagebox.showerror("Unknown Error", error)
+                    return False
+            except requests.exceptions.RequestException as error:
+                messagebox.showerror("Requests Error", f"Failed to download file\n\n{error}")
+                return False
+        
+        
+        
+        
+    def install_dolphin_wrapper(self, skip_prompt = False):
+        if not skip_prompt and self.check_dolphin_installation() and not messagebox.askyesno("Confirmation", "Dolphin seems to already be installed, install anyways?"):
             return 
         if not self.verify_dolphin_zip():
-            messagebox.showerror("Dolphin ZIP Error", "Please verify that you have specified a path to a ZIP archive of a Dolphin Installation in the settings")
+            if messagebox.askyesno("Dolphin", "Your Dolphin ZIP seems to be invalid, do you want to download it from the internet?"):
+                self.gui.dolphin_install_dolphin_button.configure(state="disabled")
+                self.gui.dolphin_delete_dolphin_button.configure(state="disabled")
+                self.gui.dolphin_launch_dolphin_button.configure(state="disabled")
+                Thread(target=self.download_dolphin_zip).start()
+            self.gui.dolphin_install_dolphin_button.configure(state="normal")
+            self.gui.dolphin_delete_dolphin_button.configure(state="normal")
+            self.gui.dolphin_launch_dolphin_button.configure(state="normal")
             return
          
         Thread(target=self.extract_dolphin_install).start()
@@ -32,22 +110,33 @@ class Dolphin:
         self.gui.dolphin_launch_dolphin_button.configure(state="disabled")
         dolphin_install_frame = ProgressFrame(self.gui.dolphin_log_frame, f"Extracting {os.path.basename(self.settings.dolphin.zip_path)}")
         dolphin_install_frame.skip_to_installation()
+        dolphin_install_frame.cancel_download_button.configure(state="normal")
+        dolphin_install_frame.update_status_label("Status: Extracting... ")
         dolphin_install_frame.grid(row=0, column=0, sticky="nsew")
-        with ZipFile(self.settings.dolphin.zip_path, 'r') as archive:
-            total_files = len(archive.namelist())
-            extracted_files = 0
+        extracted=True
+        try:
+            with ZipFile(self.settings.dolphin.zip_path, 'r') as archive:
+                total_files = len(archive.namelist())
+                extracted_files = 0
+                
+                for file in archive.namelist():
+                    if dolphin_install_frame.cancel_download_raised:
+                        extracted=False
+                        break
+                    archive.extract(file, self.settings.dolphin.install_directory)
+                    extracted_files += 1
+                    # Calculate and display progress
+                    dolphin_install_frame.update_extraction_progress(extracted_files / total_files) 
+            if extracted:
+                messagebox.showinfo("Done", f"Installed Dolphin to {self.settings.dolphin.install_directory}")
+        except Exception as error:
+            messagebox.showerror("Error", error)
             
-            for file in archive.namelist():
-                archive.extract(file, self.settings.dolphin.install_directory)
-                extracted_files += 1
-                # Calculate and display progress
-                dolphin_install_frame.update_extraction_progress(extracted_files / total_files) 
-        messagebox.showinfo("Done", f"Installed Dolphin to {self.settings.dolphin.install_directory}")
         dolphin_install_frame.destroy()
         self.gui.dolphin_install_dolphin_button.configure(state="normal")
         self.gui.dolphin_delete_dolphin_button.configure(state="normal")
         self.gui.dolphin_launch_dolphin_button.configure(state="normal")
-        self.check_dolphin_installation()
+   
     
     def delete_dolphin_button_event(self):
         if self.dolphin_is_running:
@@ -184,17 +273,5 @@ class Dolphin:
             self.dolphin_installed = False
             return False
         
-    def verify_dolphin_zip(self):
-        if not os.path.exists(self.settings.dolphin.zip_path):
-            print("does not exist")
-            return False
-        if not self.settings.dolphin.zip_path.endswith(".zip"):
-            print("does not end with zip")
-            return False 
-        with ZipFile(self.settings.dolphin.zip_path, 'r') as archive:
-            if 'Dolphin.exe' in archive.namelist():
-                return True 
-            else:
-                return False
-                
+    
     
