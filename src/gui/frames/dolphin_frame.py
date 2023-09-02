@@ -39,7 +39,7 @@ class DolphinFrame(customtkinter.CTkFrame):
         self.center_frame.grid_rowconfigure(2, weight=1)
         self.center_frame.grid_rowconfigure(3, weight=2)
         
-        self.image_button = customtkinter.CTkButton(self.center_frame, text="", fg_color='transparent', hover=False, bg_color='transparent', image=self.dolphin_banner)
+        self.image_button = customtkinter.CTkButton(self.center_frame, text="", fg_color='transparent', hover=False, bg_color='transparent', border_width=0, image=self.dolphin_banner)
         self.image_button.grid(row=0, column=0, columnspan=3, sticky="n", padx=10, pady=20)
         
         self.dolphin_actions_frame = customtkinter.CTkFrame(self.center_frame)
@@ -66,7 +66,7 @@ class DolphinFrame(customtkinter.CTkFrame):
         self.dolphin_delete_dolphin_button.grid(row=0, column=2,padx=10, sticky="ew", pady=5)
 
         
-        self.dolphin_log_frame = customtkinter.CTkFrame(self.center_frame, fg_color='transparent')
+        self.dolphin_log_frame = customtkinter.CTkFrame(self.center_frame, border_width=0, fg_color='transparent')
         self.dolphin_log_frame.grid(row=3, column=0, padx=80, sticky="ew")
         self.dolphin_log_frame.grid_propagate(False)
         self.dolphin_log_frame.grid_columnconfigure(0, weight=3)

@@ -39,11 +39,11 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.yuzu_manage_data_button.grid(row=2, column=0, padx=2, sticky="ew")
         
         # create yuzu 'Play' frame and widgets
-        self.yuzu_start_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
+        self.yuzu_start_frame = customtkinter.CTkFrame(self, corner_radius=0, border_width=0)
         self.yuzu_start_frame.grid_columnconfigure(0, weight=1)
         self.yuzu_start_frame.grid_rowconfigure(0, weight=1)
         
-        self.center_frame = customtkinter.CTkFrame(self.yuzu_start_frame, fg_color="transparent")
+        self.center_frame = customtkinter.CTkFrame(self.yuzu_start_frame, border_width=0)
         self.center_frame.grid(row=0, column=0, sticky="nsew")
         self.center_frame.grid_propagate(False)
         self.center_frame.grid_columnconfigure(0, weight=1)
@@ -60,7 +60,7 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.version_optionmenu.grid(row=0, column=0, padx=10, pady=20, sticky="ne")
 
         # Image button
-        self.image_button = customtkinter.CTkButton(self.center_frame, text="", fg_color='transparent', hover=False, bg_color='transparent', image=self.mainline_image)
+        self.image_button = customtkinter.CTkButton(self.center_frame, text="", fg_color='transparent', hover=False, bg_color='transparent', border_width=0, image=self.mainline_image)
         self.image_button.grid(row=0, column=0, columnspan=3, sticky="n", padx=10, pady=20)
 
         self.yuzu_actions_frame = customtkinter.CTkFrame(self.center_frame)
@@ -106,7 +106,7 @@ class YuzuFrame(customtkinter.CTkFrame):
 
         
    
-        self.yuzu_log_frame = customtkinter.CTkFrame(self.center_frame, fg_color='transparent')
+        self.yuzu_log_frame = customtkinter.CTkFrame(self.center_frame, fg_color='transparent', border_width=0)
         self.yuzu_log_frame.grid(row=3, column=0, padx=80, sticky="ew")
         self.yuzu_log_frame.grid_propagate(False)
         self.yuzu_log_frame.grid_columnconfigure(0, weight=3)
@@ -145,7 +145,7 @@ class YuzuFrame(customtkinter.CTkFrame):
                                                    anchor="w", command=self.yuzu_firmware_button_event)
         self.yuzu_firmware_button.grid(row=3, column=0, padx=2, sticky="ew")
         
-        self.yuzu_firmware_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
+        self.yuzu_firmware_frame = customtkinter.CTkFrame(self, corner_radius=0, border_width=0, fg_color="transparent")
         self.yuzu_firmware_frame.grid_rowconfigure(2, weight=1)
         self.yuzu_firmware_frame.grid_columnconfigure(2, weight=1)
         self.yuzu_firmware = FirmwareDownloader(self.yuzu_firmware_frame)

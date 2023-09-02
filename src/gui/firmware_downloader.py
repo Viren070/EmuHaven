@@ -253,7 +253,7 @@ class OptionsMenu(customtkinter.CTkToplevel):
 
 class FirmwareDownloader(customtkinter.CTkFrame):
     def __init__(self, parent_frame):
-        super().__init__(parent_frame)
+        super().__init__(parent_frame, border_width=0)
 
         self.delete_download = tk.BooleanVar()
         self.delete_download.set(True)
@@ -281,7 +281,7 @@ class FirmwareDownloader(customtkinter.CTkFrame):
         self.grid_columnconfigure(0, weight=1)
 
         self.firmware_versions_frame = customtkinter.CTkScrollableFrame(
-            self.tabview.tab("Firmware"), width=665, height=300
+            self.tabview.tab("Firmware"), width=665, height=300, border_width=0
         )
         self.firmware_versions_frame.grid(row=0, column=0, sticky="nsew")
         self.firmware_versions_frame.grid_columnconfigure(0, weight=1)
@@ -290,7 +290,7 @@ class FirmwareDownloader(customtkinter.CTkFrame):
         )
 
         self.key_versions_frame = customtkinter.CTkScrollableFrame(
-            self.tabview.tab("Keys"), width=665, height=300
+            self.tabview.tab("Keys"), width=665, height=300, border_width=0
         )
         self.key_versions_frame.grid(row=0, column=0)
         self.key_versions_frame.grid_columnconfigure(0, weight=1)
@@ -299,7 +299,7 @@ class FirmwareDownloader(customtkinter.CTkFrame):
         )
 
         self.both_versions_frame = customtkinter.CTkScrollableFrame(
-            self.tabview.tab("Both"), width=665, height=300
+            self.tabview.tab("Both"), width=665, height=300, border_width=0
         )
         self.both_versions_frame.grid(row=0, column=0)
         self.both_versions_frame.grid_columnconfigure(0, weight=1)
@@ -308,7 +308,7 @@ class FirmwareDownloader(customtkinter.CTkFrame):
         )
 
         self.downloads_frame = customtkinter.CTkScrollableFrame(
-            self.tabview.tab("Downloads"), width=665, height=300
+            self.tabview.tab("Downloads"), width=665, height=300, border_width=0
         )
         self.downloads_frame.grid(row=0, column=0)
         self.downloads_frame.grid_columnconfigure(0, weight=1)
