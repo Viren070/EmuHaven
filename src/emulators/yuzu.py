@@ -249,7 +249,8 @@ class Yuzu:
                     
                 return contents
         else:
-            return None
+            self.reset_launcher_file()
+            return self.get_launcher_file_content()
 
     def get_latest_yuzu_ea_release(self):
         class Release:
