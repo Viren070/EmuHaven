@@ -11,6 +11,7 @@ from gui.frames.settings_frame import SettingsFrame
 from gui.frames.yuzu_frame import YuzuFrame
 from settings.app_settings import load_customtkinter_themes
 from settings.settings import Settings
+from utils.auth_token_manager import delete_token_file
 
 
 class EmulatorManager(customtkinter.CTk):
@@ -147,6 +148,7 @@ class EmulatorManager(customtkinter.CTk):
                 shutil.rmtree(temp_folder)
             except:
                 pass
+        delete_token_file()
         self.destroy()
         exit()
         
