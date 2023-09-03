@@ -7,7 +7,7 @@ from CTkToolTip import *
 from settings.app_settings import get_colour_themes
 from gui.github_token_gen import GitHubTokenGen
 from threading import Thread
-from utils.auth_token_manager import get_rate_limit_status
+from utils.auth_token_manager import get_rate_limit_status, delete_token_file
 
 class AppSettings(customtkinter.CTkFrame):
     def __init__(self, parent_frame, settings):
@@ -58,13 +58,21 @@ class AppSettings(customtkinter.CTkFrame):
         self.actions_frame.grid(row=10,sticky="ew", columnspan=5, padx=10, pady=10)
         self.requests_left_label = customtkinter.CTkLabel(self.actions_frame, text=f"Requests Left:")
         self.requests_left_label.bind("<Button-1>", self.start_update_requests_left)
-        CTkToolTip(self.requests_left_label, message="This the number of requests you have left to make using the GitHub REST API.\nThis is used to download dolphin and Yuzu EA\n(1 per download & update)")
+        CTkToolTip(self.requests_left_label, message="This the number of requests you have left to make using the GitHub REST API.\nThis is used to download Dolphin and Yuzu EA.\nRate Limits: 60/hr or 5000/hr with a token.")
         self.start_update_requests_left()
         self.requests_left_label.grid(row=8, column=0, padx=10, pady=10, sticky="w")
         button=customtkinter.CTkButton(self.actions_frame, text="Generate GitHub Token", command=self.open_token_window)
         button.grid(row=8, column=1, padx=10, pady=10, sticky="e")
-        CTkToolTip(button, message="This is a completely optional feature.\nThis will store a temporary (8 hour) user access token for GitHub locally.\nOnly generate a token if you really need to.\nWithout a token you have 60 requests per hour and with a token\nyou have 5000 requests per hour.")
+        button.bind("<Shift-Button-1>", self.delete_token)
+        CTkToolTip(button, message="This is a completely optional feature.\nThis will store a temporary (8 hour) user access token for GitHub locally.\nShift click me to delete the token. It will be automatically deleted\nwhen you close the application.")
         
+        
+    def delete_token(self, event=None):
+        result=delete_token_file()
+        if all(result):
+            messagebox.showinfo("Delete result", result[1])
+        else:
+            messagebox.showerror("Delete error", result[1])
     def start_update_requests_left(self, event=None):
         if self.update_status:
             Thread(target=self.update_requests_left).start()

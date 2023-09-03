@@ -26,6 +26,16 @@ def get_token():
         if not token:
             return False 
         return token
+    
+def delete_token_file():
+    if not os.path.exists(TOKEN_FILE):
+        return (True,"File does not exist ")
+    try:
+        os.remove(TOKEN_FILE)
+        return (True, "File deleted")
+    except Exception as error:
+        return (False, error)
+        
 def get_rate_limit_status():
     token = get_token()
  
