@@ -6,9 +6,10 @@ from tkinter import messagebox
 from zipfile import ZipFile
 import requests 
 import json
+
 from gui.progress_frame import ProgressFrame
 from utils.file_utils import copy_directory_with_progress
-
+from utils.auth_token_manager import get_headers
 
 class Dolphin:
     def __init__(self, gui, settings):
@@ -16,11 +17,12 @@ class Dolphin:
         self.gui = gui
         self.running = False
         self.dolphin_is_running = False
-        self.headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246'
-        }
-        self.dolphin_download_api = 'https://api.github.com/repos/Viren070/dolphin-beta-downloads/releases'
+       
+        self.dolphin_download_api = 'https://api.github.com/repos/Viren070/dolphin-beta-downloads/releases/latest'
         
+        
+    
+            
     def verify_dolphin_zip(self):
         if not os.path.exists(self.settings.dolphin.zip_path):
             return False
@@ -43,8 +45,9 @@ class Dolphin:
     def download_dolphin_zip(self):
         download_folder = os.path.dirname(self.settings.dolphin.default_settings["zip_path"])
         try:
-            response = requests.get(self.dolphin_download_api, headers=self.headers, timeout=10)
-        except requests.exceptions.RequestException:
+            response = requests.get(self.dolphin_download_api, headers=get_headers(), timeout=10)
+        except requests.exceptions.RequestException as error:
+            print(error)
             messagebox.showerror("Requests Error", "Failed to connect to API")
             self.gui.dolphin_launch_dolphin_button.configure(state="normal")
             self.gui.dolphin_install_dolphin_button.configure(state="normal")
@@ -63,15 +66,14 @@ class Dolphin:
             self.gui.dolphin_delete_dolphin_button.configure(state="normal")
             return None
         
-        version = release_info["tag_name"]
-        assets = release_info['assets']
+        
         for asset in assets:
             url = asset['browser_download_url']
             size = asset['size']
             break
         progress_frame = ProgressFrame(self.gui.dolphin_log_frame, f"Dolphin {version}")
         download_path = os.path.join(download_folder, f"Dolphin {version}.zip")
-        response = requests.get(url, stream=True, headers=self.headers, timeout=30)
+        response = requests.get(url, stream=True, headers=get_headers(), timeout=30)
         
         progress_frame.grid(row=0, column=0, sticky="ew")
         progress_frame.total_size = size

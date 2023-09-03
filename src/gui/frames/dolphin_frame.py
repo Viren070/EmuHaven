@@ -9,6 +9,7 @@ class DolphinFrame(customtkinter.CTkFrame):
         super().__init__(parent_frame, corner_radius=0, bg_color="transparent")
         self.dolphin = Dolphin(self, settings)
         self.settings = settings
+        self.parent_frame = parent_frame
         self.build_frame()
     def build_frame(self):
         self.dolphin_banner =  customtkinter.CTkImage(light_image=Image.open(self.settings.get_image_path("dolphin_banner_light")),

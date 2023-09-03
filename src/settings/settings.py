@@ -10,7 +10,6 @@ class Settings:
         self.root_dir = root_dir
         self.version = "2"
         self.settings_file = os.path.join(os.getenv("APPDATA"), "Emulator Manager", "config", "settings.json")
-       
             
         self.yuzu = YuzuSettings(self)
         self.dolphin = DolphinSettings(self)

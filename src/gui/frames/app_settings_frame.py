@@ -2,14 +2,20 @@ import os
 from tkinter import messagebox, ttk, filedialog
 
 import customtkinter
+from CTkToolTip import *
 
 from settings.app_settings import get_colour_themes
+from gui.github_token_gen import GitHubTokenGen
+from threading import Thread
+from utils.auth_token_manager import get_rate_limit_status
 
 class AppSettings(customtkinter.CTkFrame):
     def __init__(self, parent_frame, settings):
         super().__init__(parent_frame, corner_radius=0, fg_color="transparent")
         self.settings = settings 
         self.parent_frame = parent_frame
+        self.update_status = True
+        self.token_gen = None
         self.build_frame()
     def build_frame(self):
         self.settings_path = os.path.join(os.getenv("APPDATA"),"Emulator Manager", "config")
@@ -47,6 +53,28 @@ class AppSettings(customtkinter.CTkFrame):
         customtkinter.CTkOptionMenu(self, variable=self.default_yuzu_channel_variable, command=self.change_default_yuzu_channel, values=["Mainline", "Early Access"]).grid(row=6, column=2, padx=10, pady=10, sticky="e")
         ttk.Separator(self, orient='horizontal').grid(row=7, columnspan=4, sticky="ew")
         
+        self.actions_frame = customtkinter.CTkFrame(self, fg_color="transparent")
+        self.actions_frame.grid_columnconfigure(0, weight=1)
+        self.actions_frame.grid(row=10,sticky="ew", columnspan=5, padx=10, pady=10)
+        self.requests_left_label = customtkinter.CTkLabel(self.actions_frame, text=f"Requests Left:")
+        self.requests_left_label.bind("<Button-1>", self.start_update_requests_left)
+        CTkToolTip(self.requests_left_label, message="This the number of requests you have left to make using the GitHub REST API.\nThis is used to download dolphin and Yuzu EA\n(1 per download & update)")
+        self.start_update_requests_left()
+        self.requests_left_label.grid(row=8, column=0, padx=10, pady=10, sticky="w")
+        button=customtkinter.CTkButton(self.actions_frame, text="Generate GitHub Token", command=self.open_token_window)
+        button.grid(row=8, column=1, padx=10, pady=10, sticky="e")
+        CTkToolTip(button, message="This is a completely optional feature.\nThis will store a temporary (8 hour) user access token for GitHub locally.\nOnly generate a token if you really need to.\nWithout a token you have 60 requests per hour and with a token\nyou have 5000 requests per hour.")
+        
+    def start_update_requests_left(self, event=None):
+        if self.update_status:
+            Thread(target=self.update_requests_left).start()
+    def update_requests_left(self):
+        try:
+            self.requests_left_label.configure(text=f"Requests Left: {get_rate_limit_status()}")
+        except Exception as error:
+            messagebox.showerror("Requests Error", "Failed to fetch rate limit status")
+            print(error)
+            self.update_status = False
     def change_colour_theme(self, theme):
         if customtkinter.ThemeManager._currently_loaded_theme.replace("-"," ").title() == theme: # if current theme is the same as the proposed theme, return
             return
@@ -77,6 +105,13 @@ class AppSettings(customtkinter.CTkFrame):
     def change_default_yuzu_channel(self, value):
         self.settings.app.default_yuzu_channel = value
         self.update_settings()
+        
+    def open_token_window(self):
+        if self.token_gen is None:
+            self.token_gen = GitHubTokenGen(self)
+            self.token_gen.grab_set()
+        else:
+            self.token_gen.focus()
         
     def update_settings(self):
         self.settings.update_file()

@@ -44,7 +44,7 @@ class YuzuSettings:
             raise ValueError(f"{property_name.replace('__','/').replace('_',' ').title()} - Invalid Filetype: Expected file extension of .zip but got {os.path.splitext(value)[-1]}")
         elif property_name == "installer_path" and not value.endswith(".exe"):
             raise ValueError(f"{property_name.replace('__','/').replace('_',' ').title()} - Invalid Filetype: Expected file extension of .exe but got {os.path.splitext(value)[-1]}")
-        
+                          
         self._settings[property_name] = value
     def _get_property(self, property_name):
         return self._settings[property_name]
