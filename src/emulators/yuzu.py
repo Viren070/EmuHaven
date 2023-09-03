@@ -82,6 +82,7 @@ class Yuzu:
         
         self.gui.yuzu_install_yuzu_button.configure(state="disabled")
         self.gui.yuzu_launch_yuzu_button.configure(state="disabled")
+        self.gui.delete_early_access_button.configure(state="disabled")
         Thread(target=self.run_yuzu_install).start()
     
     def run_yuzu_install(self):
@@ -105,6 +106,7 @@ class Yuzu:
         self.running = False
         self.gui.yuzu_install_yuzu_button.configure(state="normal")
         self.gui.yuzu_launch_yuzu_button.configure(state="normal")
+        self.gui.delete_early_access_button.configure(state="normal")
     
     def check_and_install_yuzu_ea(self):
         if not self.updating_ea and self.check_for_ea_update():
@@ -112,7 +114,6 @@ class Yuzu:
                 self.gui.launch_yuzu_early_access.configure(state="disabled", text="Updating...  ", width=170)
                 Thread(target=self.install_ea_yuzu, args=(True, )).start()
                 return
-        self.gui.launch_yuzu_early_access.configure(state="disabled")   
         self.gui.launch_yuzu_early_access.configure(state="disabled", text="Launching...  ", width=170)
         Thread(target=self.start_yuzu, args=(None,True,)).start()
     def start_yuzu_wrapper(self, event=None, ea_mode=None):
@@ -129,11 +130,13 @@ class Yuzu:
             if not event.state & 1:
                 self.gui.launch_yuzu_early_access.configure(state="disabled", text="Fetching Updates...  ", width=200)
                 self.gui.install_early_access.configure(state="disabled")
+                self.gui.delete_early_access_button.configure(state="disabled")
                 Thread(target=self.check_and_install_yuzu_ea).start()
                 return
             else:
                 self.gui.launch_yuzu_early_access.configure(state="disabled")
                 self.gui.install_early_access.configure(state="disabled")
+                self.gui.delete_early_access_button.configure(state="disabled")
                 Thread(target=self.start_yuzu, args=(None,True,)).start()
                 return
         if not self.check_yuzu_installation():
@@ -141,6 +144,7 @@ class Yuzu:
             return
         self.gui.yuzu_install_yuzu_button.configure(state="disabled")
         self.gui.yuzu_launch_yuzu_button.configure(state="disabled", text="Launching...  ")
+        self.gui.delete_early_access_button.configure(state="disabled")
         Thread(target=self.start_yuzu, args=(event,ea_mode,)).start()
     
     def start_yuzu(self, event=None, ea_mode=False):
@@ -155,6 +159,7 @@ class Yuzu:
                     self.gui.yuzu_install_yuzu_button.configure(state="normal")
                     self.gui.launch_yuzu_early_access.configure(state="normal", text="Launch Yuzu EA  ")
                     self.gui.install_early_access.configure(state="normal")
+                    self.gui.delete_early_access_button.configure(state="normal")
                     return 
                     
         if not self.check_current_firmware() or not self.check_current_keys():
@@ -164,6 +169,7 @@ class Yuzu:
                     self.gui.yuzu_install_yuzu_button.configure(state="normal")
                     self.gui.launch_yuzu_early_access.configure(state="normal", text="Launch Yuzu EA  ")
                     self.gui.install_early_access.configure(state="normal")
+                    self.gui.delete_early_access_button.configure(state="normal")
                     return
         
         
@@ -194,6 +200,7 @@ class Yuzu:
         self.gui.yuzu_install_yuzu_button.configure(state="normal")
         self.gui.launch_yuzu_early_access.configure(state="normal", text="Launch Yuzu EA  ")
         self.gui.install_early_access.configure(state="normal")
+        self.gui.delete_early_access_button.configure(state="normal")
     
     
     def check_for_ea_update(self):
@@ -218,6 +225,7 @@ class Yuzu:
             return 
         self.gui.launch_yuzu_early_access.configure(state="disabled")
         self.gui.install_early_access.configure(state="disabled")
+        self.gui.delete_early_access_button.configure(state="disabled")
         Thread(target=self.install_ea_yuzu).start()
 
     def reset_launcher_file(self):
@@ -328,6 +336,7 @@ class Yuzu:
                             self.updating_ea = False
                             self.gui.install_early_access.configure(state="normal")
                             self.gui.launch_yuzu_early_access.configure(state="normal")
+                            self.gui.delete_early_access_button.configure(state="normal")
                             progress_frame.destroy()
                             return
                         f.write(chunk)
@@ -366,7 +375,8 @@ class Yuzu:
         if latest_release is None:
             self.updating_ea = False
             self.gui.install_early_access.configure(state="normal")
-            self.gui.launch_yuuz_early_access.configure(state="normal")
+            self.gui.launch_yuzu_early_access.configure(state="normal")
+            self.gui.delete_early_access_button.configure(state="normal")
             return
 
         if installed != latest_release.version or (installed == latest_release.version and messagebox.askyesno("Yuzu EA", "You already have the latest version of yuzu EA installed, would you still like to install yuzu EA?")):
@@ -378,11 +388,12 @@ class Yuzu:
         if start_yuzu:
             self.gui.install_early_access.configure(state="disabled")
             self.gui.launch_yuzu_early_access.configure(state="disabled", text="Launching...  ")
+            self.gui.delete_early_access_button.configure(state="disabled")
             Thread(target=self.start_yuzu, args=(None,True,)).start()
         else:
             self.gui.install_early_access.configure(state="normal")
             self.gui.launch_yuzu_early_access.configure(state="normal")
-
+            self.gui.delete_early_access_button.configure(state="normal")
     def delete_yuzu_ea(self):
         try:
             shutil.rmtree(os.path.join(self.settings.yuzu.install_directory, "yuzu-windows-msvc-early-access"))
