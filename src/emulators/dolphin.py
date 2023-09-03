@@ -44,6 +44,8 @@ class Dolphin:
         os.remove(zip_path)
     def download_dolphin_zip(self):
         download_folder = os.path.dirname(self.settings.dolphin.default_settings["zip_path"])
+        if not os.path.exists(download_folder):
+            os.makedirs(download_folder)
         try:
             response = requests.get(self.dolphin_download_api, headers=get_headers(), timeout=10)
         except requests.exceptions.RequestException as error:
