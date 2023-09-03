@@ -100,6 +100,7 @@ class Dolphin:
         
             try:
                 self.settings.dolphin.zip_path = download_path
+                self.gui.parent_frame.revert_settings()
             except Exception as error:
                 messagebox.showerror("Unknown Error", error)
                 self.gui.dolphin_launch_dolphin_button.configure(state="normal")
