@@ -11,7 +11,7 @@ import requests
 
 from gui.progress_frame import ProgressFrame
 from utils.file_utils import copy_directory_with_progress
-
+from utils.auth_token_manager import get_headers
 
 class Yuzu:
     def __init__(self, gui, settings):
@@ -258,9 +258,7 @@ class Yuzu:
                 self.version = None
                 self.download_url = None
                 self.size = None 
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246'
-        }
+        headers = get_headers()
         api_url = 'https://api.github.com/repos/pineappleEA/pineapple-src/releases'
         try:
             response = requests.get(api_url, headers=headers, timeout=10)
@@ -317,7 +315,7 @@ class Yuzu:
             if not os.path.exists(temp_path):
                 os.makedirs(temp_path)
             download_path = os.path.join(temp_path, "yuzu-ea.zip")
-            headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246'}
+            headers = get_headers()
             response = requests.get(latest_release.download_url, stream=True, headers=headers, timeout=30)
             
             progress_frame.grid(row=0, column=0, sticky="ew")
