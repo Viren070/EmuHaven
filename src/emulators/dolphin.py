@@ -52,9 +52,12 @@ class Dolphin:
             return None
         
         try:
-            release_info = json.loads(response.text)[0]
+            release_info = json.loads(response.text)
+            version = release_info["tag_name"]
+            assets = release_info['assets']
         except KeyError:
-            messagebox.showerror("API Error", "Unable to handle response, could be an API ratelimit")
+            messagebox.showerror("API Error", "Unable to handle response, could be an API ratelimit, if you have a GitHub account try authorising your account in the settings page")
+            print(response.text)
             self.gui.dolphin_launch_dolphin_button.configure(state="normal")
             self.gui.dolphin_install_dolphin_button.configure(state="normal")
             self.gui.dolphin_delete_dolphin_button.configure(state="normal")
