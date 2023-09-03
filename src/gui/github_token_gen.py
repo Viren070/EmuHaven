@@ -9,13 +9,12 @@ import time
 from utils.auth_token_manager import request_device_code, request_token, write_token_to_file
 class GitHubTokenGen(customtkinter.CTkToplevel):
     def __init__(self, master):
-        super().__init__()
+        super().__init__(master)
         self.title("GitHub Token Generator")
         self.geometry("500x150")
         self.resizable(False, False)
         self.poll_token = True 
         self.master = master 
-        
         self.token_response = 0
         self.wm_protocol("WM_DELETE_WINDOW", self.on_closing)
         self.create_widgets()
