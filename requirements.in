@@ -1,4 +1,6 @@
 beautifulsoup4==4.12.2
+CTkToolTip==0.8
+CTkToolTip==0.8
 customtkinter==5.2.0
 Pillow==10.0.0
 Pillow==10.0.0
