@@ -151,7 +151,7 @@ class Dolphin:
                     # Calculate and display progress
                     dolphin_install_frame.update_extraction_progress(extracted_files / total_files) 
             if extracted:
-                messagebox.showinfo("Done", f"Installed Dolphin to {self.settings.dolphin.install_directory}")
+                messagebox.showinfo("Done", f"Successfully extracted Dolphin to {self.settings.dolphin.install_directory}")
         except Exception as error:
             messagebox.showerror("Error", error)
             
