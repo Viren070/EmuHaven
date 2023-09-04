@@ -36,11 +36,15 @@ def get_rate_limit_status(token):
     }
     if token:
         headers["Authorization"] = f"BEARER {token}"
-    response = requests.get(url, headers=headers)
-
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+    except requests.exceptions.RequestException as error:
+        print(error)
+        return "Unknown"
     if response.status_code == 200:
         data = response.json()
-        return data["resources"]["core"]["remaining"]
+        return data["resources"]["core"]
     else:
         print(f"Error: {response.status_code} - {response.text}")
         
@@ -52,23 +56,20 @@ def request_token(device_code):
             "grant_type": "urn:ietf:params:oauth:grant-type:device_code",
         }
         headers = {"Accept": "application/json"}
-
-        response = requests.post("https://github.com/login/oauth/access_token", data=data, headers=headers)
-        response.raise_for_status()
-        return response.json()
+        try:
+            response = requests.post("https://github.com/login/oauth/access_token", data=data, headers=headers)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as error:
+            return (False, error)
+        return (True,response.json())
     
     
 def request_device_code():
     data = {"client_id": CLIENT_ID}
     headers = {"Accept": "application/json"}
-
-    response = requests.post("https://github.com/login/device/code", data=data, headers=headers)
-    response.raise_for_status()
-    return response.json()
-
-def write_token_to_file(token):
-    
-    if not os.path.exists(os.path.dirname(TOKEN_FILE)):
-        os.makedirs(os.path.dirname(TOKEN_FILE))
-    with open(TOKEN_FILE, "w") as f:
-        f.write(token)
+    try:
+        response = requests.post("https://github.com/login/device/code", data=data, headers=headers, timeout=30)
+        response.raise_for_status()
+    except requests.exceptions.RequestException as error:
+        return (False, error)
+    return (True,response.json())
