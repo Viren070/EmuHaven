@@ -527,7 +527,10 @@ class Yuzu:
                 save_dir = os.path.join(export_directory, os.getlogin(), 'nand', 'user', 'save')
                 result += f"Data deleted from {save_dir}\n" if delete_directory(save_dir) else ""
         elif mode == "Exclude 'nand' & 'keys'":
+            # Iterate through each of the 3 root folders and exclude 'nand' and 'keys' subfolder
             deleted = False
+            folders = [user_directory, users_auto_import__export_directory, users_export_directory] if os.path.abspath(users_export_directory) != os.path.abspath(users_auto_import__export_directory) else [user_directory, users_export_directory]
+            for root_folder in folders:
                 if os.path.exists(root_folder) and os.listdir(root_folder):
                     subfolders_failed = []
                     for folder_name in os.listdir(root_folder):
