@@ -115,7 +115,7 @@ class YuzuSettings(customtkinter.CTkFrame):
         if dialogtype=="installer":
             new_path = filedialog.askopenfilename(initialdir=initialdir, title="Select Yuzu Installer", filetypes=[("yuzu_install.exe", "*exe")])
         else:
-            new_path = filedialog.askopenfilename(initialdir=initialdir, title="Select {} ZIP".format("Firmware" if dialogtype=="firmware" else "Key"), filetypes=[("Firmware" if dialogtype=="firmware" else "Keys", "*zip")])
+            new_path = filedialog.askopenfilename(initialdir=initialdir, title="Select {} ZIP".format("Firmware" if dialogtype=="firmware" else "Key"), filetypes=[("Firmware" if dialogtype=="firmware" else "Keys", "*zip" if dialogtype=="firmware" else ("*zip", "prod.keys"))])
             
         if new_path is None or new_path == "":
             return 

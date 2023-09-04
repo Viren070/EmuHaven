@@ -42,43 +42,59 @@ class Dolphin:
         import time 
         time.sleep(2)
         os.remove(zip_path)
-    def download_dolphin_zip(self):
-        download_folder = os.path.dirname(self.settings.dolphin.default_settings["zip_path"])
-        if not os.path.exists(download_folder):
-            os.makedirs(download_folder)
+        
+    def get_release_asset(self, api_url, mode):
+        class Release:
+            def __init__(self) -> None:
+                self.version = None
+                self.download_url = None
+                self.size = None 
+                
+        headers = get_headers(self.settings.app.token)
         try:
-            response = requests.get(self.dolphin_download_api, headers=get_headers(self.settings.app.token), timeout=10)
+            response = requests.get(api_url, headers=headers, timeout=10)
         except requests.exceptions.RequestException as error:
-            print(error)
             messagebox.showerror("Requests Error", "Failed to connect to API")
-            self.gui.dolphin_launch_dolphin_button.configure(state="normal")
-            self.gui.dolphin_install_dolphin_button.configure(state="normal")
-            self.gui.dolphin_delete_dolphin_button.configure(state="normal")
-            return None
-        
+            return (False, error)
         try:
-            release_info = json.loads(response.text)
-            version = release_info["tag_name"]
-            assets = release_info['assets']
+            release_info = json.loads(response.text)[0]
         except KeyError:
-            messagebox.showerror("API Error", "Unable to handle response, could be an API ratelimit, if you have a GitHub account try authorising your account in the settings page")
-            print(response.text)
-            self.gui.dolphin_launch_dolphin_button.configure(state="normal")
-            self.gui.dolphin_install_dolphin_button.configure(state="normal")
-            self.gui.dolphin_delete_dolphin_button.configure(state="normal")
-            return None
-        
-        
+            messagebox.showerror("API Error", "Unable to handle response, could be an API ratelimit")
+            return (False, "You have most likely been API rate limited")
+        if mode == "Dolphin":
+            query="Dolphin"
+        assets = release_info['assets']
+        url = None
+        size = None
+        version = None 
         for asset in assets:
-            url = asset['browser_download_url']
-            size = asset['size']
-            break
-        progress_frame = ProgressFrame(self.gui.dolphin_log_frame, f"Dolphin {version}")
-        download_path = os.path.join(download_folder, f"Dolphin {version}.zip")
-        response = requests.get(url, stream=True, headers=get_headers(self.settings.app.token), timeout=30)
+            if query in asset['name']:
+                url = asset['browser_download_url']
+                size = asset['size']
+                version = asset['name'].replace(f"{query}.","").replace(".zip", "")
+                break
+        if not all((url, size, version)):
+            return (False, "Not all required information was found")
+        release = Release()
+        release.download_url = url 
+        release.size = size 
+        release.version = version
+        return (True, release)
+
+    def download_dolphin_zip(self):
+        download_folder = os.getcwd()
+        os.makedirs(download_folder, exist_ok=True)
+        dolphin_asset = self.get_release_asset("https://api.github.com/repos/Viren070/Emulator-Manager-Resources/releases", "Dolphin")
+        if not all(dolphin_asset):
+            messagebox.showerror("Dolphin Download Error", dolphin_asset[1])
+            return 
+        dolphin = dolphin_asset[1]
+        progress_frame = ProgressFrame(self.gui.dolphin_log_frame, f"Dolphin {dolphin.version}")
+        download_path = os.path.join(download_folder, f"Dolphin {dolphin.version}.zip")
+        response = requests.get(dolphin.download_url, stream=True, headers=get_headers(self.settings.app.token), timeout=30)
         
         progress_frame.grid(row=0, column=0, sticky="ew")
-        progress_frame.total_size = size
+        progress_frame.total_size = dolphin.size
         with open(download_path, 'wb') as f:
             downloaded_bytes = 0
             try:

@@ -18,6 +18,7 @@ class Yuzu:
         self.settings = settings
         self.gui = gui
         self.updating_ea = False
+        self.installing_firmware_or_keys = False
         self.running = False
     def check_yuzu_installation(self):
         if os.path.exists(os.path.join(self.settings.yuzu.install_directory, "yuzu-windows-msvc", 'yuzu.exe')):
@@ -164,7 +165,9 @@ class Yuzu:
                     
         if not self.check_current_firmware() or not self.check_current_keys():
             if messagebox.askyesno("Error","You are missing your keys or firmware. Keys are required. Without the firmware, some games will not run (e.g. Mario Kart 8 Deluxe). Would you like to install the missing files?"):
-                if not self.install_missing_firmware_or_keys():
+                if self.installing_firmware_or_keys:
+                    messagebox.showerror("Error", "It seems there is already an installation in progress, please wait for that to finish before trying to instal new firmware or keys again")
+                elif not self.install_missing_firmware_or_keys():
                     if ea_mode:
                         self.gui.launch_yuzu_early_access.configure(state="normal", text="Launch Yuzu EA  ")
                         self.gui.install_early_access.configure(state="normal")
@@ -422,41 +425,198 @@ class Yuzu:
     
     
     def install_missing_firmware_or_keys(self):
-    
+        self.installing_firmware_or_keys = True 
         if not self.check_current_keys():
-            if not self.verify_key_archive():
-                messagebox.showerror("Key Error", "Please verify that you have correctly set the path for the key archive in the settings page.")
+            if not self.verify_key_archive() and not messagebox.askyesno("Keys Not Found", "You have not set the path to an archive of switch keys, would you like to try downloading it from the internet?"):
+                pass 
             else:
-                status_frame = ProgressFrame(
-                self.gui.yuzu_log_frame, (os.path.basename(self.settings.yuzu.key_path)))
-                status_frame.grid(row=0, pady=10, sticky="EW")
-                status_frame.skip_to_installation()
-                try:
-                    self.gui.yuzu_firmware.start_key_installation_custom(self.settings.yuzu.key_path, status_frame)
-                except Exception as error:
-                    messagebox.showerror("Unknown Error", f"An unknown error occured during key installation \n\n {error}")
+                if not self.verify_key_archive():
+                    key_path = self.download_key_archive()
+                else:
+                    key_path = self.settings.yuzu.key_path
+                if key_path:
+                    status_frame = ProgressFrame(
+                    self.gui.yuzu_log_frame, (os.path.basename(key_path)))
+                    status_frame.grid(row=0, pady=10, sticky="EW")
+                    status_frame.skip_to_installation()
+                    try:
+                        #self.gui.yuzu_firmware.start_key_installation_custom(key_path, status_frame)
+                        self.install_keys(key_path, status_frame)
+                    except Exception as error:
+                        messagebox.showerror("Unknown Error", f"An unknown error occured during key installation \n\n {error}")
+                        status_frame.destroy()
+                        self.installing_firmware_or_keys = False 
+                        return False
                     status_frame.destroy()
-                    return False
-                status_frame.destroy()
         if not self.check_current_firmware():
-            if not self.verify_firmware_archive():
-                messagebox.showerror("Firmware Error", "Please verify that you have correctly set the path for the firmware archive in the settings page.")
+            if not self.verify_firmware_archive() and not messagebox.askyesno("Firmware Not Found", "You have not set the path to the firmware archive in the settings page, would you like to try downloading it from the internet?"):
+                pass
             else:
-                status_frame = ProgressFrame(self.gui.yuzu_log_frame, (os.path.basename(self.settings.yuzu.firmware_path)))
+                if self.verify_firmware_archive():
+                    firmware_path = self.settings.yuzu.firmware_path
+                else:
+                    firmware_path = self.download_firmware_archive()
+                if not firmware_path:
+                    self.installing_firmware_or_keys = False 
+                    return False 
+                status_frame = ProgressFrame(self.gui.yuzu_log_frame, (os.path.basename(firmware_path)))
                 status_frame.grid(row=0, pady=10, sticky="EW")
                 status_frame.skip_to_installation()
                 try:
-                    self.gui.yuzu_firmware.start_firmware_installation_from_custom_zip(self.settings.yuzu.firmware_path, status_frame)
+                    self.gui.yuzu_firmware.start_firmware_installation_from_custom_zip(firmware_path, status_frame)
                 except Exception as error:
                     messagebox.showerror("Unknown Error", f"An unknown error occured during firmware installation \n\n {error}")
                     status_frame.destroy()
+                    self.installing_firmware_or_keys = False 
                     return False
                 status_frame.destroy()
+        self.installing_firmware_or_keys = False 
         if self.check_current_firmware() and self.check_current_keys():
             return True
        
+    def get_release_asset(self, api_url, mode):
+        class Release:
+            def __init__(self) -> None:
+                self.version = None
+                self.download_url = None
+                self.size = None 
+                
+        headers = get_headers(self.settings.app.token)
+        try:
+            response = requests.get(api_url, headers=headers, timeout=10)
+        except requests.exceptions.RequestException as error:
+            messagebox.showerror("Requests Error", "Failed to connect to API")
+            return (False, error)
+        try:
+            release_info = json.loads(response.text)[0]
+        except KeyError:
+            messagebox.showerror("API Error", "Unable to handle response, could be an API ratelimit")
+            return (False, "You have most likely been API rate limited")
+        if mode == "Keys":
+            query = "Beta"
+        elif mode == "Firmware":
+            query = "Alpha"
+        assets = release_info['assets']
+        url = None
+        size = None
+        version = None 
+        for asset in assets:
+            if query in asset['name']:
+                url = asset['browser_download_url']
+                size = asset['size']
+                version = asset['name'].replace(f"{query}.","").replace(".zip", "")
+                break
+        if not all((url, size, version)):
+            return (False, "Not all required information was found")
+        release = Release()
+        release.download_url = url 
+        release.size = size 
+        release.version = version
+        return (True, release)
+    def download_firmware_archive(self):
+        if not os.path.exists(os.getcwd()):
+            os.makedirs(os.getcwd())
+        firmware_release = self.get_release_asset('https://api.github.com/repos/Viren070/Emulator-Manager-Resources/releases', "Firmware")
+        if not all(firmware_release):
+            messagebox.showerror("Firmware Download Error", firmware_release[1])
+            return 
+        firmware = firmware_release[1]
+        headers = get_headers(self.settings.app.token)
+        response = requests.get(firmware.download_url, stream=True, headers=headers, timeout=30)
+        progress_frame = ProgressFrame(self.gui.yuzu_log_frame, f"Firmware {firmware.version}")
+        progress_frame.grid(row=0, column=0, sticky="ew")
+        progress_frame.total_size = firmware.size
+        download_path = os.path.join(os.getcwd(), f"Firmware {firmware.version}.zip")
+        with open(download_path, 'wb') as f:
+            downloaded_bytes = 0
+            try:
+                for chunk in response.iter_content(chunk_size=1024*203): 
+                    if progress_frame.cancel_download_raised:
+                        progress_frame.destroy()
+                        return
+                    f.write(chunk)
+                    downloaded_bytes += len(chunk)
+                    progress_frame.update_download_progress(downloaded_bytes, 1024*512)
+            except requests.exceptions.RequestException as error:
+                messagebox.showerror("Requests Error", f"Failed to download file\n\n{error}")
+                return False
+        progress_frame.skip_to_installation()
+        progress_frame.complete_download(None, "Status: Extracting...")
+        progress_frame.progress_bar.set(0)
+        progress_frame.destroy()
+        return download_path
+
     
+    def download_key_archive(self):
+        if not os.path.exists(os.getcwd()):
+            os.makedirs(os.getcwd())
+        key_release = self.get_release_asset('https://api.github.com/repos/Viren070/Emulator-Manager-Resources/releases', "Keys")
+        if not all(key_release):
+            messagebox.showerror("Download Error", key_release[1])
+            return 
+        keys = key_release[1]
+        headers = get_headers(self.settings.app.token)
+        response = requests.get(keys.download_url, stream=True, headers=headers, timeout=30)
+        progress_frame = ProgressFrame(self.gui.yuzu_log_frame, f"Keys {keys.version}")
+        progress_frame.grid(row=0, column=0, sticky="ew")
+        progress_frame.total_size = keys.size
+        download_path = os.path.join(os.getcwd(), f"Keys {keys.version}.zip")
+        with open(download_path, 'wb') as f:
+            downloaded_bytes = 0
+            try:
+                for chunk in response.iter_content(chunk_size=1024*203): 
+                    if progress_frame.cancel_download_raised:
+                        progress_frame.destroy()
+                        return
+                    f.write(chunk)
+                    downloaded_bytes += len(chunk)
+                    progress_frame.update_download_progress(downloaded_bytes, 1024*512)
+            except requests.exceptions.RequestException as error:
+                messagebox.showerror("Requests Error", f"Failed to download file\n\n{error}")
+                return False
+        progress_frame.skip_to_installation()
+        progress_frame.complete_download(None, "Status: Extracting...")
+        progress_frame.progress_bar.set(0)
+        progress_frame.destroy()
+        return download_path
+        
+    def install_keys(self, key_path, progress_frame):
+        if not isinstance(key_path, str):
+            raise TypeError(f"Expected path to keys of type str, but got {type(key_path)}")
+        if key_path.endswith(".zip"):
+            extracted_files = self.extract_key_archive(key_path, progress_frame)
+            if extracted_files:
+                messagebox.showinfo("Key Archive", f"Successfully extracted the key archive to \n{key_path} \n{{}}".format("which included the prod.keys" if "prod.keys" in extracted_files else "but prod.keys were not found"))
+        elif key_path.endswith(".keys"):
+            key_path = self.move_keys(key_path, progress_frame)
+            if key_path:
+                messagebox.showinfo("Key Install", f"Installed keys to {os.path.dirname(key_path)}")
+        else:
+            raise ValueError(f"Expected path to keys of type .zip or prod.keys but got {os.path.splitext(key_path)[-1]}")
     
+    def move_keys(self, key_path):
+        target_key_folder = os.path.join(self.settings.yuzu.user_directory, "keys")
+        if not os.path.exists(target_key_folder):
+            os.makedirs(target_key_folder)
+        target_key_location = os.path.join(target_key_folder, "prod.keys")
+        shutil.copy(key_path, target_key_location)
+        return target_key_location
+    
+    def extract_key_archive(self, archive, status_frame):
+        extract_folder = os.path.join(self.settings.yuzu.user_directory, "keys")
+        extracted_files = []
+        status_frame.update_extraction_progress(0)
+        with ZipFile(archive, 'r') as zip_ref:
+            total = len(zip_ref.namelist())
+            for file_info in zip_ref.infolist():
+                extracted_file_path = os.path.join(extract_folder, file_info.filename)
+                os.makedirs(os.path.dirname(extracted_file_path), exist_ok=True)
+                with zip_ref.open(file_info.filename) as source, open(extracted_file_path, 'wb') as target:
+                    target.write(source.read())
+                extracted_files.append(file_info.filename)
+                status_frame.update_extraction_progress(len(extracted_files)/total)
+        status_frame.destroy()
+        return extracted_files
         
     def export_yuzu_data(self):
         self.gui.configure_data_buttons(state="disabled")

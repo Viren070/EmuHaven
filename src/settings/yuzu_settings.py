@@ -41,8 +41,10 @@ class YuzuSettings:
             if not os.path.exists(self.default_settings[property_name]):
                 self._settings[property_name] = ""
             raise FileNotFoundError(f"{property_name.replace('__','/').replace('_',' ').title()} - Path does not exist: {value}")
-        if (property_name == "firmware_path" or property_name == "key_path") and not value.endswith(".zip"):
+        if property_name == "firmware_path" and not value.endswith(".zip"):
             raise ValueError(f"{property_name.replace('__','/').replace('_',' ').title()} - Invalid Filetype: Expected file extension of .zip but got {os.path.splitext(value)[-1]}")
+        elif property_name == "key_path" and not (value.endswith(".zip") or value == "prod.keys"):
+            raise ValueError(f"{property_name.replace('__','/').replace('_',' ').title()} - Invalid Filetype: Expected file extension of .zip or file with name prod.keys but got {os.path.splitext(value)[-1]}")
         elif property_name == "installer_path" and not value.endswith(".exe"):
             raise ValueError(f"{property_name.replace('__','/').replace('_',' ').title()} - Invalid Filetype: Expected file extension of .exe but got {os.path.splitext(value)[-1]}")
                           
