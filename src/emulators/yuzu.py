@@ -9,7 +9,7 @@ from zipfile import ZipFile
 
 import requests
 
-from gui.progress_frame import ProgressFrame
+from gui.frames.progress_frame import ProgressFrame
 from utils.file_utils import copy_directory_with_progress
 from utils.auth_token_manager import get_headers
 

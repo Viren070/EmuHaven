@@ -6,7 +6,7 @@ import customtkinter
 from PIL import Image
 
 from emulators.yuzu import Yuzu
-from gui.firmware_downloader import FirmwareDownloader
+from gui.frames.firmware_downloader import FirmwareDownloader
 
 
 class YuzuFrame(customtkinter.CTkFrame):
