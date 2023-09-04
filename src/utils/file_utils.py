@@ -2,7 +2,7 @@ import os
 import shutil
 from tkinter import messagebox
 
-from gui.progress_frame import ProgressFrame
+from gui.frames.progress_frame import ProgressFrame
 
 
 def copy_directory_with_progress(source_dir, target_dir, title, log_frame, exclude=None):
@@ -13,6 +13,7 @@ def copy_directory_with_progress(source_dir, target_dir, title, log_frame, exclu
         progress_bar.skip_to_installation()
         progress_bar.grid(row=0, column=0, sticky="nsew")
         progress_bar.grid_propagate(False)
+        progress_bar.cancel_download_button.configure(state="normal")
         # Get a list of all files and folders in the source directory
         all_files = []
         for root, dirs, files in os.walk(source_dir):
@@ -41,7 +42,9 @@ def copy_directory_with_progress(source_dir, target_dir, title, log_frame, exclu
         # Copy files from source to target directory and display progress
         copied_files = 0
         for file in all_files:
-            
+            if progress_bar.cancel_download_raised:
+                progress_bar.destroy()
+                return 
             
             target_file = os.path.join(target_dir, os.path.relpath(file, source_dir))
             
