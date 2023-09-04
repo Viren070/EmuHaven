@@ -19,7 +19,7 @@ class EmulatorManager(customtkinter.CTk):
         self.just_opened = True
         super().__init__()
         self.settings = Settings(self, root_dir)
-        self.version = "v0.9.3"
+        self.version = "v0.10.0-alpha.1"
         self.root_dir = root_dir
         self.x = pos[0]
         self.y = pos[1]

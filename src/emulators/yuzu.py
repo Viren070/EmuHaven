@@ -76,6 +76,8 @@ class Yuzu:
         else:
             return False 
     
+    def install_yuzu_from_github(self):
+        pass 
     def run_yuzu_install_wrapper(self):
         if not self.check_yuzu_installer():
             messagebox.showerror("Yuzu Error", "Please verify that you have specified the path to the yuzu installer in the settings page.")
@@ -588,13 +590,14 @@ class Yuzu:
             if extracted_files:
                 messagebox.showinfo("Key Archive", f"Successfully extracted the key archive to \n{key_path} \n{{}}".format("which included the prod.keys" if "prod.keys" in extracted_files else "but prod.keys were not found"))
         elif key_path.endswith(".keys"):
-            key_path = self.move_keys(key_path, progress_frame)
+            key_path = self.copy_keys(key_path)
+            progress_frame.destroy()
             if key_path:
                 messagebox.showinfo("Key Install", f"Installed keys to {os.path.dirname(key_path)}")
         else:
             raise ValueError(f"Expected path to keys of type .zip or prod.keys but got {os.path.splitext(key_path)[-1]}")
     
-    def move_keys(self, key_path):
+    def copy_keys(self, key_path):
         target_key_folder = os.path.join(self.settings.yuzu.user_directory, "keys")
         if not os.path.exists(target_key_folder):
             os.makedirs(target_key_folder)
