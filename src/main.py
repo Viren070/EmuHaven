@@ -1,6 +1,6 @@
 import os
 
-from gui.emulator_manager import EmulatorManager
+from gui.windows.emulator_manager import EmulatorManager
 from settings.app_settings import load_customtkinter_themes
 
 def main():
