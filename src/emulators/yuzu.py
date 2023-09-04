@@ -126,19 +126,17 @@ class Yuzu:
         if ea_mode:
             if not self.check_yuzu_ea_installation():
                 messagebox.showerror("Yuzu EA", "Please ensure that you have installed yuzu EA before trying to launch it. Press 'Install Yuzu EA' to the left to install it")
-                return
-            if not event.state & 1:
+            elif not event.state & 1:
                 self.gui.launch_yuzu_early_access.configure(state="disabled", text="Fetching Updates...  ", width=200)
                 self.gui.install_early_access.configure(state="disabled")
                 self.gui.delete_early_access_button.configure(state="disabled")
                 Thread(target=self.check_and_install_yuzu_ea).start()
-                return
             else:
                 self.gui.launch_yuzu_early_access.configure(state="disabled")
                 self.gui.install_early_access.configure(state="disabled")
                 self.gui.delete_early_access_button.configure(state="disabled")
                 Thread(target=self.start_yuzu, args=(None,True,)).start()
-                return
+            return
         if not self.check_yuzu_installation():
             messagebox.showerror("Yuzu", "Please ensure that you have installed yuzu before trying to launch it")
             return
@@ -155,21 +153,26 @@ class Yuzu:
                 for widget in self.gui.yuzu_log_frame.winfo_children():
                         widget.destroy()
                 if not messagebox.askyesno("Error", f"Unable to load your data, would you like to continue\n\n Full Error: {error}"):
-                    self.gui.yuzu_launch_yuzu_button.configure(state="normal", text="Launch Yuzu  ")
-                    self.gui.yuzu_install_yuzu_button.configure(state="normal")
-                    self.gui.launch_yuzu_early_access.configure(state="normal", text="Launch Yuzu EA  ")
-                    self.gui.install_early_access.configure(state="normal")
-                    self.gui.delete_early_access_button.configure(state="normal")
+                    if ea_mode:
+                        self.gui.launch_yuzu_early_access.configure(state="normal", text="Launch Yuzu EA  ")
+                        self.gui.install_early_access.configure(state="normal")
+                        self.gui.delete_early_access_button.configure(state="normal")
+                    else:
+                        self.gui.yuzu_launch_yuzu_button.configure(state="normal", text="Launch Yuzu  ")
+                        self.gui.yuzu_install_yuzu_button.configure(state="normal")
                     return 
                     
         if not self.check_current_firmware() or not self.check_current_keys():
             if messagebox.askyesno("Error","You are missing your keys or firmware. Keys are required. Without the firmware, some games will not run (e.g. Mario Kart 8 Deluxe). Would you like to install the missing files?"):
                 if not self.install_missing_firmware_or_keys():
-                    self.gui.yuzu_launch_yuzu_button.configure(state="normal", text="Launch Yuzu  ")
-                    self.gui.yuzu_install_yuzu_button.configure(state="normal")
-                    self.gui.launch_yuzu_early_access.configure(state="normal", text="Launch Yuzu EA  ")
-                    self.gui.install_early_access.configure(state="normal")
-                    self.gui.delete_early_access_button.configure(state="normal")
+                    if ea_mode:
+                        self.gui.launch_yuzu_early_access.configure(state="normal", text="Launch Yuzu EA  ")
+                        self.gui.install_early_access.configure(state="normal")
+                        self.gui.delete_early_access_button.configure(state="normal")
+                    else:
+                        self.gui.yuzu_launch_yuzu_button.configure(state="normal", text="Launch Yuzu  ")
+                        self.gui.yuzu_install_yuzu_button.configure(state="normal")
+                    
                     return
         
         
@@ -185,22 +188,30 @@ class Yuzu:
             self.gui.yuzu_launch_yuzu_button.configure(text="Launched!  ")
         self.running = True
         try:     
-            subprocess.run(args, capture_output=True) # subprocess.run with arguments defined earlier
+            subprocess.run(args, capture_output=True, check=False) # subprocess.run with arguments defined earlier
         except Exception as error_msg:
             messagebox.showerror("Error", f"Error when running Yuzu: \n{error_msg}")
         self.running = False
         if self.gui.yuzu_global_data.get() == "True":
             try:
-                self.gui.yuzu_launch_yuzu_button.configure(state="disabled", text="Launch Yuzu  ")
-                self.gui.launch_yuzu_early_access.configure(text="Launch Yuzu EA  ")
+                
+                if ea_mode:
+                    self.gui.launch_yuzu_early_access.configure(text="Launch Yuzu EA  ")
+                else:
+                    self.gui.yuzu_launch_yuzu_button.configure(state="disabled", text="Launch Yuzu  ")
                 copy_directory_with_progress(self.settings.yuzu.user_directory, (os.path.join(self.settings.yuzu.auto_import__export_directory, os.getlogin())), "Saving Yuzu Data", self.gui.yuzu_log_frame)
             except Exception as error:
                 messagebox.showerror("Save Error", f"Unable to save your data\n\nFull Error: {error}")
-        self.gui.yuzu_launch_yuzu_button.configure(state="normal", text="Launch Yuzu  ")
-        self.gui.yuzu_install_yuzu_button.configure(state="normal")
-        self.gui.launch_yuzu_early_access.configure(state="normal", text="Launch Yuzu EA  ")
-        self.gui.install_early_access.configure(state="normal")
-        self.gui.delete_early_access_button.configure(state="normal")
+                
+        if ea_mode:
+            self.gui.launch_yuzu_early_access.configure(state="normal", text="Launch Yuzu EA  ")
+            self.gui.install_early_access.configure(state="normal")
+            self.gui.delete_early_access_button.configure(state="normal")
+        else:
+            
+            self.gui.yuzu_launch_yuzu_button.configure(state="normal", text="Launch Yuzu  ")
+            self.gui.yuzu_install_yuzu_button.configure(state="normal")
+        
     
     
     def check_for_ea_update(self):
