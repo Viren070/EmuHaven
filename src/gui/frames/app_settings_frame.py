@@ -60,6 +60,13 @@ class AppSettings(customtkinter.CTkFrame):
         self.actions_frame.grid(row=10,sticky="ew", columnspan=5, padx=10, pady=10)
         self.requests_left_label = customtkinter.CTkLabel(self.actions_frame, anchor="w", justify="left",text=f"API Requests Left: Unknown\nResets in: Unknown")
         self.requests_left_label.bind("<Button-1>", command=self.start_update_requests_left)
+        CTkToolTip(self.requests_left_label, message=
+                    "GitHub API Usage:\n"
+                    "This shows the number of requests you can make using the GitHub REST API.\n"
+                    "These requests are used to download Dolphin and Yuzu.\n"
+                    "Rate Limits: 60/hr (anonymous) or 5000/hr (with a token).\n"
+                    "Click to refresh this information."
+            )
         self.start_update_requests_left(show_error=False)
         self.requests_left_label.grid(row=8, column=0, padx=10, pady=10, sticky="w")
         button=customtkinter.CTkButton(self.actions_frame, text="Login with GitHub", command=self.open_token_window)
