@@ -28,6 +28,7 @@ class YuzuSettings:
                     os.makedirs(value)
                     setattr(self, name, value)
     def _set_directory_property(self, property_name, value):
+        value = os.path.abspath(value)
         if is_path_exists_or_creatable(value):
             self._settings[property_name] = value
         else:
