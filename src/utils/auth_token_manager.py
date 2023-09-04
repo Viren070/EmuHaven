@@ -40,13 +40,12 @@ def get_rate_limit_status(token):
         response = requests.get(url, headers=headers)
         response.raise_for_status()
     except requests.exceptions.RequestException as error:
-        print(error)
-        return "Unknown"
+        return (False, error)
     if response.status_code == 200:
         data = response.json()
-        return data["resources"]["core"]
+        return (True,data["resources"]["core"])
     else:
-        print(f"Error: {response.status_code} - {response.text}")
+        return (False,f"{response.status_code} - {response.text}")
         
 
 def request_token(device_code):

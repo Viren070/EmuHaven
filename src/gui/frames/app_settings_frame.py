@@ -60,8 +60,7 @@ class AppSettings(customtkinter.CTkFrame):
         self.actions_frame.grid(row=10,sticky="ew", columnspan=5, padx=10, pady=10)
         self.requests_left_label = customtkinter.CTkLabel(self.actions_frame, anchor="w", justify="left",text=f"API Requests Left: Unknown\nResets in: Unknown")
         self.requests_left_label.bind("<Button-1>", command=self.start_update_requests_left)
-        CTkToolTip(self.requests_left_label, message="This the number of requests you have left to make using the GitHub REST API.\nThis is used to download Dolphin and Yuzu.\nRate Limits: 60/hr or 5000/hr with a token.")
-        self.start_update_requests_left()
+        self.start_update_requests_left(show_error=False)
         self.requests_left_label.grid(row=8, column=0, padx=10, pady=10, sticky="w")
         button=customtkinter.CTkButton(self.actions_frame, text="Login with GitHub", command=self.open_token_window)
         button.grid(row=8, column=1, padx=10, pady=10, sticky="e")
@@ -70,12 +69,18 @@ class AppSettings(customtkinter.CTkFrame):
     def start_update_requests_left(self, event=None, show_error=True):
         if self.update_status and not self.update_requests_thread.is_alive():
             self.requests_left_label.configure(text=f"API Requests Left: Fetching...\nResets in: Fetching...", anchor="w")
-            self.update_requests_thread = Thread(target=self.update_requests_left, args=(self.settings.app.token,))
+            self.update_requests_thread = Thread(target=self.update_requests_left, args=(self.settings.app.token, show_error))
             self.update_requests_thread.start()
         else:
             messagebox.showerror("API Rate Limit Status", "Please wait, there is currently a fetch in progress. Or it has been disabled.")
-    def update_requests_left(self, token):
+    def update_requests_left(self, token, show_error=True):
         rate_limit_status = get_rate_limit_status(token)
+        if not all(rate_limit_status):
+            self.requests_left_label.configure(text=f"API Requests Left: Unknown\nResets in: Unknown")
+            if show_error:
+                messagebox.showerror("Requests Error", rate_limit_status[1])
+            return
+        rate_limit_status = rate_limit_status[1]
         r_left = rate_limit_status["remaining"]
         t_left = rate_limit_status["reset"]
         self.requests_left_label.configure(text=f"API Requests Left: {r_left}\nResets in: {calculate_relative_time(int(t_left))}")
