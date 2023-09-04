@@ -24,6 +24,7 @@ class GitHubLoginWindow(customtkinter.CTkToplevel):
     def on_closing(self):
         self.master.token_gen = None 
         self.poll_token = False
+        self.token_response = "EXIT"
         self.destroy()
     def create_widgets(self):
         self.label = customtkinter.CTkLabel(self, text="Click the 'Authorise' button to start the authentication process.")
@@ -81,7 +82,7 @@ class GitHubLoginWindow(customtkinter.CTkToplevel):
 
     def poll_for_token(self, device_code, interval):
         requests_made = 2
-        while self.poll_token:
+        while self.poll_token:         
             try:
                 token_response = request_token(device_code)
                 requests_made+=1
@@ -114,12 +115,14 @@ class GitHubLoginWindow(customtkinter.CTkToplevel):
                 messagebox.showerror("Error", f"Request error: {e}")
                 self.token_response = None 
                 return
-    
+        return    
     def check_token_status(self, token_poll_thread):
         token_poll_thread.join()
  
         # Polling thread has finished, handle the result
-        if self.token_response != 0:
+        if self.token_response == "EXIT":
+            return
+        elif self.token_response != 0:
             # Authentication successful
             self.grab_release()
             self.bring_window_to_top(self.master.parent_frame.parent_frame)
@@ -138,7 +141,6 @@ class GitHubLoginWindow(customtkinter.CTkToplevel):
 
 
     def bring_window_to_top(self, window):
-        window = self.master.parent_frame.parent_frame
         window.deiconify()  # Restore the window if minimized
         window.focus_force()  # Bring the window into focus
         window.lift()  # Raise the window to the top
