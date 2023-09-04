@@ -116,6 +116,8 @@ class Dolphin:
                 return False
             if self.verify_dolphin_zip():
                 self.extract_dolphin_install()
+            else:
+                messagebox.showerror("Dolphin Install", "An unknown error has occured and the downloaded zip file could not be verified.")
             
            
         
