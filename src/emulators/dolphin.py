@@ -47,7 +47,7 @@ class Dolphin:
         if not os.path.exists(download_folder):
             os.makedirs(download_folder)
         try:
-            response = requests.get(self.dolphin_download_api, headers=get_headers(), timeout=10)
+            response = requests.get(self.dolphin_download_api, headers=get_headers(self.settings.app.token), timeout=10)
         except requests.exceptions.RequestException as error:
             print(error)
             messagebox.showerror("Requests Error", "Failed to connect to API")
@@ -75,7 +75,7 @@ class Dolphin:
             break
         progress_frame = ProgressFrame(self.gui.dolphin_log_frame, f"Dolphin {version}")
         download_path = os.path.join(download_folder, f"Dolphin {version}.zip")
-        response = requests.get(url, stream=True, headers=get_headers(), timeout=30)
+        response = requests.get(url, stream=True, headers=get_headers(self.settings.app.token), timeout=30)
         
         progress_frame.grid(row=0, column=0, sticky="ew")
         progress_frame.total_size = size

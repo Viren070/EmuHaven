@@ -4,28 +4,20 @@ import requests
 TOKEN_FILE = os.path.join(os.getenv("APPDATA"), "Emulator Manager", ".token") 
 CLIENT_ID = "Iv1.f1a084535d67fabb"
 
-def get_headers():
+def get_headers(token=None):
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246'
              
         }
-        token = get_token()
         if token:
             headers["Accept"]= "application/vnd.github+json"
             headers["Authorization"] = f"BEARER {token}"
             headers["X-GitHub-Api-Version"]="2022-11-28"
-            
+            print("returning headers with token")
             
         return headers
     
-def get_token():
-    if not os.path.exists(TOKEN_FILE):
-        return False 
-    with open(TOKEN_FILE, "r") as f:
-        token = f.read()
-        if not token:
-            return False 
-        return token
+
     
 def delete_token_file():
     if not os.path.exists(TOKEN_FILE):
@@ -36,10 +28,7 @@ def delete_token_file():
     except Exception as error:
         return (False, error)
         
-def get_rate_limit_status():
-    token = get_token()
- 
-    
+def get_rate_limit_status(token):
     url = "https://api.github.com/rate_limit"
     headers = {
         "Accept": "application/vnd.github+json",

@@ -57,7 +57,7 @@ class AppSettings(customtkinter.CTkFrame):
         self.actions_frame.grid_columnconfigure(0, weight=1)
         self.actions_frame.grid(row=10,sticky="ew", columnspan=5, padx=10, pady=10)
         self.requests_left_label = customtkinter.CTkLabel(self.actions_frame, text=f"Requests Left:")
-        self.requests_left_label.bind("<Button-1>", self.start_update_requests_left)
+        self.requests_left_label.bind("<Button-1>", command=self.start_update_requests_left)
         CTkToolTip(self.requests_left_label, message="This the number of requests you have left to make using the GitHub REST API.\nThis is used to download Dolphin and Yuzu EA.\nRate Limits: 60/hr or 5000/hr with a token.")
         self.start_update_requests_left()
         self.requests_left_label.grid(row=8, column=0, padx=10, pady=10, sticky="w")
@@ -74,15 +74,12 @@ class AppSettings(customtkinter.CTkFrame):
         else:
             messagebox.showerror("Delete error", result[1])
     def start_update_requests_left(self, event=None):
-        if self.update_status:
-            Thread(target=self.update_requests_left).start()
-    def update_requests_left(self):
-        try:
-            self.requests_left_label.configure(text=f"Requests Left: {get_rate_limit_status()}")
-        except Exception as error:
-            messagebox.showerror("Requests Error", "Failed to fetch rate limit status")
-            print(error)
-            self.update_status = False
+        if self.update_status and not self.update_requests_thread.is_alive():
+            self.requests_left_label.configure(text=f"API Requests Left: Fetching...\nResets in: Fetching...", anchor="w")
+            self.update_requests_thread = Thread(target=self.update_requests_left, args=(self.settings.app.token,))
+            self.update_requests_thread.start()
+        else:
+            messagebox.showerror("API Rate Limit Status", "Please wait, there is currently a fetch in progress. Or it has been disabled.")
     def change_colour_theme(self, theme):
         if customtkinter.ThemeManager._currently_loaded_theme.replace("-"," ").title() == theme: # if current theme is the same as the proposed theme, return
             return

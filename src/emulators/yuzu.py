@@ -266,7 +266,7 @@ class Yuzu:
                 self.version = None
                 self.download_url = None
                 self.size = None 
-        headers = get_headers()
+        headers = get_headers(self.settings.app.token)
         api_url = 'https://api.github.com/repos/pineappleEA/pineapple-src/releases'
         try:
             response = requests.get(api_url, headers=headers, timeout=10)
@@ -323,7 +323,7 @@ class Yuzu:
             if not os.path.exists(temp_path):
                 os.makedirs(temp_path)
             download_path = os.path.join(temp_path, "yuzu-ea.zip")
-            headers = get_headers()
+            headers = get_headers(self.settings.app.token)
             response = requests.get(latest_release.download_url, stream=True, headers=headers, timeout=30)
             
             progress_frame.grid(row=0, column=0, sticky="ew")
