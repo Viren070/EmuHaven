@@ -7,7 +7,7 @@ from CTkToolTip import *
 from settings.app_settings import get_colour_themes
 from gui.windows.github_login_window import GitHubLoginWindow
 from threading import Thread
-from utils.auth_token_manager import get_rate_limit_status, delete_token_file
+from utils.auth_token_manager import get_rate_limit_status
 from utils.time_utils import calculate_relative_time
 
 class AppSettings(customtkinter.CTkFrame):
@@ -65,17 +65,9 @@ class AppSettings(customtkinter.CTkFrame):
         self.requests_left_label.grid(row=8, column=0, padx=10, pady=10, sticky="w")
         button=customtkinter.CTkButton(self.actions_frame, text="Login with GitHub", command=self.open_token_window)
         button.grid(row=8, column=1, padx=10, pady=10, sticky="e")
-        button.bind("<Shift-Button-1>", self.delete_token)
         CTkToolTip(button, message="Optional feature to increase API request limit to 5000/hr for 8 hours. No data is stored.\nYou will have to log in again the next time you open the app")
         
-        
-    def delete_token(self, event=None):
-        result=delete_token_file()
-        if all(result):
-            messagebox.showinfo("Delete result", result[1])
-        else:
-            messagebox.showerror("Delete error", result[1])
-    def start_update_requests_left(self, event=None):
+    def start_update_requests_left(self, event=None, show_error=True):
         if self.update_status and not self.update_requests_thread.is_alive():
             self.requests_left_label.configure(text=f"API Requests Left: Fetching...\nResets in: Fetching...", anchor="w")
             self.update_requests_thread = Thread(target=self.update_requests_left, args=(self.settings.app.token,))
