@@ -8,6 +8,7 @@ from settings.app_settings import get_colour_themes
 from gui.windows.github_login_window import GitHubLoginWindow
 from threading import Thread
 from utils.auth_token_manager import get_rate_limit_status, delete_token_file
+from utils.time_utils import calculate_relative_time
 
 class AppSettings(customtkinter.CTkFrame):
     def __init__(self, parent_frame, settings):
@@ -15,6 +16,7 @@ class AppSettings(customtkinter.CTkFrame):
         self.settings = settings 
         self.parent_frame = parent_frame
         self.update_status = True
+        self.update_requests_thread = Thread(target=self.update_requests_left, args=(self.settings.app.token,))
         self.token_gen = None
         self.build_frame()
     def build_frame(self):
@@ -56,15 +58,15 @@ class AppSettings(customtkinter.CTkFrame):
         self.actions_frame = customtkinter.CTkFrame(self, fg_color="transparent")
         self.actions_frame.grid_columnconfigure(0, weight=1)
         self.actions_frame.grid(row=10,sticky="ew", columnspan=5, padx=10, pady=10)
-        self.requests_left_label = customtkinter.CTkLabel(self.actions_frame, text=f"Requests Left:")
+        self.requests_left_label = customtkinter.CTkLabel(self.actions_frame, anchor="w", justify="left",text=f"API Requests Left: Unknown\nResets in: Unknown")
         self.requests_left_label.bind("<Button-1>", command=self.start_update_requests_left)
-        CTkToolTip(self.requests_left_label, message="This the number of requests you have left to make using the GitHub REST API.\nThis is used to download Dolphin and Yuzu EA.\nRate Limits: 60/hr or 5000/hr with a token.")
+        CTkToolTip(self.requests_left_label, message="This the number of requests you have left to make using the GitHub REST API.\nThis is used to download Dolphin and Yuzu.\nRate Limits: 60/hr or 5000/hr with a token.")
         self.start_update_requests_left()
         self.requests_left_label.grid(row=8, column=0, padx=10, pady=10, sticky="w")
-        button=customtkinter.CTkButton(self.actions_frame, text="Generate GitHub Token", command=self.open_token_window)
+        button=customtkinter.CTkButton(self.actions_frame, text="Login with GitHub", command=self.open_token_window)
         button.grid(row=8, column=1, padx=10, pady=10, sticky="e")
         button.bind("<Shift-Button-1>", self.delete_token)
-        CTkToolTip(button, message="This is a completely optional feature.\nThis will store a temporary (8 hour) user access token for GitHub locally.\nShift click me to delete the token. It will be automatically deleted\nwhen you close the application.")
+        CTkToolTip(button, message="Optional feature to increase API request limit to 5000/hr for 8 hours. No data is stored.\nYou will have to log in again the next time you open the app")
         
         
     def delete_token(self, event=None):
@@ -80,6 +82,12 @@ class AppSettings(customtkinter.CTkFrame):
             self.update_requests_thread.start()
         else:
             messagebox.showerror("API Rate Limit Status", "Please wait, there is currently a fetch in progress. Or it has been disabled.")
+    def update_requests_left(self, token):
+        rate_limit_status = get_rate_limit_status(token)
+        r_left = rate_limit_status["remaining"]
+        t_left = rate_limit_status["reset"]
+        self.requests_left_label.configure(text=f"API Requests Left: {r_left}\nResets in: {calculate_relative_time(int(t_left))}")
+
     def change_colour_theme(self, theme):
         if customtkinter.ThemeManager._currently_loaded_theme.replace("-"," ").title() == theme: # if current theme is the same as the proposed theme, return
             return
