@@ -5,7 +5,7 @@ import customtkinter
 from CTkToolTip import *
 
 from settings.app_settings import get_colour_themes
-from gui.github_token_gen import GitHubTokenGen
+from gui.windows.github_login_window import GitHubLoginWindow
 from threading import Thread
 from utils.auth_token_manager import get_rate_limit_status, delete_token_file
 
@@ -116,7 +116,7 @@ class AppSettings(customtkinter.CTkFrame):
         
     def open_token_window(self):
         if self.token_gen is None:
-            self.token_gen = GitHubTokenGen(self)
+            self.token_gen = GitHubLoginWindow(self)
             self.token_gen.grab_set()
         else:
             self.token_gen.focus()
