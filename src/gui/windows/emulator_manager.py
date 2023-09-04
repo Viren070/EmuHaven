@@ -1,6 +1,6 @@
 import os
 import shutil
-from hashlib import pbkdf2_hmac
+from sys import exit as sysexit
 from tkinter import messagebox
 
 import customtkinter
@@ -150,5 +150,5 @@ class EmulatorManager(customtkinter.CTk):
                 pass
         delete_token_file()
         self.destroy()
-        exit()
+        sysexit()
         
