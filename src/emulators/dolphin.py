@@ -114,7 +114,6 @@ class Dolphin:
                 self.gui.dolphin_install_dolphin_button.configure(state="normal")
                 self.gui.dolphin_delete_dolphin_button.configure(state="normal")
                 return False
-            messagebox.showinfo("Dolphin Download", f"{os.path.basename(download_path)} was successfully downloaded to {os.path.dirname(download_path)}")
             if self.verify_dolphin_zip():
                 self.extract_dolphin_install()
             
