@@ -45,7 +45,7 @@ class YuzuFrame(customtkinter.CTkFrame):
         
         self.center_frame = customtkinter.CTkFrame(self.yuzu_start_frame, border_width=0)
         self.center_frame.grid(row=0, column=0, sticky="nsew")
-        self.center_frame.grid_propagate(False)
+        #self.center_frame.grid_propagate(False)
         self.center_frame.grid_columnconfigure(0, weight=1)
         self.center_frame.grid_rowconfigure(0, weight=1)
         self.center_frame.grid_rowconfigure(1, weight=1)
@@ -63,25 +63,27 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.image_button = customtkinter.CTkButton(self.center_frame, text="", fg_color='transparent', hover=False, bg_color='transparent', border_width=0, image=self.mainline_image)
         self.image_button.grid(row=0, column=0, columnspan=3, sticky="n", padx=10, pady=20)
 
-        self.yuzu_actions_frame = customtkinter.CTkFrame(self.center_frame)
-        self.yuzu_actions_frame.grid(row=2, column=0, columnspan=3)
+        self.mainline_actions_frame = customtkinter.CTkFrame(self.center_frame)
+        self.mainline_actions_frame.grid(row=2, column=0, columnspan=3)
         
-        self.yuzu_actions_frame.grid_columnconfigure(0, weight=1)  # Stretch horizontally
-        self.yuzu_actions_frame.grid_columnconfigure(1, weight=1)  # Stretch horizontally
-        self.yuzu_actions_frame.grid_columnconfigure(2, weight=1)  # Stretch horizontally
+        self.mainline_actions_frame.grid_columnconfigure(0, weight=1)  # Stretch horizontally
+        self.mainline_actions_frame.grid_columnconfigure(1, weight=1)  # Stretch horizontally
+        self.mainline_actions_frame.grid_columnconfigure(2, weight=1)  # Stretch horizontally
         
-        self.yuzu_launch_yuzu_button = customtkinter.CTkButton(self.yuzu_actions_frame, height=40, width=170, image=self.play_image, text="Launch Yuzu  ", command=self.yuzu.start_yuzu_wrapper, font=customtkinter.CTkFont(size=15, weight="bold"))
-        self.yuzu_launch_yuzu_button.grid(row=0, column=2, padx=30, pady=15, sticky="n")
-        self.yuzu_launch_yuzu_button.bind("<Button-1>", command=lambda event: self.yuzu.start_yuzu_wrapper(event))
+        self.launch_mainline_button = customtkinter.CTkButton(self.mainline_actions_frame, height=40, width=170, image=self.play_image, text="Launch Yuzu  ", command=self.yuzu.start_yuzu_wrapper, font=customtkinter.CTkFont(size=15, weight="bold"))
+        self.launch_mainline_button.grid(row=0, column=2, padx=30, pady=15, sticky="n")
+        self.launch_mainline_button.bind("<Button-1>", command=lambda event: self.yuzu.start_yuzu_wrapper(event))
         #self.yuzu_launch_yuzu_button.bind("<Shift-Control-Button-1>", command=lambda event: self.yuzu.start_yuzu_wrapper(event, True))
         
         self.yuzu_global_data = customtkinter.StringVar(value=self.settings.app.auto_import__export_default_value)
-        self.yuzu_global_user_data_checkbox = customtkinter.CTkCheckBox(self.yuzu_actions_frame, text = "Auto Import/Export", variable=self.yuzu_global_data, onvalue="True", offvalue="False")
-        self.yuzu_global_user_data_checkbox.grid(row=0,column=3, sticky="ew", padx=(0,35))
+        self.yuzu_global_user_data_checkbox = customtkinter.CTkCheckBox(self.mainline_actions_frame, text = "Auto Import/Export", variable=self.yuzu_global_data, onvalue="True", offvalue="False")
+        self.yuzu_global_user_data_checkbox.grid(row=1,column=2, sticky="n", padx=10, pady=5)
 
-        self.yuzu_install_yuzu_button = customtkinter.CTkButton(self.yuzu_actions_frame, text="Install Yuzu", command=self.yuzu.run_yuzu_install_wrapper)
-        self.yuzu_install_yuzu_button.grid(row=0, column=1,padx=10, pady=5, sticky="ew")
+        self.install_mainline_button = customtkinter.CTkButton(self.mainline_actions_frame, text="Install Yuzu", command=self.install_mainline_button_event)
+        self.install_mainline_button.grid(row=0, column=1,padx=10, pady=5, sticky="ew")
         
+        self.delete_mainline_button = customtkinter.CTkButton(self.mainline_actions_frame, text="Delete Yuzu", fg_color="red", hover_color="darkred", command=self.delete_mainline_button_event)
+        self.delete_mainline_button.grid(row=0, column=3, padx=10, pady=5, sticky="ew")
         
         ### Early Access Actions Frame 
         
@@ -91,23 +93,34 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.early_access_actions_frame.grid_columnconfigure(1, weight=1)  # Stretch horizontally
         self.early_access_actions_frame.grid_columnconfigure(2, weight=1)  # Stretch horizontally
         
-        self.launch_yuzu_early_access = customtkinter.CTkButton(self.early_access_actions_frame, height=40, width=170, image=self.play_image, text="Launch Yuzu EA  ", command=self.yuzu.start_yuzu_wrapper, font=customtkinter.CTkFont(size=15, weight="bold"))
-        self.launch_yuzu_early_access.grid(row=0, column=2, padx=30, pady=15, sticky="n")
-        self.launch_yuzu_early_access.bind("<Button-1>", command=lambda event: self.yuzu.start_yuzu_wrapper(event, True))
+        self.launch_early_access_button = customtkinter.CTkButton(self.early_access_actions_frame, height=40, width=170, image=self.play_image, text="Launch Yuzu EA  ", command=self.yuzu.start_yuzu_wrapper, font=customtkinter.CTkFont(size=15, weight="bold"))
+        self.launch_early_access_button.grid(row=0, column=2, padx=30, pady=15, sticky="n")
+        self.launch_early_access_button.bind("<Button-1>", command=lambda event: self.yuzu.start_yuzu_wrapper(event, True))
         #self.yuzu_launch_yuzu_button.bind("<Shift-Control-Button-1>", command=lambda event: self.yuzu.start_yuzu_wrapper(event, True))
-        self.delete_early_access_button = customtkinter.CTkButton(self.early_access_actions_frame, text="Delete Yuzu EA", fg_color="red", hover_color="darkred", command=self.delete_yuzu_ea_button_event)
+        self.delete_early_access_button = customtkinter.CTkButton(self.early_access_actions_frame, text="Delete Yuzu EA", fg_color="red", hover_color="darkred", command=self.delete_early_access_button_event)
         self.delete_early_access_button.grid(row=0, column=3, padx=10, pady=5, sticky="ew")
         
         self.yuzu_global_user_data_checkbox = customtkinter.CTkCheckBox(self.early_access_actions_frame, text = "Auto Import/Export", variable=self.yuzu_global_data, onvalue="True", offvalue="False")
         self.yuzu_global_user_data_checkbox.grid(row=1,column=2, sticky="n", padx=10, pady=5)
 
-        self.install_early_access = customtkinter.CTkButton(self.early_access_actions_frame, text="Install Yuzu EA  ", command=self.yuzu.install_ea_yuzu_wrapper)
-        self.install_early_access.grid(row=0, column=1,padx=10, pady=5, sticky="ew")
-
+        self.install_early_access_button = customtkinter.CTkButton(self.early_access_actions_frame, text="Install Yuzu EA  ", command=self.yuzu.install_ea_yuzu_wrapper)
+        self.install_early_access_button.grid(row=0, column=1,padx=10, pady=5, sticky="ew")
+        
+        firmware_keys_frame = customtkinter.CTkFrame(self.center_frame)
+        firmware_keys_frame.grid(row=3, column=0, padx=10, pady=10, columnspan=3)
+        firmware_keys_frame.grid_columnconfigure(0, weight=1)
+        firmware_keys_frame.grid_columnconfigure(1, weight=1)
+        firmware_keys_frame.grid_columnconfigure(2, weight=1)
+        firmware_keys_frame.grid_rowconfigure(0, weight=1)
+        self.install_firmware_button = customtkinter.CTkButton(firmware_keys_frame, text="Install Firmware", command=self.install_firmware_button_event)
+        self.install_firmware_button.grid(row=0, column=0, pady=5, padx=20, sticky="w")
+        self.install_keys_button = customtkinter.CTkButton(firmware_keys_frame, text="Install Keys", command=self.install_keys_button_event)
+        self.install_keys_button.grid(row=0, column=3, pady=5, padx=20, sticky="e")
+        
         
    
         self.yuzu_log_frame = customtkinter.CTkFrame(self.center_frame, fg_color='transparent', border_width=0)
-        self.yuzu_log_frame.grid(row=3, column=0, padx=80, sticky="ew")
+        self.yuzu_log_frame.grid(row=4, column=0, padx=80, sticky="ew")
         self.yuzu_log_frame.grid_propagate(False)
         self.yuzu_log_frame.grid_columnconfigure(0, weight=3)
         # create yuzu 'Manage Data' frame and widgets
@@ -154,14 +167,30 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.yuzu_firmware_options_button.grid(row=1, column=1, pady=(0,30))
         
         self.early_access_actions_frame.grid_propagate(False)
-        self.yuzu_actions_frame.grid_propagate(False)
+        self.mainline_actions_frame.grid_propagate(False)
         self.selected_channel.set(self.settings.app.default_yuzu_channel)
         self.switch_channel()
     def configure_data_buttons(self, **kwargs):
         self.yuzu_delete_button.configure(**kwargs)
         self.yuzu_import_button.configure(**kwargs)
         self.yuzu_export_button.configure(**kwargs)
-        
+    def configure_mainline_buttons(self, state, **kwargs):
+        self.launch_mainline_button.configure(state=state, **kwargs)
+        self.install_mainline_button.configure(state=state)
+    def configure_early_access_buttons(self, state, **kwargs):
+        self.install_early_access_button.configure(state=state)
+        self.launch_early_access_button.configure(state=state, **kwargs)
+        self.delete_early_access_button.configure(state=state)
+    def configure_firmware_key_buttons(self, state):
+        self.install_firmware_button.configure(state=state)
+        self.install_keys_button.configure(state=state)
+    def revert_early_access_buttons(self):
+        self.install_early_access_button.configure(text="Install Yuzu EA", state="normal")
+        self.launch_early_access_button.configure(text="Launch Yuzu EA  ", width=170, state="normal")
+        self.delete_early_access_button.configure(text="Delete Yuzu EA", state="normal")
+    def revert_mainline_buttons(self):
+        self.launch_mainline_button.configure(text="Launch Yuzu  ", width=170, state="normal")
+        self.install_mainline_button.configure(text="Install Yuzu", state="normal")
     def yuzu_start_button_event(self):
         self.select_yuzu_frame_by_name("start")
     def yuzu_manage_data_button_event(self):
@@ -190,21 +219,69 @@ class YuzuFrame(customtkinter.CTkFrame):
         value=self.selected_channel.get()
         if value == "Mainline":
             self.image_button.configure(image=self.mainline_image)
-            self.yuzu_actions_frame.grid(row=2, column=0, columnspan=3)
+            self.mainline_actions_frame.grid(row=2, column=0, columnspan=3)
         else:
-            self.yuzu_actions_frame.grid_forget()
+            self.mainline_actions_frame.grid_forget()
         if value=="Early Access":
             self.image_button.configure(image=self.early_access_image)
             self.early_access_actions_frame.grid(row=2, column=0, columnspan=3)
         else:
             self.early_access_actions_frame.grid_forget()
-    def delete_yuzu_ea_button_event(self):
+            
+            
+    def install_mainline_button_event(self):
+        if os.path.exists(os.path.join(self.settings.yuzu.install_directory,"yuzu-windows-msvc")) and not messagebox.askyesno("Yuzu Exists", "There is already an installation of yuzu at the specified install directory, overwrite this installation?"):
+            return 
+        self.configure_mainline_buttons("disabled")
+        thread=Thread(target=self.yuzu.install_mainline_handler)
+        thread.start()
+        self.enable_buttons_after_thread(thread, "mainline")
+   
+    def delete_early_access_button_event(self):
         if not messagebox.askyesno("Delete Yuzu EA", "Are you sure you want to delete yuzu EA?"):
             return
         if os.path.exists(os.path.join(self.settings.yuzu.install_directory,"yuzu-windows-msvc-early-access")):
-            self.delete_early_access_button.configure(state="disabled")
-            self.launch_yuzu_early_access.configure(state="disabled")
-            self.install_early_access.configure(state="disabled")
-            Thread(target=self.yuzu.delete_yuzu_ea).start()
+            self.configure_early_access_action_buttons("disabled")
+            Thread(target=self.yuzu.delete_early_access).start()
         else:
             messagebox.showinfo("Delete Yuzu EA", f"Could not find a yuzu EA installation at {os.path.join(self.settings.yuzu.install_directory, 'yuzu-windows-msvc-early-access')}")
+    
+    def delete_mainline_button_event(self):
+        if not os.path.exists(os.path.join(self.settings.yuzu.install_directory,"yuzu-windows-msvc-early-access")):
+            messagebox.showinfo("Yuzu EA", f"No installation of Yuzu Early Access was found at {os.path.join(self.settings.yuzu.install_directory,'yuzu-windows-msvc-early-access')}")
+            return 
+        self.configure_mainline_buttons("disabled")
+        thread=Thread(target=self.yuzu.delete_mainline)
+        thread.start()
+        self.enable_buttons_after_thread(thread, "mainline")
+    
+    def install_firmware_button_event(self):
+        if self.yuzu.check_current_firmware() and not messagebox.askyesno("Firmware Exists", "You already seem to have firmware installed, install anyways?"):
+            return 
+        if not self.yuzu.verify_firmware_archive() and not messagebox.askyesno("Firmware Not Found", "You have not specified a path to a firmware archive in the settings menu, would you like to try installing the firmware from the internet?"):
+            return 
+        self.configure_firmware_key_buttons("disabled")
+        thread=Thread(target=self.yuzu.install_firmware_handler)
+        thread.start()
+        Thread(target=self.enable_buttons_after_thread, args=(thread, "firmware_keys",)).start()
+   
+    def install_keys_button_event(self):
+        if self.yuzu.check_current_keys() and not messagebox.askyesno("Keys Exist", "You already seem to have the decryption keys, install anyways?"):
+            return 
+        if not self.yuzu.verify_key_archive() and not messagebox.askyesno("Keys Not Found", "You have not specified a path to a key archive or prod.keys file in the settings menu, would you like to try downloading the keys through the internet?"):
+            return 
+        self.configure_firmware_key_buttons("disabled")
+        thread = Thread(target=self.yuzu.install_key_handler)
+        thread.start()
+        Thread(target=self.enable_buttons_after_thread, args=(thread, "firmware_keys",)).start()
+    def enable_buttons_after_thread(self, thread, buttons):
+        thread.join()
+        if buttons == "mainline":
+            self.configure_mainline_buttons("normal", text="Launch Yuzu  ", width=170)
+        elif buttons == "early_access":
+            self.configure_early_access_buttons("normal", text="Launch Yuzu EA  ", width=170)
+        elif buttons == "firmware_keys":
+            self.configure_firmware_key_buttons("normal")
+        elif buttons == "data":
+            self.configure_data_buttons(state="normal")
+        

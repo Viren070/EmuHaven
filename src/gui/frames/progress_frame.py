@@ -44,7 +44,7 @@ class ProgressFrame(customtkinter.CTkFrame):
             self, text="Cancel", command=self.cancel_button_event
         )
         self.cancel_download_button.grid(row=3, column=5, pady=10, padx=10, sticky="E")
-
+        
     def update_download_progress(self, downloaded_bytes, chunk_size):
         done = downloaded_bytes / self.total_size
         avg_speed = downloaded_bytes / (

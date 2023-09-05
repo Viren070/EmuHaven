@@ -52,6 +52,8 @@ class GitHubLoginWindow(customtkinter.CTkToplevel):
         interval = device_code_response["interval"]
         self.login_button.configure(state="disabled", text="Authorising...")
         self.countdown_on_widget(5, self.label, f"You will be redirected in {{}} seconds to {verification_uri}\nPlease enter the code: {user_code}. It has been copied to your clipboard", f"You are being redirected to {verification_uri}...\nPlease enter the code: {user_code}. It has been copied to your clipboard")
+        if not self.poll_token:
+            return 
         self.clipboard_clear()
         self.clipboard_append(user_code)
         webbrowser.open(verification_uri, new=0)

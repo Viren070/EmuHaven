@@ -61,7 +61,8 @@ class Settings:
                 "appearance_mode" : "",
                 "colour_theme" : "",
                 "auto_import__export_default_value":  "",
-                "default_yuzu_channel": ""
+                "default_yuzu_channel": "",
+                "ask_firmware": ""
             }
         }
         if not os.path.exists(os.path.dirname(os.path.abspath(self.settings_file))):
@@ -161,7 +162,8 @@ class Settings:
                 "appearance_mode" : self.app.appearance_mode,
                 "colour_theme" : self.app.colour_theme,
                 "auto_import__export_default_value":  self.app.auto_import__export_default_value,
-                "default_yuzu_channel": self.app.default_yuzu_channel
+                "default_yuzu_channel": self.app.default_yuzu_channel,
+                "ask_firmware": self.app.ask_firmware
             }
         }
         with open(self.settings_file, "w") as f:

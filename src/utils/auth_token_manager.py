@@ -4,18 +4,7 @@ import requests
 TOKEN_FILE = os.path.join(os.getenv("APPDATA"), "Emulator Manager", ".token") 
 CLIENT_ID = "Iv1.f1a084535d67fabb"
 
-def get_headers(token=None):
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246'
-             
-        }
-        if token:
-            headers["Accept"]= "application/vnd.github+json"
-            headers["Authorization"] = f"BEARER {token}"
-            headers["X-GitHub-Api-Version"]="2022-11-28"
-            print("returning headers with token")
-            
-        return headers
+
     
 
     

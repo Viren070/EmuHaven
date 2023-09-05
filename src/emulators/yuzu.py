@@ -11,7 +11,8 @@ import requests
 
 from gui.frames.progress_frame import ProgressFrame
 from utils.file_utils import copy_directory_with_progress
-from utils.auth_token_manager import get_headers
+from utils.requests_utils import get_headers, get_resources_release, create_get_connection, get_release_from_assets, get_assets_from_latest_release
+from utils.downloader import download_through_stream
 
 class Yuzu:
     def __init__(self, gui, settings):
@@ -63,6 +64,8 @@ class Yuzu:
         archive = self.settings.yuzu.key_path
         if not os.path.exists(archive):
             return False 
+        if archive.endswith("prod.keys"):
+            return True
         if not archive.endswith(".zip"):
             return False 
         with ZipFile(archive, 'r') as r_archive:
@@ -76,76 +79,130 @@ class Yuzu:
         else:
             return False 
     
-    def install_yuzu_from_github(self):
-        pass 
+    def get_latest_yuzu_ea_release(self):
+        response = create_get_connection('https://api.github.com/repos/pineappleEA/pineapple-src/releases', headers=get_headers(self.settings.app.token))
+        if not all(response): return (False, response[1])
+        response = response[1]
+        try:
+            release_info = json.loads(response.text)[0]
+            latest_version = release_info["tag_name"].split("-")[-1]
+            assets = release_info['assets']
+        except KeyError:
+            return (False, "API Rate Limited")
+        release = get_release_from_assets(assets, "Windows")
+        release.version = latest_version
+        return (True, release )
+        
+    def get_latest_yuzu_mainline_release(self):
+        response = create_get_connection('https://api.github.com/repos/yuzu-emu/yuzu-mainline/releases', headers=get_headers(self.settings.app.token))
+        if not all(response): return (False, response[1])
+        response = response[1]
+        try:
+            release_info = json.loads(response.text)[0]
+            latest_version = release_info["tag_name"].split("-")[-1]
+            assets = release_info['assets']
+        except KeyError:
+            return (False, "API Rate Limited")
+        release = get_release_from_assets(assets, "yuzu-windows-msvc-{}.zip", True)
+        release.version = latest_version
+        return (True, release )
+    def download_latest_mainline_release(self):
+        mainline_release_result = self.get_latest_yuzu_mainline_release()
+        if not all(mainline_release_result):
+            return mainline_release_result
+        mainline_release = mainline_release_result[1]
+        response_result = create_get_connection(mainline_release.download_url, stream=True, headers=get_headers(self.settings.app.token))
+        if not all(response_result):
+            return response_result 
+        response = response_result[1]  
+        progress_frame = ProgressFrame(self.gui.yuzu_log_frame, f"Yuzu {mainline_release.version}")
+        progress_frame.grid(row=0, column=0, sticky="ew")
+        progress_frame.total_size = mainline_release.size
+        download_path = os.path.join(os.getcwd(), f"Yuzu-{mainline_release.version}.zip")
+        download_result = download_through_stream(response, download_path, progress_frame, 1024*203)
+        progress_frame.destroy()
+        if not all(download_result):
+            return download_result
+        return (True, download_result[1])
+    
+    def install_mainline_from_zip(self, zip_path):
+        extract_folder = os.path.join(self.settings.yuzu.install_directory, "yuzu-windows-msvc")
+        extracted_files = []
+        progress_frame = ProgressFrame(self.gui.yuzu_log_frame, os.path.basename(zip_path))
+        progress_frame.grid(row=0, column=0, sticky="ew")
+        progress_frame.update_extraction_progress(0)
+        with ZipFile(zip_path, 'r') as zip_ref:
+            total = len(zip_ref.namelist())
+            for file_info in zip_ref.infolist():
+                extracted_file_path = os.path.join(extract_folder, file_info.filename)
+                os.makedirs(os.path.dirname(extracted_file_path), exist_ok=True)
+                with zip_ref.open(file_info.filename) as source, open(extracted_file_path, 'wb') as target:
+                    target.write(source.read())
+                extracted_files.append(file_info.filename)
+                progress_frame.update_extraction_progress(len(extracted_files)/total)
+        progress_frame.destroy()
+        return extracted_files
+    
+    def install_mainline_handler(self):
+        latest_mainline_release = self.download_latest_mainline_release()
+        print("got lates release")
+        if not all(latest_mainline_release):
+            messagebox.showerror("Error", f"There was an error while attempting to download the latest release of Yuzu:\n\n{latest_mainline_release[1]}")
+            return 
+        path_to_mainline_zip = latest_mainline_release[1]
+        self.install_mainline_from_zip(path_to_mainline_zip)
+        messagebox.showinfo("Install Yuzu", "Yuzu was successfully installed")
+    
+    def delete_mainline(self):
+        try:
+            shutil.rmtree(os.path.join(self.settings.yuzu.install_directory, "yuzu-windows-msvc-early-access"))
+        except Exception as error:
+            messagebox.showerror("Delete Error", f"An error occured while trying to delete the installation of yuzu early access:\n\n{error}")
     def run_yuzu_install_wrapper(self):
         if not self.check_yuzu_installer():
             messagebox.showerror("Yuzu Error", "Please verify that you have specified the path to the yuzu installer in the settings page.")
             return
-        
-        self.gui.yuzu_install_yuzu_button.configure(state="disabled")
-        self.gui.yuzu_launch_yuzu_button.configure(state="disabled")
-        self.gui.delete_early_access_button.configure(state="disabled")
+        self.gui.configure_mainline_buttons(state="disabled")
         Thread(target=self.run_yuzu_install).start()
     
     def run_yuzu_install(self):
-        temp_dir = os.path.join(os.getenv("TEMP"),"Emulator Manager")
-        os.makedirs(temp_dir, exist_ok=True)
         path_to_installer = self.settings.yuzu.installer_path
-        target_installer = os.path.join(temp_dir, 'yuzu_install.exe')
-        try:
-            shutil.copy(path_to_installer, target_installer)
-        except Exception as error:
-            messagebox.showerror("Copy Error", f"Unable to make a copy of yuzu_install.exe\n\n{error}")
         self.running = True
-        subprocess.run([target_installer], capture_output = True)
-        time.sleep(0.3) # trying to delete instantly causes PermissionError
-        try:
-            shutil.rmtree(temp_dir)
-        except PermissionError as error:
-            messagebox.showerror("Delete Error", "Unable to delete temporary yuzu installer directory.")
-        except Exception as error:
-            messagebox.showerror("Error", f"An unexpected error has occured: \n{error}")
+        subprocess.run([path_to_installer], capture_output = True)
         self.running = False
-        self.gui.yuzu_install_yuzu_button.configure(state="normal")
-        self.gui.yuzu_launch_yuzu_button.configure(state="normal")
-        self.gui.delete_early_access_button.configure(state="normal")
+        self.gui.configure_mainline_buttons(state="normal")
     
     def check_and_install_yuzu_ea(self):
         if not self.updating_ea and self.check_for_ea_update():
             if messagebox.askyesno("Yuzu Early Access", "There is an update available, do you wish to download it?"):
-                self.gui.launch_yuzu_early_access.configure(state="disabled", text="Updating...  ", width=170)
+                self.gui.launch_early_access_button.configure(state="disabled", text="Updating...  ", width=170)
                 Thread(target=self.install_ea_yuzu, args=(True, )).start()
                 return
-        self.gui.launch_yuzu_early_access.configure(state="disabled", text="Launching...  ", width=170)
+        self.gui.launch_early_access_button.configure(state="disabled", text="Launching...  ", width=170)
         Thread(target=self.start_yuzu, args=(None,True,)).start()
     def start_yuzu_wrapper(self, event=None, ea_mode=None):
-        if not ea_mode and self.gui.yuzu_launch_yuzu_button.cget("state") == "disabled":
+        if not ea_mode and self.gui.launch_mainline_button.cget("state") == "disabled":
             return
-        elif ea_mode and self.gui.launch_yuzu_early_access.cget("state") == "disabled":
+        elif ea_mode and self.gui.launch_early_access_button.cget("state") == "disabled":
             return
         if event==None:
             return
         if ea_mode:
             if not self.check_yuzu_ea_installation():
                 messagebox.showerror("Yuzu EA", "Please ensure that you have installed yuzu EA before trying to launch it. Press 'Install Yuzu EA' to the left to install it")
-            elif not event.state & 1:
-                self.gui.launch_yuzu_early_access.configure(state="disabled", text="Fetching Updates...  ", width=200)
-                self.gui.install_early_access.configure(state="disabled")
-                self.gui.delete_early_access_button.configure(state="disabled")
+                return 
+            self.gui.configure_early_access_buttons(state="disabled")
+            if not event.state & 1:
+                self.gui.launch_early_access_button.configure(text="Fetching Updates...  ", width=200)
                 Thread(target=self.check_and_install_yuzu_ea).start()
             else:
-                self.gui.launch_yuzu_early_access.configure(state="disabled")
-                self.gui.install_early_access.configure(state="disabled")
-                self.gui.delete_early_access_button.configure(state="disabled")
                 Thread(target=self.start_yuzu, args=(None,True,)).start()
             return
         if not self.check_yuzu_installation():
             messagebox.showerror("Yuzu", "Please ensure that you have installed yuzu before trying to launch it")
             return
-        self.gui.yuzu_install_yuzu_button.configure(state="disabled")
-        self.gui.yuzu_launch_yuzu_button.configure(state="disabled", text="Launching...  ")
-        self.gui.delete_early_access_button.configure(state="disabled")
+        
+        self.gui.configure_mainline_buttons(state="disabled", text="Launching...  ")
         Thread(target=self.start_yuzu, args=(event,ea_mode,)).start()
     
     def start_yuzu(self, event=None, ea_mode=False):
@@ -156,30 +213,24 @@ class Yuzu:
                 for widget in self.gui.yuzu_log_frame.winfo_children():
                         widget.destroy()
                 if not messagebox.askyesno("Error", f"Unable to load your data, would you like to continue\n\n Full Error: {error}"):
-                    if ea_mode:
-                        self.gui.launch_yuzu_early_access.configure(state="normal", text="Launch Yuzu EA  ")
-                        self.gui.install_early_access.configure(state="normal")
-                        self.gui.delete_early_access_button.configure(state="normal")
-                    else:
-                        self.gui.yuzu_launch_yuzu_button.configure(state="normal", text="Launch Yuzu  ")
-                        self.gui.yuzu_install_yuzu_button.configure(state="normal")
-                    return 
+                    return self.gui.revert_early_access_buttons() if ea_mode else self.gui.revert_mainline_buttons()
                     
-        if not self.check_current_firmware() or not self.check_current_keys():
-            if messagebox.askyesno("Error","You are missing your keys or firmware. Keys are required. Without the firmware, some games will not run (e.g. Mario Kart 8 Deluxe). Would you like to install the missing files?"):
-                if self.installing_firmware_or_keys:
-                    messagebox.showerror("Error", "It seems there is already an installation in progress, please wait for that to finish before trying to instal new firmware or keys again")
-                elif not self.install_missing_firmware_or_keys():
-                    if ea_mode:
-                        self.gui.launch_yuzu_early_access.configure(state="normal", text="Launch Yuzu EA  ")
-                        self.gui.install_early_access.configure(state="normal")
-                        self.gui.delete_early_access_button.configure(state="normal")
-                    else:
-                        self.gui.yuzu_launch_yuzu_button.configure(state="normal", text="Launch Yuzu  ")
-                        self.gui.yuzu_install_yuzu_button.configure(state="normal")
                     
-                    return
-        
+        if not self.check_current_keys() and messagebox.askyesno("Missing Keys", "It seems you are missing the switch decryption keys. These keys are required to emulate games. Would you like to install them?"):
+            result = self.install_key_handler()
+            self.gui.configure_firmware_key_buttons("normal")
+            if not result:
+                return self.gui.revert_early_access_buttons() if ea_mode else self.gui.revert_mainline_buttons()
+        if self.settings.app.ask_firmware != "False" and not self.check_current_firmware():
+            if messagebox.askyesno("Firmware Missing", "It seems you are missing the switch firmware files. Without these files, some games may not run. Would you like to install the firmware now? If you select no, then you will not be asked again."):
+                result = self.install_firmware_handler()
+                self.gui.configure_firmware_key_buttons("normal")
+                if not result:
+                    return self.gui.revert_early_access_buttons() if ea_mode else self.gui.revert_mainline_buttons()
+            else:
+                self.settings.app.ask_firmware = "False"
+   
+                    
         
         maintenance_tool = os.path.join(self.settings.yuzu.install_directory, "maintenancetool.exe")
         yuzu_exe = os.path.join(self.settings.yuzu.install_directory, "yuzu-windows-msvc","yuzu.exe") if not ea_mode else os.path.join(self.settings.yuzu.install_directory, "yuzu-windows-msvc-early-access", "yuzu.exe")
@@ -187,10 +238,8 @@ class Yuzu:
             args = [yuzu_exe]
         elif not event.state & 1 and os.path.exists(maintenance_tool):  # Button was clicked normally so run maintenance tool to update yuzu and then launch
             args = [maintenance_tool,"--launcher",yuzu_exe,]  
-        if ea_mode:
-            self.gui.launch_yuzu_early_access.configure(text="Launched!  ")
-        else:
-            self.gui.yuzu_launch_yuzu_button.configure(text="Launched!  ")
+        
+        self.gui.configure_early_access_buttons("disabled", text="Launched!  ") if ea_mode else self.gui.configure_mainline_buttons("disabled", text="Launched!  ")
         self.running = True
         try:     
             subprocess.run(args, capture_output=True, check=False) # subprocess.run with arguments defined earlier
@@ -199,26 +248,13 @@ class Yuzu:
         self.running = False
         if self.gui.yuzu_global_data.get() == "True":
             try:
-                
-                if ea_mode:
-                    self.gui.launch_yuzu_early_access.configure(text="Launch Yuzu EA  ")
-                else:
-                    self.gui.yuzu_launch_yuzu_button.configure(state="disabled", text="Launch Yuzu  ")
+                self.gui.configure_early_access_buttons("disabled", text="Launched Yuzu EA  ") if ea_mode else self.gui.configure_mainline_buttons("disabled", text="Launch Yuzu  ")
                 copy_directory_with_progress(self.settings.yuzu.user_directory, (os.path.join(self.settings.yuzu.auto_import__export_directory, os.getlogin())), "Saving Yuzu Data", self.gui.yuzu_log_frame)
             except Exception as error:
                 messagebox.showerror("Save Error", f"Unable to save your data\n\nFull Error: {error}")
                 
-        if ea_mode:
-            self.gui.launch_yuzu_early_access.configure(state="normal", text="Launch Yuzu EA  ")
-            self.gui.install_early_access.configure(state="normal")
-            self.gui.delete_early_access_button.configure(state="normal")
-        else:
-            
-            self.gui.yuzu_launch_yuzu_button.configure(state="normal", text="Launch Yuzu  ")
-            self.gui.yuzu_install_yuzu_button.configure(state="normal")
+        self.gui.revert_early_access_buttons() if ea_mode else self.gui.revert_mainline_buttons()
         
-    
-    
     def check_for_ea_update(self):
         
         contents = self.get_launcher_file_content()
@@ -228,9 +264,11 @@ class Yuzu:
         else:
             installed = ''
         
-        latest_release = self.get_latest_yuzu_ea_release()
-        if latest_release is None:
-            return None
+        latest_release_result = get_latest_yuzu_ea_release(headers=get_headers(self.settings.app.token))
+        if not all(latest_release_result):
+            messagebox.showerror("Error", f"There was an error while fetching the latest release of yuzu EA:\n\n{latest_release_result[1]}")
+            return 
+        latest_release = latest_release_result[1]
         if latest_release.version != installed:
             return True
         else:
@@ -239,9 +277,7 @@ class Yuzu:
     def install_ea_yuzu_wrapper(self):
         if self.updating_ea or not messagebox.askyesno("Confirmation", "This will require an internet connection and will download the files from the internet, continue?"):
             return 
-        self.gui.launch_yuzu_early_access.configure(state="disabled")
-        self.gui.install_early_access.configure(state="disabled")
-        self.gui.delete_early_access_button.configure(state="disabled")
+        self.gui.configure_early_access_buttons(state="disabled")
         Thread(target=self.install_ea_yuzu).start()
 
     def reset_launcher_file(self):
@@ -259,9 +295,7 @@ class Yuzu:
             }
             json.dump(template, f)
     def get_launcher_file_content(self):
-        launcher_file = os.path.join(
-            os.getenv("APPDATA"), "Emulator Manager", "launcher.json"
-        )
+        launcher_file = os.path.join(os.getenv("APPDATA"), "Emulator Manager", "launcher.json")
         if os.path.exists(launcher_file):
             with open(launcher_file, 'r') as f:
                 try:
@@ -270,96 +304,53 @@ class Yuzu:
                         contents["yuzu"]["early_access"]["installed_version"] = ''
                 except (KeyError, json.decoder.JSONDecodeError):
                     self.reset_launcher_file()
-                    
+                    return self.get_launcher_file_content()
                 return contents
         else:
             self.reset_launcher_file()
             return self.get_launcher_file_content()
 
-    def get_latest_yuzu_ea_release(self):
-        class Release:
-            def __init__(self) -> None:
-                self.version = None
-                self.download_url = None
-                self.size = None 
-        headers = get_headers(self.settings.app.token)
-        api_url = 'https://api.github.com/repos/pineappleEA/pineapple-src/releases'
-        try:
-            response = requests.get(api_url, headers=headers, timeout=10)
-        except requests.exceptions.RequestException:
-            messagebox.showerror("Requests Error", "Failed to connect to API")
-            return None
-        try:
-            release_info = json.loads(response.text)[0]
-        except KeyError:
-            messagebox.showerror("API Error", "Unable to handle response, could be an API ratelimit")
-            return None
-        latest_version = release_info["tag_name"].split("-")[-1]
-        assets = release_info['assets']
-        for asset in assets:
-            if 'Windows' in asset['name']:
-                url = asset['browser_download_url']
-                size = asset['size']
-                break
-        release=Release()
-        release.version = latest_version
-        release.download_url = url
-        release.size = size
-
-        return release   
+    
     def install_ea_yuzu(self, start_yuzu=False):
         # Get latest release info 
         self.updating_ea = True
         
-        def install_yuzu():
+        def install_yuzu_ea():
             # Download file
             progress_frame = ProgressFrame(self.gui.yuzu_log_frame, f"Yuzu EA {latest_release.version}")
             early_access_zip = download_latest_release(latest_release, progress_frame)
-            
             # Extract
             if early_access_zip:
                 extracted_release = extract_release_files(early_access_zip, progress_frame)
-            
             # Move and delete zip   
-          
                 try:
-                    if os.path.exists(yuzu_path):
-                        shutil.rmtree(yuzu_path)
+                    shutil.rmtree(yuzu_path) if os.path.exists(yuzu_path) else None
                     shutil.move(os.path.join(extracted_release, "yuzu-windows-msvc-early-access"), yuzu_path) 
                     installed = latest_release.version
+                    with open(launcher_file, "w") as f:
+                        contents["yuzu"]["early_access"]["installed_version"] = installed
+                        json.dump(contents, f)
+                    progress_frame.finish_installation()
                 except Exception as error:
                     messagebox.showerror("Error", error)
-                
-                with open(launcher_file, "w") as f:
-                    contents["yuzu"]["early_access"]["installed_version"] = installed
-                    json.dump(contents, f)
-                progress_frame.finish_installation()
             progress_frame.destroy()
+            
         def download_latest_release(latest_release, progress_frame): 
             if not os.path.exists(temp_path):
                 os.makedirs(temp_path)
             download_path = os.path.join(temp_path, "yuzu-ea.zip")
-            headers = get_headers(self.settings.app.token)
-            response = requests.get(latest_release.download_url, stream=True, headers=headers, timeout=30)
-            
+            response_result = create_get_connection(latest_release.download_url, stream=True, headers=get_headers(self.settings.app.token))
+            if not all(response_result):
+                messagebox.showerror("Error", response_result[1])
+            response = response_result[1]
             progress_frame.grid(row=0, column=0, sticky="ew")
             progress_frame.total_size = latest_release.size
-            with open(download_path, 'wb') as f:
-                downloaded_bytes = 0
-                try:
-                    for chunk in response.iter_content(chunk_size=1024*203): 
-                        if progress_frame.cancel_download_raised:
-                            self.updating_ea = False
-                            self.gui.install_early_access.configure(state="normal")
-                            self.gui.launch_yuzu_early_access.configure(state="normal")
-                            self.gui.delete_early_access_button.configure(state="normal")
-                            progress_frame.destroy()
-                            return
-                        f.write(chunk)
-                        downloaded_bytes += len(chunk)
-                        progress_frame.update_download_progress(downloaded_bytes, 1024*512)
-                except requests.exceptions.RequestException as error:
-                    messagebox.showerror("Requests Error", f"Failed to download file\n\n{error}")
+            download_result = download_through_stream(response, download_path, progress_frame, 1024*203)
+            if not all(download_result):
+                if download_result[1] == "Cancelled":
+                    return False
+                else:
+                    messagebox.showerror("Requests Error", f"Failed to download file\n\n{download_result[1]}")
                     return False
             progress_frame.skip_to_installation()
             progress_frame.complete_download(None, "Status: Extracting...")
@@ -380,224 +371,150 @@ class Yuzu:
 
         launcher_file = os.path.join(os.getenv("APPDATA"), "Emulator Manager", "launcher.json")
         # Parse asset info
-        contents = self.get_launcher_file_content()
-        latest_release = self.get_latest_yuzu_ea_release()
-        ea_info = contents['yuzu']['early_access']
-        if contents:
-            installed = ea_info["installed_version"]
-        else:
-            installed = ''
         
-        if latest_release is None:
+        latest_release = get_latest_yuzu_ea_release()
+        if not all(latest_release):
+            messagebox.showerror("Error", f"There was an error while fetching the latest version of Yuzu EA from GitHub:\n\n{latest_release[1]}")
+            self.gui.configure_early_access_buttons(state="normal")
             self.updating_ea = False
-            self.gui.install_early_access.configure(state="normal")
-            self.gui.launch_yuzu_early_access.configure(state="normal")
-            self.gui.delete_early_access_button.configure(state="normal")
-            return
+            return 
+        contents = self.get_launcher_file_content()
+        ea_info = contents['yuzu']['early_access']
+        installed = ea_info["installed_version"]
 
         if installed != latest_release.version or (installed == latest_release.version and messagebox.askyesno("Yuzu EA", "You already have the latest version of yuzu EA installed, would you still like to install yuzu EA?")):
-            install_yuzu()
+            install_yuzu_ea()
       
         if os.path.exists(temp_path):
             shutil.rmtree(temp_path)
         self.updating_ea = False
         if start_yuzu:
-            self.gui.install_early_access.configure(state="disabled")
-            self.gui.launch_yuzu_early_access.configure(state="disabled", text="Launching...  ")
-            self.gui.delete_early_access_button.configure(state="disabled")
+            self.gui.configure_early_access_buttons(state="disabled", text="Launching...")
             Thread(target=self.start_yuzu, args=(None,True,)).start()
         else:
-            self.gui.install_early_access.configure(state="normal")
-            self.gui.launch_yuzu_early_access.configure(state="normal")
-            self.gui.delete_early_access_button.configure(state="normal")
-    def delete_yuzu_ea(self):
+            self.gui.configure_early_access_buttons(state="normal")
+    def delete_early_access(self):
         try:
             shutil.rmtree(os.path.join(self.settings.yuzu.install_directory, "yuzu-windows-msvc-early-access"))
             messagebox.showinfo("Success", "The installation of yuzu EA was successfully deleted!")
         except Exception as error_msg:
             messagebox.showerror("Delete Error", f"Failed to delete yuzu-ea: \n\n{error_msg}")
-        self.gui.delete_early_access_button.configure(state="normal")
-        self.gui.launch_yuzu_early_access.configure(state="normal")
-        self.gui.install_early_access.configure(state="normal")
+        self.gui.configure_early_access_buttons("normal")
             
-    
-    
-    
-    
-    
-    
-    def install_missing_firmware_or_keys(self):
-        self.installing_firmware_or_keys = True 
-        if not self.check_current_keys():
-            if not self.verify_key_archive() and not messagebox.askyesno("Keys Not Found", "You have not set the path to an archive of switch keys, would you like to try downloading it from the internet?"):
-                pass 
-            else:
-                if not self.verify_key_archive():
-                    key_path = self.download_key_archive()
-                else:
-                    key_path = self.settings.yuzu.key_path
-                if key_path:
-                    status_frame = ProgressFrame(
-                    self.gui.yuzu_log_frame, (os.path.basename(key_path)))
-                    status_frame.grid(row=0, pady=10, sticky="EW")
-                    status_frame.skip_to_installation()
-                    try:
-                        #self.gui.yuzu_firmware.start_key_installation_custom(key_path, status_frame)
-                        self.install_keys(key_path, status_frame)
-                    except Exception as error:
-                        messagebox.showerror("Unknown Error", f"An unknown error occured during key installation \n\n {error}")
-                        status_frame.destroy()
-                        self.installing_firmware_or_keys = False 
-                        return False
-                    status_frame.destroy()
-        if not self.check_current_firmware():
-            if not self.verify_firmware_archive() and not messagebox.askyesno("Firmware Not Found", "You have not set the path to the firmware archive in the settings page, would you like to try downloading it from the internet?"):
-                pass
-            else:
-                if self.verify_firmware_archive():
-                    firmware_path = self.settings.yuzu.firmware_path
-                else:
-                    firmware_path = self.download_firmware_archive()
-                if not firmware_path:
-                    self.installing_firmware_or_keys = False 
-                    return False 
-                status_frame = ProgressFrame(self.gui.yuzu_log_frame, (os.path.basename(firmware_path)))
-                status_frame.grid(row=0, pady=10, sticky="EW")
-                status_frame.skip_to_installation()
-                try:
-                    self.gui.yuzu_firmware.start_firmware_installation_from_custom_zip(firmware_path, status_frame)
-                except Exception as error:
-                    messagebox.showerror("Unknown Error", f"An unknown error occured during firmware installation \n\n {error}")
-                    status_frame.destroy()
-                    self.installing_firmware_or_keys = False 
-                    return False
-                status_frame.destroy()
-        self.installing_firmware_or_keys = False 
-        if self.check_current_firmware() and self.check_current_keys():
-            return True
        
-    def get_release_asset(self, api_url, mode):
-        class Release:
-            def __init__(self) -> None:
-                self.version = None
-                self.download_url = None
-                self.size = None 
-                
-        headers = get_headers(self.settings.app.token)
-        try:
-            response = requests.get(api_url, headers=headers, timeout=10)
-        except requests.exceptions.RequestException as error:
-            messagebox.showerror("Requests Error", "Failed to connect to API")
-            return (False, error)
-        try:
-            release_info = json.loads(response.text)[0]
-        except KeyError:
-            messagebox.showerror("API Error", "Unable to handle response, could be an API ratelimit")
-            return (False, "You have most likely been API rate limited")
-        if mode == "Keys":
-            query = "Beta"
-        elif mode == "Firmware":
-            query = "Alpha"
-        assets = release_info['assets']
-        url = None
-        size = None
-        version = None 
-        for asset in assets:
-            if query in asset['name']:
-                url = asset['browser_download_url']
-                size = asset['size']
-                version = asset['name'].replace(f"{query}.","").replace(".zip", "")
-                break
-        if not all((url, size, version)):
-            return (False, "Not all required information was found")
-        release = Release()
-        release.download_url = url 
-        release.size = size 
-        release.version = version
-        return (True, release)
+    def install_firmware_handler(self):
+        self.gui.configure_firmware_key_buttons("disabled")
+        firmware_path = self.settings.yuzu.firmware_path if self.verify_firmware_archive() else self.download_firmware_archive()
+        if not all(firmware_path):
+            if firmware_path[1] != "Cancelled":
+                messagebox.showerror("Download Error", firmware_path[1])
+            return False
+        firmware_path = firmware_path[1] if isinstance(firmware_path, tuple) else firmware_path
+        result = self.install_firmware_from_archive(firmware_path)
+        if result:
+            messagebox.showwarning("Unexpected Files" , f"These files were skipped in the extraction process: {result}")
+        messagebox.showinfo("Firmware Install", "The switch firmware files were successfully installed")
+        return True 
+    
     def download_firmware_archive(self):
-        if not os.path.exists(os.getcwd()):
-            os.makedirs(os.getcwd())
-        firmware_release = self.get_release_asset('https://api.github.com/repos/Viren070/Emulator-Manager-Resources/releases', "Firmware")
+        firmware_release = get_resources_release('https://api.github.com/repos/Viren070/Emulator-Manager-Resources/releases', "Firmware", get_headers(self.settings.app.token))
         if not all(firmware_release):
-            messagebox.showerror("Firmware Download Error", firmware_release[1])
-            return 
+            return firmware_release
+            
         firmware = firmware_release[1]
-        headers = get_headers(self.settings.app.token)
-        response = requests.get(firmware.download_url, stream=True, headers=headers, timeout=30)
+        response_result = create_get_connection(firmware.download_url, stream=True, headers=get_headers(self.settings.app.token), timeout=30)
+        if not all(response_result):
+            return response_result
+
+        response = response_result[1]
         progress_frame = ProgressFrame(self.gui.yuzu_log_frame, f"Firmware {firmware.version}")
         progress_frame.grid(row=0, column=0, sticky="ew")
         progress_frame.total_size = firmware.size
         download_path = os.path.join(os.getcwd(), f"Firmware {firmware.version}.zip")
-        with open(download_path, 'wb') as f:
-            downloaded_bytes = 0
-            try:
-                for chunk in response.iter_content(chunk_size=1024*203): 
-                    if progress_frame.cancel_download_raised:
-                        progress_frame.destroy()
-                        return
-                    f.write(chunk)
-                    downloaded_bytes += len(chunk)
-                    progress_frame.update_download_progress(downloaded_bytes, 1024*512)
-            except requests.exceptions.RequestException as error:
-                messagebox.showerror("Requests Error", f"Failed to download file\n\n{error}")
-                return False
-        progress_frame.skip_to_installation()
-        progress_frame.complete_download(None, "Status: Extracting...")
-        progress_frame.progress_bar.set(0)
+        download_result = download_through_stream(response, download_path, progress_frame, 1024*203)
         progress_frame.destroy()
+        if not all(download_result):
+            return download_result
+
+        download_path = download_result[1]
+        
         return download_path
 
-    
-    def download_key_archive(self):
-        if not os.path.exists(os.getcwd()):
-            os.makedirs(os.getcwd())
-        key_release = self.get_release_asset('https://api.github.com/repos/Viren070/Emulator-Manager-Resources/releases', "Keys")
-        if not all(key_release):
-            messagebox.showerror("Download Error", key_release[1])
-            return 
-        keys = key_release[1]
-        headers = get_headers(self.settings.app.token)
-        response = requests.get(keys.download_url, stream=True, headers=headers, timeout=30)
-        progress_frame = ProgressFrame(self.gui.yuzu_log_frame, f"Keys {keys.version}")
+    def install_firmware_from_archive(self, firmware_source):
+        extract_folder = os.path.join(self.settings.yuzu.user_directory, "nand", "system", "Contents", "registered")
+        if os.path.exists(extract_folder):
+            shutil.rmtree(extract_folder)
+        os.makedirs(extract_folder, exist_ok=True)
+        extracted_files = []
+        progress_frame = ProgressFrame(self.gui.yuzu_log_frame, os.path.basename(firmware_source))
         progress_frame.grid(row=0, column=0, sticky="ew")
-        progress_frame.total_size = keys.size
-        download_path = os.path.join(os.getcwd(), f"Keys {keys.version}.zip")
-        with open(download_path, 'wb') as f:
-            downloaded_bytes = 0
-            try:
-                for chunk in response.iter_content(chunk_size=1024*203): 
-                    if progress_frame.cancel_download_raised:
-                        progress_frame.destroy()
-                        return
-                    f.write(chunk)
-                    downloaded_bytes += len(chunk)
-                    progress_frame.update_download_progress(downloaded_bytes, 1024*512)
-            except requests.exceptions.RequestException as error:
-                messagebox.showerror("Requests Error", f"Failed to download file\n\n{error}")
-                return False
+        progress_frame.update_extraction_progress(0)
         progress_frame.skip_to_installation()
         progress_frame.complete_download(None, "Status: Extracting...")
-        progress_frame.progress_bar.set(0)
+        excluded = []
+        with open(firmware_source, "rb") as file:
+            with ZipFile(file, 'r') as archive:
+                total = len(archive.namelist())
+                for entry in archive.infolist():
+                    if entry.filename.endswith(".nca") or entry.filename.endswith(".nca/00"):
+                        path_components = entry.filename.replace(".cnmt", "").split("/")
+                        nca_id = path_components[-1]
+                        if nca_id == "00":
+                            nca_id = path_components[-2]
+                        if ".nca" in nca_id:
+                            extracted_file_path = os.path.join(extract_folder, nca_id)
+                            os.makedirs(extract_folder, exist_ok=True)
+                            with open(extracted_file_path, "wb") as f:
+                                f.write(archive.read(entry))
+                            extracted_files.append(entry.filename)
+                            progress_frame.update_extraction_progress(len(extracted_files)/total)
+                        else:
+                            excluded.append(entry.filename)
         progress_frame.destroy()
-        return download_path
-        
-    def install_keys(self, key_path, progress_frame):
-        if not isinstance(key_path, str):
-            raise TypeError(f"Expected path to keys of type str, but got {type(key_path)}")
-        if key_path.endswith(".zip"):
-            extracted_files = self.extract_key_archive(key_path, progress_frame)
-            if extracted_files:
-                messagebox.showinfo("Key Archive", f"Successfully extracted the key archive to \n{key_path} \n{{}}".format("which included the prod.keys" if "prod.keys" in extracted_files else "but prod.keys were not found"))
-        elif key_path.endswith(".keys"):
-            key_path = self.copy_keys(key_path)
-            progress_frame.destroy()
-            if key_path:
-                messagebox.showinfo("Key Install", f"Installed keys to {os.path.dirname(key_path)}")
-        else:
-            raise ValueError(f"Expected path to keys of type .zip or prod.keys but got {os.path.splitext(key_path)[-1]}")
+        return excluded
     
-    def copy_keys(self, key_path):
+    def install_key_handler(self):
+        self.gui.configure_firmware_key_buttons("disabled")
+        key_path = self.settings.yuzu.key_path if self.verify_key_archive() else self.download_key_archive()
+        if not all(key_path):
+            if key_path[1] != "Cancelled":
+                messagebox.showerror("Download Error", key_path[1])
+            return False
+        key_path = key_path[1] if isinstance(key_path, tuple) else key_path
+        if key_path.endswith(".keys"):
+            self.install_keys_from_file(key_path)
+        else:
+            result = self.install_keys_from_archive(key_path)
+            if "prod.keys" not in result:
+                messagebox.showwarning("Keys", "Was not able to find any prod.keys within the archive, the archive was still extracted successfully.")
+                return False 
+        messagebox.showinfo("Keys", "Decryption keys were successfully installed!")
+        return True 
+            
+    def download_key_archive(self):
+        key_release = get_resources_release('https://api.github.com/repos/Viren070/Emulator-Manager-Resources/releases', "Keys", get_headers(self.settings.app.token))
+        if not all(key_release):
+            return key_release
+        
+        key = key_release[1]
+        response_result = create_get_connection(key.download_url, stream=True, headers=get_headers(self.settings.app.token), timeout=30)
+        if not all(response_result):
+            return response_result
+           
+        response = response_result[1]
+        progress_frame = ProgressFrame(self.gui.yuzu_log_frame, f"Keys {key.version}")
+        progress_frame.grid(row=0, column=0, sticky="ew")
+        progress_frame.total_size = key.size
+        download_path = os.path.join(os.getcwd(), f"Keys {key.version}.zip")
+        download_result = download_through_stream(response, download_path, progress_frame, 1024*128)
+        progress_frame.destroy()
+        if not all(download_result):
+            return download_result
+        download_path = download_result[1]
+        
+        return download_path
+    
+    def install_keys_from_file(self, key_path):
         target_key_folder = os.path.join(self.settings.yuzu.user_directory, "keys")
         if not os.path.exists(target_key_folder):
             os.makedirs(target_key_folder)
@@ -605,10 +522,12 @@ class Yuzu:
         shutil.copy(key_path, target_key_location)
         return target_key_location
     
-    def extract_key_archive(self, archive, status_frame):
+    def install_keys_from_archive(self, archive):
         extract_folder = os.path.join(self.settings.yuzu.user_directory, "keys")
         extracted_files = []
-        status_frame.update_extraction_progress(0)
+        progress_frame = ProgressFrame(self.gui.yuzu_log_frame, os.path.basename(archive))
+        progress_frame.grid(row=0, column=0, sticky="ew")
+        progress_frame.update_extraction_progress(0)
         with ZipFile(archive, 'r') as zip_ref:
             total = len(zip_ref.namelist())
             for file_info in zip_ref.infolist():
@@ -617,8 +536,8 @@ class Yuzu:
                 with zip_ref.open(file_info.filename) as source, open(extracted_file_path, 'wb') as target:
                     target.write(source.read())
                 extracted_files.append(file_info.filename)
-                status_frame.update_extraction_progress(len(extracted_files)/total)
-        status_frame.destroy()
+                progress_frame.update_extraction_progress(len(extracted_files)/total)
+        progress_frame.destroy()
         return extracted_files
         
     def export_yuzu_data(self):

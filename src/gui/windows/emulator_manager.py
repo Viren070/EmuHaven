@@ -56,7 +56,7 @@ class EmulatorManager(customtkinter.CTk):
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
         
-        self.minsize(1100,500) # set the minimum size of the window 
+        self.minsize(1100,570) # set the minimum size of the window 
         self.geometry("1100x500+{}+{}".format(self.x, self.y))
         
         # create navigation frame 

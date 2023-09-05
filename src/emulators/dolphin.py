@@ -9,7 +9,8 @@ import json
 
 from gui.frames.progress_frame import ProgressFrame
 from utils.file_utils import copy_directory_with_progress
-from utils.auth_token_manager import get_headers
+from utils.downloader import download_through_stream
+from utils.requests_utils import get_resources_release, get_headers
 
 class Dolphin:
     def __init__(self, gui, settings):
@@ -43,97 +44,42 @@ class Dolphin:
         time.sleep(2)
         os.remove(zip_path)
         
-    def get_release_asset(self, api_url, mode):
-        class Release:
-            def __init__(self) -> None:
-                self.version = None
-                self.download_url = None
-                self.size = None 
-                
-        headers = get_headers(self.settings.app.token)
-        try:
-            response = requests.get(api_url, headers=headers, timeout=10)
-        except requests.exceptions.RequestException as error:
-            messagebox.showerror("Requests Error", "Failed to connect to API")
-            return (False, error)
-        try:
-            release_info = json.loads(response.text)[0]
-        except KeyError:
-            messagebox.showerror("API Error", "Unable to handle response, could be an API ratelimit")
-            return (False, "You have most likely been API rate limited")
-        if mode == "Dolphin":
-            query="Dolphin"
-        assets = release_info['assets']
-        url = None
-        size = None
-        version = None 
-        for asset in assets:
-            if query in asset['name']:
-                url = asset['browser_download_url']
-                size = asset['size']
-                version = asset['name'].replace(f"{query}.","").replace(".zip", "")
-                break
-        if not all((url, size, version)):
-            return (False, "Not all required information was found")
-        release = Release()
-        release.download_url = url 
-        release.size = size 
-        release.version = version
-        return (True, release)
+    
 
     def download_dolphin_zip(self):
         download_folder = os.getcwd()
         os.makedirs(download_folder, exist_ok=True)
-        dolphin_asset = self.get_release_asset("https://api.github.com/repos/Viren070/Emulator-Manager-Resources/releases", "Dolphin")
-        if not all(dolphin_asset):
-            messagebox.showerror("Dolphin Download Error", dolphin_asset[1])
+        dolphin_release = get_resources_release("https://api.github.com/repos/Viren070/Emulator-Manager-Resources/releases", "Dolphin", headers=get_headers(self.settings.app.token))
+        if not all(dolphin_release):
+            messagebox.showerror("Dolphin Download Error", dolphin_release[1])
             return 
-        dolphin = dolphin_asset[1]
+        dolphin = dolphin_release[1]
         progress_frame = ProgressFrame(self.gui.dolphin_log_frame, f"Dolphin {dolphin.version}")
         download_path = os.path.join(download_folder, f"Dolphin {dolphin.version}.zip")
         response = requests.get(dolphin.download_url, stream=True, headers=get_headers(self.settings.app.token), timeout=30)
         
         progress_frame.grid(row=0, column=0, sticky="ew")
         progress_frame.total_size = dolphin.size
-        with open(download_path, 'wb') as f:
-            downloaded_bytes = 0
-            try:
-                for chunk in response.iter_content(chunk_size=1024*203): 
-                    if progress_frame.cancel_download_raised:
-                        self.updating_ea = False
-                        self.gui.dolphin_launch_dolphin_button.configure(state="normal")
-                        self.gui.dolphin_install_dolphin_button.configure(state="normal")
-                        self.gui.dolphin_delete_dolphin_button.configure(state="normal")
-                        progress_frame.destroy()
-                        if os.path.exists(download_path):
-                            Thread(target=self.delete_dolphin_zip, args=(download_path, )).start()
-                        return
-                    f.write(chunk)
-                    downloaded_bytes += len(chunk)
-                    progress_frame.update_download_progress(downloaded_bytes, 1024*512)
-                progress_frame.destroy()
-            except requests.exceptions.RequestException as error:
-                messagebox.showerror("Requests Error", f"Failed to download file\n\n{error}")
-                self.gui.dolphin_launch_dolphin_button.configure(state="normal")
-                self.gui.dolphin_install_dolphin_button.configure(state="normal")
-                self.gui.dolphin_delete_dolphin_button.configure(state="normal")
-                if os.path.exists(download_path):
-                    Thread(target=self.delete_dolphin_zip, args=(download_path, )).start()
-                return False
+        download_result = download_through_stream(response, download_path, progress_frame, 1024*203)
+        if not all(download_result):
+            self.gui.configure_action_buttons(state="normal")
+            if download_result[1] != "Cancelled":
+                messagebox.showerror("Requests Error", f"Failed to download file\n\n{download_result[1]}")
+            if os.path.exists(download_path):
+                Thread(target=self.delete_dolphin_zip, args=(download_path, )).start()
+            return 
         
-            try:
-                self.settings.dolphin.zip_path = download_path
-                self.gui.parent_frame.revert_settings()
-            except Exception as error:
-                messagebox.showerror("Unknown Error", error)
-                self.gui.dolphin_launch_dolphin_button.configure(state="normal")
-                self.gui.dolphin_install_dolphin_button.configure(state="normal")
-                self.gui.dolphin_delete_dolphin_button.configure(state="normal")
-                return False
-            if self.verify_dolphin_zip():
-                self.extract_dolphin_install()
-            else:
-                messagebox.showerror("Dolphin Install", "An unknown error has occured and the downloaded zip file could not be verified.")
+        try:
+            self.settings.dolphin.zip_path = download_path
+            self.gui.parent_frame.revert_settings()
+        except Exception as error:
+            messagebox.showerror("Unknown Error", error)
+            self.gui.configure_action_buttons(state="normal")
+            return False
+        if self.verify_dolphin_zip():
+            self.extract_dolphin_install()
+        else:
+            messagebox.showerror("Dolphin Install", "An unknown error has occured and the downloaded zip file could not be verified.")
             
            
         

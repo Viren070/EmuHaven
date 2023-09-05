@@ -110,6 +110,10 @@ class DolphinFrame(customtkinter.CTkFrame):
         self.dolphin_delete_button.configure(**kwargs)
         self.dolphin_import_button.configure(**kwargs)
         self.dolphin_export_button.configure(**kwargs)
+    def configure_action_buttons(self, **kwargs):
+        self.dolphin_launch_dolphin_button.configure(**kwargs)
+        self.dolphin_install_dolphin_button.configure(**kwargs)
+        self.dolphin_delete_dolphin_button.configure(**kwargs)
     def dolphin_start_button_event(self):
         self.select_dolphin_frame_by_name("start")
     def dolphin_manage_data_button_event(self):

@@ -14,6 +14,7 @@ class AppSettings:
             'appearance_mode': "dark",
             'auto_import__export_default_value': "False",
             'default_yuzu_channel': 'Mainline',
+            'ask_firmware': 'True',
             'token': ''
         }
         self._app_settings = self.default_settings.copy()
@@ -40,7 +41,9 @@ class AppSettings:
                                      lambda self, value: self._set_property('auto_import__export_default_value', value))
    
     default_yuzu_channel = property(lambda self: self._get_property('default_yuzu_channel'), 
-                                     lambda self, value: self._set_property('default_yuzu_channel', value))
+                                     lambda self, value: self._set_property('ask_firmware', value))
+    ask_firmware = property(lambda self: self._get_property('ask_firmware'), 
+                                     lambda self, value: self._set_property('ask_firmware', value))
     token = property(lambda self: self._get_property('token'), 
                                      lambda self, value: self._set_property('token', value))
     
