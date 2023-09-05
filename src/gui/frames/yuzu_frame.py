@@ -177,6 +177,7 @@ class YuzuFrame(customtkinter.CTkFrame):
     def configure_mainline_buttons(self, state, **kwargs):
         self.launch_mainline_button.configure(state=state, **kwargs)
         self.install_mainline_button.configure(state=state)
+        self.delete_mainline_button.configure(state=state)
     def configure_early_access_buttons(self, state, **kwargs):
         self.install_early_access_button.configure(state=state)
         self.launch_early_access_button.configure(state=state, **kwargs)
@@ -191,6 +192,7 @@ class YuzuFrame(customtkinter.CTkFrame):
     def revert_mainline_buttons(self):
         self.launch_mainline_button.configure(text="Launch Yuzu  ", width=170, state="normal")
         self.install_mainline_button.configure(text="Install Yuzu", state="normal")
+        self.delete_mainline_button.configure(text="Delete Yuzu", state="normal")
     def yuzu_start_button_event(self):
         self.select_yuzu_frame_by_name("start")
     def yuzu_manage_data_button_event(self):
@@ -253,7 +255,7 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.configure_mainline_buttons("disabled")
         thread=Thread(target=self.yuzu.delete_mainline)
         thread.start()
-        Thread(target=self.enable_buttons_after_thread, args=(thread, "mainline",)).start()
+        Thread(target=self.enable_buttons_after_thread, args=(thread, ["mainline"],)).start()
     
     def install_firmware_button_event(self):
         if self.yuzu.check_current_firmware() and not messagebox.askyesno("Firmware Exists", "You already seem to have firmware installed, install anyways?"):
@@ -261,9 +263,11 @@ class YuzuFrame(customtkinter.CTkFrame):
         if not self.yuzu.verify_firmware_archive() and not messagebox.askyesno("Firmware Not Found", "You have not specified a path to a firmware archive in the settings menu, would you like to try installing the firmware from the internet?"):
             return 
         self.configure_firmware_key_buttons("disabled")
+        self.configure_mainline_buttons("disabled")
+        self.configure_early_access_buttons("disabled")
         thread=Thread(target=self.yuzu.install_firmware_handler)
         thread.start()
-        Thread(target=self.enable_buttons_after_thread, args=(thread, "firmware_keys",)).start()
+        Thread(target=self.enable_buttons_after_thread, args=(thread, ["firmware_keys","mainline","early_access"], )).start()
    
     def install_keys_button_event(self):
         if self.yuzu.check_current_keys() and not messagebox.askyesno("Keys Exist", "You already seem to have the decryption keys, install anyways?"):
@@ -271,17 +275,20 @@ class YuzuFrame(customtkinter.CTkFrame):
         if not self.yuzu.verify_key_archive() and not messagebox.askyesno("Keys Not Found", "You have not specified a path to a key archive or prod.keys file in the settings menu, would you like to try downloading the keys through the internet?"):
             return 
         self.configure_firmware_key_buttons("disabled")
+        self.configure_mainline_buttons("disabled")
+        self.configure_early_access_buttons("disabled")
         thread = Thread(target=self.yuzu.install_key_handler)
         thread.start()
-        Thread(target=self.enable_buttons_after_thread, args=(thread, "firmware_keys",)).start()
+        Thread(target=self.enable_buttons_after_thread, args=(thread, ["firmware_keys","mainline","early_access"],)).start()
     def enable_buttons_after_thread(self, thread, buttons):
         thread.join()
-        if buttons == "mainline":
-            self.configure_mainline_buttons("normal", text="Launch Yuzu  ", width=170)
-        elif buttons == "early_access":
-            self.configure_early_access_buttons("normal", text="Launch Yuzu EA  ", width=170)
-        elif buttons == "firmware_keys":
-            self.configure_firmware_key_buttons("normal")
-        elif buttons == "data":
-            self.configure_data_buttons(state="normal")
+        for button in buttons:
+            if button == "mainline":
+                self.configure_mainline_buttons("normal", text="Launch Yuzu  ", width=170)
+            elif button == "early_access":
+                self.configure_early_access_buttons("normal", text="Launch Yuzu EA  ", width=170)
+            elif button == "firmware_keys":
+                self.configure_firmware_key_buttons("normal")
+            elif button == "data":
+                self.configure_data_buttons(state="normal")
         

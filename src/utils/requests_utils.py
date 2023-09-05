@@ -46,7 +46,7 @@ def get_release_from_assets(assets, query, wildcard=False):
                 matching_assets.append(asset)
                 break
 
-        elif query == asset["name"]:
+        elif query in asset["name"]:
             matching_assets.append(asset)
             break
     release = Release()

@@ -132,6 +132,7 @@ class Yuzu:
         progress_frame.grid(row=0, column=0, sticky="ew")
         progress_frame.skip_to_installation()
         progress_frame.update_extraction_progress(0)
+        progress_frame.update_status_label("Status: Extracting... ")
         if os.path.exists(os.path.join(self.settings.yuzu.install_directory,"yuzu-windows-msvc")):
             self.delete_mainline()
         try:
@@ -144,7 +145,7 @@ class Yuzu:
                     archive.extract(file, extract_folder)
                     extracted_files.append(file)
                     # Calculate and display progress
-                    progress_frame.update_extraction_progress(extracted_files / total_files) 
+                    progress_frame.update_extraction_progress(len(extracted_files) / total_files) 
         except Exception as error:
             progress_frame.destroy()
             return (False, error)
@@ -158,7 +159,11 @@ class Yuzu:
             return 
         path_to_mainline_zip = latest_mainline_release[1]
         result = self.install_mainline_from_zip(path_to_mainline_zip)
-        messagebox.showinfo("Install Yuzu", "Yuzu was successfully installed")
+        if not all(result):
+            if result[1]!="Cancelled":
+                messagebox.showerror("Extract Error", f"An error occurred while extracting the release: \n\n{result[1]}")
+            return 
+        messagebox.showinfo("Install Yuzu", f"Yuzu was successfully installed to {result[1]}")
     
     def delete_mainline(self):
         try:
@@ -337,7 +342,6 @@ class Yuzu:
                     with open(launcher_file, "w") as f:
                         contents["yuzu"]["early_access"]["installed_version"] = installed
                         json.dump(contents, f)
-                    progress_frame.finish_installation()
                 except Exception as error:
                     messagebox.showerror("Error", error)
             progress_frame.destroy()
@@ -359,9 +363,6 @@ class Yuzu:
                 else:
                     messagebox.showerror("Requests Error", f"Failed to download file\n\n{download_result[1]}")
                     return False
-            progress_frame.skip_to_installation()
-            progress_frame.complete_download(None, "Status: Extracting...")
-            progress_frame.progress_bar.set(0)
             return download_path
         
         def extract_release_files(archive, progress_frame):
@@ -379,12 +380,13 @@ class Yuzu:
         launcher_file = os.path.join(os.getenv("APPDATA"), "Emulator Manager", "launcher.json")
         # Parse asset info
         
-        latest_release = get_latest_yuzu_ea_release()
+        latest_release = self.get_latest_yuzu_ea_release()
         if not all(latest_release):
             messagebox.showerror("Error", f"There was an error while fetching the latest version of Yuzu EA from GitHub:\n\n{latest_release[1]}")
             self.gui.configure_early_access_buttons(state="normal")
             self.updating_ea = False
             return 
+        latest_release = latest_release[1]
         contents = self.get_launcher_file_content()
         ea_info = contents['yuzu']['early_access']
         installed = ea_info["installed_version"]
