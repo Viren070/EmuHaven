@@ -39,15 +39,13 @@ def get_assets_from_latest_release(api_url, headers):
     
 def get_release_from_assets(assets, query, wildcard=False):
     matching_assets = []
-    print(len(assets))
     for asset in assets:
         if wildcard:
             pattern = query.replace("{}", ".*")
             if re.match(pattern, asset["name"]) and "debugsymbols" not in asset["name"]:
                 matching_assets.append(asset)
                 break
-            else:
-                print("match returned false")
+
         elif query == asset["name"]:
             matching_assets.append(asset)
             break

@@ -235,7 +235,7 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.configure_mainline_buttons("disabled")
         thread=Thread(target=self.yuzu.install_mainline_handler)
         thread.start()
-        self.enable_buttons_after_thread(thread, "mainline")
+        #self.enable_buttons_after_thread(thread, "mainline")
    
     def delete_early_access_button_event(self):
         if not messagebox.askyesno("Delete Yuzu EA", "Are you sure you want to delete yuzu EA?"):
@@ -253,7 +253,7 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.configure_mainline_buttons("disabled")
         thread=Thread(target=self.yuzu.delete_mainline)
         thread.start()
-        self.enable_buttons_after_thread(thread, "mainline")
+        Thread(target=self.enable_buttons_after_thread, args=(thread, "mainline",)).start()
     
     def install_firmware_button_event(self):
         if self.yuzu.check_current_firmware() and not messagebox.askyesno("Firmware Exists", "You already seem to have firmware installed, install anyways?"):
