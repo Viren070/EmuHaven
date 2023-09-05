@@ -114,7 +114,7 @@ class Yuzu:
         response_result = create_get_connection(mainline_release.download_url, stream=True, headers=get_headers(self.settings.app.token))
         if not all(response_result):
             return response_result 
-        response = response_result[1]  
+        response = response_result[1]   
         progress_frame = ProgressFrame(self.gui.yuzu_log_frame, f"Yuzu {mainline_release.version}")
         progress_frame.grid(row=0, column=0, sticky="ew")
         progress_frame.total_size = mainline_release.size
@@ -126,38 +126,45 @@ class Yuzu:
         return (True, download_result[1])
     
     def install_mainline_from_zip(self, zip_path):
-        extract_folder = os.path.join(self.settings.yuzu.install_directory, "yuzu-windows-msvc")
+        extract_folder = self.settings.yuzu.install_directory
         extracted_files = []
         progress_frame = ProgressFrame(self.gui.yuzu_log_frame, os.path.basename(zip_path))
         progress_frame.grid(row=0, column=0, sticky="ew")
+        progress_frame.skip_to_installation()
         progress_frame.update_extraction_progress(0)
-        with ZipFile(zip_path, 'r') as zip_ref:
-            total = len(zip_ref.namelist())
-            for file_info in zip_ref.infolist():
-                extracted_file_path = os.path.join(extract_folder, file_info.filename)
-                os.makedirs(os.path.dirname(extracted_file_path), exist_ok=True)
-                with zip_ref.open(file_info.filename) as source, open(extracted_file_path, 'wb') as target:
-                    target.write(source.read())
-                extracted_files.append(file_info.filename)
-                progress_frame.update_extraction_progress(len(extracted_files)/total)
+        if os.path.exists(os.path.join(self.settings.yuzu.install_directory,"yuzu-windows-msvc")):
+            self.delete_mainline()
+        try:
+            with ZipFile(zip_path, 'r') as archive:
+                total_files = len(archive.namelist())     
+                for file in archive.namelist():
+                    if progress_frame.cancel_download_raised:
+                        progress_frame.destroy()
+                        return (False, "Cancelled")
+                    archive.extract(file, extract_folder)
+                    extracted_files.append(file)
+                    # Calculate and display progress
+                    progress_frame.update_extraction_progress(extracted_files / total_files) 
+        except Exception as error:
+            progress_frame.destroy()
+            return (False, error)
         progress_frame.destroy()
-        return extracted_files
+        return (True, extract_folder)
     
     def install_mainline_handler(self):
         latest_mainline_release = self.download_latest_mainline_release()
-        print("got lates release")
         if not all(latest_mainline_release):
             messagebox.showerror("Error", f"There was an error while attempting to download the latest release of Yuzu:\n\n{latest_mainline_release[1]}")
             return 
         path_to_mainline_zip = latest_mainline_release[1]
-        self.install_mainline_from_zip(path_to_mainline_zip)
+        result = self.install_mainline_from_zip(path_to_mainline_zip)
         messagebox.showinfo("Install Yuzu", "Yuzu was successfully installed")
     
     def delete_mainline(self):
         try:
-            shutil.rmtree(os.path.join(self.settings.yuzu.install_directory, "yuzu-windows-msvc-early-access"))
+            shutil.rmtree(os.path.join(self.settings.yuzu.install_directory, "yuzu-windows-msvc"))
         except Exception as error:
-            messagebox.showerror("Delete Error", f"An error occured while trying to delete the installation of yuzu early access:\n\n{error}")
+            messagebox.showerror("Delete Error", f"An error occured while trying to delete the installation of yuzu:\n\n{error}")
     def run_yuzu_install_wrapper(self):
         if not self.check_yuzu_installer():
             messagebox.showerror("Yuzu Error", "Please verify that you have specified the path to the yuzu installer in the settings page.")
