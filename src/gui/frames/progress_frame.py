@@ -1,6 +1,9 @@
-import customtkinter
 from time import perf_counter
 from tkinter import messagebox
+
+import customtkinter
+
+
 class ProgressFrame(customtkinter.CTkFrame):
     def __init__(self, parent_frame, filename):
         super().__init__(parent_frame)

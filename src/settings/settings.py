@@ -5,6 +5,7 @@ from settings.app_settings import AppSettings
 from settings.dolphin_settings import DolphinSettings
 from settings.yuzu_settings import YuzuSettings
 
+
 class Settings:
     def __init__(self, master, root_dir):
         self.root_dir = root_dir
@@ -28,7 +29,6 @@ class Settings:
             "dolphin_settings": {
                 "user_directory": "",
                 "install_directory": "",
-                "auto_import__export_directory": "",
                 "export_directory": "",
                 "zip_path" : ""
                 
@@ -36,7 +36,6 @@ class Settings:
             "yuzu_settings": {
                 "user_directory": "",
                 "install_directory": "",
-                "auto_import__export_directory" : "",
                 "export_directory" : "",
                 "installer_path" : "",
                 "firmware_path" : "",
@@ -60,7 +59,7 @@ class Settings:
                     },
                 "appearance_mode" : "",
                 "colour_theme" : "",
-                "auto_import__export_default_value":  "",
+                "use_yuzu_installer":  "",
                 "default_yuzu_channel": "",
                 "ask_firmware": ""
             }
@@ -142,7 +141,6 @@ class Settings:
             "dolphin_settings": {
                 "user_directory": self.dolphin.user_directory,
                 "install_directory": self.dolphin.install_directory,
-                "auto_import__export_directory": self.dolphin.auto_import__export_directory,
                 "export_directory": self.dolphin.export_directory,
                 "zip_path" : self.dolphin.zip_path
                 
@@ -150,7 +148,6 @@ class Settings:
             "yuzu_settings": {
                 "user_directory": self.yuzu.user_directory,
                 "install_directory": self.yuzu.install_directory,
-                "auto_import__export_directory" : self.yuzu.auto_import__export_directory,
                 "export_directory" : self.yuzu.export_directory,
                 "installer_path" : self.yuzu.installer_path,
                 "firmware_path" : self.yuzu.firmware_path,
@@ -161,7 +158,7 @@ class Settings:
                 "image_paths": self.get_image_path("all"),
                 "appearance_mode" : self.app.appearance_mode,
                 "colour_theme" : self.app.colour_theme,
-                "auto_import__export_default_value":  self.app.auto_import__export_default_value,
+                "use_yuzu_installer":  self.app.use_yuzu_installer,
                 "default_yuzu_channel": self.app.default_yuzu_channel,
                 "ask_firmware": self.app.ask_firmware
             }

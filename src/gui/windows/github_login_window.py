@@ -1,12 +1,14 @@
-import customtkinter 
-from tkinter import messagebox
-import requests
-import webbrowser 
-from threading import Thread
-import os 
+import os
 import time
+import webbrowser
+from threading import Thread
+from tkinter import messagebox
+
+import customtkinter
 
 from utils.auth_token_manager import request_device_code, request_token
+
+
 class GitHubLoginWindow(customtkinter.CTkToplevel):
     def __init__(self, master):
         super().__init__(master)
@@ -85,38 +87,33 @@ class GitHubLoginWindow(customtkinter.CTkToplevel):
     def poll_for_token(self, device_code, interval):
         requests_made = 2
         while self.poll_token:         
-            try:
-                token_response = request_token(device_code)
-                requests_made+=1
-                if interval < 15:
-                    interval = 15
-                print(f"requests made with interval {interval}s: {requests_made}")
-                if requests_made > 5:
-                    messagebox.showerror("Authorisation Error", f"Failed to authorise in time. Attempting to authorise also uses some of your API requests. You can still login if you have 0 requests left.")
-                    return
-                if not all(token_response):
-                    messagebox.showerror("Requests Error", token_response[1])
-                    self.token_response = 0
-                    return 
-                token_response=token_response[1]
-                if "access_token" in token_response:
-                    self.token_response = token_response["access_token"]
-                    return
-                elif "error" in token_response:
-                    error = token_response["error"]
-                    if error == "authorization_pending":
-                        self.countdown_on_widget(interval, self.login_button, "Checking in {}s", "Checking...")
-                    elif error == "slow_down":
-                        self.countdown_on_widget(interval+10, self.login_button, "Checking in {}s", "Checking...")
-                    else:
-                        self.token_response = None
-                        return
-                else:
-                    self.token_response = None 
-            except requests.exceptions.RequestException as e:
-                messagebox.showerror("Error", f"Request error: {e}")
-                self.token_response = None 
+            token_response = request_token(device_code)
+            requests_made+=1
+            if interval < 15:
+                interval = 15
+            print(f"requests made with interval {interval}s: {requests_made}")
+            if requests_made > 5:
+                messagebox.showerror("Authorisation Error", f"Failed to authorise in time. Attempting to authorise also uses some of your API requests. You can still login if you have 0 requests left.")
                 return
+            if not all(token_response):
+                messagebox.showerror("Requests Error", token_response[1])
+                self.token_response = None
+                return 
+            token_response=token_response[1]
+            if "access_token" in token_response:
+                self.token_response = token_response["access_token"]
+                return
+            elif "error" in token_response:
+                error = token_response["error"]
+                if error == "authorization_pending":
+                    self.countdown_on_widget(interval, self.login_button, "Checking in {}s", "Checking...")
+                elif error == "slow_down":
+                    self.countdown_on_widget(interval+10, self.login_button, "Checking in {}s", "Checking...")
+                else:
+                    self.token_response = None
+                    return
+            else:
+                self.token_response = None 
         return    
     def check_token_status(self, token_poll_thread):
         token_poll_thread.join()

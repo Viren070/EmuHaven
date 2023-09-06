@@ -13,43 +13,37 @@ class YuzuSettings(customtkinter.CTkFrame):
     def build_frame(self):
         self.grid_columnconfigure(0, weight=1)
         
-        #1
+        
         customtkinter.CTkLabel(self, text="User Directory: ").grid(row=0, column=0, padx=10, pady=10, sticky="w")
         self.user_directory_entry = customtkinter.CTkEntry(self,  width=300)
         self.user_directory_entry.grid(row=0, column=2, padx=10, pady=10, sticky="e")
         customtkinter.CTkButton(self, text="Browse", width=50, command=lambda entry_widget=self.user_directory_entry: self.update_with_explorer(entry_widget)).grid(row=0, column=3, padx=5, pady=10, sticky="e")
         ttk.Separator(self, orient='horizontal').grid(row=1, columnspan=4, sticky="ew")
-        #2
+    
         customtkinter.CTkLabel(self, text="yuzu Install Directory: ").grid(row=2, column=0, padx=10, pady=10, sticky="w")
         self.install_directory_entry = customtkinter.CTkEntry(self, width=300)
         self.install_directory_entry.grid(row=2, column=2, padx=10, pady=10, sticky="e")
         customtkinter.CTkButton(self, text="Browse", width=50, command=lambda entry_widget=self.install_directory_entry: self.update_with_explorer(entry_widget)).grid(row=2,column=3, padx=5, pady=5, sticky="E")
         ttk.Separator(self, orient='horizontal').grid(row=3, columnspan=4, sticky="ew")
-        #3
-        customtkinter.CTkLabel(self, text="Auto Import/Export Directory: ").grid(row=4, column=0, padx=10, pady=10, sticky="w")
-        self.global_save_directory_entry = customtkinter.CTkEntry(self, width=300)
-        self.global_save_directory_entry.grid(row=4, column=2, padx=10, pady=10, sticky="e")
-        customtkinter.CTkButton(self, text="Browse", width=50, command=lambda entry_widget=self.global_save_directory_entry: self.update_with_explorer(entry_widget)).grid(row=4, column=3, padx=5, sticky="E")
-        ttk.Separator(self, orient='horizontal').grid(row=5, columnspan=4, sticky="ew")
-        #4
+
         customtkinter.CTkLabel(self, text="Export Directory: ").grid(row=6, column=0, padx=10, pady=10, sticky="w")
         self.export_directory_entry = customtkinter.CTkEntry(self, width=300)
         self.export_directory_entry.grid(row=6, column=2, padx=10, pady=10, sticky="e")
         customtkinter.CTkButton(self, text="Browse", width=50, command=lambda entry_widget=self.export_directory_entry: self.update_with_explorer(entry_widget)).grid(row=6, column=3, padx=5, sticky="E")
         ttk.Separator(self, orient='horizontal').grid(row=7, columnspan=4, sticky="ew")      
-        #5
+    
         customtkinter.CTkLabel(self, text="Yuzu Installer: ").grid(row=8, column=0, padx=10, pady=10, sticky="w")
         self.yuzu_installer_path_entry = customtkinter.CTkEntry(self, width=300)
         self.yuzu_installer_path_entry.grid(row=8, column=2, padx=10, pady=10, sticky="e")
         customtkinter.CTkButton(self, text="Browse", width=50, command=lambda entry_widget=self.yuzu_installer_path_entry: self.update_with_explorer(entry_widget, "installer")).grid(row=8, column=3, padx=5, sticky="E")
         ttk.Separator(self, orient='horizontal').grid(row=9, columnspan=4, sticky="ew")
-        #6
+    
         customtkinter.CTkLabel(self, text="Switch Firmware: ").grid(row=10, column=0, padx=10, pady=10, sticky="w")
         self.firmware_path_entry = customtkinter.CTkEntry(self, width=300)
         self.firmware_path_entry.grid(row=10, column=2, padx=10, pady=10, sticky="e")
         customtkinter.CTkButton(self, text="Browse", width=50, command=lambda entry_widget=self.firmware_path_entry: self.update_with_explorer(entry_widget, "firmware")).grid(row=10, column=3, padx=5, sticky="E")
         ttk.Separator(self, orient='horizontal').grid(row=11, columnspan=4, sticky="ew")
-        #7
+    
         customtkinter.CTkLabel(self, text="Switch Keys: ").grid(row=12, column=0, padx=10, pady=10, sticky="w")
         self.key_path_entry = customtkinter.CTkEntry(self, width=300)
         self.key_path_entry.grid(row=12, column=2, padx=10, pady=10, sticky="e")
@@ -70,10 +64,6 @@ class YuzuSettings(customtkinter.CTkFrame):
             "install_directory": {
                 "entry_widget": self.install_directory_entry,
                 "variable": self.settings.yuzu.install_directory
-            },
-            "auto_import__export_directory": {
-                "entry_widget": self.global_save_directory_entry,
-                "variable": self.settings.yuzu.auto_import__export_directory
             },
             "export_directory": {
                 "entry_widget": self.export_directory_entry,

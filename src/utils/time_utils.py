@@ -1,5 +1,7 @@
 
-import datetime 
+import datetime
+
+
 def calculate_relative_time(reset_timestamp):
     # Convert the timestamp to a datetime object
     reset_datetime = datetime.datetime.fromtimestamp(int(reset_timestamp))

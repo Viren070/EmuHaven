@@ -1,5 +1,4 @@
 import os
-from tkinter import messagebox
 
 import customtkinter
 from PIL import Image

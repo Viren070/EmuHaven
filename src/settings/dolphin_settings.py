@@ -9,7 +9,6 @@ class DolphinSettings:
         self.default_settings = {
             'user_directory': os.path.abspath(os.path.join(os.getenv("APPDATA"), "Dolphin Emulator")),
             'install_directory': os.path.abspath(os.path.join(os.getenv("LOCALAPPDATA"), "Dolphin Emulator")),
-            'auto_import__export_directory': os.path.abspath(os.path.join(os.getcwd(), "User Data","Dolphin")),
             'export_directory': os.path.abspath(os.path.join(os.getcwd(), "User Data","Dolphin")),
             'zip_path': os.path.abspath(os.path.join(self.emulator_file_path, "Dolphin 5.0-19870.zip"))
         }
@@ -52,9 +51,6 @@ class DolphinSettings:
     
     install_directory = property(lambda self: self._get_property('install_directory'), 
                                  lambda self, value: self._set_directory_property('install_directory', value))
-    
-    auto_import__export_directory = property(lambda self: self._get_property('auto_import__export_directory'), 
-                                     lambda self, value: self._set_directory_property('auto_import__export_directory', value))
     
     export_directory = property(lambda self: self._get_property('export_directory'), 
                                 lambda self, value: self._set_directory_property('export_directory', value))

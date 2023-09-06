@@ -1,11 +1,9 @@
-import os 
-import requests 
+import os
+
+import requests
 
 TOKEN_FILE = os.path.join(os.getenv("APPDATA"), "Emulator Manager", ".token") 
 CLIENT_ID = "Iv1.f1a084535d67fabb"
-
-
-    
 
     
 def delete_token_file():

@@ -11,6 +11,7 @@ from gui.frames.settings_frame import SettingsFrame
 from gui.frames.yuzu_frame import YuzuFrame
 from settings.app_settings import load_customtkinter_themes
 from settings.settings import Settings
+from settings.metadata import Metadata
 from utils.auth_token_manager import delete_token_file
 
 
@@ -19,7 +20,8 @@ class EmulatorManager(customtkinter.CTk):
         self.just_opened = True
         super().__init__()
         self.settings = Settings(self, root_dir)
-        self.version = "v0.10.0-alpha.1"
+        self.metadata = Metadata(self, self.settings)
+        self.version = "v0.10.0-a.2"
         self.root_dir = root_dir
         self.x = pos[0]
         self.y = pos[1]
@@ -85,7 +87,7 @@ class EmulatorManager(customtkinter.CTk):
                                                       anchor="w", command=self.settings_button_event)
         self.settings_button.grid(row=6, column=0, sticky="ew")
         
-        self.yuzu_frame = YuzuFrame(self, self.settings)
+        self.yuzu_frame = YuzuFrame(self, self.settings, self.metadata)
         self.dolphin_frame = DolphinFrame(self, self.settings)
         self.settings_frame = SettingsFrame(self, self.settings)
     def dolphin_button_event(self):

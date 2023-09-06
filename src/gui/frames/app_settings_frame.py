@@ -1,14 +1,15 @@
 import os
-from tkinter import messagebox, ttk, filedialog
+from threading import Thread
+from tkinter import filedialog, messagebox, ttk
 
 import customtkinter
 from CTkToolTip import *
 
-from settings.app_settings import get_colour_themes
 from gui.windows.github_login_window import GitHubLoginWindow
-from threading import Thread
+from settings.app_settings import get_colour_themes
 from utils.auth_token_manager import get_rate_limit_status
 from utils.time_utils import calculate_relative_time
+
 
 class AppSettings(customtkinter.CTkFrame):
     def __init__(self, parent_frame, settings):
@@ -28,8 +29,8 @@ class AppSettings(customtkinter.CTkFrame):
         
         self.appearance_mode_variable = customtkinter.StringVar()
         self.colour_theme_variable = customtkinter.StringVar()
-        self.auto_import__export_default_value_variable = customtkinter.StringVar()
-        self.auto_import__export_default_value_variable.set(self.settings.app.auto_import__export_default_value)
+        self.use_yuzu_installer_variable = customtkinter.StringVar()
+        self.use_yuzu_installer_variable.set(self.settings.app.use_yuzu_installer)
         self.appearance_mode_variable.set(self._get_appearance_mode().title())
         self.colour_theme_variable.set(os.path.basename(customtkinter.ThemeManager._currently_loaded_theme).replace("-"," ").replace(".json", "").title())
         self.default_yuzu_channel_variable = customtkinter.StringVar()
@@ -46,8 +47,8 @@ class AppSettings(customtkinter.CTkFrame):
         customtkinter.CTkOptionMenu(self, variable=self.colour_theme_variable, values=colour_themes, command=self.change_colour_theme).grid(row=2, column=2, padx=10, pady=10, sticky="e")
         ttk.Separator(self, orient='horizontal').grid(row=3, columnspan=4, sticky="ew")
         
-        customtkinter.CTkLabel(self, text="Auto Import/Export Default Value").grid(row=4, column=0, padx=10, pady=10, sticky="w")
-        customtkinter.CTkOptionMenu(self, variable=self.auto_import__export_default_value_variable, values=["True", "False"], command=self.change_default_auto_import__export_value).grid(row=4, column=2, padx=10, pady=10, sticky="e")
+        customtkinter.CTkLabel(self, text="Use Yuzu Installer").grid(row=4, column=0, padx=10, pady=10, sticky="w")
+        customtkinter.CTkOptionMenu(self, variable=self.use_yuzu_installer_variable, values=["True", "False"], command=self.change_yuzu_installer_option).grid(row=4, column=2, padx=10, pady=10, sticky="e")
         ttk.Separator(self, orient='horizontal').grid(row=5, columnspan=4, sticky="ew")
         
         
@@ -116,8 +117,8 @@ class AppSettings(customtkinter.CTkFrame):
         customtkinter.set_appearance_mode(mode.lower()) # change appearance mode using customtkinters function 
         self.settings.app.appearance_mode = mode.lower()
         self.update_settings()   # update settings.json if change was through settings menu
-    def change_default_auto_import__export_value(self, value):
-        self.settings.app.auto_import__export_default_value = value
+    def change_yuzu_installer_option(self, value):
+        self.settings.app.use_yuzu_installer = value
         self.update_settings()
     def change_default_yuzu_channel(self, value):
         self.settings.app.default_yuzu_channel = value

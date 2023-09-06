@@ -1,6 +1,7 @@
-import os 
-import json 
-import customtkinter 
+import json
+import os
+
+import customtkinter
 
 VALID_APPEARANCE_MODES = ["dark", "light"]
 VALID_COLOUR_THEMES = ["blue", "dark-blue", "green"]
@@ -12,7 +13,7 @@ class AppSettings:
         self.default_settings = {
             'colour_theme': "dark-blue",
             'appearance_mode': "dark",
-            'auto_import__export_default_value': "False",
+            'use_yuzu_installer': "True",
             'default_yuzu_channel': 'Mainline',
             'ask_firmware': 'True',
             'token': ''
@@ -37,8 +38,8 @@ class AppSettings:
     appearance_mode = property(lambda self: self._get_property('appearance_mode'), 
                                  lambda self, value: self._set_property('appearance_mode', value))
     
-    auto_import__export_default_value = property(lambda self: self._get_property('auto_import__export_default_value'), 
-                                     lambda self, value: self._set_property('auto_import__export_default_value', value))
+    use_yuzu_installer = property(lambda self: self._get_property('use_yuzu_installer'), 
+                                     lambda self, value: self._set_property('use_yuzu_installer', value))
    
     default_yuzu_channel = property(lambda self: self._get_property('default_yuzu_channel'), 
                                      lambda self, value: self._set_property('ask_firmware', value))

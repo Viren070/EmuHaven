@@ -4,13 +4,14 @@ import subprocess
 from threading import Thread
 from tkinter import messagebox
 from zipfile import ZipFile
-import requests 
-import json
+
+import requests
 
 from gui.frames.progress_frame import ProgressFrame
-from utils.file_utils import copy_directory_with_progress
 from utils.downloader import download_through_stream
-from utils.requests_utils import get_resources_release, get_headers
+from utils.file_utils import copy_directory_with_progress
+from utils.requests_utils import get_headers, get_resources_release
+
 
 class Dolphin:
     def __init__(self, gui, settings):
@@ -225,9 +226,7 @@ class Dolphin:
         mode = self.gui.dolphin_delete_optionmenu.get()
         result = ""
         user_directory = self.settings.dolphin.user_directory
-        auto_import__export_directory = self.settings.dolphin.auto_import__export_directory
         export_directory = self.settings.dolphin.export_directory
-        users_auto_import__export_directory = os.path.join(auto_import__export_directory, os.getlogin())
         users_export_directory = os.path.join(export_directory, os.getlogin())
         
         def delete_directory(directory):
@@ -242,7 +241,6 @@ class Dolphin:
             return False
         if mode == "All Data":
             result += f"Data Deleted from {user_directory}\n" if delete_directory(user_directory) else ""
-            result += f"Data deleted from {users_auto_import__export_directory}\n" if delete_directory(users_auto_import__export_directory) else ""
             result += f"Data deleted from {users_export_directory}\n" if delete_directory(users_export_directory) else ""
             
         if result:

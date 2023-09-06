@@ -1,15 +1,15 @@
-from base64 import b64decode
 import os
 import re
-from sys import exit as sysexit
-from shutil import copy, rmtree
-from threading import Thread
 import tkinter as tk
-from zipfile import ZipFile
+from base64 import b64decode
 from io import BytesIO
+from shutil import copy, rmtree
+from sys import exit as sysexit
+from threading import Thread
 from time import perf_counter, sleep
 from tkinter import filedialog, messagebox
 from urllib.parse import unquote
+from zipfile import ZipFile
 
 import customtkinter
 import requests
