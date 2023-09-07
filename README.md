@@ -32,6 +32,15 @@ Download the latest release from [here](https://github.com/Viren070/Emulator-Man
   - [s-liwka/customtkinter-themes](https://github.com/s-liwka/customtkinter-themes)
   - [a13xe/CTkThemesPack](https://github.com/a13xe/CTkThemesPack)
 
+## How to use
+
+Should be straight forward, you just click the buttons. You can shift-click the launch buttons to immediately launch the emulator instead of checking for updates first. 
+
+For the downloader on yuzu. You need to click Options, then Attempt version fetch. This will probably be changed if I get around to re-doing the options menu but for now, you'll have to manually fetch the versions.
+
+The GitHub login feature is optional and should only be used if you ran out of API requests and need more immediately. It will grant you 5000 requests per hour. The user access token is not stored and this means that you will have to login again when you next launch the app if you want 5000 requests again.
+
+The settings for dolphin and yuzu are used to change where yuzu/dolphin is installed and where your user data is stored (if you are using the portable version). You can only change the install location if you are not using the yuzu installer, otherwise it will always install in the default location. 
 
 ### Images
 ![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/9b421e17-65a0-4a89-8178-b5c25754ae74)
