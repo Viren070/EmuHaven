@@ -7,7 +7,9 @@ class Metadata:
         self.master = master 
         self.settings = settings 
         self.template= {
-            "dolphin": "",
+            "dolphin": {
+                "installed_version": ""
+                },
             "yuzu": {
                 "mainline" : {
                     "installed_version": ""
@@ -18,7 +20,7 @@ class Metadata:
             }
         }
         self.metadata_file = os.path.join(os.getenv("APPDATA"), "Emulator Manager", "metadata.json")
-        if not os.path.exists(self.metadata_file):
+        if not os.path.exists(self.metadata_file) or not self.is_metadata_valid():
             self.create_metadata_file()
     def create_metadata_file(self):
 
@@ -49,6 +51,8 @@ class Metadata:
                 current_contents["yuzu"]["mainline"]["installed_version"] = version
             case "early_access":
                 current_contents["yuzu"]["early_access"]["installed_version"] = version 
+            case "dolphin":
+                current_contents["dolphin"]["installed_version"] = version 
             case _:
                 raise ValueError(f"Expected str argument of mainline or early access, but got {mode}")
                 
@@ -63,6 +67,16 @@ class Metadata:
             case "early_access":
                 version = current_contents["yuzu"]["early_access"]["installed_version"] if os.path.exists(os.path.join(self.settings.yuzu.install_directory, "yuzu-windows-msvc-early-access", "yuzu.exe")) else self.update_installed_version("early_access", "")
                 return version
+            case "dolphin":
+                version = current_contents["dolphin"]["installed_version"] if os.path.exists(os.path.join(self.settings.dolphin.install_directory, "Dolphin.exe")) else self.update_installed_version("dolphin", "")
             case _:
                 raise ValueError(f"Expected str argument of mainline or early access, but got {mode}")
+    def is_metadata_valid(self):
+        try:
+            for mode in ["mainline", "early_access", "dolphin"]:
+                self.get_installed_version(mode)
+            return True
+        except (KeyError, TypeError):
+            print("invalid metadata file")
+            return False 
                 

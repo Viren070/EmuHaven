@@ -37,18 +37,6 @@ class YuzuSettings(customtkinter.CTkFrame):
         self.yuzu_installer_path_entry.grid(row=8, column=2, padx=10, pady=10, sticky="e")
         customtkinter.CTkButton(self, text="Browse", width=50, command=lambda entry_widget=self.yuzu_installer_path_entry: self.update_with_explorer(entry_widget, "installer")).grid(row=8, column=3, padx=5, sticky="E")
         ttk.Separator(self, orient='horizontal').grid(row=9, columnspan=4, sticky="ew")
-    
-        customtkinter.CTkLabel(self, text="Switch Firmware: ").grid(row=10, column=0, padx=10, pady=10, sticky="w")
-        self.firmware_path_entry = customtkinter.CTkEntry(self, width=300)
-        self.firmware_path_entry.grid(row=10, column=2, padx=10, pady=10, sticky="e")
-        customtkinter.CTkButton(self, text="Browse", width=50, command=lambda entry_widget=self.firmware_path_entry: self.update_with_explorer(entry_widget, "firmware")).grid(row=10, column=3, padx=5, sticky="E")
-        ttk.Separator(self, orient='horizontal').grid(row=11, columnspan=4, sticky="ew")
-    
-        customtkinter.CTkLabel(self, text="Switch Keys: ").grid(row=12, column=0, padx=10, pady=10, sticky="w")
-        self.key_path_entry = customtkinter.CTkEntry(self, width=300)
-        self.key_path_entry.grid(row=12, column=2, padx=10, pady=10, sticky="e")
-        customtkinter.CTkButton(self, text="Browse", width=50, command=lambda entry_widget=self.key_path_entry: self.update_with_explorer(entry_widget, "keys")).grid(row=12, column=3, padx=5, sticky="E")
-        ttk.Separator(self, orient='horizontal').grid(row=13, columnspan=4, sticky="ew")
         
         self.actions_frame = customtkinter.CTkFrame(self, fg_color="transparent")
         self.actions_frame.grid_columnconfigure(0, weight=1)
@@ -72,14 +60,6 @@ class YuzuSettings(customtkinter.CTkFrame):
             "installer_path": {
                 "entry_widget": self.yuzu_installer_path_entry,
                 "variable": self.settings.yuzu.installer_path
-            },
-            "firmware_path": {
-                "entry_widget": self.firmware_path_entry,
-                "variable": self.settings.yuzu.firmware_path
-            },
-            "key_path": {
-                "entry_widget": self.key_path_entry,
-                "variable": self.settings.yuzu.key_path
             }
         }
     def update_entry_widgets(self):
@@ -105,8 +85,7 @@ class YuzuSettings(customtkinter.CTkFrame):
         if dialogtype=="installer":
             new_path = filedialog.askopenfilename(initialdir=initialdir, title="Select Yuzu Installer", filetypes=[("yuzu_install.exe", "*exe")])
         else:
-            new_path = filedialog.askopenfilename(initialdir=initialdir, title="Select {} ZIP".format("Firmware" if dialogtype=="firmware" else "Key"), filetypes=[("Firmware" if dialogtype=="firmware" else "Keys", "*zip" if dialogtype=="firmware" else ("*zip", "prod.keys"))])
-            
+            new_path = filedialog.askopenfilename(initialdir=initialdir, title="Select {} ZIP".format("Firmware" if dialogtype=="firmware" else "Key"), filetypes=[("Firmware" if dialogtype=="firmware" else "Keys", "*zip" if dialogtype=="firmware" else ("*zip", "prod.keys"))]) 
         if new_path is None or new_path == "":
             return 
         entry_widget.delete(0, 'end')
@@ -116,7 +95,7 @@ class YuzuSettings(customtkinter.CTkFrame):
         errors = ""
         for setting_name, match in self.matching_dict.items():
             try:
-                setattr(self.settings.yuzu, setting_name, match["entry_widget"].get())
+                setattr(self.settings.yuzu, setting_name, (match["entry_widget"].get()))
             except (ValueError, FileNotFoundError) as error:
                 errors += f"{error}\n\n"
         if errors:

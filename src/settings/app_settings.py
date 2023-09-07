@@ -13,8 +13,9 @@ class AppSettings:
         self.default_settings = {
             'colour_theme': "dark-blue",
             'appearance_mode': "dark",
-            'use_yuzu_installer': "True",
+            'use_yuzu_installer': "False",
             'default_yuzu_channel': 'Mainline',
+            'delete_files': 'False', 
             'ask_firmware': 'True',
             'token': ''
         }
@@ -43,6 +44,8 @@ class AppSettings:
    
     default_yuzu_channel = property(lambda self: self._get_property('default_yuzu_channel'), 
                                      lambda self, value: self._set_property('ask_firmware', value))
+    delete_files = property(lambda self: self._get_property('delete_files'), 
+                                     lambda self, value: self._set_property('delete_files', value))
     ask_firmware = property(lambda self: self._get_property('ask_firmware'), 
                                      lambda self, value: self._set_property('ask_firmware', value))
     token = property(lambda self: self._get_property('token'), 
@@ -88,25 +91,26 @@ def load_customtkinter_themes(theme_folder):
     if os.path.exists(path_to_settings):
         
         with open(path_to_settings, "r") as file:
-            settings = json.load(file)
-        try:
-            app_settings = settings["app_settings"]
-            appearance_mode = app_settings["appearance_mode"] if app_settings["appearance_mode"] in VALID_APPEARANCE_MODES else "dark"
-            colour_theme = app_settings["colour_theme"] 
-            if os.path.exists(colour_theme) and colour_theme.endswith(".json"):
-                colour_theme = colour_theme if custom_theme_is_valid(colour_theme) else "dark-blue"
-            elif colour_theme not in VALID_COLOUR_THEMES:
-                colour_theme = "dark-blue"
-            elif colour_theme not in default_themes and colour_theme in VALID_COLOUR_THEMES:
-                colour_theme = os.path.join(theme_folder, colour_theme+".json")
-                if not os.path.exists(colour_theme):
-                    colour_theme = 'dark-blue'
-            elif colour_theme in default_themes:
-                colour_theme = colour_theme 
-            else:
-                colour_theme = "dark-blue"
-        except KeyError:
-            pass
+            try:
+                settings = json.load(file)
+  
+                app_settings = settings["app_settings"]
+                appearance_mode = app_settings["appearance_mode"] if app_settings["appearance_mode"] in VALID_APPEARANCE_MODES else "dark"
+                colour_theme = app_settings["colour_theme"] 
+                if os.path.exists(colour_theme) and colour_theme.endswith(".json"):
+                    colour_theme = colour_theme if custom_theme_is_valid(colour_theme) else "dark-blue"
+                elif colour_theme not in VALID_COLOUR_THEMES:
+                    colour_theme = "dark-blue"
+                elif colour_theme not in default_themes and colour_theme in VALID_COLOUR_THEMES:
+                    colour_theme = os.path.join(theme_folder, colour_theme+".json")
+                    if not os.path.exists(colour_theme):
+                        colour_theme = 'dark-blue'
+                elif colour_theme in default_themes:
+                    colour_theme = colour_theme 
+                else:
+                    colour_theme = "dark-blue"
+            except (KeyError,json.decoder.JSONDecodeError):
+                pass
     
     customtkinter.set_appearance_mode(appearance_mode)
     customtkinter.set_default_color_theme(colour_theme)

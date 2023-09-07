@@ -33,46 +33,13 @@ class Yuzu:
         if os.path.exists(os.path.join(self.settings.yuzu.user_directory, "keys", "prod.keys")):
             return True 
         return False
-
-    def verify_firmware_archive(self):
-        archive = self.settings.yuzu.firmware_path
-        if not os.path.exists(archive):
-            return False 
-        if not archive.endswith(".zip"):
-            return False 
-        with ZipFile(archive, 'r') as r_archive:
-            for filename in r_archive.namelist():
-                if not filename.endswith(".nca"):
-                    return False 
-        return True 
-        
-    def verify_key_archive(self):
-        archive = self.settings.yuzu.key_path
-        if not os.path.exists(archive):
-            return False 
-        if archive.endswith("prod.keys"):
-            return True
-        if not archive.endswith(".zip"):
-            return False 
-        with ZipFile(archive, 'r') as r_archive:
-            for filename in r_archive.namelist():
-                if not filename.endswith(".keys"):
-                    return False 
-                if filename=="prod.keys":
-                    found=True
-        if found:
-            return True 
-        else:
-            return False 
     
     def delete_early_access(self):
         try:
             shutil.rmtree(os.path.join(self.settings.yuzu.install_directory, "yuzu-windows-msvc-early-access"))
             messagebox.showinfo("Success", "The installation of yuzu EA was successfully deleted!")
         except Exception as error_msg:
-            messagebox.showerror("Delete Error", f"Failed to delete yuzu-ea: \n\n{error_msg}")
-        self.gui.configure_early_access_buttons("normal")
-            
+            messagebox.showerror("Delete Error", f"Failed to delete yuzu-ea: \n\n{error_msg}")     
             
     def get_latest_release(self, release_type):
         response = create_get_connection('https://api.github.com/repos/pineappleEA/pineapple-src/releases' if release_type == "early_access" else "https://api.github.com/repos/yuzu-emu/yuzu-mainline/releases", headers=get_headers(self.settings.app.token))
@@ -101,9 +68,7 @@ class Yuzu:
         download_path = os.path.join(os.getcwd(), f"Yuzu-{release.version}.zip" if release_type == "mainline" else f"Yuzu-EA-{release.version}.zip")
         download_result = download_through_stream(response, download_path, progress_frame, 1024*203)
         progress_frame.destroy()
-        if not all(download_result):
-            return download_result
-        return (True, download_result[1])
+        return download_result
     
     def extract_release(self, zip_path, release_type):
         extract_folder = self.settings.yuzu.install_directory
@@ -113,6 +78,7 @@ class Yuzu:
         progress_frame.skip_to_installation()
         progress_frame.update_extraction_progress(0)
         progress_frame.update_status_label("Status: Extracting... ")
+        progress_frame.cancel_download_button.configure(state="normal")
         if os.path.exists(os.path.join(self.settings.yuzu.install_directory,"yuzu-windows-msvc" if release_type == "mainline" else "yuzu-windows-msvc-early-access")):
             self.delete_mainline()
         try:
@@ -154,6 +120,8 @@ class Yuzu:
                 messagebox.showerror("Extract Error", f"An error occurred while extracting the release: \n\n{extract_result[1]}")
             return 
         self.metadata.update_installed_version(release_type, release.version)
+        if self.settings.app.delete_files == "True" and os.path.exists(release_archive):
+            os.remove(release_archive)
         messagebox.showinfo("Install Yuzu", f"Yuzu was successfully installed to {extract_result[1]}")
 
         
@@ -166,13 +134,14 @@ class Yuzu:
     def delete_mainline(self):
         try:
             shutil.rmtree(os.path.join(self.settings.yuzu.install_directory, "yuzu-windows-msvc"))
+            messagebox.showinfo("Delete Yuzu", "Installation of yuzu successfully deleted")
         except Exception as error:
             messagebox.showerror("Delete Error", f"An error occured while trying to delete the installation of yuzu:\n\n{error}")
         
     def launch_yuzu_handler(self, release_type, skip_update=False):
         if not skip_update:
             if (release_type == "mainline" and self.settings.app.use_yuzu_installer == "False") or release_type == "early_access":
-                self.gui.configure_mainline_buttons("disabled", text="Fetching Updates...  ") if release_type == "mainline"  else self.gui.configure_early_access_buttons("disabled", text="Fetching Updates...  ")
+                a=self.gui.configure_mainline_buttons("disabled", text="Fetching Updates...  ") if release_type == "mainline"  else self.gui.configure_early_access_buttons("disabled", text="Fetching Updates...  ")
                 self.install_release_handler(release_type, True)
         if release_type == "mainline":
             self.gui.configure_mainline_buttons("disabled", text="Launching...  ")
@@ -181,12 +150,12 @@ class Yuzu:
             self.gui.configure_early_access_buttons("disabled", text="Launching...  ")
             yuzu_folder = "yuzu-windows-msvc-early-access"    
         self.verify_and_install_firmware_keys()
-        self.gui.configure_mainline_buttons("disabled", text="Launched!  ") if release_type == "mainline" else self.gui.configure_early_access_buttons("disabled", text="Launched!  ")
+        a=self.gui.configure_mainline_buttons("disabled", text="Launched!  ") if release_type == "mainline" else self.gui.configure_early_access_buttons("disabled", text="Launched!  ")
         yuzu_exe = os.path.join(self.settings.yuzu.install_directory, yuzu_folder, "yuzu.exe")
         maintenance_tool = os.path.join(self.settings.yuzu.install_directory, "maintenancetool.exe")
         args = [maintenance_tool, "--launcher", yuzu_exe] if release_type == "mainline" and self.settings.app.use_yuzu_installer == "True" and not skip_update else [yuzu_exe]
         self.running = True
-        subprocess.run(args, capture_output=True)
+        subprocess.run(args, capture_output=True, check=False)
         self.running = False
         
     def verify_and_install_firmware_keys(self):
@@ -203,24 +172,27 @@ class Yuzu:
        
     def install_firmware_handler(self):
         self.gui.configure_firmware_key_buttons("disabled")
-        firmware_path = self.settings.yuzu.firmware_path if self.verify_firmware_archive() else self.download_firmware_archive()
+        firmware_path = self.download_firmware_archive()
         if not all(firmware_path):
             if firmware_path[1] != "Cancelled":
                 messagebox.showerror("Download Error", firmware_path[1])
             return False
         firmware_path = firmware_path[1] if isinstance(firmware_path, tuple) else firmware_path
         result = self.install_firmware_from_archive(firmware_path)
+        if self.settings.app.delete_files == "True" and os.path.exists(firmware_path):
+            os.remove(firmware_path)
         if result:
             messagebox.showwarning("Unexpected Files" , f"These files were skipped in the extraction process: {result}")
         messagebox.showinfo("Firmware Install", "The switch firmware files were successfully installed")
         return True 
     
     def download_firmware_archive(self):
-        firmware_release = get_resources_release('https://api.github.com/repos/Viren070/Emulator-Manager-Resources/releases', "Firmware", get_headers(self.settings.app.token))
+        firmware_release = get_resources_release("Firmware", get_headers(self.settings.app.token))
         if not all(firmware_release):
             return firmware_release
             
         firmware = firmware_release[1]
+        firmware.version = firmware.name.replace("Alpha.", "").replace(".zip", "")
         response_result = create_get_connection(firmware.download_url, stream=True, headers=get_headers(self.settings.app.token), timeout=30)
         if not all(response_result):
             return response_result
@@ -274,7 +246,7 @@ class Yuzu:
     
     def install_key_handler(self):
         self.gui.configure_firmware_key_buttons("disabled")
-        key_path = self.settings.yuzu.key_path if self.verify_key_archive() else self.download_key_archive()
+        key_path = self.download_key_archive()
         if not all(key_path):
             if key_path[1] != "Cancelled":
                 messagebox.showerror("Download Error", key_path[1])
@@ -287,15 +259,18 @@ class Yuzu:
             if "prod.keys" not in result:
                 messagebox.showwarning("Keys", "Was not able to find any prod.keys within the archive, the archive was still extracted successfully.")
                 return False 
+        if self.settings.app.delete_files == "True" and os.path.exists(key_path):
+            os.remove(key_path)
         messagebox.showinfo("Keys", "Decryption keys were successfully installed!")
         return True 
             
     def download_key_archive(self):
-        key_release = get_resources_release('https://api.github.com/repos/Viren070/Emulator-Manager-Resources/releases', "Keys", get_headers(self.settings.app.token))
+        key_release = get_resources_release("Keys", get_headers(self.settings.app.token))
         if not all(key_release):
             return key_release
         
         key = key_release[1]
+        key.version = key.name.replace("Beta.", "").replace(".zip","")
         response_result = create_get_connection(key.download_url, stream=True, headers=get_headers(self.settings.app.token), timeout=30)
         if not all(response_result):
             return response_result
@@ -339,54 +314,42 @@ class Yuzu:
         progress_frame.destroy()
         return extracted_files
         
-    def export_yuzu_data(self):
-        self.gui.configure_data_buttons(state="disabled")
-        mode = self.gui.yuzu_export_optionmenu.get()
+    def export_yuzu_data(self, mode):
         user_directory = self.settings.yuzu.user_directory
         export_directory = self.settings.yuzu.export_directory
         users_export_directory = os.path.join(export_directory, os.getlogin())
         
         if not os.path.exists(user_directory):
             messagebox.showerror("Missing Folder", "No yuzu data on local drive found")
-            self.gui.configure_data_buttons(state="normal")
             return  # Handle the case when the user directory doesn't exist.
 
         if mode == "All Data":
-            self.start_copy_thread(user_directory, users_export_directory, "Exporting All Yuzu Data", self.gui.yuzu_data_log)
+            copy_directory_with_progress(user_directory, users_export_directory, "Exporting All Yuzu Data", self.gui.yuzu_data_log)
         elif mode == "Save Data":
             save_dir = os.path.join(user_directory, 'nand', 'user', 'save')
-            self.start_copy_thread(save_dir, os.path.join(users_export_directory, 'nand', 'user', 'save'), "Exporting Yuzu Save Data", self.gui.yuzu_data_log)
+            copy_directory_with_progress(save_dir, os.path.join(users_export_directory, 'nand', 'user', 'save'), "Exporting Yuzu Save Data", self.gui.yuzu_data_log)
         elif mode == "Exclude 'nand' & 'keys'":
-            self.start_copy_thread(user_directory, users_export_directory, "Exporting All Yuzu Data", self.gui.yuzu_data_log, ["nand", "keys"])
+            copy_directory_with_progress(user_directory, users_export_directory, "Exporting All Yuzu Data", self.gui.yuzu_data_log, ["nand", "keys"])
         else:
             messagebox.showerror("Error", f"An unexpected error has occured, {mode} is an invalid option.")
-    def import_yuzu_data(self):
-        self.gui.configure_data_buttons(state="disabled")
-        mode = self.gui.yuzu_import_optionmenu.get()
+    def import_yuzu_data(self, mode):
         export_directory = self.settings.yuzu.export_directory
         user_directory = self.settings.yuzu.user_directory
         users_export_directory = os.path.join(export_directory, os.getlogin())
         
         if not os.path.exists(users_export_directory):
             messagebox.showerror("Missing Folder", "No yuzu data associated with your username found")
-            self.gui.configure_data_buttons(state="normal")
             return
         if mode == "All Data":
-            self.start_copy_thread(users_export_directory, user_directory, "Import All Yuzu Data", self.gui.yuzu_data_log)
+            copy_directory_with_progress(users_export_directory, user_directory, "Import All Yuzu Data", self.gui.yuzu_data_log)
         elif mode == "Save Data":
             save_dir = os.path.join(users_export_directory, 'nand', 'user', 'save')
-            self.start_copy_thread(save_dir, os.path.join(user_directory, 'nand', 'user', 'save'), "Importing Yuzu Save Data", self.gui.yuzu_data_log)
+            copy_directory_with_progress(save_dir, os.path.join(user_directory, 'nand', 'user', 'save'), "Importing Yuzu Save Data", self.gui.yuzu_data_log)
         elif mode == "Exclude 'nand' & 'keys'":
-            self.start_copy_thread(users_export_directory, user_directory, "Import All Yuzu Data", self.gui.yuzu_data_log, ["nand", "keys"])
+            copy_directory_with_progress(users_export_directory, user_directory, "Import All Yuzu Data", self.gui.yuzu_data_log, ["nand", "keys"])
         else:
             messagebox.showerror("Error", f"An unexpected error has occured, {mode} is an invalid option.")
-    def delete_yuzu_data(self):
-        self.gui.configure_data_buttons(state="disabled")
-        if not messagebox.askyesno("Confirmation", "This will delete the data from Yuzu's directory and from the global saves directory. This action cannot be undone, are you sure you wish to continue?"):
-            self.gui.configure_data_buttons(state="normal")
-            return
-
-        mode = self.gui.yuzu_delete_optionmenu.get()
+    def delete_yuzu_data(self, mode):
         result = ""
 
         user_directory = self.settings.yuzu.user_directory
@@ -436,10 +399,4 @@ class Yuzu:
         else:
             messagebox.showinfo("Delete result", "Nothing was deleted.")
         self.gui.configure_data_buttons(state="normal")
-    def start_copy_thread(self, *args):
-        thread=Thread(target=copy_directory_with_progress, args=args)
-        thread.start()
-        Thread(target=self.wait_on_thread, args=(thread,)).start()
-    def wait_on_thread(self, thread):
-        thread.join()
-        self.gui.configure_data_buttons(state="normal")
+

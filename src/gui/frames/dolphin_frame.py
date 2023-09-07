@@ -1,3 +1,7 @@
+import os
+from threading import Thread
+from tkinter import messagebox
+
 import customtkinter
 from PIL import Image
 
@@ -5,9 +9,9 @@ from emulators.dolphin import Dolphin
 
 
 class DolphinFrame(customtkinter.CTkFrame):
-    def __init__(self, parent_frame, settings):
+    def __init__(self, parent_frame, settings, metadata):
         super().__init__(parent_frame, corner_radius=0, bg_color="transparent")
-        self.dolphin = Dolphin(self, settings)
+        self.dolphin = Dolphin(self, settings, metadata)
         self.settings = settings
         self.parent_frame = parent_frame
         self.build_frame()
@@ -51,15 +55,15 @@ class DolphinFrame(customtkinter.CTkFrame):
         self.dolphin_actions_frame.grid_columnconfigure(2, weight=1)  # Stretch horizontally
 
         
-        self.dolphin_launch_dolphin_button = customtkinter.CTkButton(self.dolphin_actions_frame, height=40, width=180, text="Launch Dolphin  ", image = self.play_image, font=customtkinter.CTkFont(size=15, weight="bold"), command=self.dolphin.start_dolphin_wrapper)
-        self.dolphin_launch_dolphin_button.grid(row=0, column=1, padx=30, pady=15, sticky="nsew")
+        self.launch_dolphin_button = customtkinter.CTkButton(self.dolphin_actions_frame, height=40, width=180, text="Launch Dolphin  ", image = self.play_image, font=customtkinter.CTkFont(size=15, weight="bold"), command=self.launch_dolphin_button_event)
+        self.launch_dolphin_button.grid(row=0, column=1, padx=30, pady=15, sticky="nsew")
 
 
-        self.dolphin_install_dolphin_button = customtkinter.CTkButton(self.dolphin_actions_frame, text="Install Dolphin", command=self.dolphin.install_dolphin_wrapper)
-        self.dolphin_install_dolphin_button.grid(row=0, column=0,padx=10, pady=5, sticky="ew")
+        self.install_dolphin_button = customtkinter.CTkButton(self.dolphin_actions_frame, text="Install Dolphin", command=self.install_dolphin_button_event)
+        self.install_dolphin_button.grid(row=0, column=0,padx=10, pady=5, sticky="ew")
 
-        self.dolphin_delete_dolphin_button = customtkinter.CTkButton(self.dolphin_actions_frame, text="Delete Dolphin", fg_color="red", hover_color="darkred", command=self.dolphin.delete_dolphin_button_event)
-        self.dolphin_delete_dolphin_button.grid(row=0, column=2,padx=10, sticky="ew", pady=5)
+        self.delete_dolphin_button = customtkinter.CTkButton(self.dolphin_actions_frame, text="Delete Dolphin", fg_color="red", hover_color="darkred", command=self.delete_dolphin_button_event)
+        self.delete_dolphin_button.grid(row=0, column=2,padx=10, sticky="ew", pady=5)
 
         
         self.dolphin_log_frame = customtkinter.CTkFrame(self.center_frame, border_width=0, fg_color='transparent')
@@ -85,9 +89,9 @@ class DolphinFrame(customtkinter.CTkFrame):
         self.dolphin_export_optionmenu = customtkinter.CTkOptionMenu(self.dolphin_data_actions_frame, width=300, values=["All Data"])
         self.dolphin_delete_optionmenu = customtkinter.CTkOptionMenu(self.dolphin_data_actions_frame, width=300, values=["All Data"])
         
-        self.dolphin_import_button = customtkinter.CTkButton(self.dolphin_data_actions_frame, text="Import", command=self.dolphin.import_dolphin_data)
-        self.dolphin_export_button = customtkinter.CTkButton(self.dolphin_data_actions_frame, text="Export", command=self.dolphin.export_dolphin_data)
-        self.dolphin_delete_button = customtkinter.CTkButton(self.dolphin_data_actions_frame, text="Delete", command=self.dolphin.delete_dolphin_data, fg_color="red", hover_color="darkred")
+        self.dolphin_import_button = customtkinter.CTkButton(self.dolphin_data_actions_frame, text="Import", command=self.import_data_button_event)
+        self.dolphin_export_button = customtkinter.CTkButton(self.dolphin_data_actions_frame, text="Export", command=self.export_data_button_event)
+        self.dolphin_delete_button = customtkinter.CTkButton(self.dolphin_data_actions_frame, text="Delete", command=self.delete_data_button_event,  fg_color="red", hover_color="darkred")
 
         self.dolphin_import_optionmenu.grid(row=0, column=0, padx=10, pady=10, sticky="w")
         self.dolphin_import_button.grid(row=0, column=1, padx=10, pady=10, sticky="e")
@@ -105,10 +109,10 @@ class DolphinFrame(customtkinter.CTkFrame):
         self.dolphin_delete_button.configure(**kwargs)
         self.dolphin_import_button.configure(**kwargs)
         self.dolphin_export_button.configure(**kwargs)
-    def configure_action_buttons(self, **kwargs):
-        self.dolphin_launch_dolphin_button.configure(**kwargs)
-        self.dolphin_install_dolphin_button.configure(**kwargs)
-        self.dolphin_delete_dolphin_button.configure(**kwargs)
+    def configure_buttons(self, state, **kwargs):
+        self.launch_dolphin_button.configure(state=state, **kwargs)
+        self.install_dolphin_button.configure(state=state)
+        self.delete_dolphin_button.configure(state=state)
     def dolphin_start_button_event(self):
         self.select_dolphin_frame_by_name("start")
     def dolphin_manage_data_button_event(self):
@@ -125,5 +129,57 @@ class DolphinFrame(customtkinter.CTkFrame):
             self.dolphin_manage_data_frame.grid(row=0, column=1, sticky="nsew")
         else:
             self.dolphin_manage_data_frame.grid_forget()
+    def launch_dolphin_button_event(self):
+        if not os.path.exists(os.path.join(self.settings.dolphin.install_directory, "Dolphin.exe")):
+            messagebox.showerror("Dolphin", f"Installation of Dolphin not found at {os.path.join(self.settings.dolphin.install_directory, 'Dolphin.exe')}")
+            return 
+        self.configure_buttons("disabled", text="Launching...")
+        thread = Thread(target=self.dolphin.launch_dolphin_handler)
+        thread.start()
+        Thread(target=self.enable_buttons_after_thread, args=(thread, ["main"])).start()
+
+    def install_dolphin_button_event(self):
+        if os.path.exists(os.path.join(self.settings.dolphin.install_directory, "Dolphin.exe")) and not messagebox.askyesno("Confirmation", "Dolphin seems to already be installed, install anyways?"):
+            return 
+        self.configure_buttons("disabled")
+        thread = Thread(target=self.dolphin.install_dolphin_handler)
+        thread.start()
+        Thread(target=self.enable_buttons_after_thread, args=(thread, ["main"], )).start()
+    def delete_dolphin_button_event(self):
+        if not os.path.exists(os.path.join(self.settings.dolphin.install_directory, "Dolphin.exe")):
+            messagebox.showinfo("Delete Dolphin", f"Dolphin installation not found at {os.path.join(self.settings.dolphin.install_directory, 'Dolphin.exe')}")
+            return 
+        self.configure_buttons("disabled")
+        thread = Thread(target=self.dolphin.delete_dolphin)
+        thread.start()
+        Thread(target=self.enable_buttons_after_thread, args=(thread, ["main"], )).start()
+    def import_data_button_event(self):
+        self.configure_data_buttons(state="disabled")
+        thread = Thread(target=self.dolphin.import_dolphin_data, args=(self.dolphin_import_optionmenu.get(),))
+        thread.start()
+        Thread(target=self.enable_buttons_after_thread, args=(thread, ["data"],)).start()
+    def export_data_button_event(self):
+        self.configure_data_buttons(state="disabled")
+        thread = Thread(target=self.dolphin.export_dolphin_data, args=(self.dolphin_export_optionmenu.get(),))
+        thread.start()
+        Thread(target=self.enable_buttons_after_thread, args=(thread, ["data"],)).start()
+    def delete_data_button_event(self):
+        if not messagebox.askyesno("Confirmation", "This will delete the data from Dolphin's directory and from the global saves directory. This action cannot be undone, are you sure you wish to continue?"):
+            return
+        self.configure_data_buttons(state="disabled")
+        thread = Thread(target=self.dolphin.delete_dolphin_data, args=(self.dolphin_delete_optionmenu.get(),))
+        thread.start()
+        Thread(target=self.enable_buttons_after_thread, args=(thread, ["data"],)).start()
+    
+    def enable_buttons_after_thread(self, thread, buttons):
+        if not isinstance(buttons, list):
+            raise TypeError("Expected list of button types")
+        thread.join()
+        for button in buttons:
+            if button == "main":
+                self.configure_buttons("normal", text="Launch Dolphin  ", width=170)
+            elif button == "data":
+                self.configure_data_buttons(state="normal")
+        
             
     

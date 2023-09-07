@@ -88,8 +88,9 @@ class EmulatorManager(customtkinter.CTk):
         self.settings_button.grid(row=6, column=0, sticky="ew")
         
         self.yuzu_frame = YuzuFrame(self, self.settings, self.metadata)
-        self.dolphin_frame = DolphinFrame(self, self.settings)
+        self.dolphin_frame = DolphinFrame(self, self.settings, self.metadata)
         self.settings_frame = SettingsFrame(self, self.settings)
+        self.settings.yuzu.refresh_app_settings = self.settings_frame.app_settings_frame.refresh_settings
     def dolphin_button_event(self):
         self.select_frame_by_name("dolphin")
 

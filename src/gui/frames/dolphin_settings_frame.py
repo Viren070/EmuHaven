@@ -31,12 +31,6 @@ class DolphinSettings(customtkinter.CTkFrame):
         self.export_directory_entry.grid(row=6, column=2, padx=10, pady=10, sticky="e")
         customtkinter.CTkButton(self, text="Browse", width=50, command=lambda entry_widget=self.export_directory_entry: self.update_with_explorer(entry_widget)).grid(row=6, column=3, padx=5, sticky="E")
         ttk.Separator(self, orient='horizontal').grid(row=7, columnspan=4, sticky="ew")
-        
-        customtkinter.CTkLabel(self, text="Dolphin ZIP: ").grid(row=8, column=0, padx=10, pady=10, sticky="w")
-        self.dolphin_zip_directory_entry = customtkinter.CTkEntry(self, width=300)
-        self.dolphin_zip_directory_entry.grid(row=8, column=2, padx=10, pady=10, sticky="e")
-        customtkinter.CTkButton(self, text="Browse", width=50, command=lambda entry_widget=self.dolphin_zip_directory_entry: self.update_with_explorer(entry_widget, "zip")).grid(row=8, column=3, padx=5, sticky="E")
-        ttk.Separator(self, orient='horizontal').grid(row=9, columnspan=4, sticky="ew")
      
         self.actions_frame = customtkinter.CTkFrame(self, fg_color="transparent")
         self.actions_frame.grid_columnconfigure(0, weight=1)
@@ -56,10 +50,6 @@ class DolphinSettings(customtkinter.CTkFrame):
             "export_directory": {
                 "entry_widget": self.export_directory_entry,
                 "variable": self.settings.dolphin.export_directory
-            },
-            "zip_path": {
-                "entry_widget": self.dolphin_zip_directory_entry,
-                "variable": self.settings.dolphin.zip_path
             }
         }
         
@@ -85,7 +75,6 @@ class DolphinSettings(customtkinter.CTkFrame):
         initialdir=os.path.dirname(entry_widget.get())
         if dialogtype=="zip":
             new_path = filedialog.askopenfilename(initialdir=initialdir, title="Select Dolphin archive", filetypes=[("Dolphin 5.0-xxxxx", "*zip")])
-      
         if new_path is None or new_path == "":
             return 
         entry_widget.delete(0, 'end')
@@ -95,6 +84,7 @@ class DolphinSettings(customtkinter.CTkFrame):
         errors = ""
         for setting_name, match in self.matching_dict.items():
             try:
+
                 setattr(self.settings.dolphin, setting_name, match["entry_widget"].get())
             except (ValueError, FileNotFoundError) as error:
                 errors += f"{error}\n\n"

@@ -9,12 +9,14 @@ from settings.yuzu_settings import YuzuSettings
 class Settings:
     def __init__(self, master, root_dir):
         self.root_dir = root_dir
-        self.version = "2"
+        self.version = "3"
         self.settings_file = os.path.join(os.getenv("APPDATA"), "Emulator Manager", "config", "settings.json")
-            
+        self.master = master 
+        
+        self.app = AppSettings(self)
         self.yuzu = YuzuSettings(self)
         self.dolphin = DolphinSettings(self)
-        self.app = AppSettings(self)
+        
         if not os.path.exists(self.settings_file) or not self.settings_file_valid():
             self.create_settings_file() 
         else:
@@ -29,17 +31,14 @@ class Settings:
             "dolphin_settings": {
                 "user_directory": "",
                 "install_directory": "",
-                "export_directory": "",
-                "zip_path" : ""
+                "export_directory": ""
                 
             },
             "yuzu_settings": {
                 "user_directory": "",
                 "install_directory": "",
                 "export_directory" : "",
-                "installer_path" : "",
-                "firmware_path" : "",
-                "key_path" : ""
+                "installer_path" : ""
                 
             },
             "app_settings": {
@@ -60,6 +59,7 @@ class Settings:
                 "appearance_mode" : "",
                 "colour_theme" : "",
                 "use_yuzu_installer":  "",
+                "delete_files": "",
                 "default_yuzu_channel": "",
                 "ask_firmware": ""
             }
@@ -141,17 +141,14 @@ class Settings:
             "dolphin_settings": {
                 "user_directory": self.dolphin.user_directory,
                 "install_directory": self.dolphin.install_directory,
-                "export_directory": self.dolphin.export_directory,
-                "zip_path" : self.dolphin.zip_path
+                "export_directory": self.dolphin.export_directory
                 
             },
             "yuzu_settings": {
                 "user_directory": self.yuzu.user_directory,
                 "install_directory": self.yuzu.install_directory,
                 "export_directory" : self.yuzu.export_directory,
-                "installer_path" : self.yuzu.installer_path,
-                "firmware_path" : self.yuzu.firmware_path,
-                "key_path" : self.yuzu.key_path
+                "installer_path" : self.yuzu.installer_path
                 
             },
             "app_settings": {
@@ -159,6 +156,7 @@ class Settings:
                 "appearance_mode" : self.app.appearance_mode,
                 "colour_theme" : self.app.colour_theme,
                 "use_yuzu_installer":  self.app.use_yuzu_installer,
+                "delete_files" : self.app.delete_files,
                 "default_yuzu_channel": self.app.default_yuzu_channel,
                 "ask_firmware": self.app.ask_firmware
             }
@@ -168,12 +166,15 @@ class Settings:
     
     def settings_file_valid(self):
         with open(self.settings_file, "r") as file:
-            settings = json.load(file)
+            try:
+                settings = json.load(file)
+            except json.decoder.JSONDecodeError:
+                return False
         try:
             if not settings["version"] == self.version:
                 return False 
             yuzu_image_path = settings["app_settings"]["image_paths"]["yuzu_logo"]
             return True
             
-        except (KeyError, json.JSONDecodeError):
+        except KeyError:
             return False

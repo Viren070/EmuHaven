@@ -92,8 +92,9 @@ class ProgressFrame(customtkinter.CTkFrame):
         if messagebox.askyesno(
             "Confirmation", "Are you sure you want to cancel this download?"
         ):
-            self.install_status_label.configure(text="Status: Cancelled")
+            self.install_status_label.configure(text="Status: Cancelling...")
             self.cancel_download_raised = True
+            self.cancel_download_button.configure(state="disabled")
             return True
         else:
             self.time_during_cancel += perf_counter() - start_time

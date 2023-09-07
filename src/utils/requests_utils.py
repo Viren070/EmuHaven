@@ -6,10 +6,10 @@ import requests
 DEFAULT_HEADER = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246"}
 class Release:
     def __init__(self) -> None:
-        self.version = None
+        self.name = None
         self.download_url = None
         self.size = None 
-                
+        self.version = None
                 
 def get_headers(token=None):
         headers = DEFAULT_HEADER
@@ -55,12 +55,12 @@ def get_release_from_assets(assets, query, wildcard=False):
     asset = matching_assets[0]
     release.download_url = asset["browser_download_url"]
     release.size = asset["size"]
-    release.version = asset['name'].replace(".zip", "").split("-")[-1]
+    release.name = asset["name"]
     return release
 
     
-def get_resources_release(api_url, file, headers=DEFAULT_HEADER):
-        assets_result = get_assets_from_latest_release(api_url, headers)
+def get_resources_release(file, headers=DEFAULT_HEADER):
+        assets_result = get_assets_from_latest_release('https://api.github.com/repos/Viren070/Emulator-Manager-Resources/releases', headers)
         if not all(assets_result): return (False, assets_result[1])
         assets = assets_result[1]
         if file == "Dolphin":
