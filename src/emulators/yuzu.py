@@ -34,10 +34,11 @@ class Yuzu:
             return True 
         return False
     
-    def delete_early_access(self):
+    def delete_early_access(self, skip_prompt=False):
         try:
             shutil.rmtree(os.path.join(self.settings.yuzu.install_directory, "yuzu-windows-msvc-early-access"))
-            messagebox.showinfo("Success", "The installation of yuzu EA was successfully deleted!")
+            if not skip_prompt:
+                messagebox.showinfo("Success", "The installation of yuzu EA was successfully deleted!")
         except Exception as error_msg:
             messagebox.showerror("Delete Error", f"Failed to delete yuzu-ea: \n\n{error_msg}")     
             
@@ -80,7 +81,7 @@ class Yuzu:
         progress_frame.update_status_label("Status: Extracting... ")
         progress_frame.cancel_download_button.configure(state="normal")
         if os.path.exists(os.path.join(self.settings.yuzu.install_directory,"yuzu-windows-msvc" if release_type == "mainline" else "yuzu-windows-msvc-early-access")):
-            self.delete_mainline()
+            self.delete_mainline(True) if release_type == "mainline" else self.delete_early_access(True)
         try:
             with ZipFile(zip_path, 'r') as archive:
                 total_files = len(archive.namelist())     
@@ -131,10 +132,11 @@ class Yuzu:
         subprocess.run([path_to_installer], capture_output = True)
         self.running = False
         
-    def delete_mainline(self):
+    def delete_mainline(self, skip_prompt=False):
         try:
             shutil.rmtree(os.path.join(self.settings.yuzu.install_directory, "yuzu-windows-msvc"))
-            messagebox.showinfo("Delete Yuzu", "Installation of yuzu successfully deleted")
+            if not skip_prompt:
+                messagebox.showinfo("Delete Yuzu", "Installation of yuzu successfully deleted")
         except Exception as error:
             messagebox.showerror("Delete Error", f"An error occured while trying to delete the installation of yuzu:\n\n{error}")
         
