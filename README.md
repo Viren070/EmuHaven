@@ -32,19 +32,27 @@ Download the latest release from [here](https://github.com/Viren070/Emulator-Man
   - [s-liwka/customtkinter-themes](https://github.com/s-liwka/customtkinter-themes)
   - [a13xe/CTkThemesPack](https://github.com/a13xe/CTkThemesPack)
 
+## How to use
+
+Should be straight forward, you just click the buttons. You can shift-click the launch buttons to immediately launch the emulator instead of checking for updates first. 
+
+For the downloader on yuzu. You need to click Options, then Attempt version fetch. This will probably be changed if I get around to re-doing the options menu but for now, you'll have to manually fetch the versions.
+
+The GitHub login feature is optional and should only be used if you ran out of API requests and need more immediately. It will grant you 5000 requests per hour. The user access token is not stored and this means that you will have to login again when you next launch the app if you want 5000 requests again.
+
+The settings for dolphin and yuzu are used to change where yuzu/dolphin is installed and where your user data is stored (if you are using the portable version). You can only change the install location if you are not using the yuzu installer, otherwise it will always install in the default location. 
 
 ### Images
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/9b421e17-65a0-4a89-8178-b5c25754ae74)
 
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/3f7dab56-73b6-43df-ac82-ff24019d71a5)
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/657a4c3b-3f01-4ee3-899b-74a189fc5ffc)
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/1ea40ed6-9e42-4ef0-8804-4f84090b0109)
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/2148d447-80ce-49fa-8707-7f43234c3620)
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/2b86392c-7694-42f8-b6e7-4a9610f74256)
 
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/0a6361b2-5b54-4801-a87c-69d32c999ed4)
 
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/c2ac251a-f267-4559-8c53-8a99daa780d3)
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/f6530d79-091f-4657-b186-ce2be3d03abb)
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/c7b84aa5-d137-4eda-ad1b-e37e5cd851b5)
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/fcd95b98-bdd8-4f0f-9463-ec672cbcfd99)
- 
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/1653573c-6b20-441d-b3b0-bf4a2c2100ac)
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/0093c941-fd3e-4ed6-9d26-b4265aa22bcf)
+
 
 
 ## [Early Access Source](https://github.com/pineappleEA/pineapple-src) | [Firmware](https://archive.org/download/nintendo-switch-global-firmwares) | [Keys](https://github.com/Viren070/SwitchFirmwareKeysInstaller/tree/main/Keys)  | [Dolphin](https://github.com/Viren070/dolphin-beta-downloads)
