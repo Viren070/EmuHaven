@@ -287,7 +287,6 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.configure_early_access_buttons("disabled")
         thread = Thread(target=self.yuzu.delete_early_access)
         thread.start()
-        thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["early_access"],)).start()
         
     def delete_mainline_button_event(self):
