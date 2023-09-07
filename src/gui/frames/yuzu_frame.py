@@ -176,16 +176,13 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.launch_mainline_button.configure(state=state, **kwargs)
         self.install_mainline_button.configure(state=state)
         self.delete_mainline_button.configure(state=state)
-        self.update_version_text()
     def configure_early_access_buttons(self, state, **kwargs):
         self.install_early_access_button.configure(state=state)
         self.launch_early_access_button.configure(state=state, **kwargs)
         self.delete_early_access_button.configure(state=state)
-        self.update_version_text()
     def configure_firmware_key_buttons(self, state):
         self.install_firmware_button.configure(state=state)
         self.install_keys_button.configure(state=state)
-        self.update_version_text()
     def yuzu_start_button_event(self):
         self.select_yuzu_frame_by_name("start")
     def yuzu_manage_data_button_event(self):
