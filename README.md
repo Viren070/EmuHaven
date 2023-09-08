@@ -19,6 +19,8 @@ Download the latest release from [here](https://github.com/Viren070/Emulator-Man
 
 ### Yuzu 
 
+An all in one launcher for yuzu. Allows you to switch between mainline and early accesd and keeps both versions updated. It can download the latest firmware and keys from the internet. 
+
 - Allows you to install, delete and launch yuzu
 - Can switch channels between mainline and early access through a dropdown menu in the corner
 - Will automatically update yuzu when you launch it
