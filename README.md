@@ -1,5 +1,7 @@
 # Emulator Manager
 
+
+
 A program that will help manage your emulators, currently supports: 
 
  - Dolphin
@@ -7,7 +9,7 @@ A program that will help manage your emulators, currently supports:
 
 ## Download 
 
-Download the latest release from [here](https://github.com/Viren070/Emulator-Manager/releases/latest) by scrolling to the bottom and choosing a download option 
+Download the latest release from [here](https://github.com/Viren070/Emulator-Manager/releases/latest) by scrolling to the bottom and downloading the exe from the assets (Use [0.9.3](https://github.com/Viren070/Emulator-Manager/releases/tag/v0.9.3) for playing in places with limited internet access for now. I'll add back ways to use files from other sources to install stuff in a future update)
 
 ## Features
 
