@@ -167,7 +167,7 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.mainline_actions_frame.grid_propagate(False)
         self.selected_channel.set(self.settings.app.default_yuzu_channel)
         self.switch_channel()
-        Thread(target=self.fetch_versions, args=(False,)).start()
+       # Thread(target=self.fetch_versions, args=(False,)).start()
     def configure_data_buttons(self, **kwargs):
         self.yuzu_delete_button.configure(**kwargs)
         self.yuzu_import_button.configure(**kwargs)
@@ -351,7 +351,7 @@ class YuzuFrame(customtkinter.CTkFrame):
             mainline_release = self.yuzu.get_latest_release("mainline")
             early_access_release = self.yuzu.get_latest_release("early_access")
             firmware_keys_release = get_resources_release("Firmware", get_headers(self.settings.app.token))
-            if not all([x for x in [mainline_release, early_access_release, firmware_keys_release]]):
+            if not all(all( val for val in arr) for arr in (mainline_release, early_access_release, firmware_keys_release)):
                 return 
             self.mainline_version = mainline_release[1].version
             self.early_access_version = early_access_release[1].version
