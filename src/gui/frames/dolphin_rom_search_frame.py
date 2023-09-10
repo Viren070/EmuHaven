@@ -1,13 +1,16 @@
 import customtkinter 
 from threading import Thread
 from tkinter import messagebox
+import os 
+from utils.downloader import download_through_stream
+from utils.requests_utils import create_get_connection, get_headers
 class ROMSearchFrame(customtkinter.CTkFrame):
     def __init__(self, master, dolphin, settings):
         super().__init__(master)
         self.master = master 
         self.settings = settings 
         self.dolphin = dolphin 
-        self.results_per_page = 4
+        self.results_per_page = 10
         self.update_in_progress = False
         self.build_frame()
         
@@ -123,22 +126,23 @@ class ROMSearchFrame(customtkinter.CTkFrame):
         for i, rom in enumerate(self.searched_roms):
             if i > end_index or i < start_index:
                 continue
-            entry_var = customtkinter.StringVar()
-            entry_var.set(rom.filename.replace(".zip", ""))
-            entry = customtkinter.CTkEntry(self.result_frame, textvariable=entry_var, state="normal", width=400)
-            entry_var.trace("w", callback=lambda var, index, mode, entry_va=entry_var, original=rom.filename.replace(".zip", ""): self.revert_entry(var, index, mode, entry_va, original))
-
+     
+            entry = customtkinter.CTkEntry(self.result_frame, width=400)
+            entry.insert(0, rom.filename.replace(".zip", ""))
+            entry.configure(state="disabled")
+            progress_bar = customtkinter.CTkProgressBar(self.result_frame, mode="determinate")
+            
             entry.grid(row=row_counter, column=0, padx=10, pady=5, sticky="w")
-            button = customtkinter.CTkButton(self.result_frame, text="Download", command = lambda url=rom.url:self.download_rom(url))
+            button = customtkinter.CTkButton(self.result_frame, text="Download")
+            button.configure(command = lambda rom=rom, progress_bar=progress_bar, button=button, row=row_counter+1:self.download_rom_event(rom, progress_bar, row, button))
             button.grid(row=row_counter, column=1, padx=10, pady=5, sticky="e")
-            row_counter += 1
+            row_counter += 2
         self.current_page_entry.delete(0, customtkinter.END)
         self.current_page_entry.insert(0, str(self.current_page))
         self.next_button.configure(state="normal")
         self.prev_button.configure(state="normal")
         self.update_in_progress = False
-    def revert_entry(self, var, index, mode, entry_var, original):
-        entry_var.set(original)
+
 
     def perform_search(self, event=None):
         # Implement your search logic here
@@ -164,27 +168,35 @@ class ROMSearchFrame(customtkinter.CTkFrame):
             return
             
         try:
-            print(f"received page number of {page_no}")
             page_number = int(self.current_page_entry.get()) if page_no is None else int(page_no)
-            print(f"defined page_no as {page_number}")
             if page_number == self.current_page:
-                print("returning ")
                 return
             if 1 <= page_number <= self.total_pages:
                 self.current_page = page_number
                 self.current_page_entry.delete(0, customtkinter.END)
                 self.current_page_entry.insert(0, str(self.current_page))
-                print("updating results")
                 Thread(target=self.update_results).start()
             else:
                 # Display an error message or handle invalid page numbers
                 self.current_page_entry.delete(0, customtkinter.END)
                 self.current_page_entry.insert(0, str(self.current_page))
-                pass
         except ValueError:
             # Handle invalid input (non-integer)
             self.current_page_entry.delete(0, customtkinter.END)
             self.current_page_entry.insert(0, str(self.current_page))
-            pass
-    def download_rom(self, url):
-        print("downloading", url)
+    def download_rom_event(self, rom, progress_bar, row, button):
+        Thread(target=self.download_rom_handler, args=(rom, progress_bar, row, button)).start()
+    def download_rom_handler(self, rom, progress_bar, row, button):
+        button.configure(state="disabled")
+        download_result = self.download_rom(rom, progress_bar, row)
+        button.configure(state="normal")
+    def download_rom(self, rom, progress_bar, row):
+        download_folder = self.settings.dolphin.rom_directory
+        download_path = os.path.join(download_folder, rom.filename)
+        response = create_get_connection(rom.url, stream=True, headers=get_headers(self.settings.app.token), timeout=30)
+        if not all(response):
+            return response 
+        response = response[1]
+        progress_bar.grid(row=row, column=0, padx=10, pady=5, sticky="ew")
+        download_result = download_through_stream(response, download_path, progress_bar, 1024*203, total_size=int(response.headers.get('content-length', 0)), custom=False)
+        return (True,download_result)

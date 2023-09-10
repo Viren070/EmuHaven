@@ -5,7 +5,8 @@ import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urljoin
 
-DEFAULT_HEADER = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246"}
+DEFAULT_HEADER = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246",
+                  'Accept-Encoding': 'identity'}
 class Release:
     def __init__(self) -> None:
         self.name = None

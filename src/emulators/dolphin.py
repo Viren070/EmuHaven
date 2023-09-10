@@ -38,7 +38,7 @@ class Dolphin:
         download_path = os.path.join(download_folder, f"Dolphin {release.version}.zip")
         response = requests.get(release .download_url, stream=True, headers=get_headers(self.settings.app.token), timeout=30)
         progress_frame.grid(row=0, column=0, sticky="ew")
-        progress_frame.total_size = release .size
+        progress_frame.total_size = release.size
         download_result = download_through_stream(response, download_path, progress_frame, 1024*203)
         progress_frame.destroy() 
         return download_result
