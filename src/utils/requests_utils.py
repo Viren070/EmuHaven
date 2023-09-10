@@ -2,6 +2,8 @@ import json
 import re
 
 import requests
+from bs4 import BeautifulSoup
+from urllib.parse import urlparse, urljoin
 
 DEFAULT_HEADER = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246"}
 class Release:
@@ -11,6 +13,10 @@ class Release:
         self.size = None 
         self.version = None
                 
+class File:
+    def __init__(self, url, filename):
+        self.url = url
+        self.filename = filename
 def get_headers(token=None):
         headers = DEFAULT_HEADER
         if token:
@@ -75,5 +81,28 @@ def get_resources_release(file, headers=DEFAULT_HEADER):
         release = get_release_from_assets(assets, query)
         return (True, release)
     
+def get_file_links_from_page(url, file_ext=None, headers=DEFAULT_HEADER):
 
+    response_result = create_get_connection(url, headers=headers, timeout=30)
+    if not all(response_result):
+        return response_result
+    response = response_result[1]
+    files = []
+    soup = BeautifulSoup(response.text, 'html.parser')
+    links = soup.find_all('a')
+    for link in links:
+        href = link.get('href')
+        if (file_ext is None) or (href.endswith(file_ext) and href not in [file.url for file in files]):
+            filename=re.sub('<[^>]+>', '', str(link))
+            result=urlparse(href)
+            if all([result.scheme, result.netloc]):
+                file_url = href
+            else:
+                file_url = urljoin(url,href)
+                result = urlparse(file_url)
+                if not all([result.scheme, result.netloc]):
+                    continue
+            files.append(File(file_url, filename))
+    return (True, files)
+    
             

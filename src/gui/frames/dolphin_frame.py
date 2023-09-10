@@ -6,7 +6,7 @@ import customtkinter
 from PIL import Image
 
 from emulators.dolphin import Dolphin
-
+from gui.frames.dolphin_rom_search_frame import ROMSearchFrame
 
 class DolphinFrame(customtkinter.CTkFrame):
     def __init__(self, parent_frame, settings, metadata):
@@ -105,6 +105,33 @@ class DolphinFrame(customtkinter.CTkFrame):
         self.dolphin_data_log.grid_columnconfigure(0, weight=1)
         self.dolphin_data_log.grid_rowconfigure(1, weight=1)
         
+        self.manage_roms_button = customtkinter.CTkButton(self.dolphin_navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Manage ROMs",
+                                                   fg_color="transparent", text_color=("gray10", "gray90"), 
+                                                   anchor="w", command=self.manage_roms_button_event)
+        self.manage_roms_button.grid(row=3, column=0, sticky="EW", padx=2)
+        
+        self.manage_roms_frame = customtkinter.CTkFrame(self, corner_radius = 0, bg_color = "transparent")
+        
+        self.manage_roms_frame.grid_columnconfigure(0, weight=1)
+        self.manage_roms_frame.grid_rowconfigure(0, weight=3)
+        self.manage_roms_frame.grid_rowconfigure(1, weight=1)
+        
+        self.installed_roms_frame = customtkinter.CTkScrollableFrame(self.manage_roms_frame)
+        if os.path.exists(self.settings.dolphin.rom_directory) and os.listdir(self.settings.dolphin.rom_directory):
+            self.add_current_roms_to_frame()
+        self.installed_roms_frame.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
+        
+        self.download_roms_frame = ROMSearchFrame(self.manage_roms_frame, self.dolphin, self.settings)
+        self.download_roms_frame.grid(row=1, column=0,  padx=20, pady=20, sticky="nsew")
+            
+    def add_current_roms_to_frame(self):
+        roms = self.dolphin.get_current_roms()
+        if not roms:
+            customtkinter.CTkLabel(self.installed_roms_frame, text="Nothing to see here...").grid(row=0, column=0, sticky="nsew")
+        # Now, roms list contains ROMFile objects for the valid ROM files
+        for rom in roms:
+            print(f"Name: {rom.name}, Path: {rom.path}, Size: {rom.size/1024/1024} MB")
+        
     def configure_data_buttons(self, **kwargs):
         self.dolphin_delete_button.configure(**kwargs)
         self.dolphin_import_button.configure(**kwargs)
@@ -117,10 +144,13 @@ class DolphinFrame(customtkinter.CTkFrame):
         self.select_dolphin_frame_by_name("start")
     def dolphin_manage_data_button_event(self):
         self.select_dolphin_frame_by_name("data")
+    def manage_roms_button_event(self):
+        self.select_dolphin_frame_by_name("roms")
         
     def select_dolphin_frame_by_name(self, name):
         self.dolphin_start_button.configure(fg_color=self.dolphin_start_button.cget("hover_color") if name == "start" else "transparent")
         self.dolphin_manage_data_button.configure(fg_color=self.dolphin_manage_data_button.cget("hover_color") if name == "data" else "transparent")
+        self.manage_roms_button.configure(fg_color=self.manage_roms_button.cget("hover_color") if name == "roms" else "transparent")
         if name == "start":
             self.dolphin_start_frame.grid(row=0, column=1, sticky="nsew")
         else:
@@ -129,6 +159,10 @@ class DolphinFrame(customtkinter.CTkFrame):
             self.dolphin_manage_data_frame.grid(row=0, column=1, sticky="nsew")
         else:
             self.dolphin_manage_data_frame.grid_forget()
+        if name == "roms":
+            self.manage_roms_frame.grid(row=0, column=1, sticky="nsew")
+        else:
+            self.manage_roms_frame.grid_forget()
     def launch_dolphin_button_event(self):
         if not os.path.exists(os.path.join(self.settings.dolphin.install_directory, "Dolphin.exe")):
             messagebox.showerror("Dolphin", f"Installation of Dolphin not found at {os.path.join(self.settings.dolphin.install_directory, 'Dolphin.exe')}")
@@ -180,6 +214,7 @@ class DolphinFrame(customtkinter.CTkFrame):
                 self.configure_buttons("normal", text="Launch Dolphin  ", width=170)
             elif button == "data":
                 self.configure_data_buttons(state="normal")
+    
         
             
     

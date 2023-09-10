@@ -9,7 +9,8 @@ class DolphinSettings:
         self.default_settings = {
             'user_directory': (os.path.join(os.getenv("APPDATA"), "Dolphin Emulator")),
             'install_directory': (os.path.join(os.getenv("LOCALAPPDATA"), "Dolphin Emulator")),
-            'export_directory': (os.path.join(os.getcwd(), "User Data","Dolphin"))
+            'export_directory': (os.path.join(os.getcwd(), "User Data","Dolphin")),
+            'rom_directory': ""
         }
         self._settings = self.default_settings.copy()
 
@@ -40,6 +41,7 @@ class DolphinSettings:
     
     export_directory = property(lambda self: self._get_property('export_directory'), 
                                 lambda self, value: self._set_directory_property('export_directory', value))
-
+    rom_directory = property(lambda self: self._get_property('rom_directory'), 
+                                lambda self, value: self._set_directory_property('rom_directory', value))
     
    

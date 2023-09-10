@@ -32,6 +32,12 @@ class DolphinSettings(customtkinter.CTkFrame):
         customtkinter.CTkButton(self, text="Browse", width=50, command=lambda entry_widget=self.export_directory_entry: self.update_with_explorer(entry_widget)).grid(row=6, column=3, padx=5, sticky="E")
         ttk.Separator(self, orient='horizontal').grid(row=7, columnspan=4, sticky="ew")
      
+        customtkinter.CTkLabel(self, text="ROM Directory").grid(row=8, column=0, padx=10, pady=10, sticky="w")
+        self.rom_directory_entry = customtkinter.CTkEntry(self, width=300)
+        self.rom_directory_entry.grid(row=8,column=2,padx=10,pady=10,sticky="E" )
+        customtkinter.CTkButton(self, text="Browse", width=50, command=lambda entry_widget=self.rom_directory_entry: self.update_with_explorer(entry_widget)).grid(row=8, column=3, padx=5, sticky="E")
+        ttk.Separator(self, orient="horizontal").grid(row=9, columnspan=4, sticky="ew")
+        
         self.actions_frame = customtkinter.CTkFrame(self, fg_color="transparent")
         self.actions_frame.grid_columnconfigure(0, weight=1)
         self.actions_frame.grid(row=10,sticky="ew", columnspan=5, padx=10, pady=10)
@@ -39,29 +45,25 @@ class DolphinSettings(customtkinter.CTkFrame):
         customtkinter.CTkButton(self.actions_frame, text="Restore Defaults", command=self.restore_defaults).grid(row=10, column=0, padx=10,pady=10, sticky="w")
     
         self.matching_dict = {
-            "user_directory": {
-                "entry_widget": self.user_directory_entry,
-                "variable": self.settings.dolphin.user_directory
-            },
-            "install_directory": {
-                "entry_widget": self.install_directory_entry,
-                "variable": self.settings.dolphin.install_directory
-            },
-            "export_directory": {
-                "entry_widget": self.export_directory_entry,
-                "variable": self.settings.dolphin.export_directory
-            }
+            "user_directory": self.user_directory_entry,
+    
+            "install_directory":  self.install_directory_entry,
+        
+            "export_directory": self.export_directory_entry,
+        
+            "rom_directory": self.rom_directory_entry 
+        
         }
         
     def settings_changed(self):
-        for setting_name, match in self.matching_dict.items():
-            if match["entry_widget"].get() != getattr(self.settings.dolphin, setting_name):
+        for setting_name, entry_widget in self.matching_dict.items():
+            if entry_widget.get() != getattr(self.settings.dolphin, setting_name):
                 return True 
         return False
     def update_entry_widgets(self):
-        for setting_name, match in self.matching_dict.items():
-            match["entry_widget"].delete(0, 'end')
-            match["entry_widget"].insert(0, getattr(self.settings.dolphin, setting_name))
+        for setting_name, entry_widget in self.matching_dict.items():
+            entry_widget.delete(0, 'end')
+            entry_widget.insert(0, getattr(self.settings.dolphin, setting_name))
 
     
     def update_with_explorer(self, entry_widget, dialogtype=None):
@@ -82,10 +84,10 @@ class DolphinSettings(customtkinter.CTkFrame):
         
     def apply(self):
         errors = ""
-        for setting_name, match in self.matching_dict.items():
+        for setting_name, entry_widget in self.matching_dict.items():
             try:
 
-                setattr(self.settings.dolphin, setting_name, match["entry_widget"].get())
+                setattr(self.settings.dolphin, setting_name, entry_widget.get())
             except (ValueError, FileNotFoundError) as error:
                 errors += f"{error}\n\n"
         if errors:
