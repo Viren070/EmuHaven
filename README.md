@@ -15,7 +15,8 @@ Download the latest release from [here](https://github.com/Viren070/Emulator-Man
 
 ### Dolphin 
 
-- Basic functions such as installing, launching and deleting
+- Download any game you want for the GameCube or Wii directly from the manager. It is easy to use and you can browse or search for whatever game you want. (Will come in 0.11.0, already coded the feature just need to release it)
+- Download the latest beta release of dolphin through the manager and keep Dolphin updated. 
 - Manage your user data and export it to any directory
 
 
