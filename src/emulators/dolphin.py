@@ -172,8 +172,9 @@ class Dolphin:
             messagebox.showinfo("Delete result", result)
         else:
             messagebox.showinfo("Delete result", "Nothing was deleted.")
-    def get_downloadable_roms(self):
-        return get_file_links_from_page("https://myrient.erista.me/files/Redump/Nintendo%20-%20Wii%20-%20NKit%20RVZ%20[zstd-19-128k]/", ".zip", get_headers())
+    def get_downloadable_roms(self, console):
+        link = "https://myrient.erista.me/files/Redump/Nintendo%20-%20Wii%20-%20NKit%20RVZ%20[zstd-19-128k]/" if console == "wii" else "https://myrient.erista.me/files/Redump/Nintendo%20-%20GameCube%20-%20NKit%20RVZ%20[zstd-19-128k]/"
+        return get_file_links_from_page(link, ".zip", get_headers())
    
     def get_current_roms(self):
         class ROMFile:

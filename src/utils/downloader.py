@@ -1,3 +1,4 @@
+import os
 from requests.exceptions import RequestException
 
 
@@ -8,7 +9,7 @@ def download_through_stream(response, download_path, progress_frame, chunk_size,
             for chunk in response.iter_content(chunk_size=chunk_size): 
                 if custom and progress_frame.cancel_download_raised:
                     progress_frame.destroy()
-                    return (False, "Cancelled")
+                    return (False, "Cancelled", download_path)
                 f.write(chunk)
                 downloaded_bytes += len(chunk)
                 if custom:
@@ -17,5 +18,6 @@ def download_through_stream(response, download_path, progress_frame, chunk_size,
                     progress_frame.set(downloaded_bytes/total_size)
             progress_frame.destroy()
         except RequestException as error:
+            progress_frame.destroy()
             return (False, error)
     return (True, download_path)
