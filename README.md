@@ -34,7 +34,7 @@ An all in one launcher for yuzu. Allows you to switch between mainline and early
 ### App
 
 - Through the settings page, you can customise the app to your liking with the several themes to choose from. These were taken from:
-  - [s-liwka/customtkinter-themes](https://github.com/s-liwka/customtkinter-themes)
+  - [avalaon60/ctk_theme_builder](https://github.com/avalon60/ctk_theme_builder/tree/develop/user_themes)
   - [a13xe/CTkThemesPack](https://github.com/a13xe/CTkThemesPack)
 
 ## How to use
