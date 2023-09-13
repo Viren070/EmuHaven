@@ -61,6 +61,7 @@ The settings for dolphin and yuzu are used to change where yuzu/dolphin is insta
 
 
 ## [Early Access Source](https://github.com/pineappleEA/pineapple-src) | [Firmware](https://archive.org/download/nintendo-switch-global-firmwares) | [Keys](https://github.com/Viren070/SwitchFirmwareKeysInstaller/tree/main/Keys)  | [Dolphin](https://github.com/Viren070/dolphin-beta-downloads)
+3,669 loc 
 
 
 
