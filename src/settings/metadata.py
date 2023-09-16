@@ -63,14 +63,13 @@ class Metadata:
         match(mode):
             case "mainline":
                 version = current_contents["yuzu"]["mainline"]["installed_version"] if os.path.exists(os.path.join(self.settings.yuzu.install_directory, "yuzu-windows-msvc", "yuzu.exe")) else self.update_installed_version("mainline", "")
-                return version
             case "early_access":
                 version = current_contents["yuzu"]["early_access"]["installed_version"] if os.path.exists(os.path.join(self.settings.yuzu.install_directory, "yuzu-windows-msvc-early-access", "yuzu.exe")) else self.update_installed_version("early_access", "")
-                return version
             case "dolphin":
                 version = current_contents["dolphin"]["installed_version"] if os.path.exists(os.path.join(self.settings.dolphin.install_directory, "Dolphin.exe")) else self.update_installed_version("dolphin", "")
             case _:
                 raise ValueError(f"Expected str argument of mainline or early access, but got {mode}")
+        return version
     def is_metadata_valid(self):
         try:
             for mode in ["mainline", "early_access", "dolphin"]:
