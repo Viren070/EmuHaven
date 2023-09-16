@@ -74,6 +74,7 @@ class Dolphin:
             if extract_result[1]!="Cancelled":
                 messagebox.showerror("Extract Error", f"An error occurred while extracting the release: \n\n{extract_result[1]}")
             return 
+        self.metadata.update_installed_version("dolphin", release.version)
         messagebox.showinfo("Install Dolphin", f"Dolphin was successfully installed to {self.settings.dolphin.install_directory}")
         
    
