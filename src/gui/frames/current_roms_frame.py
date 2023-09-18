@@ -24,7 +24,7 @@ class CurrentROMSFrame(ROMSearchFrame):
             widget.grid_forget()
             
         if len(self.roms) == 0:
-            customtkinter.CTkLabel(self.result_frame, text="Nothing to see here. Try downloading some ROMs using the tabs next to me").grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
+            customtkinter.CTkLabel(self.result_frame, text=f"Nothing to see here. Download some more ROMs and they will show up here.\n\nROM Directory: '{self.rom_directory}'").grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
         
         for i, rom in enumerate(self.roms):
             if i > end_index or i < start_index:
@@ -58,13 +58,13 @@ class CurrentROMSFrame(ROMSearchFrame):
                 self.size = size 
         roms = [] 
         allowed_extensions = self.allowed_extensions
-        rom_directory = getattr(self.emulator_settings, "rom_directory")
-        if rom_directory == "":
+        self.rom_directory = getattr(self.emulator_settings, "rom_directory")
+        if self.rom_directory == "" or not os.path.exists(self.rom_directory):
             return []
-        for file in os.listdir(rom_directory):
-            if file.endswith(allowed_extensions) and os.path.isfile(os.path.join(rom_directory, file)):
+        for file in os.listdir(self.rom_directory):
+            if file.endswith(allowed_extensions) and os.path.isfile(os.path.join(self.rom_directory, file)):
                 # Create a ROMFile object and append it to the roms list
-                full_path = os.path.join(rom_directory, file)
+                full_path = os.path.join(self.rom_directory, file)
                 rom = ROMFile(name=file, path=full_path, size=os.path.getsize(full_path))
                 roms.append(rom)
         self.total_pages = (len(roms) + self.results_per_page - 1) // self.results_per_page   
