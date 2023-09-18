@@ -36,7 +36,7 @@ class DolphinROMFrame(customtkinter.CTkTabview):
         self.tab("GameCube ROMs").grid_rowconfigure(0, weight=1)
         
         self.current_roms_frame = CurrentROMSFrame(self.tab("My ROMs"), self, self.settings.dolphin,  (".wbfs", ".iso", ".rvz", ".gcm", ".gcz", ".ciso"))
-        self.current_roms_frame.grid(row=0, column=0, sticky="nsew")
+        self.current_roms_frame.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
         self.wii_roms_frame = ROMSearchFrame(self.tab("Wii ROMs"), self, "https://myrient.erista.me/files/Redump/Nintendo%20-%20Wii%20-%20NKit%20RVZ%20[zstd-19-128k]/",)
         self.wii_roms_frame.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
         self.gamecube_roms_frame = ROMSearchFrame(self.tab("GameCube ROMs"), self, "https://myrient.erista.me/files/Redump/Nintendo%20-%20GameCube%20-%20NKit%20RVZ%20[zstd-19-128k]/")
