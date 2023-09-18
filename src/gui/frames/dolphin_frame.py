@@ -105,7 +105,7 @@ class DolphinFrame(customtkinter.CTkFrame):
         self.dolphin_data_log.grid_columnconfigure(0, weight=1)
         self.dolphin_data_log.grid_rowconfigure(1, weight=1)
         
-        self.manage_roms_button = customtkinter.CTkButton(self.dolphin_navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Download ROMs",
+        self.manage_roms_button = customtkinter.CTkButton(self.dolphin_navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Manage ROMs",
                                                    fg_color="transparent", text_color=("gray10", "gray90"), 
                                                    anchor="w", command=self.manage_roms_button_event)
         self.manage_roms_button.grid(row=3, column=0, sticky="EW", padx=2)
@@ -114,18 +114,7 @@ class DolphinFrame(customtkinter.CTkFrame):
  
         self.rom_frame = DolphinROMFrame(self.manage_roms_frame, self.dolphin, self.settings)
         self.rom_frame.grid(row=0, column=0,  padx=20, pady=20, sticky="nsew")
-        
-        '''
-        move to own file for current rom frame
-                    
-            def add_current_roms_to_frame(self):
-                roms = self.dolphin.get_current_roms()
-                if not roms:
-                    customtkinter.CTkLabel(self.installed_roms_frame, text="Nothing to see here...").grid(row=0, column=0, sticky="nsew")
-                # Now, roms list contains ROMFile objects for the valid ROM files
-                for rom in roms:
-                    print(f"Name: {rom.name}, Path: {rom.path}, Size: {rom.size/1024/1024} MB")
-        '''
+    
     def configure_data_buttons(self, **kwargs):
         self.dolphin_delete_button.configure(**kwargs)
         self.dolphin_import_button.configure(**kwargs)
