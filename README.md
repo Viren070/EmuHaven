@@ -5,7 +5,9 @@
 A program that will help manage your emulators, currently supports: 
 
  - Dolphin
- - Yuzu 
+ - Yuzu
+
+Only tested on Windows 10 and 11, not sure if it will work on anything else
 
 ## Download 
 
