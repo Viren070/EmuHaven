@@ -173,24 +173,5 @@ class Dolphin:
             messagebox.showinfo("Delete result", result)
         else:
             messagebox.showinfo("Delete result", "Nothing was deleted.")
-    def get_downloadable_roms(self, console):
-        link = "https://myrient.erista.me/files/Redump/Nintendo%20-%20Wii%20-%20NKit%20RVZ%20[zstd-19-128k]/" if console == "wii" else "https://myrient.erista.me/files/Redump/Nintendo%20-%20GameCube%20-%20NKit%20RVZ%20[zstd-19-128k]/"
-        return get_file_links_from_page(link, ".zip", get_headers())
    
-    def get_current_roms(self):
-        class ROMFile:
-            def __init__(self, name, path, size):
-                self.name = name 
-                self.path = path
-                self.size = size 
-        roms = [] 
-        allowed_extensions = (".wbfs", ".iso", ".rvz", ".gcm", ".gcz", ".ciso")
-        rom_directory = self.settings.dolphin.rom_directory
-        
-        for file in os.listdir(rom_directory):
-            if file.endswith(allowed_extensions) and os.path.isfile(os.path.join(rom_directory, file)):
-                # Create a ROMFile object and append it to the roms list
-                full_path = os.path.join(rom_directory, file)
-                rom = ROMFile(name=file, path=full_path, size=os.path.getsize(full_path))
-                roms.append(rom)
-        return roms 
+   

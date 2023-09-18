@@ -6,7 +6,7 @@ import customtkinter
 from PIL import Image
 
 from emulators.dolphin import Dolphin
-from gui.frames.dolphin_rom_search_frame import ROMSearchFrame
+from gui.frames.dolphin_rom_frame import DolphinROMFrame
 
 class DolphinFrame(customtkinter.CTkFrame):
     def __init__(self, parent_frame, settings, metadata):
@@ -112,8 +112,8 @@ class DolphinFrame(customtkinter.CTkFrame):
         
         self.manage_roms_frame = customtkinter.CTkFrame(self, corner_radius = 0, bg_color = "transparent")
  
-        self.download_roms_frame = ROMSearchFrame(self.manage_roms_frame, self.dolphin, self.settings)
-        self.download_roms_frame.grid(row=0, column=0,  padx=20, pady=20, sticky="nsew")
+        self.rom_frame = DolphinROMFrame(self.manage_roms_frame, self.dolphin, self.settings)
+        self.rom_frame.grid(row=0, column=0,  padx=20, pady=20, sticky="nsew")
         
         '''
         move to own file for current rom frame
