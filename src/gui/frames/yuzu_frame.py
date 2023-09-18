@@ -8,6 +8,7 @@ from PIL import Image
 from emulators.yuzu import Yuzu
 from gui.frames.firmware_downloader import FirmwareDownloader
 from utils.requests_utils import get_headers, get_resources_release
+from gui.frames.yuzu_rom_frame import YuzuROMFrame
 
 class YuzuFrame(customtkinter.CTkFrame):
     def __init__(self, parent_frame, settings, metadata):
@@ -30,7 +31,7 @@ class YuzuFrame(customtkinter.CTkFrame):
         # create yuzu navigation frame
         self.yuzu_navigation_frame = customtkinter.CTkFrame(self, corner_radius=0, width=20, border_width=2, border_color=("white","black"))
         self.yuzu_navigation_frame.grid(row=0, column=0, sticky="nsew")
-        self.yuzu_navigation_frame.grid_rowconfigure(4, weight=1)
+        self.yuzu_navigation_frame.grid_rowconfigure(5, weight=1)
         # create yuzu menu buttons
         self.yuzu_start_button = customtkinter.CTkButton(self.yuzu_navigation_frame, corner_radius=0, width=100, height=25, image = self.play_image, border_spacing=10, text="Play",
                                                    fg_color="transparent", text_color=("gray10", "gray90"),
@@ -41,6 +42,16 @@ class YuzuFrame(customtkinter.CTkFrame):
                                                    fg_color="transparent", text_color=("gray10", "gray90"),
                                                    anchor="w", command=self.yuzu_manage_data_button_event)
         self.yuzu_manage_data_button.grid(row=2, column=0, padx=2, sticky="ew")
+        
+        self.manage_roms_button = customtkinter.CTkButton(self.yuzu_navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Manage ROMs",
+                                                   fg_color="transparent", text_color=("gray10", "gray90"),
+                                                   anchor="w", command=self.manage_roms_button_event)
+        self.manage_roms_button.grid(row=3, column=0, padx=2, sticky="ew")
+        
+        self.yuzu_firmware_button = customtkinter.CTkButton(self.yuzu_navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Downloader",
+                                                   fg_color="transparent", text_color=("gray10", "gray90"),
+                                                   anchor="w", command=self.yuzu_firmware_button_event)
+        self.yuzu_firmware_button.grid(row=4, column=0, padx=2, sticky="ew")
         
         # create yuzu 'Play' frame and widgets
         self.yuzu_start_frame = customtkinter.CTkFrame(self, corner_radius=0, border_width=0)
@@ -150,10 +161,7 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.yuzu_data_log.grid_columnconfigure(0, weight=1)
         self.yuzu_data_log.grid_rowconfigure(1, weight=1)
         # create yuzu downloader button, frame and widgets
-        self.yuzu_firmware_button = customtkinter.CTkButton(self.yuzu_navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Downloader",
-                                                   fg_color="transparent", text_color=("gray10", "gray90"),
-                                                   anchor="w", command=self.yuzu_firmware_button_event)
-        self.yuzu_firmware_button.grid(row=3, column=0, padx=2, sticky="ew")
+        
         
         self.yuzu_firmware_frame = customtkinter.CTkFrame(self, corner_radius=0, border_width=0, fg_color="transparent")
         self.yuzu_firmware_frame.grid_rowconfigure(2, weight=1)
@@ -167,7 +175,14 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.mainline_actions_frame.grid_propagate(False)
         self.selected_channel.set(self.settings.app.default_yuzu_channel)
         self.switch_channel()
-       # Thread(target=self.fetch_versions, args=(False,)).start()
+        
+        self.manage_roms_frame = customtkinter.CTkFrame(self, corner_radius = 0, bg_color = "transparent")
+        self.manage_roms_frame.grid_columnconfigure(0, weight=1)
+        self.manage_roms_frame.grid_rowconfigure(0, weight=1)
+        self.rom_frame = YuzuROMFrame(self.manage_roms_frame, self.yuzu, self.settings)
+        self.rom_frame.grid(row=0, column=0,  padx=20, pady=20, sticky="nsew")
+    
+        Thread(target=self.fetch_versions, args=(False,)).start()
     def configure_data_buttons(self, **kwargs):
         self.yuzu_delete_button.configure(**kwargs)
         self.yuzu_import_button.configure(**kwargs)
@@ -189,10 +204,13 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.select_yuzu_frame_by_name("data")
     def yuzu_firmware_button_event(self):
         self.select_yuzu_frame_by_name("firmware")
+    def manage_roms_button_event(self):
+        self.select_yuzu_frame_by_name("roms")
 
     def select_yuzu_frame_by_name(self, name):
         self.yuzu_start_button.configure(fg_color=self.yuzu_start_button.cget("hover_color") if name == "start" else "transparent")
         self.yuzu_manage_data_button.configure(fg_color=self.yuzu_manage_data_button.cget("hover_color") if name == "data" else "transparent")
+        self.manage_roms_button.configure(fg_color=self.manage_roms_button.cget("hover_color") if name == "roms" else "transparent")
         self.yuzu_firmware_button.configure(fg_color=self.yuzu_firmware_button.cget("hover_color") if name == "firmware" else "transparent")
         if name == "start":
             self.yuzu_start_frame.grid(row=0, column=1, sticky="nsew" )
@@ -202,7 +220,10 @@ class YuzuFrame(customtkinter.CTkFrame):
             self.yuzu_manage_data_frame.grid(row=0, column=1, sticky="nsew")
         else:
             self.yuzu_manage_data_frame.grid_forget()
-
+        if name == "roms":
+            self.manage_roms_frame.grid(row=0, column=1, sticky="nsew")
+        else:
+            self.manage_roms_frame.grid_forget()
         if name == "firmware":
             self.yuzu_firmware_frame.grid(row=0, column=1, sticky="nsew")
         else:

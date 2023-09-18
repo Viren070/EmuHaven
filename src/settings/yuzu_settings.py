@@ -10,7 +10,8 @@ class YuzuSettings:
             'user_directory': os.path.join(os.getenv("APPDATA"), "Yuzu"),
             'install_directory': os.path.join(os.getenv("LOCALAPPDATA"), "Yuzu"),
             'export_directory': os.path.join(os.getcwd(), "User Data","Yuzu"),
-            'installer_path': os.path.join(self.emulator_file_path, "yuzu_install.exe")
+            'installer_path': os.path.join(self.emulator_file_path, "yuzu_install.exe"),
+            'rom_directory': os.path.join(os.getcwd(), "ROMS",)
         }
         self._settings = self.default_settings.copy()
         self.app_settings = master.app
@@ -60,6 +61,8 @@ class YuzuSettings:
     
     export_directory = property(lambda self: self._get_property('export_directory'), 
                                 lambda self, value: self._set_directory_property('export_directory', value))
+    rom_directory = property(lambda self: self._get_property('rom_directory'), 
+                                lambda self, value: self._set_directory_property('rom_directory', value))
     
     installer_path = property(lambda self: self._get_property('installer_path'), 
                               lambda self, value: self._set_path_property('installer_path', value))

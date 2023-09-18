@@ -31,12 +31,18 @@ class YuzuSettings(customtkinter.CTkFrame):
         self.export_directory_entry.grid(row=6, column=2, padx=10, pady=10, sticky="e")
         customtkinter.CTkButton(self, text="Browse", width=50, command=lambda entry_widget=self.export_directory_entry: self.update_with_explorer(entry_widget)).grid(row=6, column=3, padx=5, sticky="E")
         ttk.Separator(self, orient='horizontal').grid(row=7, columnspan=4, sticky="ew")      
+        
+        customtkinter.CTkLabel(self, text="ROM Directory: ").grid(row=8, column=0, padx=10, pady=10, sticky="w")
+        self.rom_directory_entry = customtkinter.CTkEntry(self, width=300)
+        self.rom_directory_entry.grid(row=8, column=2, padx=10, pady=10, sticky="e")
+        customtkinter.CTkButton(self, text="Browse", width=50, command=lambda entry_widget=self.export_directory_entry: self.update_with_explorer(entry_widget)).grid(row=8, column=3, padx=5, sticky="E")
+        ttk.Separator(self, orient='horizontal').grid(row=9, columnspan=4, sticky="ew")    
     
-        customtkinter.CTkLabel(self, text="Yuzu Installer: ").grid(row=8, column=0, padx=10, pady=10, sticky="w")
+        customtkinter.CTkLabel(self, text="Yuzu Installer: ").grid(row=10, column=0, padx=10, pady=10, sticky="w")
         self.yuzu_installer_path_entry = customtkinter.CTkEntry(self, width=300)
-        self.yuzu_installer_path_entry.grid(row=8, column=2, padx=10, pady=10, sticky="e")
-        customtkinter.CTkButton(self, text="Browse", width=50, command=lambda entry_widget=self.yuzu_installer_path_entry: self.update_with_explorer(entry_widget, "installer")).grid(row=8, column=3, padx=5, sticky="E")
-        ttk.Separator(self, orient='horizontal').grid(row=9, columnspan=4, sticky="ew")
+        self.yuzu_installer_path_entry.grid(row=10, column=2, padx=10, pady=10, sticky="e")
+        customtkinter.CTkButton(self, text="Browse", width=50, command=lambda entry_widget=self.yuzu_installer_path_entry: self.update_with_explorer(entry_widget, "installer")).grid(row=10, column=3, padx=5, sticky="E")
+        ttk.Separator(self, orient='horizontal').grid(row=11, columnspan=4, sticky="ew")
         
         self.actions_frame = customtkinter.CTkFrame(self, fg_color="transparent")
         self.actions_frame.grid_columnconfigure(0, weight=1)

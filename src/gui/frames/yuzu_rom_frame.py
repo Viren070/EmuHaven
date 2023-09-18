@@ -1,0 +1,34 @@
+import customtkinter 
+from threading import Thread
+from tkinter import messagebox
+from zipfile import ZipFile
+import os 
+from utils.downloader import download_through_stream
+from utils.requests_utils import create_get_connection, get_headers
+from gui.frames.progress_frame import ProgressFrame
+from gui.frames.rom_search_frame import ROMSearchFrame
+from gui.frames.current_roms_frame import CurrentROMSFrame
+class YuzuROMFrame(customtkinter.CTkTabview):
+    def __init__(self, master, dolphin, settings):
+        super().__init__(master, height=500, width=700)
+        self.master = master 
+        self.roms = None
+        self.settings = settings 
+        self.dolphin = dolphin 
+        self.results_per_page = 10
+        self.update_in_progress = False
+        self.downloads_in_progress = 0
+        self.build_frame()
+        
+        
+    def build_frame(self):
+
+        self.grid(row=0, column=0, sticky="nsew")
+        self.add("My ROMs")
+        self.tab("My ROMs").grid_columnconfigure(0, weight=1)
+        self.tab("My ROMs").grid_rowconfigure(0, weight=1)
+
+        
+        self.current_roms_frame = CurrentROMSFrame(self.tab("My ROMs"), self, self.settings.yuzu,  (".nca"))
+        self.current_roms_frame.grid(row=0, column=0, sticky="nsew")
+       
