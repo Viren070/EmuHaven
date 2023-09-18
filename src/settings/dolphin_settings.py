@@ -10,7 +10,7 @@ class DolphinSettings:
             'user_directory': (os.path.join(os.getenv("APPDATA"), "Dolphin Emulator")),
             'install_directory': (os.path.join(os.getenv("LOCALAPPDATA"), "Dolphin Emulator")),
             'export_directory': (os.path.join(os.getcwd(), "User Data","Dolphin")),
-            'rom_directory': ""
+            'rom_directory': os.path.join(os.getcwd(), "ROMS", "Dolphin")
         }
         self._settings = self.default_settings.copy()
 
