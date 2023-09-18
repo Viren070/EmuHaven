@@ -15,7 +15,7 @@ class AppSettings:
             'appearance_mode': "dark",
             'use_yuzu_installer': "False",
             'default_yuzu_channel': 'Mainline',
-            'delete_files': 'False', 
+            'delete_files': 'True', 
             'ask_firmware': 'True',
             'token': ''
         }
