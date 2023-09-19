@@ -11,13 +11,15 @@ Only tested on Windows 10 and 11, not sure if it will work on anything else
 
 ## Download 
 
-Download the latest release from [here](https://github.com/Viren070/Emulator-Manager/releases/latest) by scrolling to the bottom and downloading the exe from the assets (Use [0.9.3](https://github.com/Viren070/Emulator-Manager/releases/tag/v0.9.3) for playing in places with limited internet access for now. I'll add back ways to use files from other sources to install stuff in a future update)
+Download the latest release from [here](https://github.com/Viren070/Emulator-Manager/releases/latest) by scrolling to the bottom and downloading the exe from the assets.
+
+Note: [0.9.3](https://github.com/Viren070/Emulator-Manager/releases/tag/v0.9.3) is the last version that had support for using files that can be set by the user. This feature will be added back in a later release 
 
 ## Features
 
 ### Dolphin 
 
-- Download any game you want for the GameCube or Wii directly from the manager. It is easy to use and you can browse or search for whatever game you want. (Will come in 0.11.0, you can download the alpha release [here](https://github.com/Viren070/Emulator-Manager/releases/tag/v0.11.0-alpha.1).)
+- Download any game you want for the GameCube or Wii directly from the manager. It is easy to use and you can browse or search for whatever game you want. 
 - Download the latest beta release of dolphin through the manager and keep Dolphin updated. 
 - Manage your user data and export it to any directory
 
@@ -53,7 +55,7 @@ The settings for dolphin and yuzu are used to change where yuzu/dolphin is insta
 ![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/9b421e17-65a0-4a89-8178-b5c25754ae74)
 
 ![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/1ea40ed6-9e42-4ef0-8804-4f84090b0109)
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/2148d447-80ce-49fa-8707-7f43234c3620)
+
 ![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/2b86392c-7694-42f8-b6e7-4a9610f74256)
 
 ![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/0a6361b2-5b54-4801-a87c-69d32c999ed4)
@@ -62,8 +64,7 @@ The settings for dolphin and yuzu are used to change where yuzu/dolphin is insta
 
 
 
-## [Early Access Source](https://github.com/pineappleEA/pineapple-src) | [Firmware](https://archive.org/download/nintendo-switch-global-firmwares) | [Keys](https://github.com/Viren070/SwitchFirmwareKeysInstaller/tree/main/Keys)  | [Dolphin](https://github.com/Viren070/dolphin-beta-downloads)
-3,669 loc 
+## [Early Access Source](https://github.com/pineappleEA/pineapple-src) | [Firmware](https://archive.org/download/nintendo-switch-global-firmwares) | [Keys](https://github.com/Viren070/SwitchFirmwareKeysInstaller/tree/main/Keys)  | [Dolphin](https://github.com/Viren070/dolphin-beta-downloads) | [Dolphin ROMs](https://myrient.erista.me/)
 
 
 
