@@ -2,12 +2,20 @@ from gui.frames.rom_search_frame import ROMSearchFrame
 import customtkinter 
 from tkinter import messagebox
 import os
+
+class ROMFile:
+    def __init__(self, name, path, size):
+        self.name = name 
+        self.path = path
+        self.size = size 
 class CurrentROMSFrame(ROMSearchFrame):
-    def __init__(self, master, root, emulator_settings, allowed_extensions):
+    def __init__(self, master, root, emulator_settings, allowed_extensions, scan_subdirectories=False):
         super().__init__(master, root, "")
+        self.scan_subdirectories = scan_subdirectories
         self.emulator_settings = emulator_settings
         self.rom_directory = getattr(emulator_settings, "rom_directory")
-        self.allowed_extensions = allowed_extensions
+        self.allowed_extensions = allowed_extensions     
+        self.update_in_progress = False
         self.refresh_button.configure(text="Refresh", command=self.update_results)
         self.roms = self.get_current_roms()
         self.update_results()
@@ -51,16 +59,13 @@ class CurrentROMSFrame(ROMSearchFrame):
         self.prev_button.configure(state="normal")
         self.update_in_progress = False
     def get_current_roms(self):
-        class ROMFile:
-            def __init__(self, name, path, size):
-                self.name = name 
-                self.path = path
-                self.size = size 
         roms = [] 
         allowed_extensions = self.allowed_extensions
         self.rom_directory = getattr(self.emulator_settings, "rom_directory")
         if self.rom_directory == "" or not os.path.exists(self.rom_directory):
             return []
+        if self.scan_subdirectories:
+            return self.get_current_roms_from_subdirectories()
         for file in os.listdir(self.rom_directory):
             if file.endswith(allowed_extensions) and os.path.isfile(os.path.join(self.rom_directory, file)):
                 # Create a ROMFile object and append it to the roms list
@@ -70,6 +75,26 @@ class CurrentROMSFrame(ROMSearchFrame):
         self.total_pages = (len(roms) + self.results_per_page - 1) // self.results_per_page   
         self.total_pages_label.configure(text=f"/ {self.total_pages}")
         return roms 
+    def get_current_roms_from_subdirectories(self):
+    
+        roms = []
+        allowed_extensions = self.allowed_extensions
+        self.rom_directory = getattr(self.emulator_settings, "rom_directory")
+        
+        if self.rom_directory == "" or not os.path.exists(self.rom_directory):
+            return []
+        
+        for root, dirs, files in os.walk(self.rom_directory):
+            for file in files:
+                if file.endswith(allowed_extensions) and os.path.isfile(os.path.join(root, file)):
+                    full_path = os.path.join(root, file)
+                    rom = ROMFile(name=file, path=full_path, size=os.path.getsize(full_path))
+                    roms.append(rom)
+        
+        self.total_pages = (len(roms) + self.results_per_page - 1) // self.results_per_page
+        self.total_pages_label.configure(text=f"/ {self.total_pages}")
+        return roms
+        
     def delete_rom(self, path_to_rom):
         if not os.path.exists(path_to_rom):
             self.update_results()
