@@ -9,7 +9,7 @@ from utils.requests_utils import get_file_links_from_page, get_headers
 class ROMSearchFrame(customtkinter.CTkFrame):
     def __init__(self, master, root, rom_link):
         super().__init__(master, height=700)
-        self.results_per_page = 15
+        self.results_per_page = 10
         self.rom_link = rom_link
         self.root = root
         self.dolphin = root.dolphin 
