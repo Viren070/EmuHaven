@@ -87,7 +87,7 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.mainline_actions_frame.grid_columnconfigure(1, weight=1)  # Stretch horizontally
         self.mainline_actions_frame.grid_columnconfigure(2, weight=1)  # Stretch horizontally
         
-        self.launch_mainline_button = customtkinter.CTkButton(self.mainline_actions_frame, height=40, width=170, image=self.play_image, text="Launch Yuzu  ", command=self.launch_mainline_button_event, font=customtkinter.CTkFont(size=15, weight="bold"))
+        self.launch_mainline_button = customtkinter.CTkButton(self.mainline_actions_frame, height=40, width=200, image=self.play_image, text="Launch Yuzu  ", command=self.launch_mainline_button_event, font=customtkinter.CTkFont(size=15, weight="bold"))
         self.launch_mainline_button.grid(row=0, column=2, padx=30, pady=15, sticky="n")
         self.launch_mainline_button.bind("<Button-1>", command=self.launch_mainline_button_event)
 
@@ -105,7 +105,7 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.early_access_actions_frame.grid_columnconfigure(1, weight=1)  # Stretch horizontally
         self.early_access_actions_frame.grid_columnconfigure(2, weight=1)  # Stretch horizontally
         
-        self.launch_early_access_button = customtkinter.CTkButton(self.early_access_actions_frame, height=40, width=170, image=self.play_image, text="Launch Yuzu EA  ", command=self.launch_early_access_button_event, font=customtkinter.CTkFont(size=15, weight="bold"))
+        self.launch_early_access_button = customtkinter.CTkButton(self.early_access_actions_frame, height=40, width=200, image=self.play_image, text="Launch Yuzu EA  ", command=self.launch_early_access_button_event, font=customtkinter.CTkFont(size=15, weight="bold"))
         self.launch_early_access_button.grid(row=0, column=2, padx=30, pady=15, sticky="n")
         self.launch_early_access_button.bind("<Button-1>", command=self.launch_early_access_button_event)
         
@@ -360,9 +360,9 @@ class YuzuFrame(customtkinter.CTkFrame):
         thread.join()
         for button in buttons:
             if button == "mainline":
-                self.configure_mainline_buttons("normal", text="Launch Yuzu  ", width=170)
+                self.configure_mainline_buttons("normal", text="Launch Yuzu  ", width=200)
             elif button == "early_access":
-                self.configure_early_access_buttons("normal", text="Launch Yuzu EA  ", width=170)
+                self.configure_early_access_buttons("normal", text="Launch Yuzu EA  ", width=200)
             elif button == "firmware_keys":
                 self.configure_firmware_key_buttons("normal")
             elif button == "data":
