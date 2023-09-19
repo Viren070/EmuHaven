@@ -19,6 +19,8 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.mainline_version = None 
         self.early_access_version = None 
         self.firmware_keys_version = None
+        self.installed_mainline_version = ""
+        self.installed_early_access_version = ""
         self.build_frame()
     def build_frame(self):
         self.play_image = customtkinter.CTkImage(light_image=Image.open(self.settings.get_image_path("play_light")),
