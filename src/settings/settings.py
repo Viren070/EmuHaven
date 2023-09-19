@@ -150,6 +150,7 @@ class Settings:
                 "user_directory": self.yuzu.user_directory,
                 "install_directory": self.yuzu.install_directory,
                 "export_directory" : self.yuzu.export_directory,
+                "rom_directory" : self.yuzu.rom_directory,
                 "installer_path" : self.yuzu.installer_path
                 
             },
