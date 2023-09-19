@@ -5,7 +5,9 @@
 A program that will help manage your emulators, currently supports: 
 
  - Dolphin
- - Yuzu 
+ - Yuzu
+
+Only tested on Windows 10 and 11, not sure if it will work on anything else
 
 ## Download 
 
@@ -15,7 +17,7 @@ Download the latest release from [here](https://github.com/Viren070/Emulator-Man
 
 ### Dolphin 
 
-- Download any game you want for the GameCube or Wii directly from the manager. It is easy to use and you can browse or search for whatever game you want. (Will come in 0.11.0, already coded the feature just need to release it)
+- Download any game you want for the GameCube or Wii directly from the manager. It is easy to use and you can browse or search for whatever game you want. (Will come in 0.11.0, you can download the alpha release [here](https://github.com/Viren070/Emulator-Manager/releases/tag/v0.11.0-alpha.1).)
 - Download the latest beta release of dolphin through the manager and keep Dolphin updated. 
 - Manage your user data and export it to any directory
 
