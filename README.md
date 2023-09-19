@@ -54,6 +54,8 @@ The settings for dolphin and yuzu are used to change where yuzu/dolphin is insta
 ### Images
 ![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/9b421e17-65a0-4a89-8178-b5c25754ae74)
 
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/a0637a78-7307-4476-aa11-d2dd83882e94)
+
 ![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/1ea40ed6-9e42-4ef0-8804-4f84090b0109)
 
 ![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/2b86392c-7694-42f8-b6e7-4a9610f74256)
