@@ -5,7 +5,7 @@ import os
 
 class ROMFile:
     def __init__(self, name, path, size):
-        self.name = name 
+        self.filename = name 
         self.path = path
         self.size = size 
 class CurrentROMSFrame(ROMSearchFrame):
@@ -18,9 +18,9 @@ class CurrentROMSFrame(ROMSearchFrame):
         self.update_in_progress = False
         self.refresh_button.configure(text="Refresh", command=self.update_results)
         self.roms = self.get_current_roms()
+        self.searched_roms = self.roms
         self.update_results()
     def update_results(self):
-        self.roms = self.get_current_roms()
         if self.update_in_progress:
             self.next_button.configure(state="normal")
             self.prev_button.configure(state="normal")
@@ -31,10 +31,10 @@ class CurrentROMSFrame(ROMSearchFrame):
         for widget in self.result_frame.winfo_children():
             widget.grid_forget()
             
-        if len(self.roms) == 0:
+        if len(self.searched_roms) == 0:
             customtkinter.CTkLabel(self.result_frame, text=f"Nothing to see here. Download some more ROMs and they will show up here.\n\nROM Directory: '{self.rom_directory}'").grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
         
-        for i, rom in enumerate(self.roms):
+        for i, rom in enumerate(self.searched_roms):
             if i > end_index or i < start_index:
                 continue
             entry = customtkinter.CTkEntry(self.result_frame, width=400)
@@ -46,7 +46,7 @@ class CurrentROMSFrame(ROMSearchFrame):
                     break
                 size_in_bytes /= 1024
 
-            entry.insert(0, f"{size_in_bytes:.1f} {suffix} - {rom.name}")
+            entry.insert(0, f"{size_in_bytes:.1f} {suffix} - {rom.filename}")
             button = customtkinter.CTkButton(self.result_frame, text="Delete", command=lambda path=rom.path: self.delete_rom(path))
             button.grid(row=i, column=1, padx=10, pady=5, sticky="e")
             
