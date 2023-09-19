@@ -1,13 +1,8 @@
-import customtkinter 
-from threading import Thread
-from tkinter import messagebox
-from zipfile import ZipFile
-import os 
-from utils.downloader import download_through_stream
-from utils.requests_utils import create_get_connection, get_headers
-from gui.frames.progress_frame import ProgressFrame
-from gui.frames.rom_search_frame import ROMSearchFrame
+import customtkinter
+
 from gui.frames.current_roms_frame import CurrentROMSFrame
+
+
 class YuzuROMFrame(customtkinter.CTkTabview):
     def __init__(self, master, dolphin, settings):
         super().__init__(master, height=500, width=700)

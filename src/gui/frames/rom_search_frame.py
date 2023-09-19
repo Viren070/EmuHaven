@@ -1,7 +1,10 @@
-import customtkinter
-from tkinter import messagebox 
-from utils.requests_utils import get_headers, get_file_links_from_page
 from threading import Thread
+from tkinter import messagebox
+
+import customtkinter
+
+from utils.requests_utils import get_file_links_from_page, get_headers
+
 
 class ROMSearchFrame(customtkinter.CTkFrame):
     def __init__(self, master, root, rom_link):

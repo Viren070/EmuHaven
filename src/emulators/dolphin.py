@@ -1,7 +1,6 @@
 import os
 import shutil
 import subprocess
-from threading import Thread
 from tkinter import messagebox
 from zipfile import ZipFile
 
@@ -10,7 +9,7 @@ import requests
 from gui.frames.progress_frame import ProgressFrame
 from utils.downloader import download_through_stream
 from utils.file_utils import copy_directory_with_progress
-from utils.requests_utils import get_headers, get_resources_release, get_file_links_from_page
+from utils.requests_utils import get_headers, get_resources_release
 
 
 class Dolphin:

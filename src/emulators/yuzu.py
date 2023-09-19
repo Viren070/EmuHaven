@@ -2,7 +2,6 @@ import json
 import os
 import shutil
 import subprocess
-from threading import Thread
 from tkinter import messagebox
 from zipfile import ZipFile
 

@@ -169,7 +169,7 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.yuzu_firmware_frame.grid_rowconfigure(2, weight=1)
         self.yuzu_firmware_frame.grid_columnconfigure(2, weight=1)
         self.yuzu_firmware = FirmwareDownloader(self.yuzu_firmware_frame)
-        self.yuzu_firmware.grid(row=0, column=1, padx=20, pady=20, sticky="nsew")
+        self.yuzu_firmware.grid(row=0, column=1, sticky="nsew")
         self.yuzu_firmware_options_button = customtkinter.CTkButton(self.yuzu_firmware_frame, text="Options", command=self.yuzu_firmware.options_menu)
         self.yuzu_firmware_options_button.grid(row=1, column=1, pady=(0,30))
         
