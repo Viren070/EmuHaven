@@ -76,6 +76,7 @@ class DolphinROMFrame(customtkinter.CTkTabview):
         button.configure(state="normal", text="Download")
     def download_rom(self, rom):
         download_folder = self.settings.dolphin.rom_directory
+        os.makedirs(download_folder, exist_ok=True)
         download_path = os.path.join(download_folder, rom.filename)
         response = create_get_connection(rom.url, stream=True, headers=get_headers(self.settings.app.token), timeout=30)
         if not all(response):
