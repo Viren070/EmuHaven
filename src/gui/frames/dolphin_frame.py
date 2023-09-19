@@ -57,6 +57,7 @@ class DolphinFrame(customtkinter.CTkFrame):
         
         self.launch_dolphin_button = customtkinter.CTkButton(self.dolphin_actions_frame, height=40, width=180, text="Launch Dolphin  ", image = self.play_image, font=customtkinter.CTkFont(size=15, weight="bold"), command=self.launch_dolphin_button_event)
         self.launch_dolphin_button.grid(row=0, column=1, padx=30, pady=15, sticky="nsew")
+        self.launch_dolphin_button.bind("<Button-1>", command=self.launch_dolphin_button_event)
 
 
         self.install_dolphin_button = customtkinter.CTkButton(self.dolphin_actions_frame, text="Install Dolphin", command=self.install_dolphin_button_event)
@@ -146,12 +147,15 @@ class DolphinFrame(customtkinter.CTkFrame):
             self.manage_roms_frame.grid(row=0, column=1, sticky="nsew")
         else:
             self.manage_roms_frame.grid_forget()
-    def launch_dolphin_button_event(self):
+    def launch_dolphin_button_event(self, event=None):
+        if event is None:
+            return 
         if not os.path.exists(os.path.join(self.settings.dolphin.install_directory, "Dolphin.exe")):
             messagebox.showerror("Dolphin", f"Installation of Dolphin not found at {os.path.join(self.settings.dolphin.install_directory, 'Dolphin.exe')}")
             return 
         self.configure_buttons("disabled", text="Launching...")
-        thread = Thread(target=self.dolphin.launch_dolphin_handler)
+        shift_clicked = True if event.state & 1 else False
+        thread = Thread(target=self.dolphin.launch_dolphin_handler, args=(shift_clicked, ))
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["main"])).start()
 
