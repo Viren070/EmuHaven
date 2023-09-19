@@ -107,8 +107,8 @@ class Yuzu:
         if release.version == self.metadata.get_installed_version(release_type):
             if updating:
                 return 
-            messagebox.showinfo("Yuzu", f"You already have the latest version of yuzu {release_type.replace('_',' ').title()} installed")
-            return
+            if not messagebox.askyesno("Yuzu", f"You already have the latest version of yuzu {release_type.replace('_',' ').title()} installed, download anyways?"):
+                return
         download_result = self.download_release(release, release_type)
         if not all(download_result):
             if download_result[1] != "Cancelled":

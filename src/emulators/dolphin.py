@@ -59,8 +59,8 @@ class Dolphin:
         if release.version == self.metadata.get_installed_version("dolphin"):
             if updating:
                 return 
-            messagebox.showinfo("Dolphin", "You already have the latest version of Dolphin installed")
-            return
+            if not messagebox.askyesno("Dolphin", "You already have the latest version of Dolphin installed, install anyways?"):
+                return
         download_result = self.download_release(release)
         if not all(download_result):
             if download_result[1] != "Cancelled":
