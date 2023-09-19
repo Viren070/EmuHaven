@@ -47,6 +47,7 @@ class CurrentROMSFrame(ROMSearchFrame):
                 size_in_bytes /= 1024
 
             entry.insert(0, f"{size_in_bytes:.1f} {suffix} - {rom.filename}")
+            entry.configure(state="disabled")
             button = customtkinter.CTkButton(self.result_frame, text="Delete", command=lambda path=rom.path: self.delete_rom(path))
             button.grid(row=i, column=1, padx=10, pady=5, sticky="e")
             
