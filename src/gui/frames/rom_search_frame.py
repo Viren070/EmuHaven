@@ -36,11 +36,12 @@ class ROMSearchFrame(customtkinter.CTkFrame):
         # Create a search bar
         
         self.refresh_frame = customtkinter.CTkFrame(self, corner_radius=50)
-        self.refresh_frame.grid(row=0, column=0, padx=10, pady=5, sticky="nw")
+        self.refresh_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nw")
         self.refresh_button = customtkinter.CTkButton(self.refresh_frame, text="Fetch ROMs", width=100, corner_radius=50, command=self.get_roms)
         self.refresh_button.grid(row=0, column=0, padx=5, pady=5)
+        
         search_frame = customtkinter.CTkFrame(self, corner_radius=50)
-        search_frame.grid(row=0, column=0, pady=(10,0), sticky="ne")
+        search_frame.grid(row=0, column=0, pady=(10,0), padx=10, sticky="ne")
 
         self.search_entry = customtkinter.CTkEntry(search_frame, state="disabled", placeholder_text="Search")
         self.search_entry.grid(row=0, column=0, padx=10, pady=10, sticky="e")
