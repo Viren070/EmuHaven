@@ -103,6 +103,7 @@ class Yuzu:
         release_result = self.get_latest_release(release_type)
         if not all(release_result):
             messagebox.showerror("Install Yuzu", f"There was an error while attempting to fetch the latest release of Yuzu:\n\n{release_result[1]}")
+            return
         release = release_result[1]
         if release.version == self.metadata.get_installed_version(release_type):
             if updating:

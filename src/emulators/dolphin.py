@@ -54,6 +54,7 @@ class Dolphin:
         release_result = get_resources_release("Dolphin", headers=get_headers(self.settings.app.token))
         if not all(release_result):
             messagebox.showerror("Install Dolphin", f"There was an error while attempting to fetch the latest release of Dolphin:\n\n{release_result[1]}")
+            return 
         release = release_result[1]
         release.version = release.name.replace("Dolphin.", "").replace(".zip", "")
         if release.version == self.metadata.get_installed_version("dolphin"):
