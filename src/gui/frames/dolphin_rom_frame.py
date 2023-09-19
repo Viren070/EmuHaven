@@ -43,7 +43,7 @@ class DolphinROMFrame(customtkinter.CTkTabview):
         self.gamecube_roms_frame.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
         self.downloads_frame = customtkinter.CTkScrollableFrame(self.tab("Downloads"), width=650, height=420)
         self.downloads_frame.grid_columnconfigure(0, weight=1)
-        self.downloads_frame.grid(row=0, column=0, sticky="nsew")
+        self.downloads_frame.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
   
 
     
