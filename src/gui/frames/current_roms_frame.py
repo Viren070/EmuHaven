@@ -16,9 +16,13 @@ class CurrentROMSFrame(ROMSearchFrame):
         self.rom_directory = getattr(emulator_settings, "rom_directory")
         self.allowed_extensions = allowed_extensions     
         self.update_in_progress = False
-        self.refresh_button.configure(text="Refresh", command=self.update_results)
+        self.refresh_button.configure(text="Refresh", command=self.refresh_results)
         self.roms = self.get_current_roms()
         self.searched_roms = self.roms
+        self.update_results()
+    def refresh_results(self):
+        self.roms = self.get_current_roms
+        self.searched_roms = self.roms()
         self.update_results()
     def update_results(self):
         if self.update_in_progress:
@@ -104,4 +108,5 @@ class CurrentROMSFrame(ROMSearchFrame):
             os.remove(path_to_rom)
         except Exception as error:
             messagebox.showerror("Error", f"An error prevented the ROM from being deleted:\n\n{error}")
-        self.update_results()
+        self.searched_roms = self.get_current_roms()
+        self.refresh_results()
