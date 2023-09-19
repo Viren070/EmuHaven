@@ -24,6 +24,6 @@ class YuzuROMFrame(customtkinter.CTkTabview):
         self.tab("My ROMs").grid_rowconfigure(0, weight=1)
 
         
-        self.current_roms_frame = CurrentROMSFrame(self.tab("My ROMs"), self, self.settings.yuzu,  (".nca"))
+        self.current_roms_frame = CurrentROMSFrame(self.tab("My ROMs"), self, self.settings.yuzu,  (".nsp"), scan_subdirectories=True)
         self.current_roms_frame.grid(row=0, column=0, sticky="nsew")
        
