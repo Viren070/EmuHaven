@@ -143,7 +143,7 @@ class EmulatorManager(customtkinter.CTk):
         
     def on_closing(self):
         if (self.dolphin_frame.dolphin.running or self.yuzu_frame.yuzu.running):
-            messagebox.showerror("", "Please close any emulators before attempting to close Emulator Manager")
+            messagebox.showerror("Emulator Manager", "Please close any emulators before attempting to exit.")
             return 
         temp_folder = os.path.join(os.getenv("TEMP"), "Emulator Manager")
         if os.path.exists(temp_folder):
