@@ -22,7 +22,7 @@ class ROMSearchFrame(customtkinter.CTkFrame):
     def define_roms(self):
         self.roms = get_file_links_from_page(self.rom_link, ".zip", get_headers())
         if not all(self.roms):
-            self.refresh_button.configure(state="normal", text="Refresh")
+            self.refresh_button.configure(state="normal", text="Fetch ROMs")
             messagebox.showerror("Error", self.roms[1])
             return
         self.roms = self.roms[1]
