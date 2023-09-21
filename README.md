@@ -13,7 +13,7 @@ Only tested on Windows 10 and 11, not sure if it will work on anything else
 
 Download the latest release from [here](https://github.com/Viren070/Emulator-Manager/releases/latest) by scrolling to the bottom and downloading the exe from the assets.
 
-Note: [0.9.3](https://github.com/Viren070/Emulator-Manager/releases/tag/v0.9.3) is the last version that had support for using files that can be set by the user. This feature will be added back in a later release 
+Note: [0.9.3](https://github.com/Viren070/Emulator-Manager/releases/tag/v0.9.3) is the last version that comes packaged with the necessary files. v0.11.1 allows you to use custom files instead of being restricted to the sources predefined in the app. These are shown at the bottom of this page.
 
 ## Features
 
