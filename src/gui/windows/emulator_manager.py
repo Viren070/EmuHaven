@@ -6,9 +6,9 @@ from tkinter import messagebox
 import customtkinter
 from PIL import Image
 
-from gui.frames.dolphin_frame import DolphinFrame
-from gui.frames.settings_frame import SettingsFrame
-from gui.frames.yuzu_frame import YuzuFrame
+from gui.frames.dolphin.dolphin_frame import DolphinFrame
+from gui.frames.settings.settings_frame import SettingsFrame
+from gui.frames.yuzu.yuzu_frame import YuzuFrame
 from settings.app_settings import load_customtkinter_themes
 from settings.settings import Settings
 from settings.metadata import Metadata
@@ -21,7 +21,7 @@ class EmulatorManager(customtkinter.CTk):
         super().__init__()
         self.settings = Settings(self, root_dir)
         self.metadata = Metadata(self, self.settings)
-        self.version = "v0.11.0"
+        self.version = "v0.11.0.9"
         self.root_dir = root_dir
         self.x = pos[0]
         self.y = pos[1]

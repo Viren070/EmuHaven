@@ -22,6 +22,44 @@ class Yuzu:
         self.installing_firmware_or_keys = False
         self.running = False
         
+    def verify_yuzu_zip(self, path_to_archive, release_type):
+        try:
+            with ZipFile(path_to_archive, 'r') as archive:
+                print(archive.namelist())
+                if (release_type == "mainline" and 'yuzu-windows-msvc/yuzu.exe' in archive.namelist()) or (release_type == "early_access" and "yuzu-windows-msvc-early-access/yuzu.exe" in archive.namelist()):
+                    return True 
+                else:
+                    return False
+        except Exception:
+            return False
+    def verify_firmware_archive(self, path_to_archive):
+        archive = path_to_archive
+        if not os.path.exists(archive):
+            return False 
+        if not archive.endswith(".zip"):
+            return False 
+        with ZipFile(archive, 'r') as r_archive:
+            for filename in r_archive.namelist():
+                if not filename.endswith(".nca"):
+                    return False 
+        return True 
+        
+    def verify_key_archive(self, path_to_archive):
+        archive = path_to_archive
+        if not os.path.exists(archive):
+            return False 
+        if not archive.endswith(".zip"):
+            return False 
+        with ZipFile(archive, 'r') as r_archive:
+            for filename in r_archive.namelist():
+                if not filename.endswith(".keys"):
+                    return False 
+                if filename=="prod.keys":
+                    found=True
+        if found:
+            return True 
+        else:
+            return False 
     def check_current_firmware(self):
 
         if os.path.exists ( os.path.join(self.settings.yuzu.user_directory, "nand", "system", "Contents", "registered")) and os.listdir(os.path.join(self.settings.yuzu.user_directory, "nand\\system\\Contents\\registered")):
@@ -98,30 +136,36 @@ class Yuzu:
         progress_frame.destroy()
         return (True, extract_folder)
     
-    def install_release_handler(self, release_type, updating=False):
-        release_result = self.get_latest_release(release_type)
-        if not all(release_result):
-            messagebox.showerror("Install Yuzu", f"There was an error while attempting to fetch the latest release of Yuzu:\n\n{release_result[1]}")
-            return
-        release = release_result[1]
-        if release.version == self.metadata.get_installed_version(release_type):
-            if updating:
-                return 
-            if not messagebox.askyesno("Yuzu", f"You already have the latest version of yuzu {release_type.replace('_',' ').title()} installed, download anyways?"):
+    def install_release_handler(self, release_type, updating=False, path_to_archive=None):
+        release_archive = path_to_archive
+        if path_to_archive is None:
+            release_result = self.get_latest_release(release_type)
+            if not all(release_result):
+                messagebox.showerror("Install Yuzu", f"There was an error while attempting to fetch the latest release of Yuzu:\n\n{release_result[1]}")
                 return
-        download_result = self.download_release(release, release_type)
-        if not all(download_result):
-            if download_result[1] != "Cancelled":
-                messagebox.showerror("Error", f"There was an error while attempting to download the latest release of yuzu {release_type.replace('_',' ').title()}:\n\n{download_result[1]}")
+            release = release_result[1]
+            if release.version == self.metadata.get_installed_version(release_type):
+                if updating:
+                    return 
+                if not messagebox.askyesno("Yuzu", f"You already have the latest version of yuzu {release_type.replace('_',' ').title()} installed, download anyways?"):
+                    return
+            download_result = self.download_release(release, release_type)
+            if not all(download_result):
+                if download_result[1] != "Cancelled":
+                    messagebox.showerror("Error", f"There was an error while attempting to download the latest release of yuzu {release_type.replace('_',' ').title()}:\n\n{download_result[1]}")
+                return 
+            release_archive = download_result[1]
+        elif not self.verify_yuzu_zip(path_to_archive, release_type):
+            messagebox.showerror("Error", "The archive you have provided is invalid")
             return 
-        release_archive = download_result[1]
         extract_result = self.extract_release(release_archive, release_type)
         if not all(extract_result):
             if extract_result[1]!="Cancelled":
                 messagebox.showerror("Extract Error", f"An error occurred while extracting the release: \n\n{extract_result[1]}")
             return 
-        self.metadata.update_installed_version(release_type, release.version)
-        if self.settings.app.delete_files == "True" and os.path.exists(release_archive):
+        if path_to_archive is None:
+            self.metadata.update_installed_version(release_type, release.version)
+        if path_to_archive is None and self.settings.app.delete_files == "True" and os.path.exists(release_archive):
             os.remove(release_archive)
         messagebox.showinfo("Install Yuzu", f"Yuzu was successfully installed to {extract_result[1]}")
 
@@ -172,16 +216,20 @@ class Yuzu:
             
 
        
-    def install_firmware_handler(self):
-        self.gui.configure_firmware_key_buttons("disabled")
-        firmware_path = self.download_firmware_archive()
-        if not all(firmware_path):
-            if firmware_path[1] != "Cancelled":
-                messagebox.showerror("Download Error", firmware_path[1])
-            return False
-        firmware_path = firmware_path[1] if isinstance(firmware_path, tuple) else firmware_path
+    def install_firmware_handler(self, path_to_archive=None):
+        firmware_path = path_to_archive
+        if path_to_archive is None:
+            firmware_path = self.download_firmware_archive()
+            if not all(firmware_path):
+                if firmware_path[1] != "Cancelled":
+                    messagebox.showerror("Download Error", firmware_path[1])
+                return False
+            firmware_path = firmware_path[1] if isinstance(firmware_path, tuple) else firmware_path
+        elif not self.verify_firmware_archive(path_to_archive):
+            messagebox.showerror("Error", "The firmware archive you have provided is invalid")
+            return 
         result = self.install_firmware_from_archive(firmware_path)
-        if self.settings.app.delete_files == "True" and os.path.exists(firmware_path):
+        if path_to_archive is None and self.settings.app.delete_files == "True" and os.path.exists(firmware_path):
             os.remove(firmware_path)
         if result:
             messagebox.showwarning("Unexpected Files" , f"These files were skipped in the extraction process: {result}")
@@ -246,14 +294,18 @@ class Yuzu:
         progress_frame.destroy()
         return excluded
     
-    def install_key_handler(self):
-        self.gui.configure_firmware_key_buttons("disabled")
-        key_path = self.download_key_archive()
-        if not all(key_path):
-            if key_path[1] != "Cancelled":
-                messagebox.showerror("Download Error", key_path[1])
-            return False
-        key_path = key_path[1] if isinstance(key_path, tuple) else key_path
+    def install_key_handler(self, path_to_archive = None):
+        key_path = path_to_archive
+        if path_to_archive is None:
+            key_path = self.download_key_archive()
+            if not all(key_path):
+                if key_path[1] != "Cancelled":
+                    messagebox.showerror("Download Error", key_path[1])
+                return False
+            key_path = key_path[1] if isinstance(key_path, tuple) else key_path
+        elif not self.verify_key_archive(path_to_archive):
+            messagebox.showerror("Error", "The key archive you have provided is invalid")
+            return
         if key_path.endswith(".keys"):
             self.install_keys_from_file(key_path)
         else:
@@ -261,7 +313,7 @@ class Yuzu:
             if "prod.keys" not in result:
                 messagebox.showwarning("Keys", "Was not able to find any prod.keys within the archive, the archive was still extracted successfully.")
                 return False 
-        if self.settings.app.delete_files == "True" and os.path.exists(key_path):
+        if path_to_archive is None and self.settings.app.delete_files == "True" and os.path.exists(key_path):
             os.remove(key_path)
         messagebox.showinfo("Keys", "Decryption keys were successfully installed!")
         return True 

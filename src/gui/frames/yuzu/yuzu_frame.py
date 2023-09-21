@@ -6,9 +6,10 @@ import customtkinter
 from PIL import Image
 
 from emulators.yuzu import Yuzu
-from gui.frames.firmware_downloader import FirmwareDownloader
+from gui.frames.yuzu.firmware_downloader import FirmwareDownloader
 from utils.requests_utils import get_headers, get_resources_release
-from gui.frames.yuzu_rom_frame import YuzuROMFrame
+from gui.frames.yuzu.yuzu_rom_frame import YuzuROMFrame
+from gui.windows.path_dialog import PathDialog
 
 class YuzuFrame(customtkinter.CTkFrame):
     def __init__(self, parent_frame, settings, metadata):
@@ -93,6 +94,7 @@ class YuzuFrame(customtkinter.CTkFrame):
 
         self.install_mainline_button = customtkinter.CTkButton(self.mainline_actions_frame, text="Install Yuzu", command=self.install_mainline_button_event)
         self.install_mainline_button.grid(row=0, column=1,padx=10, pady=5, sticky="ew")
+        self.install_mainline_button.bind("<Button-1>", command=self.install_mainline_button_event)
         
         self.delete_mainline_button = customtkinter.CTkButton(self.mainline_actions_frame, text="Delete Yuzu", fg_color="red", hover_color="darkred", command=self.delete_mainline_button_event)
         self.delete_mainline_button.grid(row=0, column=3, padx=10, pady=5, sticky="ew")
@@ -115,6 +117,7 @@ class YuzuFrame(customtkinter.CTkFrame):
 
         self.install_early_access_button = customtkinter.CTkButton(self.early_access_actions_frame, text="Install Yuzu EA  ", command=self.install_early_access_button_event)
         self.install_early_access_button.grid(row=0, column=1,padx=10, pady=5, sticky="ew")
+        self.install_early_access_button.bind("<Button-1>", command=self.install_early_access_button_event)
         
         firmware_keys_frame = customtkinter.CTkFrame(self.center_frame)
         firmware_keys_frame.grid(row=3, column=0, padx=10, pady=10, columnspan=3)
@@ -124,8 +127,10 @@ class YuzuFrame(customtkinter.CTkFrame):
         firmware_keys_frame.grid_rowconfigure(0, weight=1)
         self.install_firmware_button = customtkinter.CTkButton(firmware_keys_frame, text="Install Firmware", command=self.install_firmware_button_event)
         self.install_firmware_button.grid(row=0, column=0, pady=5, padx=20, sticky="w")
+        self.install_firmware_button.bind("<Button-1>", command=self.install_firmware_button_event)
         self.install_keys_button = customtkinter.CTkButton(firmware_keys_frame, text="Install Keys", command=self.install_keys_button_event)
         self.install_keys_button.grid(row=0, column=3, pady=5, padx=20, sticky="e")
+        self.install_keys_button.bind("<Button-1>", self.install_keys_button_event)
         
         
    
@@ -260,14 +265,24 @@ class YuzuFrame(customtkinter.CTkFrame):
         thread=Thread(target=self.yuzu.launch_yuzu_handler, args=("mainline", shift_clicked, ))
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["mainline","early_access", "firmware_keys"],)).start()
-    def install_mainline_button_event(self):
+    def install_mainline_button_event(self, event=None):
+        if event is None:
+            return 
         if os.path.exists(os.path.join(self.settings.yuzu.install_directory,"yuzu-windows-msvc")) and not messagebox.askyesno("Yuzu Exists", "There is already an installation of yuzu at the specified install directory, overwrite this installation?"):
             return 
+        path_to_archive = None
+        if not self.settings.app.use_yuzu_installer == "True" and event.state & 1:
+            path_to_archive = PathDialog(filetype=".zip", title="Custom Yuzu Archive", text="Enter path to yuzu archive: ")
+            path_to_archive = path_to_archive.get_input()
+            if not all(path_to_archive):
+                messagebox.showerror("Error", "The path you have provided is invalid")
+                return 
+            path_to_archive = path_to_archive[1]
         self.configure_mainline_buttons("disabled")
         self.configure_early_access_buttons("disabled")
         self.configure_firmware_key_buttons("disabled")
         
-        thread = Thread(target=self.yuzu.launch_yuzu_installer) if self.settings.app.use_yuzu_installer == "True" else Thread(target=self.yuzu.install_release_handler, args=("mainline", ))
+        thread = Thread(target=self.yuzu.launch_yuzu_installer) if self.settings.app.use_yuzu_installer == "True" else Thread(target=self.yuzu.install_release_handler, args=("mainline", False, path_to_archive))
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["mainline","early_access", "firmware_keys"],)).start()
         
@@ -287,13 +302,23 @@ class YuzuFrame(customtkinter.CTkFrame):
         thread=Thread(target=self.yuzu.launch_yuzu_handler, args=("early_access", shift_clicked, ))
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["mainline","early_access", "firmware_keys"],)).start()
-    def install_early_access_button_event(self):
+    def install_early_access_button_event(self, event=None):
+        if event is None:
+            return
         if os.path.exists(os.path.join(self.settings.yuzu.install_directory,"yuzu-windows-msvc-early-access")) and not messagebox.askyesno("Yuzu Exists", "There is already an installation of yuzu at the specified install directory, overwrite this installation?"):
             return 
+        path_to_archive = None
+        if event.state & 1:
+            path_to_archive = PathDialog(filetype=".zip", title="Custom Yuzu EA Archive", text="Enter path to yuzu early access archive: ")
+            path_to_archive = path_to_archive.get_input()
+            if not all(path_to_archive):
+                messagebox.showerror("Error", "The path you have provided is invalid")
+                return 
+            path_to_archive = path_to_archive[1]
         self.configure_mainline_buttons("disabled")
         self.configure_early_access_buttons("disabled")
         self.configure_firmware_key_buttons("disabled")
-        thread=Thread(target=self.yuzu.install_release_handler, args=("early_access", ))
+        thread=Thread(target=self.yuzu.install_release_handler, args=("early_access", False, path_to_archive))
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["mainline", "early_access", "firmware_keys"],)).start()
    
@@ -320,23 +345,43 @@ class YuzuFrame(customtkinter.CTkFrame):
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["mainline"],)).start()
     
-    def install_firmware_button_event(self):
+    def install_firmware_button_event(self, event=None):
+        if event is None:
+            return
         if self.yuzu.check_current_firmware() and not messagebox.askyesno("Firmware Exists", "You already seem to have firmware installed, install anyways?"):
             return 
+        path_to_archive = None
+        if event.state & 1:
+            path_to_archive = PathDialog(filetype=".zip", title="Custom Firmware Archive", text="Type path to Firmware Archive: ")
+            path_to_archive = path_to_archive.get_input()
+            if not all(path_to_archive):
+                messagebox.showerror("Error", "The path you have provided is invalid")
+                return 
+            path_to_archive = path_to_archive[1]
         self.configure_firmware_key_buttons("disabled")
         self.configure_mainline_buttons("disabled")
         self.configure_early_access_buttons("disabled")
-        thread=Thread(target=self.yuzu.install_firmware_handler)
+        thread=Thread(target=self.yuzu.install_firmware_handler, args=(path_to_archive, ))
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["firmware_keys","mainline","early_access"], )).start()
    
-    def install_keys_button_event(self):
+    def install_keys_button_event(self, event=None):
+        if event is None:
+            return 
         if self.yuzu.check_current_keys() and not messagebox.askyesno("Keys Exist", "You already seem to have the decryption keys, install anyways?"):
             return 
+        path_to_archive = None
+        if event.state & 1:
+            path_to_archive = PathDialog(filetype=".zip", title="Custom Key Archive", text="Type path to Key Archive: ")
+            path_to_archive = path_to_archive.get_input()
+            if not all(path_to_archive):
+                messagebox.showerror("Error", "The path you have provided is invalid")
+                return 
+            path_to_archive = path_to_archive[1]
         self.configure_firmware_key_buttons("disabled")
         self.configure_mainline_buttons("disabled")
         self.configure_early_access_buttons("disabled")
-        thread = Thread(target=self.yuzu.install_key_handler)
+        thread = Thread(target=self.yuzu.install_key_handler, args=(path_to_archive, ))
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["firmware_keys","mainline","early_access"],)).start()
     def import_data_button_event(self):

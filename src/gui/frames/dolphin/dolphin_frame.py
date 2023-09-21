@@ -6,7 +6,8 @@ import customtkinter
 from PIL import Image
 
 from emulators.dolphin import Dolphin
-from gui.frames.dolphin_rom_frame import DolphinROMFrame
+from gui.frames.dolphin.dolphin_rom_frame import DolphinROMFrame
+from gui.windows.path_dialog import PathDialog
 
 class DolphinFrame(customtkinter.CTkFrame):
     def __init__(self, parent_frame, settings, metadata):
@@ -62,10 +63,11 @@ class DolphinFrame(customtkinter.CTkFrame):
 
         self.install_dolphin_button = customtkinter.CTkButton(self.dolphin_actions_frame, text="Install Dolphin", command=self.install_dolphin_button_event)
         self.install_dolphin_button.grid(row=0, column=0,padx=10, pady=5, sticky="ew")
+        self.install_dolphin_button.bind("<Button-1>", command=self.install_dolphin_button_event)
 
         self.delete_dolphin_button = customtkinter.CTkButton(self.dolphin_actions_frame, text="Delete Dolphin", fg_color="red", hover_color="darkred", command=self.delete_dolphin_button_event)
         self.delete_dolphin_button.grid(row=0, column=2,padx=10, sticky="ew", pady=5)
-
+        
         
         self.dolphin_log_frame = customtkinter.CTkFrame(self.center_frame, border_width=0, fg_color='transparent')
         self.dolphin_log_frame.grid(row=3, column=0, padx=80, sticky="ew")
@@ -159,11 +161,20 @@ class DolphinFrame(customtkinter.CTkFrame):
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["main"])).start()
 
-    def install_dolphin_button_event(self):
+    def install_dolphin_button_event(self, event=None):
+        if event is None:
+            return 
         if os.path.exists(os.path.join(self.settings.dolphin.install_directory, "Dolphin.exe")) and not messagebox.askyesno("Confirmation", "Dolphin seems to already be installed, install anyways?"):
             return 
+        if event.state & 1:
+            path_to_archive = PathDialog(filetype=".zip", title="Custom Dolphin Archive", text="Type path to Dolphin Archive: ")
+            path_to_archive = path_to_archive.get_input()
+            if not all(path_to_archive):
+                messagebox.showerror("Error", "The path you have provided is invalid")
+                return 
+            path_to_archive = path_to_archive[1]
         self.configure_buttons("disabled")
-        thread = Thread(target=self.dolphin.install_dolphin_handler)
+        thread = Thread(target=self.dolphin.install_dolphin_handler, args=(False, path_to_archive, ))
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["main"], )).start()
     def delete_dolphin_button_event(self):

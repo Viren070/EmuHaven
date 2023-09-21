@@ -11,7 +11,7 @@ from utils.auth_token_manager import get_rate_limit_status
 from utils.time_utils import calculate_relative_time
 
 
-class AppSettings(customtkinter.CTkFrame):
+class AppSettingsFrame(customtkinter.CTkFrame):
     def __init__(self, parent_frame, settings):
         super().__init__(parent_frame, corner_radius=0, fg_color="transparent")
         self.settings = settings 
