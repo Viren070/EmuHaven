@@ -168,10 +168,11 @@ class DolphinFrame(customtkinter.CTkFrame):
             return 
         path_to_archive = None
         if event.state & 1:
-            path_to_archive = PathDialog(filetype=".zip", title="Custom Dolphin Archive", text="Type path to Dolphin Archive: ")
+            path_to_archive = PathDialog(filetypes=(".zip"), title="Custom Dolphin Archive", text="Type path to Dolphin Archive: ")
             path_to_archive = path_to_archive.get_input()
             if not all(path_to_archive):
-                messagebox.showerror("Error", "The path you have provided is invalid")
+                if path_to_archive[1] is not None:
+                    messagebox.showerror("Error", "The path you have provided is invalid")
                 return 
             path_to_archive = path_to_archive[1]
         self.configure_buttons("disabled")
