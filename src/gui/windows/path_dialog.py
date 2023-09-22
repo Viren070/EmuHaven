@@ -123,7 +123,6 @@ class PathDialog(CTkToplevel):
         self._entry.bind("<Return>", self._ok_event)
     def _browse_event(self):
         extensions= ["*" + ext[1:] for ext in self._filetypes]
-        print(extensions)
         path = filedialog.askopenfilename(filetypes=[("Custom file", extensions)])
         if path is None or path == "":
             return
