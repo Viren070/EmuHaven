@@ -166,6 +166,7 @@ class DolphinFrame(customtkinter.CTkFrame):
             return 
         if os.path.exists(os.path.join(self.settings.dolphin.install_directory, "Dolphin.exe")) and not messagebox.askyesno("Confirmation", "Dolphin seems to already be installed, install anyways?"):
             return 
+        path_to_archive = None
         if event.state & 1:
             path_to_archive = PathDialog(filetype=".zip", title="Custom Dolphin Archive", text="Type path to Dolphin Archive: ")
             path_to_archive = path_to_archive.get_input()
