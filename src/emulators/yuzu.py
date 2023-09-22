@@ -224,7 +224,7 @@ class Yuzu:
                 if firmware_path[1] != "Cancelled":
                     messagebox.showerror("Download Error", firmware_path[1])
                 return False
-            firmware_path = firmware_path[1] if isinstance(firmware_path, tuple) else firmware_path
+            firmware_path = firmware_path[1] 
         elif not self.verify_firmware_archive(path_to_archive):
             messagebox.showerror("Error", "The firmware archive you have provided is invalid")
             return 
@@ -254,12 +254,7 @@ class Yuzu:
         download_path = os.path.join(os.getcwd(), f"Firmware {firmware.version}.zip")
         download_result = download_through_stream(response, download_path, progress_frame, 1024*203)
         progress_frame.destroy()
-        if not all(download_result):
-            return download_result
-
-        download_path = download_result[1]
-        
-        return download_path
+        return download_result
 
     def install_firmware_from_archive(self, firmware_source):
         extract_folder = os.path.join(self.settings.yuzu.user_directory, "nand", "system", "Contents", "registered")
@@ -302,7 +297,7 @@ class Yuzu:
                 if key_path[1] != "Cancelled":
                     messagebox.showerror("Download Error", key_path[1])
                 return False
-            key_path = key_path[1] if isinstance(key_path, tuple) else key_path
+            key_path = key_path[1] 
         elif not self.verify_key_archive(path_to_archive):
             messagebox.showerror("Error", "The key archive you have provided is invalid")
             return
@@ -336,11 +331,8 @@ class Yuzu:
         download_path = os.path.join(os.getcwd(), f"Keys {key.version}.zip")
         download_result = download_through_stream(response, download_path, progress_frame, 1024*128)
         progress_frame.destroy()
-        if not all(download_result):
-            return download_result
-        download_path = download_result[1]
         
-        return download_path
+        return download_result
     
     def install_keys_from_file(self, key_path):
         target_key_folder = os.path.join(self.settings.yuzu.user_directory, "keys")
