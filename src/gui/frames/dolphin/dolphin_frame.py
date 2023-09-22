@@ -150,7 +150,7 @@ class DolphinFrame(customtkinter.CTkFrame):
         else:
             self.manage_roms_frame.grid_forget()
     def launch_dolphin_button_event(self, event=None):
-        if event is None:
+        if event is None or self.launch_dolphin_button.cget("state") == "disabled":
             return 
         if not os.path.exists(os.path.join(self.settings.dolphin.install_directory, "Dolphin.exe")):
             messagebox.showerror("Dolphin", f"Installation of Dolphin not found at {os.path.join(self.settings.dolphin.install_directory, 'Dolphin.exe')}")
@@ -162,7 +162,7 @@ class DolphinFrame(customtkinter.CTkFrame):
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["main"])).start()
 
     def install_dolphin_button_event(self, event=None):
-        if event is None:
+        if event is None or self.install_dolphin_button.cget("state") == "disabled":
             return 
         if os.path.exists(os.path.join(self.settings.dolphin.install_directory, "Dolphin.exe")) and not messagebox.askyesno("Confirmation", "Dolphin seems to already be installed, install anyways?"):
             return 

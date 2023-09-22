@@ -251,7 +251,7 @@ class YuzuFrame(customtkinter.CTkFrame):
             
             
     def launch_mainline_button_event(self, event=None):
-        if event is None:
+        if event is None or self.launch_mainline_button.cget("state") == "disabled":
             return 
         if self.launch_mainline_button.cget("state") == "disabled":
             return 
@@ -266,7 +266,7 @@ class YuzuFrame(customtkinter.CTkFrame):
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["mainline","early_access", "firmware_keys"],)).start()
     def install_mainline_button_event(self, event=None):
-        if event is None:
+        if event is None or self.install_mainline_button.cget("state") == "disabled":
             return 
         if os.path.exists(os.path.join(self.settings.yuzu.install_directory,"yuzu-windows-msvc")) and not messagebox.askyesno("Yuzu Exists", "There is already an installation of yuzu at the specified install directory, overwrite this installation?"):
             return 
@@ -288,7 +288,7 @@ class YuzuFrame(customtkinter.CTkFrame):
         
     
     def launch_early_access_button_event(self, event=None):
-        if event is None:
+        if event is None or self.launch_early_access_button.cget("state") == "disabled":
             return
         if self.launch_early_access_button.cget("state") == "disabled":
             return 
@@ -303,7 +303,7 @@ class YuzuFrame(customtkinter.CTkFrame):
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["mainline","early_access", "firmware_keys"],)).start()
     def install_early_access_button_event(self, event=None):
-        if event is None:
+        if event is None or self.install_early_access_button.cget("state") == "disabled":
             return
         if os.path.exists(os.path.join(self.settings.yuzu.install_directory,"yuzu-windows-msvc-early-access")) and not messagebox.askyesno("Yuzu Exists", "There is already an installation of yuzu at the specified install directory, overwrite this installation?"):
             return 
@@ -346,7 +346,7 @@ class YuzuFrame(customtkinter.CTkFrame):
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["mainline"],)).start()
     
     def install_firmware_button_event(self, event=None):
-        if event is None:
+        if event is None or self.install_firmware_button.cget("state") == "disabled":
             return
         if self.yuzu.check_current_firmware() and not messagebox.askyesno("Firmware Exists", "You already seem to have firmware installed, install anyways?"):
             return 
@@ -366,7 +366,7 @@ class YuzuFrame(customtkinter.CTkFrame):
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["firmware_keys","mainline","early_access"], )).start()
    
     def install_keys_button_event(self, event=None):
-        if event is None:
+        if event is None or self.install_keys_button.cget("state") == "disabled":
             return 
         if self.yuzu.check_current_keys() and not messagebox.askyesno("Keys Exist", "You already seem to have the decryption keys, install anyways?"):
             return 
