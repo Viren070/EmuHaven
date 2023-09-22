@@ -169,4 +169,4 @@ cython_debug/
 User Data/
 
 # Other 
-update_requirements.bat
+update-requirements.bat
