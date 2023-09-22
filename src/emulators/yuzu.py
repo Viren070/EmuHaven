@@ -48,6 +48,8 @@ class Yuzu:
         archive = path_to_archive
         if not os.path.exists(archive):
             return False 
+        if path_to_archive.endswith(".keys"):
+            return True
         if not archive.endswith(".zip"):
             return False 
         with ZipFile(archive, 'r') as r_archive:
