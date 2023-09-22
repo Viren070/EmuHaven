@@ -3,6 +3,7 @@ from threading import Thread
 from tkinter import messagebox
 
 import customtkinter
+from CTkToolTip import CTkToolTip
 from PIL import Image
 
 from emulators.dolphin import Dolphin
@@ -59,15 +60,16 @@ class DolphinFrame(customtkinter.CTkFrame):
         self.launch_dolphin_button = customtkinter.CTkButton(self.dolphin_actions_frame, height=40, width=180, text="Launch Dolphin  ", image = self.play_image, font=customtkinter.CTkFont(size=15, weight="bold"), command=self.launch_dolphin_button_event)
         self.launch_dolphin_button.grid(row=0, column=1, padx=30, pady=15, sticky="nsew")
         self.launch_dolphin_button.bind("<Button-1>", command=self.launch_dolphin_button_event)
-
+        CTkToolTip(self.launch_dolphin_button, message="Click me to launch Dolphin.\nShift-Click me to launch Dolphin without checking for updates.")
 
         self.install_dolphin_button = customtkinter.CTkButton(self.dolphin_actions_frame, text="Install Dolphin", command=self.install_dolphin_button_event)
         self.install_dolphin_button.grid(row=0, column=0,padx=10, pady=5, sticky="ew")
         self.install_dolphin_button.bind("<Button-1>", command=self.install_dolphin_button_event)
-
+        CTkToolTip(self.install_dolphin_button, message="Click me to download and install the latest beta release of Dolphin\nShift-Click me to use a custom archive of Dolphin to install it.")
+        
         self.delete_dolphin_button = customtkinter.CTkButton(self.dolphin_actions_frame, text="Delete Dolphin", fg_color="red", hover_color="darkred", command=self.delete_dolphin_button_event)
         self.delete_dolphin_button.grid(row=0, column=2,padx=10, sticky="ew", pady=5)
-        
+        CTkToolTip(self.delete_dolphin_button, message="Click me to delete the installation of Dolphin at the specified path in the settings menu.")
         
         self.dolphin_log_frame = customtkinter.CTkFrame(self.center_frame, border_width=0, fg_color='transparent')
         self.dolphin_log_frame.grid(row=3, column=0, padx=80, sticky="ew")

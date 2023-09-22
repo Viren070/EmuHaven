@@ -3,6 +3,7 @@ from threading import Thread
 from tkinter import messagebox
 
 import customtkinter
+from CTkToolTip import CTkToolTip
 from PIL import Image
 
 from emulators.yuzu import Yuzu
@@ -91,14 +92,15 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.launch_mainline_button = customtkinter.CTkButton(self.mainline_actions_frame, height=40, width=200, image=self.play_image, text="Launch Yuzu  ", command=self.launch_mainline_button_event, font=customtkinter.CTkFont(size=15, weight="bold"))
         self.launch_mainline_button.grid(row=0, column=2, padx=30, pady=15, sticky="n")
         self.launch_mainline_button.bind("<Button-1>", command=self.launch_mainline_button_event)
-
+        CTkToolTip(self.launch_mainline_button, message="Click me to launch mainline yuzu.\nShift-click me to launch without checking for updates.")
         self.install_mainline_button = customtkinter.CTkButton(self.mainline_actions_frame, text="Install Yuzu", command=self.install_mainline_button_event)
         self.install_mainline_button.grid(row=0, column=1,padx=10, pady=5, sticky="ew")
         self.install_mainline_button.bind("<Button-1>", command=self.install_mainline_button_event)
+        CTkToolTip(self.install_mainline_button, message="Click me to download and install the latest mainline release of yuzu from the internet\nShift-Click me to install yuzu with a custom archive")
         
         self.delete_mainline_button = customtkinter.CTkButton(self.mainline_actions_frame, text="Delete Yuzu", fg_color="red", hover_color="darkred", command=self.delete_mainline_button_event)
         self.delete_mainline_button.grid(row=0, column=3, padx=10, pady=5, sticky="ew")
-        
+        CTkToolTip(self.delete_mainline_button, message="Click me to delete the installation of mainline yuzu at the directory specified in settings.")
         ### Early Access Actions Frame 
         
         self.early_access_actions_frame = customtkinter.CTkFrame(self.center_frame)
@@ -110,14 +112,15 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.launch_early_access_button = customtkinter.CTkButton(self.early_access_actions_frame, height=40, width=200, image=self.play_image, text="Launch Yuzu EA  ", command=self.launch_early_access_button_event, font=customtkinter.CTkFont(size=15, weight="bold"))
         self.launch_early_access_button.grid(row=0, column=2, padx=30, pady=15, sticky="n")
         self.launch_early_access_button.bind("<Button-1>", command=self.launch_early_access_button_event)
-        
+        CTkToolTip(self.launch_early_access_button, message="Click me to launch yuzu early access.\nShift-Click me to launch without checking for updates.")
         self.delete_early_access_button = customtkinter.CTkButton(self.early_access_actions_frame, text="Delete Yuzu EA", fg_color="red", hover_color="darkred", command=self.delete_early_access_button_event)
         self.delete_early_access_button.grid(row=0, column=3, padx=10, pady=5, sticky="ew")
-        
+        CTkToolTip(self.delete_early_access_button, message="Click me to delete the installation of yuzu early access at the directory specified in settings.")
 
         self.install_early_access_button = customtkinter.CTkButton(self.early_access_actions_frame, text="Install Yuzu EA  ", command=self.install_early_access_button_event)
         self.install_early_access_button.grid(row=0, column=1,padx=10, pady=5, sticky="ew")
         self.install_early_access_button.bind("<Button-1>", command=self.install_early_access_button_event)
+        CTkToolTip(self.install_early_access_button, message="Click me to download and install the latest early access release of yuzu from the internet\nShift-Click me to install yuzu with a custom archive.")
         
         firmware_keys_frame = customtkinter.CTkFrame(self.center_frame)
         firmware_keys_frame.grid(row=3, column=0, padx=10, pady=10, columnspan=3)
@@ -128,9 +131,11 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.install_firmware_button = customtkinter.CTkButton(firmware_keys_frame, text="Install Firmware", command=self.install_firmware_button_event)
         self.install_firmware_button.grid(row=0, column=0, pady=5, padx=20, sticky="w")
         self.install_firmware_button.bind("<Button-1>", command=self.install_firmware_button_event)
+        CTkToolTip(self.install_firmware_button, message="Click me to download and install the latest firmware files for the Nintendo Switch from the internet.\nShift-Click me to use a custom firmware archive to install firmware.")
         self.install_keys_button = customtkinter.CTkButton(firmware_keys_frame, text="Install Keys", command=self.install_keys_button_event)
         self.install_keys_button.grid(row=0, column=3, pady=5, padx=20, sticky="e")
         self.install_keys_button.bind("<Button-1>", self.install_keys_button_event)
+        CTkToolTip(self.install_keys_button, message="Click me to download and install the latest decryption keys for the Nintendo Switch from the internet. \nShift-Click me to use a custom key archive to install keys.")
         
         
    
