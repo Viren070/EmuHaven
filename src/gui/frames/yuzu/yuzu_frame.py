@@ -272,10 +272,11 @@ class YuzuFrame(customtkinter.CTkFrame):
             return 
         path_to_archive = None
         if not self.settings.app.use_yuzu_installer == "True" and event.state & 1:
-            path_to_archive = PathDialog(filetype=".zip", title="Custom Yuzu Archive", text="Enter path to yuzu archive: ")
+            path_to_archive = PathDialog(filetypes=(".zip",), title="Custom Yuzu Archive", text="Enter path to yuzu archive: ")
             path_to_archive = path_to_archive.get_input()
             if not all(path_to_archive):
-                messagebox.showerror("Error", "The path you have provided is invalid")
+                if path_to_archive[1] is not None:
+                    messagebox.showerror("Error", "The path you have provided is invalid")
                 return 
             path_to_archive = path_to_archive[1]
         self.configure_mainline_buttons("disabled")
@@ -309,10 +310,11 @@ class YuzuFrame(customtkinter.CTkFrame):
             return 
         path_to_archive = None
         if event.state & 1:
-            path_to_archive = PathDialog(filetype=".zip", title="Custom Yuzu EA Archive", text="Enter path to yuzu early access archive: ")
+            path_to_archive = PathDialog(filetypes=(".zip",), title="Custom Yuzu EA Archive", text="Enter path to yuzu early access archive: ")
             path_to_archive = path_to_archive.get_input()
             if not all(path_to_archive):
-                messagebox.showerror("Error", "The path you have provided is invalid")
+                if path_to_archive[1] is not None:
+                    messagebox.showerror("Error", "The path you have provided is invalid")
                 return 
             path_to_archive = path_to_archive[1]
         self.configure_mainline_buttons("disabled")
@@ -352,10 +354,11 @@ class YuzuFrame(customtkinter.CTkFrame):
             return 
         path_to_archive = None
         if event.state & 1:
-            path_to_archive = PathDialog(filetype=".zip", title="Custom Firmware Archive", text="Type path to Firmware Archive: ")
+            path_to_archive = PathDialog(filetypes=(".zip",), title="Custom Firmware Archive", text="Type path to Firmware Archive: ")
             path_to_archive = path_to_archive.get_input()
             if not all(path_to_archive):
-                messagebox.showerror("Error", "The path you have provided is invalid")
+                if path_to_archive[1] is not None:
+                    messagebox.showerror("Error", "The path you have provided is invalid")
                 return 
             path_to_archive = path_to_archive[1]
         self.configure_firmware_key_buttons("disabled")
@@ -372,10 +375,11 @@ class YuzuFrame(customtkinter.CTkFrame):
             return 
         path_to_archive = None
         if event.state & 1:
-            path_to_archive = PathDialog(filetype=".zip", title="Custom Key Archive", text="Type path to Key Archive: ")
+            path_to_archive = PathDialog(filetypes=(".zip", ".keys"), title="Custom Key Archive", text="Type path to Key Archive: ")
             path_to_archive = path_to_archive.get_input()
             if not all(path_to_archive):
-                messagebox.showerror("Error", "The path you have provided is invalid")
+                if path_to_archive[1] is not None:
+                    messagebox.showerror("Error", "The path you have provided is invalid")
                 return 
             path_to_archive = path_to_archive[1]
         self.configure_firmware_key_buttons("disabled")

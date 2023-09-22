@@ -12,7 +12,7 @@ class PathDialog(CTkToplevel):
     """
 
     def __init__(self,
-                 filetype,
+                 filetypes,
                  fg_color: Optional[Union[str, Tuple[str, str]]] = None,
                  text_color: Optional[Union[str, Tuple[str, str]]] = None,
                  button_fg_color: Optional[Union[str, Tuple[str, str]]] = None,
@@ -41,7 +41,7 @@ class PathDialog(CTkToplevel):
         self._title = title
         self._text = text
         self._font = font
-        self._filetype = filetype
+        self._filetypes = filetypes
 
         self.title(self._title)
         self.lift()  # lift window on top
@@ -122,7 +122,9 @@ class PathDialog(CTkToplevel):
         self.after(150, lambda: self._entry.focus())  # set focus to entry with slight delay, otherwise, it won't work
         self._entry.bind("<Return>", self._ok_event)
     def _browse_event(self):
-        path = filedialog.askopenfilename(filetypes=[("Custom file", f"*{self._filetype.replace('.', '')}")])
+        extensions= ["*" + ext[1:] for ext in self._filetypes]
+        print(extensions)
+        path = filedialog.askopenfilename(filetypes=[("Custom file", extensions)])
         if path is None or path == "":
             return
         self._entry.delete(0, 'end')
@@ -144,7 +146,9 @@ class PathDialog(CTkToplevel):
 
     def get_input(self):
         self.master.wait_window(self)
-        if os.path.exists(self._user_input) and self._user_input.endswith(self._filetype):
+        if self._user_input is None:
+            return (False, None)
+        if os.path.exists(self._user_input) and os.path.splitext(self._user_input)[1].lower() in self._filetypes:
             return (True, self._user_input)
         else:
             return (False, "Path does not exist or invalid filetype")
