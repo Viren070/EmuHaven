@@ -45,6 +45,8 @@ An all in one launcher for yuzu. Allows you to switch between mainline and early
 
 Should be straight forward, you just click the buttons. You can shift-click the launch buttons to immediately launch the emulator instead of checking for updates first. 
 
+You can also shift click the Install buttons.  This will allow you to use a local source for the install.
+
 For the downloader on yuzu. You need to click Options, then Attempt version fetch. This will probably be changed if I get around to re-doing the options menu but for now, you'll have to manually fetch the versions.
 
 The GitHub login feature is optional and should only be used if you ran out of API requests and need more immediately. It will grant you 5000 requests per hour. The user access token is not stored and this means that you will have to login again when you next launch the app if you want 5000 requests again.
