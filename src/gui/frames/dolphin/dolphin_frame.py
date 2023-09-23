@@ -3,10 +3,12 @@ from threading import Thread
 from tkinter import messagebox
 
 import customtkinter
+from CTkToolTip import CTkToolTip
 from PIL import Image
 
 from emulators.dolphin import Dolphin
-from gui.frames.dolphin_rom_search_frame import ROMSearchFrame
+from gui.frames.dolphin.dolphin_rom_frame import DolphinROMFrame
+from gui.windows.path_dialog import PathDialog
 
 class DolphinFrame(customtkinter.CTkFrame):
     def __init__(self, parent_frame, settings, metadata):
@@ -57,14 +59,17 @@ class DolphinFrame(customtkinter.CTkFrame):
         
         self.launch_dolphin_button = customtkinter.CTkButton(self.dolphin_actions_frame, height=40, width=180, text="Launch Dolphin  ", image = self.play_image, font=customtkinter.CTkFont(size=15, weight="bold"), command=self.launch_dolphin_button_event)
         self.launch_dolphin_button.grid(row=0, column=1, padx=30, pady=15, sticky="nsew")
-
+        self.launch_dolphin_button.bind("<Button-1>", command=self.launch_dolphin_button_event)
+        CTkToolTip(self.launch_dolphin_button, message="Click me to launch Dolphin.\nShift-Click me to launch Dolphin without checking for updates.")
 
         self.install_dolphin_button = customtkinter.CTkButton(self.dolphin_actions_frame, text="Install Dolphin", command=self.install_dolphin_button_event)
         self.install_dolphin_button.grid(row=0, column=0,padx=10, pady=5, sticky="ew")
-
+        self.install_dolphin_button.bind("<Button-1>", command=self.install_dolphin_button_event)
+        CTkToolTip(self.install_dolphin_button, message="Click me to download and install the latest beta release of Dolphin\nShift-Click me to use a custom archive of Dolphin to install it.")
+        
         self.delete_dolphin_button = customtkinter.CTkButton(self.dolphin_actions_frame, text="Delete Dolphin", fg_color="red", hover_color="darkred", command=self.delete_dolphin_button_event)
         self.delete_dolphin_button.grid(row=0, column=2,padx=10, sticky="ew", pady=5)
-
+        CTkToolTip(self.delete_dolphin_button, message="Click me to delete the installation of Dolphin at the specified path in the settings menu.")
         
         self.dolphin_log_frame = customtkinter.CTkFrame(self.center_frame, border_width=0, fg_color='transparent')
         self.dolphin_log_frame.grid(row=3, column=0, padx=80, sticky="ew")
@@ -105,27 +110,16 @@ class DolphinFrame(customtkinter.CTkFrame):
         self.dolphin_data_log.grid_columnconfigure(0, weight=1)
         self.dolphin_data_log.grid_rowconfigure(1, weight=1)
         
-        self.manage_roms_button = customtkinter.CTkButton(self.dolphin_navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Download ROMs",
+        self.manage_roms_button = customtkinter.CTkButton(self.dolphin_navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Manage ROMs",
                                                    fg_color="transparent", text_color=("gray10", "gray90"), 
                                                    anchor="w", command=self.manage_roms_button_event)
         self.manage_roms_button.grid(row=3, column=0, sticky="EW", padx=2)
         
         self.manage_roms_frame = customtkinter.CTkFrame(self, corner_radius = 0, bg_color = "transparent")
  
-        self.download_roms_frame = ROMSearchFrame(self.manage_roms_frame, self.dolphin, self.settings)
-        self.download_roms_frame.grid(row=0, column=0,  padx=20, pady=20, sticky="nsew")
-        
-        '''
-        move to own file for current rom frame
-                    
-            def add_current_roms_to_frame(self):
-                roms = self.dolphin.get_current_roms()
-                if not roms:
-                    customtkinter.CTkLabel(self.installed_roms_frame, text="Nothing to see here...").grid(row=0, column=0, sticky="nsew")
-                # Now, roms list contains ROMFile objects for the valid ROM files
-                for rom in roms:
-                    print(f"Name: {rom.name}, Path: {rom.path}, Size: {rom.size/1024/1024} MB")
-        '''
+        self.rom_frame = DolphinROMFrame(self.manage_roms_frame, self.dolphin, self.settings)
+        self.rom_frame.grid(row=0, column=0,  padx=20, pady=20, sticky="nsew")
+    
     def configure_data_buttons(self, **kwargs):
         self.dolphin_delete_button.configure(**kwargs)
         self.dolphin_import_button.configure(**kwargs)
@@ -157,20 +151,34 @@ class DolphinFrame(customtkinter.CTkFrame):
             self.manage_roms_frame.grid(row=0, column=1, sticky="nsew")
         else:
             self.manage_roms_frame.grid_forget()
-    def launch_dolphin_button_event(self):
+    def launch_dolphin_button_event(self, event=None):
+        if event is None or self.launch_dolphin_button.cget("state") == "disabled":
+            return 
         if not os.path.exists(os.path.join(self.settings.dolphin.install_directory, "Dolphin.exe")):
             messagebox.showerror("Dolphin", f"Installation of Dolphin not found at {os.path.join(self.settings.dolphin.install_directory, 'Dolphin.exe')}")
             return 
         self.configure_buttons("disabled", text="Launching...")
-        thread = Thread(target=self.dolphin.launch_dolphin_handler)
+        shift_clicked = True if event.state & 1 else False
+        thread = Thread(target=self.dolphin.launch_dolphin_handler, args=(shift_clicked, ))
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["main"])).start()
 
-    def install_dolphin_button_event(self):
+    def install_dolphin_button_event(self, event=None):
+        if event is None or self.install_dolphin_button.cget("state") == "disabled":
+            return 
         if os.path.exists(os.path.join(self.settings.dolphin.install_directory, "Dolphin.exe")) and not messagebox.askyesno("Confirmation", "Dolphin seems to already be installed, install anyways?"):
             return 
+        path_to_archive = None
+        if event.state & 1:
+            path_to_archive = PathDialog(filetypes=(".zip",), title="Custom Dolphin Archive", text="Type path to Dolphin Archive: ")
+            path_to_archive = path_to_archive.get_input()
+            if not all(path_to_archive):
+                if path_to_archive[1] is not None:
+                    messagebox.showerror("Error", "The path you have provided is invalid")
+                return 
+            path_to_archive = path_to_archive[1]
         self.configure_buttons("disabled")
-        thread = Thread(target=self.dolphin.install_dolphin_handler)
+        thread = Thread(target=self.dolphin.install_dolphin_handler, args=(False, path_to_archive, ))
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["main"], )).start()
     def delete_dolphin_button_event(self):

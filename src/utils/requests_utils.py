@@ -94,7 +94,7 @@ def get_file_links_from_page(url, file_ext=None, headers=DEFAULT_HEADER):
     for link in links:
         href = link.get('href')
         if (file_ext is None) or (href.endswith(file_ext) and href not in [file.url for file in files]):
-            filename=re.sub('<[^>]+>', '', str(link))
+            filename=re.sub('<[^>]+>', '', str(link)).replace("&amp;", "&")
             result=urlparse(href)
             if all([result.scheme, result.netloc]):
                 file_url = href

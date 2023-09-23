@@ -10,7 +10,7 @@ class DolphinSettings:
             'user_directory': (os.path.join(os.getenv("APPDATA"), "Dolphin Emulator")),
             'install_directory': (os.path.join(os.getenv("LOCALAPPDATA"), "Dolphin Emulator")),
             'export_directory': (os.path.join(os.getcwd(), "User Data","Dolphin")),
-            'rom_directory': ""
+            'rom_directory': os.path.join(os.getcwd(), "ROMS", "Dolphin")
         }
         self._settings = self.default_settings.copy()
 
@@ -25,7 +25,7 @@ class DolphinSettings:
                     os.makedirs(value)
                     setattr(self, name, value)
     def _set_directory_property(self, property_name, value):
-        if is_path_exists_or_creatable(value):
+        if (property_name=="rom_directory" and os.path.exists(value)) or (property_name !="rom_directory" and is_path_exists_or_creatable(value)):
             self._settings[property_name] = value
         else:
             raise ValueError(f"{property_name.replace('__','/').replace('_',' ').title()} - Invalid Path: {(value)}")

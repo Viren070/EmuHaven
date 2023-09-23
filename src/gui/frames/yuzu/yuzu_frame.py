@@ -3,11 +3,14 @@ from threading import Thread
 from tkinter import messagebox
 
 import customtkinter
+from CTkToolTip import CTkToolTip
 from PIL import Image
 
 from emulators.yuzu import Yuzu
-from gui.frames.firmware_downloader import FirmwareDownloader
+from gui.frames.yuzu.firmware_downloader import FirmwareDownloader
 from utils.requests_utils import get_headers, get_resources_release
+from gui.frames.yuzu.yuzu_rom_frame import YuzuROMFrame
+from gui.windows.path_dialog import PathDialog
 
 class YuzuFrame(customtkinter.CTkFrame):
     def __init__(self, parent_frame, settings, metadata):
@@ -18,6 +21,8 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.mainline_version = None 
         self.early_access_version = None 
         self.firmware_keys_version = None
+        self.installed_mainline_version = ""
+        self.installed_early_access_version = ""
         self.build_frame()
     def build_frame(self):
         self.play_image = customtkinter.CTkImage(light_image=Image.open(self.settings.get_image_path("play_light")),
@@ -30,7 +35,7 @@ class YuzuFrame(customtkinter.CTkFrame):
         # create yuzu navigation frame
         self.yuzu_navigation_frame = customtkinter.CTkFrame(self, corner_radius=0, width=20, border_width=2, border_color=("white","black"))
         self.yuzu_navigation_frame.grid(row=0, column=0, sticky="nsew")
-        self.yuzu_navigation_frame.grid_rowconfigure(4, weight=1)
+        self.yuzu_navigation_frame.grid_rowconfigure(5, weight=1)
         # create yuzu menu buttons
         self.yuzu_start_button = customtkinter.CTkButton(self.yuzu_navigation_frame, corner_radius=0, width=100, height=25, image = self.play_image, border_spacing=10, text="Play",
                                                    fg_color="transparent", text_color=("gray10", "gray90"),
@@ -41,6 +46,16 @@ class YuzuFrame(customtkinter.CTkFrame):
                                                    fg_color="transparent", text_color=("gray10", "gray90"),
                                                    anchor="w", command=self.yuzu_manage_data_button_event)
         self.yuzu_manage_data_button.grid(row=2, column=0, padx=2, sticky="ew")
+        
+        self.manage_roms_button = customtkinter.CTkButton(self.yuzu_navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Manage ROMs",
+                                                   fg_color="transparent", text_color=("gray10", "gray90"),
+                                                   anchor="w", command=self.manage_roms_button_event)
+        self.manage_roms_button.grid(row=3, column=0, padx=2, sticky="ew")
+        
+        self.yuzu_firmware_button = customtkinter.CTkButton(self.yuzu_navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Downloader",
+                                                   fg_color="transparent", text_color=("gray10", "gray90"),
+                                                   anchor="w", command=self.yuzu_firmware_button_event)
+        self.yuzu_firmware_button.grid(row=4, column=0, padx=2, sticky="ew")
         
         # create yuzu 'Play' frame and widgets
         self.yuzu_start_frame = customtkinter.CTkFrame(self, corner_radius=0, border_width=0)
@@ -74,16 +89,18 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.mainline_actions_frame.grid_columnconfigure(1, weight=1)  # Stretch horizontally
         self.mainline_actions_frame.grid_columnconfigure(2, weight=1)  # Stretch horizontally
         
-        self.launch_mainline_button = customtkinter.CTkButton(self.mainline_actions_frame, height=40, width=170, image=self.play_image, text="Launch Yuzu  ", command=self.launch_mainline_button_event, font=customtkinter.CTkFont(size=15, weight="bold"))
+        self.launch_mainline_button = customtkinter.CTkButton(self.mainline_actions_frame, height=40, width=200, image=self.play_image, text="Launch Yuzu  ", command=self.launch_mainline_button_event, font=customtkinter.CTkFont(size=15, weight="bold"))
         self.launch_mainline_button.grid(row=0, column=2, padx=30, pady=15, sticky="n")
         self.launch_mainline_button.bind("<Button-1>", command=self.launch_mainline_button_event)
-
+        CTkToolTip(self.launch_mainline_button, message="Click me to launch mainline yuzu.\nShift-click me to launch without checking for updates.")
         self.install_mainline_button = customtkinter.CTkButton(self.mainline_actions_frame, text="Install Yuzu", command=self.install_mainline_button_event)
         self.install_mainline_button.grid(row=0, column=1,padx=10, pady=5, sticky="ew")
+        self.install_mainline_button.bind("<Button-1>", command=self.install_mainline_button_event)
+        CTkToolTip(self.install_mainline_button, message="Click me to download and install the latest mainline release of yuzu from the internet\nShift-Click me to install yuzu with a custom archive")
         
         self.delete_mainline_button = customtkinter.CTkButton(self.mainline_actions_frame, text="Delete Yuzu", fg_color="red", hover_color="darkred", command=self.delete_mainline_button_event)
         self.delete_mainline_button.grid(row=0, column=3, padx=10, pady=5, sticky="ew")
-        
+        CTkToolTip(self.delete_mainline_button, message="Click me to delete the installation of mainline yuzu at the directory specified in settings.")
         ### Early Access Actions Frame 
         
         self.early_access_actions_frame = customtkinter.CTkFrame(self.center_frame)
@@ -92,16 +109,18 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.early_access_actions_frame.grid_columnconfigure(1, weight=1)  # Stretch horizontally
         self.early_access_actions_frame.grid_columnconfigure(2, weight=1)  # Stretch horizontally
         
-        self.launch_early_access_button = customtkinter.CTkButton(self.early_access_actions_frame, height=40, width=170, image=self.play_image, text="Launch Yuzu EA  ", command=self.launch_early_access_button_event, font=customtkinter.CTkFont(size=15, weight="bold"))
+        self.launch_early_access_button = customtkinter.CTkButton(self.early_access_actions_frame, height=40, width=200, image=self.play_image, text="Launch Yuzu EA  ", command=self.launch_early_access_button_event, font=customtkinter.CTkFont(size=15, weight="bold"))
         self.launch_early_access_button.grid(row=0, column=2, padx=30, pady=15, sticky="n")
         self.launch_early_access_button.bind("<Button-1>", command=self.launch_early_access_button_event)
-        
+        CTkToolTip(self.launch_early_access_button, message="Click me to launch yuzu early access.\nShift-Click me to launch without checking for updates.")
         self.delete_early_access_button = customtkinter.CTkButton(self.early_access_actions_frame, text="Delete Yuzu EA", fg_color="red", hover_color="darkred", command=self.delete_early_access_button_event)
         self.delete_early_access_button.grid(row=0, column=3, padx=10, pady=5, sticky="ew")
-        
+        CTkToolTip(self.delete_early_access_button, message="Click me to delete the installation of yuzu early access at the directory specified in settings.")
 
         self.install_early_access_button = customtkinter.CTkButton(self.early_access_actions_frame, text="Install Yuzu EA  ", command=self.install_early_access_button_event)
         self.install_early_access_button.grid(row=0, column=1,padx=10, pady=5, sticky="ew")
+        self.install_early_access_button.bind("<Button-1>", command=self.install_early_access_button_event)
+        CTkToolTip(self.install_early_access_button, message="Click me to download and install the latest early access release of yuzu from the internet\nShift-Click me to install yuzu with a custom archive.")
         
         firmware_keys_frame = customtkinter.CTkFrame(self.center_frame)
         firmware_keys_frame.grid(row=3, column=0, padx=10, pady=10, columnspan=3)
@@ -111,8 +130,12 @@ class YuzuFrame(customtkinter.CTkFrame):
         firmware_keys_frame.grid_rowconfigure(0, weight=1)
         self.install_firmware_button = customtkinter.CTkButton(firmware_keys_frame, text="Install Firmware", command=self.install_firmware_button_event)
         self.install_firmware_button.grid(row=0, column=0, pady=5, padx=20, sticky="w")
+        self.install_firmware_button.bind("<Button-1>", command=self.install_firmware_button_event)
+        CTkToolTip(self.install_firmware_button, message="Click me to download and install the latest firmware files for the Nintendo Switch from the internet.\nShift-Click me to use a custom firmware archive to install firmware.")
         self.install_keys_button = customtkinter.CTkButton(firmware_keys_frame, text="Install Keys", command=self.install_keys_button_event)
         self.install_keys_button.grid(row=0, column=3, pady=5, padx=20, sticky="e")
+        self.install_keys_button.bind("<Button-1>", self.install_keys_button_event)
+        CTkToolTip(self.install_keys_button, message="Click me to download and install the latest decryption keys for the Nintendo Switch from the internet. \nShift-Click me to use a custom key archive to install keys.")
         
         
    
@@ -150,16 +173,13 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.yuzu_data_log.grid_columnconfigure(0, weight=1)
         self.yuzu_data_log.grid_rowconfigure(1, weight=1)
         # create yuzu downloader button, frame and widgets
-        self.yuzu_firmware_button = customtkinter.CTkButton(self.yuzu_navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Downloader",
-                                                   fg_color="transparent", text_color=("gray10", "gray90"),
-                                                   anchor="w", command=self.yuzu_firmware_button_event)
-        self.yuzu_firmware_button.grid(row=3, column=0, padx=2, sticky="ew")
+        
         
         self.yuzu_firmware_frame = customtkinter.CTkFrame(self, corner_radius=0, border_width=0, fg_color="transparent")
         self.yuzu_firmware_frame.grid_rowconfigure(2, weight=1)
         self.yuzu_firmware_frame.grid_columnconfigure(2, weight=1)
         self.yuzu_firmware = FirmwareDownloader(self.yuzu_firmware_frame)
-        self.yuzu_firmware.grid(row=0, column=1, padx=20, pady=20, sticky="nsew")
+        self.yuzu_firmware.grid(row=0, column=1, sticky="nsew")
         self.yuzu_firmware_options_button = customtkinter.CTkButton(self.yuzu_firmware_frame, text="Options", command=self.yuzu_firmware.options_menu)
         self.yuzu_firmware_options_button.grid(row=1, column=1, pady=(0,30))
         
@@ -167,7 +187,14 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.mainline_actions_frame.grid_propagate(False)
         self.selected_channel.set(self.settings.app.default_yuzu_channel)
         self.switch_channel()
-       # Thread(target=self.fetch_versions, args=(False,)).start()
+        
+        self.manage_roms_frame = customtkinter.CTkFrame(self, corner_radius = 0, bg_color = "transparent")
+        self.manage_roms_frame.grid_columnconfigure(0, weight=1)
+        self.manage_roms_frame.grid_rowconfigure(0, weight=1)
+        self.rom_frame = YuzuROMFrame(self.manage_roms_frame, self.yuzu, self.settings)
+        self.rom_frame.grid(row=0, column=0,  padx=20, pady=20, sticky="nsew")
+    
+        Thread(target=self.fetch_versions, args=(False,)).start()
     def configure_data_buttons(self, **kwargs):
         self.yuzu_delete_button.configure(**kwargs)
         self.yuzu_import_button.configure(**kwargs)
@@ -189,10 +216,13 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.select_yuzu_frame_by_name("data")
     def yuzu_firmware_button_event(self):
         self.select_yuzu_frame_by_name("firmware")
+    def manage_roms_button_event(self):
+        self.select_yuzu_frame_by_name("roms")
 
     def select_yuzu_frame_by_name(self, name):
         self.yuzu_start_button.configure(fg_color=self.yuzu_start_button.cget("hover_color") if name == "start" else "transparent")
         self.yuzu_manage_data_button.configure(fg_color=self.yuzu_manage_data_button.cget("hover_color") if name == "data" else "transparent")
+        self.manage_roms_button.configure(fg_color=self.manage_roms_button.cget("hover_color") if name == "roms" else "transparent")
         self.yuzu_firmware_button.configure(fg_color=self.yuzu_firmware_button.cget("hover_color") if name == "firmware" else "transparent")
         if name == "start":
             self.yuzu_start_frame.grid(row=0, column=1, sticky="nsew" )
@@ -202,7 +232,10 @@ class YuzuFrame(customtkinter.CTkFrame):
             self.yuzu_manage_data_frame.grid(row=0, column=1, sticky="nsew")
         else:
             self.yuzu_manage_data_frame.grid_forget()
-
+        if name == "roms":
+            self.manage_roms_frame.grid(row=0, column=1, sticky="nsew")
+        else:
+            self.manage_roms_frame.grid_forget()
         if name == "firmware":
             self.yuzu_firmware_frame.grid(row=0, column=1, sticky="nsew")
         else:
@@ -223,7 +256,7 @@ class YuzuFrame(customtkinter.CTkFrame):
             
             
     def launch_mainline_button_event(self, event=None):
-        if event is None:
+        if event is None or self.launch_mainline_button.cget("state") == "disabled":
             return 
         if self.launch_mainline_button.cget("state") == "disabled":
             return 
@@ -237,20 +270,31 @@ class YuzuFrame(customtkinter.CTkFrame):
         thread=Thread(target=self.yuzu.launch_yuzu_handler, args=("mainline", shift_clicked, ))
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["mainline","early_access", "firmware_keys"],)).start()
-    def install_mainline_button_event(self):
+    def install_mainline_button_event(self, event=None):
+        if event is None or self.install_mainline_button.cget("state") == "disabled":
+            return 
         if os.path.exists(os.path.join(self.settings.yuzu.install_directory,"yuzu-windows-msvc")) and not messagebox.askyesno("Yuzu Exists", "There is already an installation of yuzu at the specified install directory, overwrite this installation?"):
             return 
+        path_to_archive = None
+        if not self.settings.app.use_yuzu_installer == "True" and event.state & 1:
+            path_to_archive = PathDialog(filetypes=(".zip",), title="Custom Yuzu Archive", text="Enter path to yuzu archive: ")
+            path_to_archive = path_to_archive.get_input()
+            if not all(path_to_archive):
+                if path_to_archive[1] is not None:
+                    messagebox.showerror("Error", "The path you have provided is invalid")
+                return 
+            path_to_archive = path_to_archive[1]
         self.configure_mainline_buttons("disabled")
         self.configure_early_access_buttons("disabled")
         self.configure_firmware_key_buttons("disabled")
         
-        thread = Thread(target=self.yuzu.launch_yuzu_installer) if self.settings.app.use_yuzu_installer == "True" else Thread(target=self.yuzu.install_release_handler, args=("mainline", ))
+        thread = Thread(target=self.yuzu.launch_yuzu_installer) if self.settings.app.use_yuzu_installer == "True" else Thread(target=self.yuzu.install_release_handler, args=("mainline", False, path_to_archive))
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["mainline","early_access", "firmware_keys"],)).start()
         
     
     def launch_early_access_button_event(self, event=None):
-        if event is None:
+        if event is None or self.launch_early_access_button.cget("state") == "disabled":
             return
         if self.launch_early_access_button.cget("state") == "disabled":
             return 
@@ -264,13 +308,24 @@ class YuzuFrame(customtkinter.CTkFrame):
         thread=Thread(target=self.yuzu.launch_yuzu_handler, args=("early_access", shift_clicked, ))
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["mainline","early_access", "firmware_keys"],)).start()
-    def install_early_access_button_event(self):
+    def install_early_access_button_event(self, event=None):
+        if event is None or self.install_early_access_button.cget("state") == "disabled":
+            return
         if os.path.exists(os.path.join(self.settings.yuzu.install_directory,"yuzu-windows-msvc-early-access")) and not messagebox.askyesno("Yuzu Exists", "There is already an installation of yuzu at the specified install directory, overwrite this installation?"):
             return 
+        path_to_archive = None
+        if event.state & 1:
+            path_to_archive = PathDialog(filetypes=(".zip",), title="Custom Yuzu EA Archive", text="Enter path to yuzu early access archive: ")
+            path_to_archive = path_to_archive.get_input()
+            if not all(path_to_archive):
+                if path_to_archive[1] is not None:
+                    messagebox.showerror("Error", "The path you have provided is invalid")
+                return 
+            path_to_archive = path_to_archive[1]
         self.configure_mainline_buttons("disabled")
         self.configure_early_access_buttons("disabled")
         self.configure_firmware_key_buttons("disabled")
-        thread=Thread(target=self.yuzu.install_release_handler, args=("early_access", ))
+        thread=Thread(target=self.yuzu.install_release_handler, args=("early_access", False, path_to_archive))
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["mainline", "early_access", "firmware_keys"],)).start()
    
@@ -297,23 +352,45 @@ class YuzuFrame(customtkinter.CTkFrame):
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["mainline"],)).start()
     
-    def install_firmware_button_event(self):
+    def install_firmware_button_event(self, event=None):
+        if event is None or self.install_firmware_button.cget("state") == "disabled":
+            return
         if self.yuzu.check_current_firmware() and not messagebox.askyesno("Firmware Exists", "You already seem to have firmware installed, install anyways?"):
             return 
+        path_to_archive = None
+        if event.state & 1:
+            path_to_archive = PathDialog(filetypes=(".zip",), title="Custom Firmware Archive", text="Type path to Firmware Archive: ")
+            path_to_archive = path_to_archive.get_input()
+            if not all(path_to_archive):
+                if path_to_archive[1] is not None:
+                    messagebox.showerror("Error", "The path you have provided is invalid")
+                return 
+            path_to_archive = path_to_archive[1]
         self.configure_firmware_key_buttons("disabled")
         self.configure_mainline_buttons("disabled")
         self.configure_early_access_buttons("disabled")
-        thread=Thread(target=self.yuzu.install_firmware_handler)
+        thread=Thread(target=self.yuzu.install_firmware_handler, args=(path_to_archive, ))
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["firmware_keys","mainline","early_access"], )).start()
    
-    def install_keys_button_event(self):
+    def install_keys_button_event(self, event=None):
+        if event is None or self.install_keys_button.cget("state") == "disabled":
+            return 
         if self.yuzu.check_current_keys() and not messagebox.askyesno("Keys Exist", "You already seem to have the decryption keys, install anyways?"):
             return 
+        path_to_archive = None
+        if event.state & 1:
+            path_to_archive = PathDialog(filetypes=(".zip", ".keys"), title="Custom Key Archive", text="Type path to Key Archive: ")
+            path_to_archive = path_to_archive.get_input()
+            if not all(path_to_archive):
+                if path_to_archive[1] is not None:
+                    messagebox.showerror("Error", "The path you have provided is invalid")
+                return 
+            path_to_archive = path_to_archive[1]
         self.configure_firmware_key_buttons("disabled")
         self.configure_mainline_buttons("disabled")
         self.configure_early_access_buttons("disabled")
-        thread = Thread(target=self.yuzu.install_key_handler)
+        thread = Thread(target=self.yuzu.install_key_handler, args=(path_to_archive, ))
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["firmware_keys","mainline","early_access"],)).start()
     def import_data_button_event(self):
@@ -337,9 +414,9 @@ class YuzuFrame(customtkinter.CTkFrame):
         thread.join()
         for button in buttons:
             if button == "mainline":
-                self.configure_mainline_buttons("normal", text="Launch Yuzu  ", width=170)
+                self.configure_mainline_buttons("normal", text="Launch Yuzu  ", width=200)
             elif button == "early_access":
-                self.configure_early_access_buttons("normal", text="Launch Yuzu EA  ", width=170)
+                self.configure_early_access_buttons("normal", text="Launch Yuzu EA  ", width=200)
             elif button == "firmware_keys":
                 self.configure_firmware_key_buttons("normal")
             elif button == "data":

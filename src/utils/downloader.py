@@ -1,4 +1,3 @@
-import os
 from requests.exceptions import RequestException
 
 

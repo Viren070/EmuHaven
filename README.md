@@ -5,17 +5,22 @@
 A program that will help manage your emulators, currently supports: 
 
  - Dolphin
- - Yuzu 
+ - Yuzu
+
+Only tested on Windows 10 and 11, not sure if it will work on anything else
 
 ## Download 
 
-Download the latest release from [here](https://github.com/Viren070/Emulator-Manager/releases/latest) by scrolling to the bottom and downloading the exe from the assets (Use [0.9.3](https://github.com/Viren070/Emulator-Manager/releases/tag/v0.9.3) for playing in places with limited internet access for now. I'll add back ways to use files from other sources to install stuff in a future update)
+Download the latest release from [here](https://github.com/Viren070/Emulator-Manager/releases/latest) by scrolling to the bottom and downloading the exe from the assets.
+
+Note: [0.9.3](https://github.com/Viren070/Emulator-Manager/releases/tag/v0.9.3) is the last version that comes packaged with the necessary files. v0.11.1 allows you to use custom files instead of being restricted to the sources predefined in the app. These are shown at the bottom of this page.
 
 ## Features
 
 ### Dolphin 
 
-- Basic functions such as installing, launching and deleting
+- Download any game you want for the GameCube or Wii directly from the manager. It is easy to use and you can browse or search for whatever game you want. 
+- Download the latest beta release of dolphin through the manager and keep Dolphin updated. 
 - Manage your user data and export it to any directory
 
 
@@ -33,12 +38,14 @@ An all in one launcher for yuzu. Allows you to switch between mainline and early
 ### App
 
 - Through the settings page, you can customise the app to your liking with the several themes to choose from. These were taken from:
-  - [s-liwka/customtkinter-themes](https://github.com/s-liwka/customtkinter-themes)
+  - [avalaon60/ctk_theme_builder](https://github.com/avalon60/ctk_theme_builder/tree/develop/user_themes)
   - [a13xe/CTkThemesPack](https://github.com/a13xe/CTkThemesPack)
 
 ## How to use
 
 Should be straight forward, you just click the buttons. You can shift-click the launch buttons to immediately launch the emulator instead of checking for updates first. 
+
+You can also shift click the Install buttons.  This will allow you to use a local source for the install.
 
 For the downloader on yuzu. You need to click Options, then Attempt version fetch. This will probably be changed if I get around to re-doing the options menu but for now, you'll have to manually fetch the versions.
 
@@ -49,8 +56,10 @@ The settings for dolphin and yuzu are used to change where yuzu/dolphin is insta
 ### Images
 ![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/9b421e17-65a0-4a89-8178-b5c25754ae74)
 
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/a0637a78-7307-4476-aa11-d2dd83882e94)
+
 ![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/1ea40ed6-9e42-4ef0-8804-4f84090b0109)
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/2148d447-80ce-49fa-8707-7f43234c3620)
+
 ![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/2b86392c-7694-42f8-b6e7-4a9610f74256)
 
 ![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/0a6361b2-5b54-4801-a87c-69d32c999ed4)
@@ -59,7 +68,7 @@ The settings for dolphin and yuzu are used to change where yuzu/dolphin is insta
 
 
 
-## [Early Access Source](https://github.com/pineappleEA/pineapple-src) | [Firmware](https://archive.org/download/nintendo-switch-global-firmwares) | [Keys](https://github.com/Viren070/SwitchFirmwareKeysInstaller/tree/main/Keys)  | [Dolphin](https://github.com/Viren070/dolphin-beta-downloads)
+## [Early Access Source](https://github.com/pineappleEA/pineapple-src) | [Firmware](https://archive.org/download/nintendo-switch-global-firmwares) | [Keys](https://github.com/Viren070/SwitchFirmwareKeysInstaller/tree/main/Keys)  | [Dolphin](https://github.com/Viren070/dolphin-beta-downloads) | [Dolphin ROMs](https://myrient.erista.me/)
 
 
 

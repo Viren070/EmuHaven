@@ -6,9 +6,9 @@ from tkinter import messagebox
 import customtkinter
 from PIL import Image
 
-from gui.frames.dolphin_frame import DolphinFrame
-from gui.frames.settings_frame import SettingsFrame
-from gui.frames.yuzu_frame import YuzuFrame
+from gui.frames.dolphin.dolphin_frame import DolphinFrame
+from gui.frames.settings.settings_frame import SettingsFrame
+from gui.frames.yuzu.yuzu_frame import YuzuFrame
 from settings.app_settings import load_customtkinter_themes
 from settings.settings import Settings
 from settings.metadata import Metadata
@@ -21,7 +21,7 @@ class EmulatorManager(customtkinter.CTk):
         super().__init__()
         self.settings = Settings(self, root_dir)
         self.metadata = Metadata(self, self.settings)
-        self.version = "v0.10.1"
+        self.version = "v0.11.2"
         self.root_dir = root_dir
         self.x = pos[0]
         self.y = pos[1]
@@ -143,7 +143,7 @@ class EmulatorManager(customtkinter.CTk):
         
     def on_closing(self):
         if (self.dolphin_frame.dolphin.running or self.yuzu_frame.yuzu.running):
-            messagebox.showerror("", "Please close any emulators before attempting to close Emulator Manager")
+            messagebox.showerror("Emulator Manager", "Please close any emulators before attempting to exit.")
             return 
         temp_folder = os.path.join(os.getenv("TEMP"), "Emulator Manager")
         if os.path.exists(temp_folder):

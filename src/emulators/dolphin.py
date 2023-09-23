@@ -1,7 +1,6 @@
 import os
 import shutil
 import subprocess
-from threading import Thread
 from tkinter import messagebox
 from zipfile import ZipFile
 
@@ -10,7 +9,7 @@ import requests
 from gui.frames.progress_frame import ProgressFrame
 from utils.downloader import download_through_stream
 from utils.file_utils import copy_directory_with_progress
-from utils.requests_utils import get_headers, get_resources_release, get_file_links_from_page
+from utils.requests_utils import get_headers, get_resources_release
 
 
 class Dolphin:
@@ -29,8 +28,15 @@ class Dolphin:
         time.sleep(2)
         os.remove(zip_path)
         
-    
-
+    def verify_dolphin_zip(self, path_to_archive):
+        try:
+            with ZipFile(path_to_archive, 'r') as archive:
+                if 'Dolphin.exe' in archive.namelist():
+                    return True 
+                else:
+                    return False
+        except Exception:
+            return False
     def download_release(self, release):
         download_folder = os.getcwd()
         
@@ -42,38 +48,39 @@ class Dolphin:
         download_result = download_through_stream(response, download_path, progress_frame, 1024*203)
         progress_frame.destroy() 
         return download_result
-
         
-
-        
-            
-                          
-        
-    def install_dolphin_handler(self, updating=False):
-            
-        release_result = get_resources_release("Dolphin", headers=get_headers(self.settings.app.token))
-        if not all(release_result):
-            messagebox.showerror("Install Dolphin", f"There was an error while attempting to fetch the latest release of Dolphin:\n\n{release_result[1]}")
-        release = release_result[1]
-        release.version = release.name.replace("Dolphin.", "").replace(".zip", "")
-        if release.version == self.metadata.get_installed_version("dolphin"):
-            if updating:
+    def install_dolphin_handler(self, updating=False, path_to_archive=None):
+        release_archive = path_to_archive
+        if path_to_archive is None:
+            release_result = get_resources_release("Dolphin", headers=get_headers(self.settings.app.token))
+            if not all(release_result):
+                messagebox.showerror("Install Dolphin", f"There was an error while attempting to fetch the latest release of Dolphin:\n\n{release_result[1]}")
                 return 
-            messagebox.showinfo("Dolphin", "You already have the latest version of Dolphin installed")
-            return
-        download_result = self.download_release(release)
-        if not all(download_result):
-            if download_result[1] != "Cancelled":
-                messagebox.showerror("Error", f"There was an error while attempting to download the latest release of Dolphin\n\n{download_result[1]}")
+            release = release_result[1]
+            release.version = release.name.replace("Dolphin.", "").replace(".zip", "")
+            if release.version == self.metadata.get_installed_version("dolphin"):
+                if updating:
+                    return 
+                if not messagebox.askyesno("Dolphin", "You already have the latest version of Dolphin installed, install anyways?"):
+                    return
+            download_result = self.download_release(release)
+            if not all(download_result):
+                if download_result[1] != "Cancelled":
+                    messagebox.showerror("Error", f"There was an error while attempting to download the latest release of Dolphin\n\n{download_result[1]}")
+                return 
+            release_archive = download_result[1]
+        elif not self.verify_dolphin_zip(path_to_archive):
+            messagebox.showerror("Error", "The dolphin archive you have provided is invalid. ")
             return 
-        release_archive = download_result[1]
         extract_result = self.extract_release(release_archive)
-        if self.settings.app.delete_files == "True":
+        if path_to_archive is None and self.settings.app.delete_files == "True":
             os.remove(release_archive)
         if not all(extract_result):
             if extract_result[1]!="Cancelled":
                 messagebox.showerror("Extract Error", f"An error occurred while extracting the release: \n\n{extract_result[1]}")
             return 
+        if path_to_archive is None:
+            self.metadata.update_installed_version("dolphin", release.version)
         messagebox.showinfo("Install Dolphin", f"Dolphin was successfully installed to {self.settings.dolphin.install_directory}")
         
    
@@ -172,24 +179,5 @@ class Dolphin:
             messagebox.showinfo("Delete result", result)
         else:
             messagebox.showinfo("Delete result", "Nothing was deleted.")
-    def get_downloadable_roms(self, console):
-        link = "https://myrient.erista.me/files/Redump/Nintendo%20-%20Wii%20-%20NKit%20RVZ%20[zstd-19-128k]/" if console == "wii" else "https://myrient.erista.me/files/Redump/Nintendo%20-%20GameCube%20-%20NKit%20RVZ%20[zstd-19-128k]/"
-        return get_file_links_from_page(link, ".zip", get_headers())
    
-    def get_current_roms(self):
-        class ROMFile:
-            def __init__(self, name, path, size):
-                self.name = name 
-                self.path = path
-                self.size = size 
-        roms = [] 
-        allowed_extensions = (".wbfs", ".iso", ".rvz", ".gcm", ".gcz", ".ciso")
-        rom_directory = self.settings.dolphin.rom_directory
-        
-        for file in os.listdir(rom_directory):
-            if file.endswith(allowed_extensions) and os.path.isfile(os.path.join(rom_directory, file)):
-                # Create a ROMFile object and append it to the roms list
-                full_path = os.path.join(rom_directory, file)
-                rom = ROMFile(name=file, path=full_path, size=os.path.getsize(full_path))
-                roms.append(rom)
-        return roms 
+   

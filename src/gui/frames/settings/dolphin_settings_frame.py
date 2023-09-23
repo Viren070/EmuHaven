@@ -4,23 +4,23 @@ from tkinter import filedialog, messagebox, ttk
 import customtkinter
 
 
-class YuzuSettings(customtkinter.CTkFrame):
+class DolphinSettingsFrame(customtkinter.CTkFrame):
     def __init__(self, parent_frame, settings):
         super().__init__(parent_frame, corner_radius=0, fg_color="transparent")
-        self.settings = settings
+        self.settings = settings 
         self.build_frame()
         self.update_entry_widgets()
     def build_frame(self):
+        
         self.grid_columnconfigure(0, weight=1)
-        
-        
+ 
         customtkinter.CTkLabel(self, text="User Directory: ").grid(row=0, column=0, padx=10, pady=10, sticky="w")
         self.user_directory_entry = customtkinter.CTkEntry(self,  width=300)
         self.user_directory_entry.grid(row=0, column=2, padx=10, pady=10, sticky="e")
         customtkinter.CTkButton(self, text="Browse", width=50, command=lambda entry_widget=self.user_directory_entry: self.update_with_explorer(entry_widget)).grid(row=0, column=3, padx=5, pady=10, sticky="e")
         ttk.Separator(self, orient='horizontal').grid(row=1, columnspan=4, sticky="ew")
     
-        customtkinter.CTkLabel(self, text="yuzu Install Directory: ").grid(row=2, column=0, padx=10, pady=10, sticky="w")
+        customtkinter.CTkLabel(self, text="Dolphin Install Directory: ").grid(row=2, column=0, padx=10, pady=10, sticky="w")
         self.install_directory_entry = customtkinter.CTkEntry(self, width=300)
         self.install_directory_entry.grid(row=2, column=2, padx=10, pady=10, sticky="e")
         customtkinter.CTkButton(self, text="Browse", width=50, command=lambda entry_widget=self.install_directory_entry: self.update_with_explorer(entry_widget)).grid(row=2,column=3, padx=5, pady=5, sticky="E")
@@ -30,49 +30,42 @@ class YuzuSettings(customtkinter.CTkFrame):
         self.export_directory_entry = customtkinter.CTkEntry(self, width=300)
         self.export_directory_entry.grid(row=6, column=2, padx=10, pady=10, sticky="e")
         customtkinter.CTkButton(self, text="Browse", width=50, command=lambda entry_widget=self.export_directory_entry: self.update_with_explorer(entry_widget)).grid(row=6, column=3, padx=5, sticky="E")
-        ttk.Separator(self, orient='horizontal').grid(row=7, columnspan=4, sticky="ew")      
-    
-        customtkinter.CTkLabel(self, text="Yuzu Installer: ").grid(row=8, column=0, padx=10, pady=10, sticky="w")
-        self.yuzu_installer_path_entry = customtkinter.CTkEntry(self, width=300)
-        self.yuzu_installer_path_entry.grid(row=8, column=2, padx=10, pady=10, sticky="e")
-        customtkinter.CTkButton(self, text="Browse", width=50, command=lambda entry_widget=self.yuzu_installer_path_entry: self.update_with_explorer(entry_widget, "installer")).grid(row=8, column=3, padx=5, sticky="E")
-        ttk.Separator(self, orient='horizontal').grid(row=9, columnspan=4, sticky="ew")
+        ttk.Separator(self, orient='horizontal').grid(row=7, columnspan=4, sticky="ew")
+     
+        customtkinter.CTkLabel(self, text="ROM Directory").grid(row=8, column=0, padx=10, pady=10, sticky="w")
+        self.rom_directory_entry = customtkinter.CTkEntry(self, width=300)
+        self.rom_directory_entry.grid(row=8,column=2,padx=10,pady=10,sticky="E" )
+        customtkinter.CTkButton(self, text="Browse", width=50, command=lambda entry_widget=self.rom_directory_entry: self.update_with_explorer(entry_widget)).grid(row=8, column=3, padx=5, sticky="E")
+        ttk.Separator(self, orient="horizontal").grid(row=9, columnspan=4, sticky="ew")
         
         self.actions_frame = customtkinter.CTkFrame(self, fg_color="transparent")
         self.actions_frame.grid_columnconfigure(0, weight=1)
-        self.actions_frame.grid(row=14,sticky="ew", columnspan=4, padx=10, pady=10)
+        self.actions_frame.grid(row=10,sticky="ew", columnspan=5, padx=10, pady=10)
         customtkinter.CTkButton(self.actions_frame, text="Apply", command=self.apply).grid(row=10,column=3,padx=10,pady=10, sticky="e")
         customtkinter.CTkButton(self.actions_frame, text="Restore Defaults", command=self.restore_defaults).grid(row=10, column=0, padx=10,pady=10, sticky="w")
-
+    
         self.matching_dict = {
-            "user_directory": {
-                "entry_widget": self.user_directory_entry,
-                "variable": self.settings.yuzu.user_directory
-            },
-            "install_directory": {
-                "entry_widget": self.install_directory_entry,
-                "variable": self.settings.yuzu.install_directory
-            },
-            "export_directory": {
-                "entry_widget": self.export_directory_entry,
-                "variable": self.settings.yuzu.export_directory
-            },
-            "installer_path": {
-                "entry_widget": self.yuzu_installer_path_entry,
-                "variable": self.settings.yuzu.installer_path
-            }
+            "user_directory": self.user_directory_entry,
+    
+            "install_directory":  self.install_directory_entry,
+        
+            "export_directory": self.export_directory_entry,
+        
+            "rom_directory": self.rom_directory_entry 
+        
         }
-    def update_entry_widgets(self):
-        for setting_name, match in self.matching_dict.items():
-            match["entry_widget"].delete(0, 'end')
-            match["entry_widget"].insert(0, getattr(self.settings.yuzu, setting_name))
-
+        
     def settings_changed(self):
-        for setting_name, match in self.matching_dict.items():
-            if match["entry_widget"].get() != getattr(self.settings.yuzu, setting_name):
-                return True
-      
+        for setting_name, entry_widget in self.matching_dict.items():
+            if entry_widget.get() != getattr(self.settings.dolphin, setting_name):
+                return True 
         return False
+    def update_entry_widgets(self):
+        for setting_name, entry_widget in self.matching_dict.items():
+            entry_widget.delete(0, 'end')
+            entry_widget.insert(0, getattr(self.settings.dolphin, setting_name))
+
+    
     def update_with_explorer(self, entry_widget, dialogtype=None):
         if dialogtype is None:
             new_directory = filedialog.askdirectory(initialdir=entry_widget.get())
@@ -82,10 +75,8 @@ class YuzuSettings(customtkinter.CTkFrame):
             entry_widget.insert(0, new_directory)
             return 
         initialdir=os.path.dirname(entry_widget.get())
-        if dialogtype=="installer":
-            new_path = filedialog.askopenfilename(initialdir=initialdir, title="Select Yuzu Installer", filetypes=[("yuzu_install.exe", "*exe")])
-        else:
-            new_path = filedialog.askopenfilename(initialdir=initialdir, title="Select {} ZIP".format("Firmware" if dialogtype=="firmware" else "Key"), filetypes=[("Firmware" if dialogtype=="firmware" else "Keys", "*zip" if dialogtype=="firmware" else ("*zip", "prod.keys"))]) 
+        if dialogtype=="zip":
+            new_path = filedialog.askopenfilename(initialdir=initialdir, title="Select Dolphin archive", filetypes=[("Dolphin 5.0-xxxxx", "*zip")])
         if new_path is None or new_path == "":
             return 
         entry_widget.delete(0, 'end')
@@ -93,16 +84,17 @@ class YuzuSettings(customtkinter.CTkFrame):
         
     def apply(self):
         errors = ""
-        for setting_name, match in self.matching_dict.items():
+        for setting_name, entry_widget in self.matching_dict.items():
             try:
-                setattr(self.settings.yuzu, setting_name, (match["entry_widget"].get()))
+
+                setattr(self.settings.dolphin, setting_name, entry_widget.get())
             except (ValueError, FileNotFoundError) as error:
                 errors += f"{error}\n\n"
         if errors:
             self.update_entry_widgets()
             messagebox.showerror("Settings Error", errors)
         self.settings.update_file()
-    def restore_defaults(self):
-        self.settings.yuzu.restore_default()
-        self.update_entry_widgets()
         
+    def restore_defaults(self):
+        self.settings.dolphin.restore_default()
+        self.update_entry_widgets()

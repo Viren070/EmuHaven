@@ -3,9 +3,9 @@ import os
 import customtkinter
 from PIL import Image
 
-from gui.frames.app_settings_frame import AppSettings
-from gui.frames.dolphin_settings_frame import DolphinSettings
-from gui.frames.yuzu_settings_frame import YuzuSettings
+from gui.frames.settings.app_settings_frame import AppSettingsFrame
+from gui.frames.settings.dolphin_settings_frame import DolphinSettingsFrame
+from gui.frames.settings.yuzu_settings_frame import YuzuSettingsFrame
 
 
 class SettingsFrame(customtkinter.CTkFrame):
@@ -63,9 +63,9 @@ class SettingsFrame(customtkinter.CTkFrame):
         self.default_yuzu_settings_firmware_path = os.path.join(switch_firmware_keys_folder_path, "Firmware 16.0.3 (Rebootless Update 2).zip")
         self.default_yuzu_settings_key_path = os.path.join(switch_firmware_keys_folder_path, "Keys 16.0.3.zip")
         
-        self.dolphin_settings_frame = DolphinSettings(self, self.settings)
-        self.yuzu_settings_frame = YuzuSettings(self, self.settings)
-        self.app_settings_frame = AppSettings(self, self.settings)
+        self.dolphin_settings_frame = DolphinSettingsFrame(self, self.settings)
+        self.yuzu_settings_frame = YuzuSettingsFrame(self, self.settings)
+        self.app_settings_frame = AppSettingsFrame(self, self.settings)
         
     def dolphin_settings_button_event(self):
         self.select_settings_frame_by_name("dolphin")
