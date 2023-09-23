@@ -240,11 +240,13 @@ class ROMSearchFrame(customtkinter.CTkTabview):
         self.tab("Wii ROMs").grid_rowconfigure(0, weight=1)
         self.tab("GameCube ROMs").grid_columnconfigure(0, weight=1)
         self.tab("GameCube ROMs").grid_rowconfigure(0, weight=1)
+        self.tab("Downloads").grid_columnconfigure(0, weight=1)
+        self.tab("Downloads").grid_rowconfigure(0, weight=1)
         self.wii_roms_frame = SearchFrame(self.tab("Wii ROMs"), self, "wii",)
         self.wii_roms_frame.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
         self.gamecube_roms_frame = SearchFrame(self.tab("GameCube ROMs"), self, "gamecube")
         self.gamecube_roms_frame.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
-        self.downloads_frame = customtkinter.CTkScrollableFrame(self.tab("Downloads"), width=650, height=420)
+        self.downloads_frame = customtkinter.CTkScrollableFrame(self.tab("Downloads"))
         self.downloads_frame.grid_columnconfigure(0, weight=1)
         self.downloads_frame.grid(row=0, column=0, sticky="nsew")
     
@@ -264,17 +266,17 @@ class ROMSearchFrame(customtkinter.CTkTabview):
             else:
                 os.remove(download_result[2])
             self.downloads_in_progress -= 1
-            button.configure(state="normal")
+            button.configure(state="normal", text="Download")
             return 
         extract_result = self.extract_rom(download_result[1])
         if not all(extract_result):
             messagebox.showerror("Error", f"An error occurred while attempting to extract this ROM\n\n{extract_result[1]}")
-            button.configure(state="normal")
+            button.configure(state="normal", text="Download")
         if self.settings.app.delete_files == "True":
             if os.path.exists(download_result[1]):
                 os.remove(download_result[1])
         messagebox.showinfo("ROM Install", f"The ROM was successfully installed at path: \n\n{extract_result[1]}")
-        button.configure(state="normal")
+        button.configure(state="normal", text="Download")
     def download_rom(self, rom):
         download_folder = self.settings.dolphin.rom_directory
         download_path = os.path.join(download_folder, rom.filename)
