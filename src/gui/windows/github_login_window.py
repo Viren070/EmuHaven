@@ -93,7 +93,7 @@ class GitHubLoginWindow(customtkinter.CTkToplevel):
                 interval = 15
             print(f"requests made with interval {interval}s: {requests_made}")
             if requests_made > 5:
-                messagebox.showerror("Authorisation Error", f"Failed to authorise in time. Attempting to authorise also uses some of your API requests. You can still login if you have 0 requests left.")
+                messagebox.showerror("Authorisation Error", "Failed to authorise in time. Attempting to authorise also uses some of your API requests. You can still login if you have 0 requests left.")
                 return
             if not all(token_response):
                 messagebox.showerror("Requests Error", token_response[1])

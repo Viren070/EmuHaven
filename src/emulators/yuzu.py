@@ -120,7 +120,8 @@ class Yuzu:
         progress_frame.update_status_label("Status: Extracting... ")
         progress_frame.cancel_download_button.configure(state="normal")
         if os.path.exists(os.path.join(self.settings.yuzu.install_directory,"yuzu-windows-msvc" if release_type == "mainline" else "yuzu-windows-msvc-early-access")):
-            self.delete_mainline(True) if release_type == "mainline" else self.delete_early_access(True)
+            delete_func = self.delete_mainline if release_type == "mainline" else self.delete_early_access
+            delete_func(True)
         try:
             with ZipFile(zip_path, 'r') as archive:
                 total_files = len(archive.namelist())     
@@ -175,7 +176,7 @@ class Yuzu:
     def launch_yuzu_installer(self):
         path_to_installer = self.settings.yuzu.installer_path
         self.running = True
-        subprocess.run([path_to_installer], capture_output = True)
+        subprocess.run([path_to_installer], capture_output = True, check=False)
         self.running = False
         
     def delete_mainline(self, skip_prompt=False):
@@ -189,7 +190,8 @@ class Yuzu:
     def launch_yuzu_handler(self, release_type, skip_update=False):
         if not skip_update:
             if (release_type == "mainline" and self.settings.app.use_yuzu_installer == "False") or release_type == "early_access":
-                a=self.gui.configure_mainline_buttons("disabled", text="Fetching Updates...  ") if release_type == "mainline"  else self.gui.configure_early_access_buttons("disabled", text="Fetching Updates...  ")
+                func = self.gui.configure_mainline_buttons if release_type == "mainline"  else self.gui.configure_early_access_buttons
+                func("disabled", text="Fetching Updates...  ")
                 self.install_release_handler(release_type, True)
         if release_type == "mainline":
             self.gui.configure_mainline_buttons("disabled", text="Launching...  ")
@@ -198,7 +200,8 @@ class Yuzu:
             self.gui.configure_early_access_buttons("disabled", text="Launching...  ")
             yuzu_folder = "yuzu-windows-msvc-early-access"    
         self.verify_and_install_firmware_keys()
-        a=self.gui.configure_mainline_buttons("disabled", text="Launched!  ") if release_type == "mainline" else self.gui.configure_early_access_buttons("disabled", text="Launched!  ")
+        func_to_call=self.gui.configure_mainline_buttons if release_type == "mainline" else self.gui.configure_early_access_buttons
+        func_to_call("disabled", text="Launched!  ")
         yuzu_exe = os.path.join(self.settings.yuzu.install_directory, yuzu_folder, "yuzu.exe")
         maintenance_tool = os.path.join(self.settings.yuzu.install_directory, "maintenancetool.exe")
         args = [maintenance_tool, "--launcher", yuzu_exe] if release_type == "mainline" and self.settings.app.use_yuzu_installer == "True" and not skip_update else [yuzu_exe]
@@ -409,8 +412,8 @@ class Yuzu:
                 try:
                     shutil.rmtree(directory)
                     return True
-                except:
-                    messagebox.showerror("Delete Yuzu Data", f"Unable to delete {directory}")
+                except Exception as error:
+                    messagebox.showerror("Delete Yuzu Data", f"Unable to delete {directory}:\n\n{error}")
                     return False
             return False
 

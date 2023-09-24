@@ -19,13 +19,13 @@ class File:
         self.url = url
         self.filename = filename
 def get_headers(token=None):
-        headers = DEFAULT_HEADER
-        if token:
-            headers["Accept"]= "application/vnd.github+json"
-            headers["Authorization"] = f"BEARER {token}"
-            headers["X-GitHub-Api-Version"]="2022-11-28"
-            
-        return headers
+    headers = DEFAULT_HEADER
+    if token:
+        headers["Accept"]= "application/vnd.github+json"
+        headers["Authorization"] = f"BEARER {token}"
+        headers["X-GitHub-Api-Version"]="2022-11-28"
+        
+    return headers
     
 def create_get_connection(url, **kwargs):
     try:
@@ -66,21 +66,23 @@ def get_release_from_assets(assets, query, wildcard=False):
     return release
 
     
-def get_resources_release(file, headers=DEFAULT_HEADER):
-        assets_result = get_assets_from_latest_release('https://api.github.com/repos/Viren070/Emulator-Manager-Resources/releases', headers)
-        if not all(assets_result): return (False, assets_result[1])
-        assets = assets_result[1]
-        if file == "Dolphin":
-            query="Dolphin"
-        elif file == "Firmware":
-            query = "Alpha"
-        elif file == "Keys":
-            query = "Beta"
-        else:
-            raise ValueError(f"Incorrect file, accepts Dolphin, Firmware or Keys but got {file}")
-        
-        release = get_release_from_assets(assets, query)
-        return (True, release)
+def get_resources_release(file, headers=None):
+    if headers is None:
+        headers = DEFAULT_HEADER
+    assets_result = get_assets_from_latest_release('https://api.github.com/repos/Viren070/Emulator-Manager-Resources/releases', headers)
+    if not all(assets_result): return (False, assets_result[1])
+    assets = assets_result[1]
+    if file == "Dolphin":
+        query="Dolphin"
+    elif file == "Firmware":
+        query = "Alpha"
+    elif file == "Keys":
+        query = "Beta"
+    else:
+        raise ValueError(f"Incorrect file, accepts Dolphin, Firmware or Keys but got {file}")
+    
+    release = get_release_from_assets(assets, query)
+    return (True, release)
     
 def get_file_links_from_page(url, file_ext=None, headers=DEFAULT_HEADER):
 

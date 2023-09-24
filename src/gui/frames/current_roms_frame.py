@@ -12,6 +12,7 @@ class CurrentROMSFrame(ROMSearchFrame):
     def __init__(self, master, root, emulator_settings, allowed_extensions, scan_subdirectories=False):
         super().__init__(master, root, "")
         self.scan_subdirectories = scan_subdirectories
+        self.total_pages = None
         self.emulator_settings = emulator_settings
         self.rom_directory = getattr(emulator_settings, "rom_directory")
         self.allowed_extensions = allowed_extensions     
@@ -21,8 +22,8 @@ class CurrentROMSFrame(ROMSearchFrame):
         self.searched_roms = self.roms
         self.update_results()
     def refresh_results(self):
-        self.roms = self.get_current_roms
-        self.searched_roms = self.roms()
+        self.roms = self.get_current_roms()
+        self.searched_roms = self.roms
         self.update_results()
     def update_results(self):
         if self.update_in_progress:
@@ -89,7 +90,7 @@ class CurrentROMSFrame(ROMSearchFrame):
         if self.rom_directory == "" or not os.path.exists(self.rom_directory):
             return []
         
-        for root, dirs, files in os.walk(self.rom_directory):
+        for root, _, files in os.walk(self.rom_directory):
             for file in files:
                 if file.endswith(allowed_extensions) and os.path.isfile(os.path.join(root, file)):
                     full_path = os.path.join(root, file)

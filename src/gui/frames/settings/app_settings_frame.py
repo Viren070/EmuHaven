@@ -3,7 +3,7 @@ from threading import Thread
 from tkinter import filedialog, messagebox, ttk
 
 import customtkinter
-from CTkToolTip import *
+from CTkToolTip import CTkToolTip
 
 from gui.windows.github_login_window import GitHubLoginWindow
 from settings.app_settings import get_colour_themes
@@ -63,7 +63,7 @@ class AppSettingsFrame(customtkinter.CTkFrame):
         self.actions_frame = customtkinter.CTkFrame(self, fg_color="transparent")
         self.actions_frame.grid_columnconfigure(0, weight=1)
         self.actions_frame.grid(row=10,sticky="ew", columnspan=5, padx=10, pady=10)
-        self.requests_left_label = customtkinter.CTkLabel(self.actions_frame, anchor="w", justify="left",text=f"API Requests Left: Unknown\nResets in: Unknown")
+        self.requests_left_label = customtkinter.CTkLabel(self.actions_frame, anchor="w", justify="left",text="API Requests Left: Unknown\nResets in: Unknown")
         self.requests_left_label.bind("<Button-1>", command=self.start_update_requests_left)
         CTkToolTip(self.requests_left_label, message=
                     "GitHub API Usage:\n"
@@ -80,7 +80,7 @@ class AppSettingsFrame(customtkinter.CTkFrame):
         
     def start_update_requests_left(self, event=None, show_error=True):
         if self.update_status and not self.update_requests_thread.is_alive():
-            self.requests_left_label.configure(text=f"API Requests Left: Fetching...\nResets in: Fetching...", anchor="w")
+            self.requests_left_label.configure(text="API Requests Left: Fetching...\nResets in: Fetching...", anchor="w")
             self.update_requests_thread = Thread(target=self.update_requests_left, args=(self.settings.app.token, show_error))
             self.update_requests_thread.start()
         else:
@@ -88,7 +88,7 @@ class AppSettingsFrame(customtkinter.CTkFrame):
     def update_requests_left(self, token, show_error=True):
         rate_limit_status = get_rate_limit_status(token)
         if not all(rate_limit_status):
-            self.requests_left_label.configure(text=f"API Requests Left: Unknown\nResets in: Unknown")
+            self.requests_left_label.configure(text="API Requests Left: Unknown\nResets in: Unknown")
             if show_error:
                 messagebox.showerror("Requests Error", rate_limit_status[1])
             return

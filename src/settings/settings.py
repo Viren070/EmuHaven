@@ -67,12 +67,12 @@ class Settings:
         }
         if not os.path.exists(os.path.dirname(os.path.abspath(self.settings_file))):
             os.makedirs(os.path.dirname(os.path.abspath(self.settings_file)))
-        with open(self.settings_file, "w") as f:
+        with open(self.settings_file, "w", encoding="utf-8") as f:
             json.dump(settings_template, f)
     
     def define_image_paths(self, image_path):
         self.image_path = image_path
-        with open(self.settings_file, "r") as f:
+        with open(self.settings_file, "r", encoding="utf-8") as f:
             settings = json.load(f)
         image_paths = settings["app_settings"]["image_paths"]
         if len(image_paths) != 12:
@@ -93,11 +93,11 @@ class Settings:
         for name, path in settings["app_settings"]["image_paths"].items():
             path = os.path.join(image_path, f"{name}.png")
             settings["app_settings"]["image_paths"][name] = path
-        with open(self.settings_file, "w") as f:
+        with open(self.settings_file, "w", encoding="utf-8") as f:
             json.dump(settings, f)
     
     def get_image_path(self, image_name):
-        with open(self.settings_file, "r") as f:
+        with open(self.settings_file, "r", encoding="utf-8") as f:
             settings=json.load(f)
         if image_name=="all":
             return settings["app_settings"]["image_paths"]
@@ -106,7 +106,7 @@ class Settings:
 
 
     def load(self):
-        with open(self.settings_file, "r") as file:
+        with open(self.settings_file, "r", encoding="utf-8") as file:
             settings = json.load(file)
             
         sections = {
@@ -123,7 +123,7 @@ class Settings:
                 elif setting_name != "image_paths" and os.path.join("Temp", "_MEI") in os.path.normpath(value):
                     continue # skip as settings file contains old MEI path.
                 elif setting_name == "image_paths":
-                    for image_name, path in value.items():
+                    for _, path in value.items():
                         if os.path.join("Temp", "_MEI") in os.path.normpath(path):
                             continue
                 if value == "":
@@ -164,11 +164,11 @@ class Settings:
                 "ask_firmware": self.app.ask_firmware
             }
         }
-        with open(self.settings_file, "w") as f:
+        with open(self.settings_file, "w", encoding="utf-8") as f:
             json.dump(settings, f)
     
     def settings_file_valid(self):
-        with open(self.settings_file, "r") as file:
+        with open(self.settings_file, "r", encoding="utf-8") as file:
             try:
                 settings = json.load(file)
             except json.decoder.JSONDecodeError:
@@ -176,7 +176,7 @@ class Settings:
         try:
             if not settings["version"] == self.version:
                 return False 
-            yuzu_image_path = settings["app_settings"]["image_paths"]["yuzu_logo"]
+            settings["app_settings"]["image_paths"]["yuzu_logo"]
             return True
             
         except KeyError:

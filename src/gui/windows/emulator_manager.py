@@ -16,13 +16,15 @@ from utils.auth_token_manager import delete_token_file
 
 
 class EmulatorManager(customtkinter.CTk):
-    def __init__(self, root_dir, open_app_settings=False, pos=["",""]):
+    def __init__(self, root_dir, open_app_settings=False, pos=None):
         self.just_opened = True
         super().__init__()
         self.settings = Settings(self, root_dir)
         self.metadata = Metadata(self, self.settings)
         self.version = "v0.11.3"
         self.root_dir = root_dir
+        if pos is None:
+            pos = ["",""]
         self.x = pos[0]
         self.y = pos[1]
         try:

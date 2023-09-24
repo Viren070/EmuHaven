@@ -24,7 +24,7 @@ class AppSettings:
     def _set_property(self, property_name, value):
         if property_name == "colour_theme":
             if os.path.exists(value) and value.endswith(".json"):
-                value = value
+                pass
             elif not value.lower().replace(" ","-")  in VALID_COLOUR_THEMES:
                 value="dark-blue"
         elif property_name == "appearance_mode" and not value.lower().replace(" ","-") in VALID_APPEARANCE_MODES:
@@ -90,7 +90,7 @@ def load_customtkinter_themes(theme_folder):
     
     if os.path.exists(path_to_settings):
         
-        with open(path_to_settings, "r") as file:
+        with open(path_to_settings, "r", encoding="utf-8") as file:
             try:
                 settings = json.load(file)
   
@@ -106,7 +106,7 @@ def load_customtkinter_themes(theme_folder):
                     if not os.path.exists(colour_theme):
                         colour_theme = 'dark-blue'
                 elif colour_theme in default_themes:
-                    colour_theme = colour_theme 
+                    pass
                 else:
                     colour_theme = "dark-blue"
             except (KeyError,json.decoder.JSONDecodeError):

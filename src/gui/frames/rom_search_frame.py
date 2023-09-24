@@ -11,6 +11,11 @@ class ROMSearchFrame(customtkinter.CTkFrame):
         super().__init__(master, height=700)
         self.results_per_page = 10
         self.rom_link = rom_link
+        self.roms = None
+        self.searched_roms = None
+        self.total_pages = None
+        self.searched_roms = None
+        self.current_page = None
         self.root = root
         self.dolphin = root.dolphin 
         self.update_in_progress = False
@@ -153,7 +158,7 @@ class ROMSearchFrame(customtkinter.CTkFrame):
         self.update_in_progress = False
 
 
-    def perform_search(self, event=None):
+    def perform_search(self, *args):
         # Implement your search logic here
         # Update the 'results' list with the search results
         # Then call self.update_results(results) to display the results

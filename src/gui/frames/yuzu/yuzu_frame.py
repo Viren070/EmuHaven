@@ -8,9 +8,10 @@ from PIL import Image
 
 from emulators.yuzu import Yuzu
 from gui.frames.yuzu.firmware_downloader import FirmwareDownloader
-from utils.requests_utils import get_headers, get_resources_release
 from gui.frames.yuzu.yuzu_rom_frame import YuzuROMFrame
 from gui.windows.path_dialog import PathDialog
+from utils.requests_utils import get_headers, get_resources_release
+
 
 class YuzuFrame(customtkinter.CTkFrame):
     def __init__(self, parent_frame, settings, metadata):
@@ -447,8 +448,8 @@ class YuzuFrame(customtkinter.CTkFrame):
         if self.installed_mainline_version != "":
             self.launch_mainline_button.configure(text=f"Launch Yuzu {self.installed_mainline_version}  ")
         else:
-            self.launch_mainline_button.configure(text=f"Launch Yuzu  ")
+            self.launch_mainline_button.configure(text="Launch Yuzu  ")
         if self.installed_early_access_version != "":
-            self.launch_early_access_button.configure(text=f"Launch Yuzu EA {self.installed_early_access_version}  ")
+            self.launch_early_access_button.configure(text=F"Launch Yuzu EA {self.installed_early_access_version}  ")
         else:
-            self.launch_early_access_button.configure(text=f"Launch Yuzu EA  ")
+            self.launch_early_access_button.configure(text="Launch Yuzu EA  ")

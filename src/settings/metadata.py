@@ -25,20 +25,20 @@ class Metadata:
     def create_metadata_file(self):
 
         os.makedirs(os.path.dirname(self.metadata_file), exist_ok=True)
-        with open(self.metadata_file, "w") as file:
+        with open(self.metadata_file, "w", encoding="utf-8") as file:
             json.dump(self.template, file)
     
     def update_metadata(self, contents):
         if not os.path.exists(self.metadata_file):
             self.create_metadata_file()
-        with open(self.metadata_file, "w") as file:
+        with open(self.metadata_file, "w", encoding="utf-8") as file:
             json.dump(contents, file)
             
     def get_metadata_contents(self):
         if not os.path.exists(self.metadata_file):
             self.create_metadata_file()
             return self.template
-        with open(self.metadata_file, "r") as file:
+        with open(self.metadata_file, "r", encoding="utf-8") as file:
             try:
                 return json.load(file)
             except json.JSONDecodeError:
