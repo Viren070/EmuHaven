@@ -18,3 +18,8 @@
 - [ ] Add more emulators 
 
 
+## other 
+
+- consider removing export directory setting and instead ask user for each export 
+
+
