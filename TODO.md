@@ -8,13 +8,13 @@
 
 ## For 0.12
 
-- [ ] Make menubar on LHS scrollable 
+- [x] Make menubar on LHS scrollable 
 - [ ] add console name if possible for each emulator
 
 - [x] Rewrite or delete firmware downloader
 
 - [x] factor out common switch emulator functions from yuzu into switch emulator 
-- [ ] Write firmware and key version to metadata
+- [x] Write firmware and key version to metadata
 - [ ] Add more emulators 
 
 
