@@ -38,7 +38,6 @@ class CurrentROMSFrame(ROMSearchFrame):
             
         if len(self.searched_roms) == 0:
             customtkinter.CTkLabel(self.result_frame, text=f"Nothing to see here. Download some more ROMs and they will show up here.\n\nROM Directory: '{self.rom_directory}'").grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
-        print(f"start index is {start_index} and end_index is {end_index}")
         for i, rom in enumerate(self.searched_roms):
             if i > end_index:
                 break 
