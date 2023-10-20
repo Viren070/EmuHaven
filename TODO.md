@@ -14,7 +14,7 @@
 - [ ] Rewrite or delete firmware downloader
 
 - [ ] factor out common switch emulator functions from yuzu into switch emulator 
-
+- [ ] Write firmware and key version to metadata
 - [ ] Add more emulators 
 
 
