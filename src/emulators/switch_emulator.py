@@ -55,26 +55,30 @@ def install_firmware_from_archive(firmware_source, extract_folder, progress_fram
     progress_frame.complete_download()
     progress_frame.update_status_label("Extracting...")
     excluded = []
-    with open(firmware_source, "rb") as file:
-        with ZipFile(file, 'r') as archive:
-            total = len(archive.namelist())
-            for entry in archive.infolist():
-                if entry.filename.endswith(".nca") or entry.filename.endswith(".nca/00"):
-                    path_components = entry.filename.replace(".cnmt", "").split("/")
-                    nca_id = path_components[-1]
-                    if nca_id == "00":
-                        nca_id = path_components[-2]
-                    if ".nca" in nca_id:
-                        extracted_file_path = os.path.join(extract_folder, nca_id)
-                        os.makedirs(extract_folder, exist_ok=True)
-                        with open(extracted_file_path, "wb") as f:
-                            f.write(archive.read(entry))
-                        extracted_files.append(entry.filename)
-                        progress_frame.update_extraction_progress(len(extracted_files)/total)
-                    else:
-                        excluded.append(entry.filename)
+    try:
+        with open(firmware_source, "rb") as file:
+            with ZipFile(file, 'r') as archive:
+                total = len(archive.namelist())
+                for entry in archive.infolist():
+                    if entry.filename.endswith(".nca") or entry.filename.endswith(".nca/00"):
+                        path_components = entry.filename.replace(".cnmt", "").split("/")
+                        nca_id = path_components[-1]
+                        if nca_id == "00":
+                            nca_id = path_components[-2]
+                        if ".nca" in nca_id:
+                            extracted_file_path = os.path.join(extract_folder, nca_id)
+                            os.makedirs(extract_folder, exist_ok=True)
+                            with open(extracted_file_path, "wb") as f:
+                                f.write(archive.read(entry))
+                            extracted_files.append(entry.filename)
+                            progress_frame.update_extraction_progress(len(extracted_files)/total)
+                        else:
+                            excluded.append(entry.filename)
+    except Exception as error:
+        progress_frame.grid_forget()
+        return (False, error)
     progress_frame.grid_forget()
-    return excluded
+    return (True, excluded)
 
 
 def install_keys_from_file(self, key_path):
@@ -89,14 +93,18 @@ def install_keys_from_archive(key_archive, extract_folder, progress_frame):
     extracted_files = []
     progress_frame.grid(row=0, column=0, sticky="ew")
     progress_frame.update_extraction_progress(0)
-    with ZipFile(key_archive, 'r') as zip_ref:
-        total = len(zip_ref.namelist())
-        for file_info in zip_ref.infolist():
-            extracted_file_path = os.path.join(extract_folder, file_info.filename)
-            os.makedirs(os.path.dirname(extracted_file_path), exist_ok=True)
-            with zip_ref.open(file_info.filename) as source, open(extracted_file_path, 'wb') as target:
-                target.write(source.read())
-            extracted_files.append(file_info.filename)
-            progress_frame.update_extraction_progress(len(extracted_files)/total)
+    try:
+        with ZipFile(key_archive, 'r') as zip_ref:
+            total = len(zip_ref.namelist())
+            for file_info in zip_ref.infolist():
+                extracted_file_path = os.path.join(extract_folder, file_info.filename)
+                os.makedirs(os.path.dirname(extracted_file_path), exist_ok=True)
+                with zip_ref.open(file_info.filename) as source, open(extracted_file_path, 'wb') as target:
+                    target.write(source.read())
+                extracted_files.append(file_info.filename)
+                progress_frame.update_extraction_progress(len(extracted_files)/total)
+    except Exception as error:
+        progress_frame.grid_forget()
+        return (False, error)
     progress_frame.grid_forget()
-    return extracted_files
+    return (True, extracted_files)

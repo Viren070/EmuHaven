@@ -189,18 +189,25 @@ class Yuzu:
             return 
         firmware_path = path_to_archive
         if path_to_archive is None:
-            firmware_path = self.download_firmware_archive()
+            firmware_path= self.download_firmware_archive()
             if not all(firmware_path):
                 if firmware_path[1] != "Cancelled":
                     messagebox.showerror("Download Error", firmware_path[1])
                 return False
             firmware_path = firmware_path[1] 
+            version = os.path.basename(firmware_path).split(" ")[-1].replace(".zip", "")
         elif not switch_emu.verify_firmware_archive(path_to_archive):
             messagebox.showerror("Error", "The firmware archive you have provided is invalid")
             return 
         result = switch_emu.install_firmware_from_archive(firmware_path, os.path.join(self.settings.yuzu.user_directory, "nand", "system", "Contents", "registered"), self.main_progress_frame)
-        if path_to_archive is None and self.settings.app.delete_files == "True" and os.path.exists(firmware_path):
-            os.remove(firmware_path)
+        if not result[0]:
+            messagebox.showerror("Extract Error", f"There was an error while trying to extract the firmware archive: \n\n{result[1]}")
+            return 
+        result = result[1]
+        if path_to_archive is None: 
+            if self.settings.app.delete_files == "True" and os.path.exists(firmware_path):
+                os.remove(firmware_path)
+            self.metadata.update_installed_version("yuzu_firmware", version)
         if result:
             messagebox.showwarning("Unexpected Files" , f"These files were skipped in the extraction process: {result}")
         messagebox.showinfo("Firmware Install", "The switch firmware files were successfully installed")
@@ -228,6 +235,7 @@ class Yuzu:
 
     
     
+
     def install_key_handler(self, path_to_archive = None):
         if switch_emu.check_current_keys(os.path.join(self.settings.yuzu.user_directory, "keys", "prod.keys")) and not messagebox.askyesno("Keys Exist", "You already seem to have the decryption keys, install anyways?"):
             return 
@@ -239,6 +247,7 @@ class Yuzu:
                     messagebox.showerror("Download Error", key_path[1])
                 return False
             key_path = key_path[1] 
+            version = os.path.basename(key_path).split(" ")[-1].replace(".zip","")
         elif not switch_emu.verify_key_archive(path_to_archive):
             messagebox.showerror("Error", "The key archive you have provided is invalid")
             return
@@ -246,11 +255,17 @@ class Yuzu:
             switch_emu.install_keys_from_file(key_path, os.path.join(self.settings.yuzu.user_directory, "keys"))
         else:
             result = switch_emu.install_keys_from_archive(key_path, os.path.join(self.settings.yuzu.user_directory, "keys"), self.main_progress_frame)
+            if not all(result):
+                messagebox.showerror("Extract Error", f"There was an error while trying to extract the key archive: \n\n{result[1]}")
+                return 
+            result = result[1]
             if "prod.keys" not in result:
                 messagebox.showwarning("Keys", "Was not able to find any prod.keys within the archive, the archive was still extracted successfully.")
                 return False 
-        if path_to_archive is None and self.settings.app.delete_files == "True" and os.path.exists(key_path):
-            os.remove(key_path)
+        if path_to_archive is None:
+            if self.settings.app.delete_files == "True" and os.path.exists(key_path):
+                os.remove(key_path)
+            self.metadata.update_installed_version("yuzu_key", version)
         messagebox.showinfo("Keys", "Decryption keys were successfully installed!")
         return True 
             
