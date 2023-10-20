@@ -67,7 +67,7 @@ class PathDialog(CTkToplevel):
         self._label.grid(row=0, column=0, padx=20, pady=20, sticky="ew")
 
         # Create a frame for the entry and browse button
-        entry_frame = CTkFrame(master=self, width=300)
+        entry_frame = CTkFrame(master=self, width=300, fg_color="transparent", border_width=0)
         entry_frame.grid(row=1, column=0, padx=20, pady=(0, 20), sticky="ew")
         entry_frame.grid_columnconfigure(0, weight=4)  # Entry takes up 4/5 of the frame
         entry_frame.grid_columnconfigure(1, weight=1)  # Browse button takes up 1/5 of the frame
@@ -91,7 +91,7 @@ class PathDialog(CTkToplevel):
                                         command=self._browse_event)
         self._browse_button.grid(row=0, column=1, padx=5, pady=0, sticky="ew")
 
-        ok_cancel_frame = CTkFrame(master=self)
+        ok_cancel_frame = CTkFrame(master=self, fg_color="transparent", border_width=0)
         ok_cancel_frame.grid(row=2, column=0, padx=20, pady=(0, 20), sticky="ew")
         ok_cancel_frame.grid_columnconfigure(0, weight=1)  # Center "Ok" button horizontally
         ok_cancel_frame.grid_columnconfigure(1, weight=1)  # Center "Cancel" button horizontally
