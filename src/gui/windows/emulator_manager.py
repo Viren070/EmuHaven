@@ -56,43 +56,54 @@ class EmulatorManager(customtkinter.CTk):
     def build_gui(self):
         self.resizable(False, False)  # disable resizing of window
         self.title("Emulator Manager")  # set title of window
-        
+
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
-        
-        self.minsize(1100,570) # set the minimum size of the window 
+
+        self.minsize(1100, 570)  # set the minimum size of the window
         self.geometry("1100x500+{}+{}".format(self.x, self.y))
-        
-        # create navigation frame 
+
+        # Create navigation frame
         self.navigation_frame = customtkinter.CTkFrame(self, corner_radius=0)
         self.navigation_frame.grid(row=0, column=0, sticky="nsew")
-        self.navigation_frame.grid_rowconfigure(4, weight=1)
+        self.navigation_frame.grid_rowconfigure(1, weight=1)
 
-        # create navigation frame title. 
-        self.navigation_frame_label = customtkinter.CTkLabel(self.navigation_frame, text= f"Emulator Manager {self.version}",
-                                                             compound="left", padx=5, font=customtkinter.CTkFont(size=12, weight="bold"))
+        # Create navigation frame title.
+        self.navigation_frame_label = customtkinter.CTkLabel(self.navigation_frame, text=f"Emulator Manager {self.version}",
+                                                                compound="left", padx=5, font=customtkinter.CTkFont(size=12, weight="bold"))
         self.navigation_frame_label.grid(row=0, column=0, padx=20, pady=20)
         self.navigation_frame_label.bind('<Double-Button-1>', command=lambda event: messagebox.showinfo("About", f"Emulator Manager {self.version}, made by Viren070 on GitHub."))
-        # create navigation menu buttons
-        self.dolphin_button = customtkinter.CTkButton(self.navigation_frame, corner_radius=0, height=40, image = self.dolphin_logo, border_spacing=10, text="Dolphin",
-                                                   fg_color="transparent", text_color=("gray10", "gray90"),
-                                                   anchor="w", command=self.dolphin_button_event)
-        self.dolphin_button.grid(row=1, column=0, sticky="ew")
 
-        self.yuzu_button = customtkinter.CTkButton(self.navigation_frame, corner_radius=0, height=40, image = self.yuzu_logo, border_spacing=10, text="Yuzu",
-                                                      fg_color="transparent", text_color=("gray10", "gray90"), 
-                                                      anchor="w", command=self.yuzu_button_event)
-        self.yuzu_button.grid(row=2, column=0, sticky="ew")
+        # Create scrollable frame in the middle
+        scrollable_frame = customtkinter.CTkScrollableFrame(self.navigation_frame, fg_color="transparent")
+        scrollable_frame.grid(row=1, column=0, sticky="nsew")
+        self.navigation_frame.grid_rowconfigure(1, weight=1)
 
-        self.settings_button = customtkinter.CTkButton(self.navigation_frame, corner_radius=0, height=40, image = self.settings_image, border_spacing=10, text="Settings",
-                                                      fg_color="transparent", text_color=("gray10", "gray90"),
-                                                      anchor="w", command=self.settings_button_event)
-        self.settings_button.grid(row=6, column=0, sticky="ew")
-        
+        # Create navigation menu buttons
+        self.dolphin_button = customtkinter.CTkButton(scrollable_frame, corner_radius=0, height=40, width=100, image=self.dolphin_logo, border_spacing=10, text="Dolphin",
+                                                    fg_color="transparent", text_color=("gray10", "gray90"),
+                                                    anchor="w", command=self.dolphin_button_event)
+        self.dolphin_button.grid(row=0, column=0, sticky="ew")
+
+        self.yuzu_button = customtkinter.CTkButton(scrollable_frame, corner_radius=0, height=40, image=self.yuzu_logo, border_spacing=10, text="Yuzu",
+                                                fg_color="transparent", text_color=("gray10", "gray90"),
+                                                anchor="w", command=self.yuzu_button_event)
+        self.yuzu_button.grid(row=1, column=0, sticky="ew")
+            
+        # Set column weights of scrollable_frame to make buttons expand
+        scrollable_frame.grid_columnconfigure(0, weight=1)
+
+        # Create settings button at the bottom
+        self.settings_button = customtkinter.CTkButton(self.navigation_frame, corner_radius=0, height=40, image=self.settings_image, border_spacing=10, text="Settings",
+                                                    fg_color="transparent", text_color=("gray10", "gray90"),
+                                                    anchor="w", command=self.settings_button_event)
+        self.settings_button.grid(row=2, column=0, sticky="ew")
+
         self.yuzu_frame = YuzuFrame(self, self.settings, self.metadata)
         self.dolphin_frame = DolphinFrame(self, self.settings, self.metadata)
         self.settings_frame = SettingsFrame(self, self.settings)
         self.settings.yuzu.refresh_app_settings = self.settings_frame.app_settings_frame.refresh_settings
+
     def dolphin_button_event(self):
         self.select_frame_by_name("dolphin")
 
