@@ -7,7 +7,7 @@ from CTkToolTip import CTkToolTip
 from PIL import Image
 
 from emulators.yuzu import Yuzu
-from gui.frames.yuzu.firmware_downloader import FirmwareDownloader
+from gui.frames.progress_frame import ProgressFrame
 from gui.frames.yuzu.yuzu_rom_frame import YuzuROMFrame
 from gui.windows.path_dialog import PathDialog
 from utils.requests_utils import get_headers, get_resources_release
@@ -53,10 +53,6 @@ class YuzuFrame(customtkinter.CTkFrame):
                                                    anchor="w", command=self.manage_roms_button_event)
         self.manage_roms_button.grid(row=3, column=0, padx=2, sticky="ew")
         
-        self.yuzu_firmware_button = customtkinter.CTkButton(self.yuzu_navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Downloader",
-                                                   fg_color="transparent", text_color=("gray10", "gray90"),
-                                                   anchor="w", command=self.yuzu_firmware_button_event)
-        self.yuzu_firmware_button.grid(row=4, column=0, padx=2, sticky="ew")
         
         # create yuzu 'Play' frame and widgets
         self.yuzu_start_frame = customtkinter.CTkFrame(self, corner_radius=0, border_width=0)
@@ -144,6 +140,7 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.yuzu_log_frame.grid(row=4, column=0, padx=80, sticky="ew")
         self.yuzu_log_frame.grid_propagate(False)
         self.yuzu_log_frame.grid_columnconfigure(0, weight=3)
+        self.yuzu.main_progress_frame = ProgressFrame(self.yuzu_log_frame)
         # create yuzu 'Manage Data' frame and widgets
         self.yuzu_manage_data_frame = customtkinter.CTkFrame(self, corner_radius=0, bg_color="transparent")
         self.yuzu_manage_data_frame.grid_columnconfigure(0, weight=1)
@@ -173,16 +170,8 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.yuzu_data_log.grid(row=1, column=0, padx=20, pady=20, columnspan=3, sticky="new")
         self.yuzu_data_log.grid_columnconfigure(0, weight=1)
         self.yuzu_data_log.grid_rowconfigure(1, weight=1)
+        self.yuzu.data_progress_frame = ProgressFrame(self.yuzu_data_log)
         # create yuzu downloader button, frame and widgets
-        
-        
-        self.yuzu_firmware_frame = customtkinter.CTkFrame(self, corner_radius=0, border_width=0, fg_color="transparent")
-        self.yuzu_firmware_frame.grid_rowconfigure(2, weight=1)
-        self.yuzu_firmware_frame.grid_columnconfigure(2, weight=1)
-        self.yuzu_firmware = FirmwareDownloader(self.yuzu_firmware_frame)
-        self.yuzu_firmware.grid(row=0, column=1, sticky="nsew")
-        self.yuzu_firmware_options_button = customtkinter.CTkButton(self.yuzu_firmware_frame, text="Options", command=self.yuzu_firmware.options_menu)
-        self.yuzu_firmware_options_button.grid(row=1, column=1, pady=(0,30))
         
         self.early_access_actions_frame.grid_propagate(False)
         self.mainline_actions_frame.grid_propagate(False)
@@ -215,16 +204,13 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.select_yuzu_frame_by_name("start")
     def yuzu_manage_data_button_event(self):
         self.select_yuzu_frame_by_name("data")
-    def yuzu_firmware_button_event(self):
-        self.select_yuzu_frame_by_name("firmware")
     def manage_roms_button_event(self):
         self.select_yuzu_frame_by_name("roms")
 
     def select_yuzu_frame_by_name(self, name):
         self.yuzu_start_button.configure(fg_color=self.yuzu_start_button.cget("hover_color") if name == "start" else "transparent")
         self.yuzu_manage_data_button.configure(fg_color=self.yuzu_manage_data_button.cget("hover_color") if name == "data" else "transparent")
-        self.manage_roms_button.configure(fg_color=self.manage_roms_button.cget("hover_color") if name == "roms" else "transparent")
-        self.yuzu_firmware_button.configure(fg_color=self.yuzu_firmware_button.cget("hover_color") if name == "firmware" else "transparent")
+        self.manage_roms_button.configure(fg_color=self.manage_roms_button.cget("hover_color") if name == "roms" else "transparent")    
         if name == "start":
             self.yuzu_start_frame.grid(row=0, column=1, sticky="nsew" )
         else:
@@ -237,10 +223,6 @@ class YuzuFrame(customtkinter.CTkFrame):
             self.manage_roms_frame.grid(row=0, column=1, sticky="nsew")
         else:
             self.manage_roms_frame.grid_forget()
-        if name == "firmware":
-            self.yuzu_firmware_frame.grid(row=0, column=1, sticky="nsew")
-        else:
-            self.yuzu_firmware_frame.grid_forget()
     def switch_channel(self, value=None):
         value=self.selected_channel.get()
         if value == "Mainline":
@@ -356,8 +338,6 @@ class YuzuFrame(customtkinter.CTkFrame):
     def install_firmware_button_event(self, event=None):
         if event is None or self.install_firmware_button.cget("state") == "disabled":
             return
-        if self.yuzu.check_current_firmware() and not messagebox.askyesno("Firmware Exists", "You already seem to have firmware installed, install anyways?"):
-            return 
         path_to_archive = None
         if event.state & 1:
             path_to_archive = PathDialog(filetypes=(".zip",), title="Custom Firmware Archive", text="Type path to Firmware Archive: ")
@@ -376,8 +356,6 @@ class YuzuFrame(customtkinter.CTkFrame):
    
     def install_keys_button_event(self, event=None):
         if event is None or self.install_keys_button.cget("state") == "disabled":
-            return 
-        if self.yuzu.check_current_keys() and not messagebox.askyesno("Keys Exist", "You already seem to have the decryption keys, install anyways?"):
             return 
         path_to_archive = None
         if event.state & 1:

@@ -86,10 +86,10 @@ class DolphinROMFrame(customtkinter.CTkTabview):
         if not all(response):
             return response 
         response = response[1]
-        progress_frame = ProgressFrame(self.downloads_frame, rom.filename)
-        progress_frame.total_size = int(response.headers.get("content-length", 0))
+        progress_frame = ProgressFrame(self.downloads_frame)
+        progress_frame.start_download(rom.filename, int(response.headers.get("content-length", 0)))
         progress_frame.grid(row=self.downloads_in_progress, column=0, padx=10,pady=10, sticky="ew")
-        download_result = download_through_stream(response, download_path, progress_frame, 1024*203, total_size=int(response.headers.get('content-length', 0)))
+        download_result = download_through_stream(response, download_path, progress_frame, 1024*203)
         progress_frame.destroy()
         return download_result
     def extract_rom(self, path_to_rom_archive):

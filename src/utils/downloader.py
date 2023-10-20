@@ -1,22 +1,21 @@
 from requests.exceptions import RequestException
 
 
-def download_through_stream(response, download_path, progress_frame, chunk_size, total_size=None, custom=True):
+def download_through_stream(response, download_path, progress_frame, chunk_size):
     with open(download_path, 'wb') as f:
         downloaded_bytes = 0
         try:
             for chunk in response.iter_content(chunk_size=chunk_size): 
-                if custom and progress_frame.cancel_download_raised:
-                    progress_frame.destroy()
+                if progress_frame.cancel_download_raised:
+                    progress_frame.grid_forget()
                     return (False, "Cancelled", download_path)
                 f.write(chunk)
                 downloaded_bytes += len(chunk)
-                if custom:
-                    progress_frame.update_download_progress(downloaded_bytes, chunk_size)
-                else:
-                    progress_frame.set(downloaded_bytes/total_size)
-            progress_frame.destroy()
+                
+                progress_frame.update_download_progress(downloaded_bytes)
+                
+            progress_frame.complete_download()
         except RequestException as error:
-            progress_frame.destroy()
+            progress_frame.grid_forget()
             return (False, error)
     return (True, download_path)

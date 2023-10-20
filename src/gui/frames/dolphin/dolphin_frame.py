@@ -9,6 +9,7 @@ from PIL import Image
 from emulators.dolphin import Dolphin
 from gui.frames.dolphin.dolphin_rom_frame import DolphinROMFrame
 from gui.windows.path_dialog import PathDialog
+from gui.frames.progress_frame import ProgressFrame
 
 class DolphinFrame(customtkinter.CTkFrame):
     def __init__(self, parent_frame, settings, metadata):
@@ -75,6 +76,7 @@ class DolphinFrame(customtkinter.CTkFrame):
         self.dolphin_log_frame.grid(row=3, column=0, padx=80, sticky="ew")
         self.dolphin_log_frame.grid_propagate(False)
         self.dolphin_log_frame.grid_columnconfigure(0, weight=3)
+        self.dolphin.main_progress_frame = ProgressFrame(self.dolphin_log_frame)
 
         
         self.dolphin_manage_data_button = customtkinter.CTkButton(self.dolphin_navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Manage Data",
@@ -109,6 +111,7 @@ class DolphinFrame(customtkinter.CTkFrame):
         self.dolphin_data_log.grid(row=1, column=0, padx=20, pady=20, columnspan=3, sticky="new")
         self.dolphin_data_log.grid_columnconfigure(0, weight=1)
         self.dolphin_data_log.grid_rowconfigure(1, weight=1)
+        self.dolphin.data_progress_frame = ProgressFrame(self.dolphin_data_log)
         
         self.manage_roms_button = customtkinter.CTkButton(self.dolphin_navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Manage ROMs",
                                                    fg_color="transparent", text_color=("gray10", "gray90"), 
