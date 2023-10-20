@@ -1,7 +1,7 @@
 beautifulsoup4==4.12.2
 CTkToolTip==0.8
 CTkToolTip==0.8
-customtkinter==5.2.0
-Pillow==10.0.1
-Pillow==10.0.1
+customtkinter==5.2.1
+Pillow==10.1.0
+Pillow==10.1.0
 Requests==2.31.0
