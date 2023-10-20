@@ -9,7 +9,7 @@ VALID_COLOUR_THEMES = ["blue", "dark-blue", "green"]
 class AppSettings:
     def __init__(self, master):
         global VALID_COLOUR_THEMES
-        VALID_COLOUR_THEMES = get_colour_themes(os.path.join(master.root_dir, "themes"))
+        VALID_COLOUR_THEMES = get_colour_themes(os.path.join(master.root_dir, "assets", "themes"))
         self.default_settings = {
             'colour_theme': "dark-blue",
             'appearance_mode': "dark",

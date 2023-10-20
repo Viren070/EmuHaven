@@ -37,7 +37,7 @@ class AppSettingsFrame(customtkinter.CTkFrame):
         self.default_yuzu_channel_variable.set(self.settings.app.default_yuzu_channel)
         self.delete_files_variable = customtkinter.StringVar()
         self.delete_files_variable.set(self.settings.app.delete_files)
-        colour_themes = get_colour_themes(os.path.join(self.parent_frame.parent_frame.root_dir, "themes"))
+        colour_themes = get_colour_themes(os.path.join(self.parent_frame.parent_frame.root_dir, "assets", "themes"))
         colour_themes = [ theme.replace("-", " ").title() for theme in colour_themes ]
         colour_themes.append("Choose custom theme...")
         customtkinter.CTkLabel(self, text="Appearance Mode: ").grid(row=0, column=0, padx=10, pady=10, sticky="w")
