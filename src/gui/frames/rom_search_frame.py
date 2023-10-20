@@ -133,13 +133,15 @@ class ROMSearchFrame(customtkinter.CTkFrame):
             return
         self.update_in_progress = True
         start_index = (self.current_page - 1) * self.results_per_page
-        end_index = start_index + self.results_per_page
+        end_index = (start_index + self.results_per_page) - 1
         for widget in self.result_frame.winfo_children():
             widget.grid_forget()
             
         row_counter = 0
         for i, rom in enumerate(self.searched_roms):
-            if i > end_index or i < start_index:
+            if i > end_index:
+                break
+            if i < start_index:
                 continue
      
             entry = customtkinter.CTkEntry(self.result_frame, width=400)

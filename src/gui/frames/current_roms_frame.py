@@ -32,15 +32,17 @@ class CurrentROMSFrame(ROMSearchFrame):
             return
         self.update_in_progress = True
         start_index = (self.current_page - 1) * self.results_per_page
-        end_index = start_index + self.results_per_page
+        end_index = (start_index + self.results_per_page) - 1
         for widget in self.result_frame.winfo_children():
             widget.grid_forget()
             
         if len(self.searched_roms) == 0:
             customtkinter.CTkLabel(self.result_frame, text=f"Nothing to see here. Download some more ROMs and they will show up here.\n\nROM Directory: '{self.rom_directory}'").grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
-        
+        print(f"start index is {start_index} and end_index is {end_index}")
         for i, rom in enumerate(self.searched_roms):
-            if i > end_index or i < start_index:
+            if i > end_index:
+                break 
+            if i < start_index:
                 continue
             entry = customtkinter.CTkEntry(self.result_frame, width=400)
             entry.grid(row=i, column=0, padx=10, pady=5, sticky="w")
