@@ -52,8 +52,8 @@ def install_firmware_from_archive(firmware_source, extract_folder, progress_fram
     extracted_files = []
     progress_frame.grid(row=0, column=0, sticky="ew")
     progress_frame.update_extraction_progress(0)
-    progress_frame.skip_to_installation()
-    progress_frame.complete_download(None, "Status: Extracting...")
+    progress_frame.complete_download()
+    progress_frame.update_status_label("Extracting...")
     excluded = []
     with open(firmware_source, "rb") as file:
         with ZipFile(file, 'r') as archive:
@@ -98,5 +98,5 @@ def install_keys_from_archive(key_archive, extract_folder, progress_frame):
                 target.write(source.read())
             extracted_files.append(file_info.filename)
             progress_frame.update_extraction_progress(len(extracted_files)/total)
-    progress_frame.destroy()
+    progress_frame.grid_forget()
     return extracted_files

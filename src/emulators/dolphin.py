@@ -19,7 +19,8 @@ class Dolphin:
         self.gui = gui
         self.running = False
         self.dolphin_is_running = False
-       
+        self.main_progress_frame = None 
+        self.data_progress_frame = None
         self.dolphin_download_api = 'https://api.github.com/repos/Viren070/dolphin-beta-downloads/releases/latest'
                     
                 
@@ -40,13 +41,14 @@ class Dolphin:
     def download_release(self, release):
         download_folder = os.getcwd()
         
-        progress_frame = ProgressFrame(self.gui.dolphin_log_frame, f"Dolphin {release.version}")
+        
         download_path = os.path.join(download_folder, f"Dolphin {release.version}.zip")
         response = requests.get(release .download_url, stream=True, headers=get_headers(self.settings.app.token), timeout=30)
-        progress_frame.grid(row=0, column=0, sticky="ew")
-        progress_frame.total_size = release.size
-        download_result = download_through_stream(response, download_path, progress_frame, 1024*203)
-        progress_frame.destroy() 
+        self.main_progress_frame.start_download(f"Dolphin {release.version}", release.size)
+        self.main_progress_frame.grid(row=0, column=0, sticky="ew")
+ 
+        download_result = download_through_stream(response, download_path, self.main_progress_frame, 1024*203)
+        self.main_progress_frame.complete_download() 
         return download_result
         
     def install_dolphin_handler(self, updating=False, path_to_archive=None):
@@ -85,11 +87,10 @@ class Dolphin:
         
    
     def extract_release(self, release): 
-        dolphin_install_frame = ProgressFrame(self.gui.dolphin_log_frame, f"Extracting {os.path.basename(release)}")
-        dolphin_install_frame.skip_to_installation()
-        dolphin_install_frame.cancel_download_button.configure(state="normal")
-        dolphin_install_frame.update_status_label("Status: Extracting... ")
-        dolphin_install_frame.grid(row=0, column=0, sticky="nsew")
+        self.main_progress_frame.start_download(f"{os.path.basename(release).replace(".zip", "")}", 0)
+        self.main_progress_frame.complete_download()
+        self.main_progress_frame.update_status_label("Extracting... ")
+        self.main_progress_frame.grid(row=0, column=0, sticky="nsew")
         extracted=True
         try:
             with ZipFile(release, 'r') as archive:
@@ -97,14 +98,14 @@ class Dolphin:
                 extracted_files = []
                 
                 for file in archive.namelist():
-                    if dolphin_install_frame.cancel_download_raised:
+                    if self.main_progress_frame.cancel_download_raised:
                         extracted=False
                         break
                     archive.extract(file, self.settings.dolphin.install_directory)
                     extracted_files.append(file)
                     # Calculate and display progress
-                    dolphin_install_frame.update_extraction_progress(len(extracted_files) / total_files) 
-            dolphin_install_frame.destroy()
+                    self.main_progress_frame.update_extraction_progress(len(extracted_files) / total_files) 
+            self.main_progress_frame.grid_forget()
             if extracted:
                 return (True, extracted_files)
             else:
@@ -144,7 +145,7 @@ class Dolphin:
             self.gui.configure_data_buttons(state="normal")
             return  # Handle the case when the user directory doesn't exist.
         if mode == "All Data":
-            copy_directory_with_progress(user_directory, users_export_directory, "Exporting All Dolphin Data", self.gui.dolphin_data_log)
+            copy_directory_with_progress(user_directory, users_export_directory, "Exporting All Dolphin Data", self.data_progress_frame)
     def import_dolphin_data(self, mode):
         user_directory = self.settings.dolphin.user_directory
         export_directory = self.settings.dolphin.export_directory
@@ -154,7 +155,7 @@ class Dolphin:
             messagebox.showerror("Missing Folder", "No dolphin data associated with your username was found")
             return  # Handle the case when the user directory doesn't exist.
         if mode == "All Data":
-            copy_directory_with_progress(users_export_directory, user_directory, "Importing All Dolphin Data", self.gui.dolphin_data_log)
+            copy_directory_with_progress(users_export_directory, user_directory, "Importing All Dolphin Data", self.data_progress_frame)
     def delete_dolphin_data(self, mode):
         result = ""
         user_directory = self.settings.dolphin.user_directory

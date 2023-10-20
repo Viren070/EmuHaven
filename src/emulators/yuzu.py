@@ -5,6 +5,7 @@ import subprocess
 from tkinter import messagebox
 from zipfile import ZipFile
 
+import emulators.switch_emulator as switch_emu
 from gui.frames.progress_frame import ProgressFrame
 from utils.downloader import download_through_stream
 from utils.file_utils import copy_directory_with_progress
@@ -18,6 +19,8 @@ class Yuzu:
         self.settings = settings
         self.metadata = metadata
         self.gui = gui
+        self.main_progress_frame = None
+        self.data_progress_frame = None
         self.updating_ea = False
         self.installing_firmware_or_keys = False
         self.running = False
@@ -25,54 +28,16 @@ class Yuzu:
     def verify_yuzu_zip(self, path_to_archive, release_type):
         try:
             with ZipFile(path_to_archive, 'r') as archive:
-                print(archive.namelist())
                 if (release_type == "mainline" and 'yuzu-windows-msvc/yuzu.exe' in archive.namelist()) or (release_type == "early_access" and "yuzu-windows-msvc-early-access/yuzu.exe" in archive.namelist()):
                     return True 
                 else:
                     return False
         except Exception:
             return False
-    def verify_firmware_archive(self, path_to_archive):
-        archive = path_to_archive
-        if not os.path.exists(archive):
-            return False 
-        if not archive.endswith(".zip"):
-            return False 
-        with ZipFile(archive, 'r') as r_archive:
-            for filename in r_archive.namelist():
-                if not filename.endswith(".nca"):
-                    return False 
-        return True 
-        
-    def verify_key_archive(self, path_to_archive):
-        archive = path_to_archive
-        if not os.path.exists(archive):
-            return False 
-        if path_to_archive.endswith(".keys"):
-            return True
-        if not archive.endswith(".zip"):
-            return False 
-        with ZipFile(archive, 'r') as r_archive:
-            for filename in r_archive.namelist():
-                if not filename.endswith(".keys"):
-                    return False 
-                if filename=="prod.keys":
-                    found=True
-        if found:
-            return True 
-        else:
-            return False 
-    def check_current_firmware(self):
 
-        if os.path.exists ( os.path.join(self.settings.yuzu.user_directory, "nand", "system", "Contents", "registered")) and os.listdir(os.path.join(self.settings.yuzu.user_directory, "nand\\system\\Contents\\registered")):
-            return True
-        return False
+# 
+# 
 
-    def check_current_keys(self):
-        if os.path.exists(os.path.join(self.settings.yuzu.user_directory, "keys", "prod.keys")):
-            return True 
-        return False
-    
     def delete_early_access(self, skip_prompt=False):
         try:
             shutil.rmtree(os.path.join(self.settings.yuzu.install_directory, "yuzu-windows-msvc-early-access"))
@@ -102,23 +67,21 @@ class Yuzu:
         if not all(response_result):
             return response_result 
         response = response_result[1]   
-        progress_frame = ProgressFrame(self.gui.yuzu_log_frame, f"Yuzu {release.version}" if release_type == "mainline" else f"Yuzu EA {release.version}")
-        progress_frame.grid(row=0, column=0, sticky="ew")
-        progress_frame.total_size = release.size
+        download_title = f"{{}} {release.version}".format("Yuzu" if release_type == "mainline" else "Yuzu EA")
+        self.main_progress_frame.start_download(download_title, release.size)
+        self.main_progress_frame.grid(row=0, column=0, sticky="ew")
         download_path = os.path.join(os.getcwd(), f"Yuzu-{release.version}.zip" if release_type == "mainline" else f"Yuzu-EA-{release.version}.zip")
-        download_result = download_through_stream(response, download_path, progress_frame, 1024*203)
-        progress_frame.destroy()
+        download_result = download_through_stream(response, download_path, self.main_progress_frame, 1024*203)
         return download_result
     
     def extract_release(self, zip_path, release_type):
         extract_folder = self.settings.yuzu.install_directory
         extracted_files = []
-        progress_frame = ProgressFrame(self.gui.yuzu_log_frame, os.path.basename(zip_path))
-        progress_frame.grid(row=0, column=0, sticky="ew")
-        progress_frame.skip_to_installation()
-        progress_frame.update_extraction_progress(0)
-        progress_frame.update_status_label("Status: Extracting... ")
-        progress_frame.cancel_download_button.configure(state="normal")
+
+        self.main_progress_frame.start_download(os.path.basename(zip_path).replace(".zip", ""), 0)
+        self.main_progress_frame.complete_download()
+        self.main_progress_frame.update_status_label("Extracting... ")
+        self.main_progress_frame.grid(row=0, column=0, sticky="ew")
         if os.path.exists(os.path.join(self.settings.yuzu.install_directory,"yuzu-windows-msvc" if release_type == "mainline" else "yuzu-windows-msvc-early-access")):
             delete_func = self.delete_mainline if release_type == "mainline" else self.delete_early_access
             delete_func(True)
@@ -126,17 +89,17 @@ class Yuzu:
             with ZipFile(zip_path, 'r') as archive:
                 total_files = len(archive.namelist())     
                 for file in archive.namelist():
-                    if progress_frame.cancel_download_raised:
-                        progress_frame.destroy()
+                    if self.main_progress_frame.cancel_download_raised:
+                        self.main_progress_frame.grid_forget()
                         return (False, "Cancelled")
                     archive.extract(file, extract_folder)
                     extracted_files.append(file)
                     # Calculate and display progress
-                    progress_frame.update_extraction_progress(len(extracted_files) / total_files) 
+                    self.main_progress_frame.update_extraction_progress(len(extracted_files) / total_files) 
         except Exception as error:
-            progress_frame.destroy()
+            self.main_progress_frame.grid_forget()
             return (False, error)
-        progress_frame.destroy()
+        self.main_progress_frame.grid_forget()
         return (True, extract_folder)
     
     def install_release_handler(self, release_type, updating=False, path_to_archive=None):
@@ -210,10 +173,10 @@ class Yuzu:
         self.running = False
         
     def verify_and_install_firmware_keys(self):
-        if not self.check_current_keys() and messagebox.askyesno("Missing Keys", "It seems you are missing the switch decryption keys. These keys are required to emulate games. Would you like to install them?"):
+        if not switch_emu.check_current_keys(os.path.join(self.settings.yuzu.user_directory, "keys", "prod.keys")) and messagebox.askyesno("Missing Keys", "It seems you are missing the switch decryption keys. These keys are required to emulate games. Would you like to install them?"):
             self.install_key_handler()
         
-        if self.settings.app.ask_firmware != "False" and not self.check_current_firmware():
+        if self.settings.app.ask_firmware != "False" and not switch_emu.check_current_firmware(os.path.join(self.settings.yuzu.user_directory, "nand", "system", "Contents", "registered")):
             if messagebox.askyesno("Firmware Missing", "It seems you are missing the switch firmware files. Without these files, some games may not run. Would you like to install the firmware now? If you select no, then you will not be asked again."):
                 self.install_firmware_handler()
             else:
@@ -222,6 +185,8 @@ class Yuzu:
 
        
     def install_firmware_handler(self, path_to_archive=None):
+        if switch_emu.check_current_firmware(os.path.join(self.settings.yuzu.user_directory, "nand", "system", "Contents", "registered")) and not messagebox.askyesno("Firmware Exists", "You already seem to have firmware installed, install anyways?"):
+            return 
         firmware_path = path_to_archive
         if path_to_archive is None:
             firmware_path = self.download_firmware_archive()
@@ -230,10 +195,10 @@ class Yuzu:
                     messagebox.showerror("Download Error", firmware_path[1])
                 return False
             firmware_path = firmware_path[1] 
-        elif not self.verify_firmware_archive(path_to_archive):
+        elif not switch_emu.verify_firmware_archive(path_to_archive):
             messagebox.showerror("Error", "The firmware archive you have provided is invalid")
             return 
-        result = self.install_firmware_from_archive(firmware_path)
+        result = switch_emu.install_firmware_from_archive(firmware_path, os.path.join(self.settings.yuzu.user_directory, "nand", "system", "Contents", "registered"), self.main_progress_frame)
         if path_to_archive is None and self.settings.app.delete_files == "True" and os.path.exists(firmware_path):
             os.remove(firmware_path)
         if result:
@@ -253,48 +218,19 @@ class Yuzu:
             return response_result
 
         response = response_result[1]
-        progress_frame = ProgressFrame(self.gui.yuzu_log_frame, f"Firmware {firmware.version}")
-        progress_frame.grid(row=0, column=0, sticky="ew")
-        progress_frame.total_size = firmware.size
+        self.main_progress_frame.start_download(f"Firmware {firmware.version}", firmware.size)
+        self.main_progress_frame.grid(row=0, column=0, sticky="ew")
+        
         download_path = os.path.join(os.getcwd(), f"Firmware {firmware.version}.zip")
-        download_result = download_through_stream(response, download_path, progress_frame, 1024*203)
-        progress_frame.destroy()
+        download_result = download_through_stream(response, download_path, self.main_progress_frame, 1024*203)
+        self.main_progress_frame.complete_download()
         return download_result
 
-    def install_firmware_from_archive(self, firmware_source):
-        extract_folder = os.path.join(self.settings.yuzu.user_directory, "nand", "system", "Contents", "registered")
-        if os.path.exists(extract_folder):
-            shutil.rmtree(extract_folder)
-        os.makedirs(extract_folder, exist_ok=True)
-        extracted_files = []
-        progress_frame = ProgressFrame(self.gui.yuzu_log_frame, os.path.basename(firmware_source))
-        progress_frame.grid(row=0, column=0, sticky="ew")
-        progress_frame.update_extraction_progress(0)
-        progress_frame.skip_to_installation()
-        progress_frame.complete_download(None, "Status: Extracting...")
-        excluded = []
-        with open(firmware_source, "rb") as file:
-            with ZipFile(file, 'r') as archive:
-                total = len(archive.namelist())
-                for entry in archive.infolist():
-                    if entry.filename.endswith(".nca") or entry.filename.endswith(".nca/00"):
-                        path_components = entry.filename.replace(".cnmt", "").split("/")
-                        nca_id = path_components[-1]
-                        if nca_id == "00":
-                            nca_id = path_components[-2]
-                        if ".nca" in nca_id:
-                            extracted_file_path = os.path.join(extract_folder, nca_id)
-                            os.makedirs(extract_folder, exist_ok=True)
-                            with open(extracted_file_path, "wb") as f:
-                                f.write(archive.read(entry))
-                            extracted_files.append(entry.filename)
-                            progress_frame.update_extraction_progress(len(extracted_files)/total)
-                        else:
-                            excluded.append(entry.filename)
-        progress_frame.destroy()
-        return excluded
+    
     
     def install_key_handler(self, path_to_archive = None):
+        if switch_emu.check_current_keys(os.path.join(self.settings.yuzu.user_directory, "keys", "prod.keys")) and not messagebox.askyesno("Keys Exist", "You already seem to have the decryption keys, install anyways?"):
+            return 
         key_path = path_to_archive
         if path_to_archive is None:
             key_path = self.download_key_archive()
@@ -303,13 +239,13 @@ class Yuzu:
                     messagebox.showerror("Download Error", key_path[1])
                 return False
             key_path = key_path[1] 
-        elif not self.verify_key_archive(path_to_archive):
+        elif not switch_emu.verify_key_archive(path_to_archive):
             messagebox.showerror("Error", "The key archive you have provided is invalid")
             return
         if key_path.endswith(".keys"):
-            self.install_keys_from_file(key_path)
+            switch_emu.install_keys_from_file(key_path, os.path.join(self.settings.yuzu.user_directory, "keys"))
         else:
-            result = self.install_keys_from_archive(key_path)
+            result = switch_emu.install_keys_from_archive(key_path, os.path.join(self.settings.yuzu.user_directory, "keys"), self.main_progress_frame)
             if "prod.keys" not in result:
                 messagebox.showwarning("Keys", "Was not able to find any prod.keys within the archive, the archive was still extracted successfully.")
                 return False 
@@ -330,40 +266,15 @@ class Yuzu:
             return response_result
            
         response = response_result[1]
-        progress_frame = ProgressFrame(self.gui.yuzu_log_frame, f"Keys {key.version}")
-        progress_frame.grid(row=0, column=0, sticky="ew")
-        progress_frame.total_size = key.size
+        self.main_progress_frame.start_download(f"Keys {key.version}", key.size)
+        self.main_progress_frame.grid(row=0, column=0, sticky="ew")
         download_path = os.path.join(os.getcwd(), f"Keys {key.version}.zip")
-        download_result = download_through_stream(response, download_path, progress_frame, 1024*128)
-        progress_frame.destroy()
+        download_result = download_through_stream(response, download_path, self.main_progress_frame, 1024*128)
+        self.main_progress_frame.complete_download()
         
         return download_result
     
-    def install_keys_from_file(self, key_path):
-        target_key_folder = os.path.join(self.settings.yuzu.user_directory, "keys")
-        if not os.path.exists(target_key_folder):
-            os.makedirs(target_key_folder)
-        target_key_location = os.path.join(target_key_folder, "prod.keys")
-        shutil.copy(key_path, target_key_location)
-        return target_key_location
-    
-    def install_keys_from_archive(self, archive):
-        extract_folder = os.path.join(self.settings.yuzu.user_directory, "keys")
-        extracted_files = []
-        progress_frame = ProgressFrame(self.gui.yuzu_log_frame, os.path.basename(archive))
-        progress_frame.grid(row=0, column=0, sticky="ew")
-        progress_frame.update_extraction_progress(0)
-        with ZipFile(archive, 'r') as zip_ref:
-            total = len(zip_ref.namelist())
-            for file_info in zip_ref.infolist():
-                extracted_file_path = os.path.join(extract_folder, file_info.filename)
-                os.makedirs(os.path.dirname(extracted_file_path), exist_ok=True)
-                with zip_ref.open(file_info.filename) as source, open(extracted_file_path, 'wb') as target:
-                    target.write(source.read())
-                extracted_files.append(file_info.filename)
-                progress_frame.update_extraction_progress(len(extracted_files)/total)
-        progress_frame.destroy()
-        return extracted_files
+
         
     def export_yuzu_data(self, mode):
         user_directory = self.settings.yuzu.user_directory
@@ -375,12 +286,12 @@ class Yuzu:
             return  # Handle the case when the user directory doesn't exist.
 
         if mode == "All Data":
-            copy_directory_with_progress(user_directory, users_export_directory, "Exporting All Yuzu Data", self.gui.yuzu_data_log)
+            copy_directory_with_progress(user_directory, users_export_directory, "Exporting All Yuzu Data", self.data_progress_frame)
         elif mode == "Save Data":
             save_dir = os.path.join(user_directory, 'nand', 'user', 'save')
-            copy_directory_with_progress(save_dir, os.path.join(users_export_directory, 'nand', 'user', 'save'), "Exporting Yuzu Save Data", self.gui.yuzu_data_log)
+            copy_directory_with_progress(save_dir, os.path.join(users_export_directory, 'nand', 'user', 'save'), "Exporting Yuzu Save Data", self.data_progress_frame)
         elif mode == "Exclude 'nand' & 'keys'":
-            copy_directory_with_progress(user_directory, users_export_directory, "Exporting All Yuzu Data", self.gui.yuzu_data_log, ["nand", "keys"])
+            copy_directory_with_progress(user_directory, users_export_directory, "Exporting All Yuzu Data", self.data_progress_frame, ["nand", "keys"])
         else:
             messagebox.showerror("Error", f"An unexpected error has occured, {mode} is an invalid option.")
     def import_yuzu_data(self, mode):
@@ -392,12 +303,12 @@ class Yuzu:
             messagebox.showerror("Missing Folder", "No yuzu data associated with your username found")
             return
         if mode == "All Data":
-            copy_directory_with_progress(users_export_directory, user_directory, "Import All Yuzu Data", self.gui.yuzu_data_log)
+            copy_directory_with_progress(users_export_directory, user_directory, "Import All Yuzu Data", self.data_progress_frame)
         elif mode == "Save Data":
             save_dir = os.path.join(users_export_directory, 'nand', 'user', 'save')
-            copy_directory_with_progress(save_dir, os.path.join(user_directory, 'nand', 'user', 'save'), "Importing Yuzu Save Data", self.gui.yuzu_data_log)
+            copy_directory_with_progress(save_dir, os.path.join(user_directory, 'nand', 'user', 'save'), "Importing Yuzu Save Data", self.data_progress_frame)
         elif mode == "Exclude 'nand' & 'keys'":
-            copy_directory_with_progress(users_export_directory, user_directory, "Import All Yuzu Data", self.gui.yuzu_data_log, ["nand", "keys"])
+            copy_directory_with_progress(users_export_directory, user_directory, "Import All Yuzu Data", self.data_progress_frame, ["nand", "keys"])
         else:
             messagebox.showerror("Error", f"An unexpected error has occured, {mode} is an invalid option.")
     def delete_yuzu_data(self, mode):
