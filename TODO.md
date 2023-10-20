@@ -1,10 +1,10 @@
 ## For 0.11
 
-- [ ] Minimise PathDialog when browse is clicked
-- [ ] adjust fg colour for root window
-- [ ] Adjust fg, bg colour values and border widths for PathDialog
-- [ ] Fix search for current ROMS
-- [ ] Fix duplication of last ROM on any page after searching for downloading
+- [x] Minimise PathDialog when browse is clicked
+- [x] adjust fg colour for root window
+- [x] Adjust fg, bg colour values and border widths for PathDialog
+- [x] Fix search for current ROMS
+- [x] Fix duplication of last ROM on any page after searching for downloading
 
 ## For 0.12
 
