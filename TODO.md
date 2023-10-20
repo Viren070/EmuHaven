@@ -15,7 +15,12 @@
 
 - [x] factor out common switch emulator functions from yuzu into switch emulator 
 - [x] Write firmware and key version to metadata
-- [ ] Add more emulators 
+- [ ] Add Ryujinx Support 
+    - [ ] Add ryujinx.py 
+    - [ ] Add ryujinx_frame.py
+    - [ ] Add ryujinx_settings_frame.py
+    - [ ] Add ryujinx_settings.py 
+    
 
 
 ## other 
