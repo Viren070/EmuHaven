@@ -10,7 +10,7 @@
 
 - [x] Make menubar on LHS scrollable 
 - [ ] add console name if possible for each emulator
-
+- [ ] Don't update text to include version if text has been altered
 - [x] Rewrite or delete firmware downloader
 
 - [x] factor out common switch emulator functions from yuzu into switch emulator 
