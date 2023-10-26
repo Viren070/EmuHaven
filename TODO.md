@@ -21,7 +21,7 @@
     - [ ] Add ryujinx_settings_frame.py
     - [ ] Add ryujinx_settings.py 
     
-
+- [ ] Add base EmulatorFrame class that all other emulator_frame classes inherit from.
 
 ## other 
 
