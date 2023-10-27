@@ -10,15 +10,14 @@ from emulators.dolphin import Dolphin
 from gui.frames.dolphin.dolphin_rom_frame import DolphinROMFrame
 from gui.windows.path_dialog import PathDialog
 from gui.frames.progress_frame import ProgressFrame
-
-class DolphinFrame(customtkinter.CTkFrame):
+from gui.frames.emulator_frame import EmulatorFrame
+class DolphinFrame(EmulatorFrame):
     def __init__(self, parent_frame, settings, metadata):
-        super().__init__(parent_frame, corner_radius=0, bg_color="transparent")
+        super().__init__(parent_frame, settings, metadata)
         self.dolphin = Dolphin(self, settings, metadata)
-        self.settings = settings
-        self.parent_frame = parent_frame
-        self.build_frame()
-    def build_frame(self):
+        
+        self.add_to_frame()
+    def add_to_frame(self):
         self.dolphin_banner =  customtkinter.CTkImage(light_image=Image.open(self.settings.get_image_path("dolphin_banner_light")),
                                                      dark_image=Image.open(self.settings.get_image_path("dolphin_banner_dark")), size=(276, 129))
         self.play_image = customtkinter.CTkImage(light_image=Image.open(self.settings.get_image_path("play_light")),
@@ -26,20 +25,13 @@ class DolphinFrame(customtkinter.CTkFrame):
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
         
-        self.dolphin_navigation_frame = customtkinter.CTkFrame(self, corner_radius=0, width=20, border_width=2, border_color=("white","black"))
-        self.dolphin_navigation_frame.grid(row=0, column=0, sticky="nsew")
-        self.dolphin_navigation_frame.grid_rowconfigure(4, weight=1)
-
-        self.dolphin_start_button = customtkinter.CTkButton(self.dolphin_navigation_frame, corner_radius=0, width=100, height=25, image=self.play_image, border_spacing=10, text="Play",
-                                                   fg_color="transparent", text_color=("gray10", "gray90"),
-                                                   anchor="w", command=self.dolphin_start_button_event)
-        self.dolphin_start_button.grid(row=1, column=0, sticky="ew", padx=2, pady=(2,0))
+      
         
-        self.dolphin_start_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
-        self.dolphin_start_frame.grid_columnconfigure(0, weight=1)
-        self.dolphin_start_frame.grid_rowconfigure(0, weight=1)
+        self.start_frame = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
+        self.start_frame.grid_columnconfigure(0, weight=1)
+        self.start_frame.grid_rowconfigure(0, weight=1)
         
-        self.center_frame = customtkinter.CTkFrame(self.dolphin_start_frame)
+        self.center_frame = customtkinter.CTkFrame(self.start_frame)
         self.center_frame.grid(row=0, column=0, sticky="nsew")
         self.center_frame.grid_columnconfigure(0, weight=1)
         self.center_frame.grid_rowconfigure(0, weight=1)
@@ -78,17 +70,13 @@ class DolphinFrame(customtkinter.CTkFrame):
         self.dolphin_log_frame.grid_columnconfigure(0, weight=3)
         self.dolphin.main_progress_frame = ProgressFrame(self.dolphin_log_frame)
 
-        
-        self.dolphin_manage_data_button = customtkinter.CTkButton(self.dolphin_navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Manage Data",
-                                                   fg_color="transparent", text_color=("gray10", "gray90"), 
-                                                   anchor="w", command=self.dolphin_manage_data_button_event)
-        self.dolphin_manage_data_button.grid(row=2, column=0, sticky="ew", padx=2)
-        self.dolphin_manage_data_frame = customtkinter.CTkFrame(self, corner_radius=0, bg_color="transparent")
-        self.dolphin_manage_data_frame.grid_columnconfigure(0, weight=1)
-        self.dolphin_manage_data_frame.grid_columnconfigure(1, weight=1)
-        self.dolphin_manage_data_frame.grid_rowconfigure(0, weight=1)
-        self.dolphin_manage_data_frame.grid_rowconfigure(1, weight=2)
-        self.dolphin_data_actions_frame = customtkinter.CTkFrame(self.dolphin_manage_data_frame, height=150)
+    
+        self.manage_data_frame = customtkinter.CTkFrame(self, corner_radius=0, bg_color="transparent")
+        self.manage_data_frame.grid_columnconfigure(0, weight=1)
+        self.manage_data_frame.grid_columnconfigure(1, weight=1)
+        self.manage_data_frame.grid_rowconfigure(0, weight=1)
+        self.manage_data_frame.grid_rowconfigure(1, weight=2)
+        self.dolphin_data_actions_frame = customtkinter.CTkFrame(self.manage_data_frame, height=150)
         self.dolphin_data_actions_frame.grid(row=0, column=0, padx=20, columnspan=3, pady=20, sticky="ew")
         self.dolphin_data_actions_frame.grid_columnconfigure(1, weight=1)
 
@@ -107,16 +95,11 @@ class DolphinFrame(customtkinter.CTkFrame):
         self.dolphin_delete_optionmenu.grid(row=2, column=0, padx=10, pady=10, sticky="w")
         self.dolphin_delete_button.grid(row=2, column=1, padx=10, pady=10, sticky="e")
 
-        self.dolphin_data_log = customtkinter.CTkFrame(self.dolphin_manage_data_frame) 
+        self.dolphin_data_log = customtkinter.CTkFrame(self.manage_data_frame) 
         self.dolphin_data_log.grid(row=1, column=0, padx=20, pady=20, columnspan=3, sticky="new")
         self.dolphin_data_log.grid_columnconfigure(0, weight=1)
         self.dolphin_data_log.grid_rowconfigure(1, weight=1)
         self.dolphin.data_progress_frame = ProgressFrame(self.dolphin_data_log)
-        
-        self.manage_roms_button = customtkinter.CTkButton(self.dolphin_navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Manage ROMs",
-                                                   fg_color="transparent", text_color=("gray10", "gray90"), 
-                                                   anchor="w", command=self.manage_roms_button_event)
-        self.manage_roms_button.grid(row=3, column=0, sticky="EW", padx=2)
         
         self.manage_roms_frame = customtkinter.CTkFrame(self, corner_radius = 0, bg_color = "transparent")
  
@@ -131,29 +114,8 @@ class DolphinFrame(customtkinter.CTkFrame):
         self.launch_dolphin_button.configure(state=state, **kwargs)
         self.install_dolphin_button.configure(state=state)
         self.delete_dolphin_button.configure(state=state)
-    def dolphin_start_button_event(self):
-        self.select_dolphin_frame_by_name("start")
-    def dolphin_manage_data_button_event(self):
-        self.select_dolphin_frame_by_name("data")
-    def manage_roms_button_event(self):
-        self.select_dolphin_frame_by_name("roms")
-        
-    def select_dolphin_frame_by_name(self, name):
-        self.dolphin_start_button.configure(fg_color=self.dolphin_start_button.cget("hover_color") if name == "start" else "transparent")
-        self.dolphin_manage_data_button.configure(fg_color=self.dolphin_manage_data_button.cget("hover_color") if name == "data" else "transparent")
-        self.manage_roms_button.configure(fg_color=self.manage_roms_button.cget("hover_color") if name == "roms" else "transparent")
-        if name == "start":
-            self.dolphin_start_frame.grid(row=0, column=1, sticky="nsew")
-        else:
-            self.dolphin_start_frame.grid_forget()
-        if name == "data":
-            self.dolphin_manage_data_frame.grid(row=0, column=1, sticky="nsew")
-        else:
-            self.dolphin_manage_data_frame.grid_forget()
-        if name == "roms":
-            self.manage_roms_frame.grid(row=0, column=1, sticky="nsew")
-        else:
-            self.manage_roms_frame.grid_forget()
+
+
     def launch_dolphin_button_event(self, event=None):
         if event is None or self.launch_dolphin_button.cget("state") == "disabled":
             return 

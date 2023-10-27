@@ -134,12 +134,12 @@ class EmulatorManager(customtkinter.CTk):
             self.dolphin_frame.grid(row=0, column=1, sticky="nsew")
         else:
             self.dolphin_frame.grid_forget()
-            self.dolphin_frame.select_dolphin_frame_by_name(None)
+            self.dolphin_frame.select_frame_by_name(None)
         if name == "yuzu":
             self.yuzu_frame.grid(row=0, column=1, sticky="nsew")
         else:
             self.yuzu_frame.grid_forget()
-            self.yuzu_frame.select_yuzu_frame_by_name(None)
+            self.yuzu_frame.select_frame_by_name(None)
         
         
     def settings_changed(self):
