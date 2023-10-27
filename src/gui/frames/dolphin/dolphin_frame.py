@@ -70,11 +70,7 @@ class DolphinFrame(EmulatorFrame):
         self.dolphin_log_frame.grid_columnconfigure(0, weight=3)
         self.dolphin.main_progress_frame = ProgressFrame(self.dolphin_log_frame)
 
-        
-        self.manage_data_button = customtkinter.CTkButton(self.navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Manage Data",
-                                                   fg_color="transparent", text_color=("gray10", "gray90"), 
-                                                   anchor="w", command=self.manage_data_button_event)
-        self.manage_data_button.grid(row=2, column=0, sticky="ew", padx=2)
+    
         self.manage_data_frame = customtkinter.CTkFrame(self, corner_radius=0, bg_color="transparent")
         self.manage_data_frame.grid_columnconfigure(0, weight=1)
         self.manage_data_frame.grid_columnconfigure(1, weight=1)
@@ -104,11 +100,6 @@ class DolphinFrame(EmulatorFrame):
         self.dolphin_data_log.grid_columnconfigure(0, weight=1)
         self.dolphin_data_log.grid_rowconfigure(1, weight=1)
         self.dolphin.data_progress_frame = ProgressFrame(self.dolphin_data_log)
-        
-        self.manage_roms_button = customtkinter.CTkButton(self.navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Manage ROMs",
-                                                   fg_color="transparent", text_color=("gray10", "gray90"), 
-                                                   anchor="w", command=self.manage_roms_button_event)
-        self.manage_roms_button.grid(row=3, column=0, sticky="EW", padx=2)
         
         self.manage_roms_frame = customtkinter.CTkFrame(self, corner_radius = 0, bg_color = "transparent")
  
