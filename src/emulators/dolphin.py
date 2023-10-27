@@ -135,32 +135,26 @@ class Dolphin:
         subprocess.run(args, capture_output=True, check=False)
         self.running = False
     
-    def export_dolphin_data(self, mode):
+    def export_dolphin_data(self, mode, directory_to_export_to):
         user_directory = self.settings.dolphin.user_directory
-        export_directory = self.settings.dolphin.export_directory
-        users_export_directory = os.path.join(export_directory, os.getlogin())
         
         if not os.path.exists(user_directory):
             messagebox.showerror("Missing Folder", "No dolphin data on local drive found")
             self.gui.configure_data_buttons(state="normal")
             return  # Handle the case when the user directory doesn't exist.
         if mode == "All Data":
-            copy_directory_with_progress(user_directory, users_export_directory, "Exporting All Dolphin Data", self.data_progress_frame)
-    def import_dolphin_data(self, mode):
+            copy_directory_with_progress(user_directory, directory_to_export_to, "Exporting All Dolphin Data", self.data_progress_frame)
+    def import_dolphin_data(self, mode, directory_to_import_from):
         user_directory = self.settings.dolphin.user_directory
-        export_directory = self.settings.dolphin.export_directory
-        users_export_directory = os.path.join(export_directory, os.getlogin())
         
-        if not os.path.exists(users_export_directory):
+        if not os.path.exists(directory_to_import_from):
             messagebox.showerror("Missing Folder", "No dolphin data associated with your username was found")
             return  # Handle the case when the user directory doesn't exist.
         if mode == "All Data":
-            copy_directory_with_progress(users_export_directory, user_directory, "Importing All Dolphin Data", self.data_progress_frame)
+            copy_directory_with_progress(directory_to_import_from, user_directory, "Importing All Dolphin Data", self.data_progress_frame)
     def delete_dolphin_data(self, mode):
         result = ""
         user_directory = self.settings.dolphin.user_directory
-        export_directory = self.settings.dolphin.export_directory
-        users_export_directory = os.path.join(export_directory, os.getlogin())
         
         def delete_directory(directory):
             if os.path.exists(directory):
@@ -174,8 +168,6 @@ class Dolphin:
             return False
         if mode == "All Data":
             result += f"Data Deleted from {user_directory}\n" if delete_directory(user_directory) else ""
-            result += f"Data deleted from {users_export_directory}\n" if delete_directory(users_export_directory) else ""
-            
         if result:
             messagebox.showinfo("Delete result", result)
         else:

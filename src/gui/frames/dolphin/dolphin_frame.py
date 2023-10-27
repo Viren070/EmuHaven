@@ -155,13 +155,29 @@ class DolphinFrame(EmulatorFrame):
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["main"], )).start()
     def import_data_button_event(self):
+        directory = PathDialog(title="Import Directory", text="Enter directory to import from: ", directory=True)
+        directory = directory.get_input()
+        if not all(directory):
+            if directory[1] is not None:
+                messagebox.showerror("Error", "The path you have provided is invalid")
+                return 
+            return
+        directory = directory[1]
         self.configure_data_buttons(state="disabled")
-        thread = Thread(target=self.dolphin.import_dolphin_data, args=(self.dolphin_import_optionmenu.get(),))
+        thread = Thread(target=self.dolphin.import_dolphin_data, args=(self.dolphin_import_optionmenu.get(), directory, ))
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["data"],)).start()
     def export_data_button_event(self):
+        directory = PathDialog(title="Export Directory", text="Enter directory to export to: ", directory=True)
+        directory = directory.get_input()
+        if not all(directory):
+            if directory[1] is not None:
+                messagebox.showerror("Error", "The path you have provided is invalid")
+                return 
+            return
+        directory = directory[1]
         self.configure_data_buttons(state="disabled")
-        thread = Thread(target=self.dolphin.export_dolphin_data, args=(self.dolphin_export_optionmenu.get(),))
+        thread = Thread(target=self.dolphin.export_dolphin_data, args=(self.dolphin_export_optionmenu.get(), directory, ))
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["data"],)).start()
     def delete_data_button_event(self):

@@ -12,7 +12,8 @@ class PathDialog(CTkToplevel):
     """
 
     def __init__(self,
-                 filetypes,
+                 filetypes = None,
+                 directory = None,
                  fg_color: Optional[Union[str, Tuple[str, str]]] = None,
                  text_color: Optional[Union[str, Tuple[str, str]]] = None,
                  button_fg_color: Optional[Union[str, Tuple[str, str]]] = None,
@@ -36,6 +37,7 @@ class PathDialog(CTkToplevel):
         self._entry_border_color = ThemeManager.theme["CTkEntry"]["border_color"] if entry_border_color is None else self._check_color_type(entry_border_color)
         self._entry_text_color = ThemeManager.theme["CTkEntry"]["text_color"] if entry_text_color is None else self._check_color_type(entry_text_color)
 
+        self.directory_mode = directory
         self._user_input: Union[str, None] = None
         self._running: bool = False
         self._title = title
@@ -122,9 +124,13 @@ class PathDialog(CTkToplevel):
         self.after(150, lambda: self._entry.focus())  # set focus to entry with slight delay, otherwise, it won't work
         self._entry.bind("<Return>", self._ok_event)
     def _browse_event(self):
-        extensions= ["*" + ext[1:] for ext in self._filetypes]
+        
         self.withdraw()
-        path = filedialog.askopenfilename(filetypes=[("Custom file", extensions)])
+        if self.directory_mode:
+            path = filedialog.askdirectory()
+        else:
+            extensions= ["*" + ext[1:] for ext in self._filetypes]
+            path = filedialog.askopenfilename(filetypes=[("Custom file", extensions)])
         self.deiconify()
         self.lift()
         if path is None or path == "":
@@ -150,7 +156,7 @@ class PathDialog(CTkToplevel):
         self.master.wait_window(self)
         if self._user_input is None:
             return (False, None)
-        if os.path.exists(self._user_input) and os.path.splitext(self._user_input)[1].lower() in self._filetypes:
+        if os.path.exists(self._user_input) and ( (self._filetypes is not None and os.path.splitext(self._user_input)[1].lower() in self._filetypes) or (self._filetypes is None)):
             return (True, self._user_input)
         else:
             return (False, "Path does not exist or invalid filetype")
