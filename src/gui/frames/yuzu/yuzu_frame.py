@@ -114,10 +114,10 @@ class YuzuFrame(EmulatorFrame):
         firmware_label = customtkinter.CTkLabel(firmware_keys_frame, text="Installed Firmware:")
         firmware_label.grid(row=0, column=0, padx=10, pady=5, sticky="e")
         self.installed_firmware_version_label = customtkinter.CTkLabel(firmware_keys_frame, text="Unknown")
-        self.installed_firmware_version_label.grid(row=0, column=1, padx=(10,20), pady=5, sticky="w")
+        self.installed_firmware_version_label.grid(row=0, column=1, padx=10, pady=5, sticky="w")
 
         self.firmware_option_menu = customtkinter.CTkOptionMenu(firmware_keys_frame, state="disabled", variable=self.firmware_option_menu_variable, dynamic_resizing=False, width=175)
-        self.firmware_option_menu.grid(row=0, column=2, padx=(20,10), pady=5, sticky="w")
+        self.firmware_option_menu.grid(row=0, column=2, padx=10, pady=5, sticky="w")
         
 
         self.install_firmware_button = customtkinter.CTkButton(firmware_keys_frame, text="Download", width=100, command=self.install_firmware_button_event)
@@ -128,10 +128,10 @@ class YuzuFrame(EmulatorFrame):
         keys_label = customtkinter.CTkLabel(firmware_keys_frame, text="Installed Keys:")
         keys_label.grid(row=1, column=0, padx=10, pady=5, sticky="e")
         self.installed_key_version_label = customtkinter.CTkLabel(firmware_keys_frame, text="Unknown")
-        self.installed_key_version_label.grid(row=1, column=1, padx=(10,20), pady=5, sticky="w")
+        self.installed_key_version_label.grid(row=1, column=1, padx=10, pady=5, sticky="w")
 
         self.key_option_menu = customtkinter.CTkOptionMenu(firmware_keys_frame, width=175, state="disabled", dynamic_resizing=False, variable=self.key_option_menu_variable)
-        self.key_option_menu.grid(row=1, column=2, padx=(20,10), pady=5, sticky="w")
+        self.key_option_menu.grid(row=1, column=2, padx=10, pady=5, sticky="w")
        
 
         self.install_keys_button = customtkinter.CTkButton(firmware_keys_frame, text="Download", width=100, command=self.install_keys_button_event)
@@ -178,7 +178,7 @@ class YuzuFrame(EmulatorFrame):
         
         self.early_access_actions_frame.grid_propagate(False)
         self.mainline_actions_frame.grid_propagate(False)
-        self.selected_channel.set(self.settings.app.default_yuzu_channel)
+        self.selected_channel.set(self.settings.app.current_yuzu_channel)
         self.switch_channel()
         
         self.manage_roms_frame = customtkinter.CTkFrame(self, corner_radius = 0, bg_color = "transparent")
@@ -211,6 +211,8 @@ class YuzuFrame(EmulatorFrame):
         
     def switch_channel(self, value=None):
         value=self.selected_channel.get()
+        self.settings.app.current_yuzu_channel = value
+        self.settings.update_file()
         if value == "Mainline":
             self.image_button.configure(image=self.mainline_image)
             self.mainline_actions_frame.grid(row=2, column=0, columnspan=3)
@@ -432,7 +434,7 @@ class YuzuFrame(EmulatorFrame):
         else:
             self.launch_early_access_button.configure(text="Launch Yuzu EA  ")
         
-        self.installed_firmware_version_label.configure(text=self.installed_firmware_version if self.installed_firmware_version != "" else "Unknown")
+        self.installed_firmware_version_label.configure(text=self.installed_firmware_version.replace("Rebootless Update", "RU") if self.installed_firmware_version != "" else "Unknown")
         self.installed_key_version_label.configure(text=self.installed_key_version if self.installed_key_version != "" else "Unknown")
     
     def fetch_firmware_and_key_versions(self):
@@ -461,6 +463,7 @@ class YuzuFrame(EmulatorFrame):
                 continue 
             version = release["name"]
             assets = release["assets"]
+            
             
             key_release = None
             firmware_release = None
