@@ -159,7 +159,7 @@ class YuzuFrame(EmulatorFrame):
         self.rom_frame = YuzuROMFrame(self.manage_roms_frame, self.yuzu, self.settings)
         self.rom_frame.grid(row=0, column=0,  padx=20, pady=20, sticky="nsew")
     
-        # Thread(target=self.fetch_versions, args=(False,)).start()
+        Thread(target=self.fetch_versions, args=(False,)).start()
     def configure_data_buttons(self, **kwargs):
         self.yuzu_delete_button.configure(**kwargs)
         self.yuzu_import_button.configure(**kwargs)
