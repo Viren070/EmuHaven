@@ -33,8 +33,6 @@ class AppSettingsFrame(customtkinter.CTkFrame):
         self.use_yuzu_installer_variable.set(self.settings.app.use_yuzu_installer)
         self.appearance_mode_variable.set(self._get_appearance_mode().title())
         self.colour_theme_variable.set(os.path.basename(customtkinter.ThemeManager._currently_loaded_theme).replace("-"," ").replace(".json", "").title())
-        self.default_yuzu_channel_variable = customtkinter.StringVar()
-        self.default_yuzu_channel_variable.set(self.settings.app.default_yuzu_channel)
         self.delete_files_variable = customtkinter.StringVar()
         self.delete_files_variable.set(self.settings.app.delete_files)
         colour_themes = get_colour_themes(os.path.join(self.parent_frame.parent_frame.root_dir, "assets", "themes"))
@@ -47,10 +45,6 @@ class AppSettingsFrame(customtkinter.CTkFrame):
         customtkinter.CTkLabel(self, text="Theme: ").grid(row=2, column=0, padx=10, pady=10, sticky="w")
         customtkinter.CTkOptionMenu(self, variable=self.colour_theme_variable, values=colour_themes, command=self.change_colour_theme).grid(row=2, column=2, padx=10, pady=10, sticky="e")
         ttk.Separator(self, orient='horizontal').grid(row=3, columnspan=4, sticky="ew") 
-        
-        customtkinter.CTkLabel(self, text="Default Yuzu Channel: ").grid(row=4, column=0, padx=10, pady=10, sticky="w")
-        customtkinter.CTkOptionMenu(self, variable=self.default_yuzu_channel_variable, command=self.change_default_yuzu_channel, values=["Mainline", "Early Access"]).grid(row=4, column=2, padx=10, pady=10, sticky="e")
-        ttk.Separator(self, orient='horizontal').grid(row=5, columnspan=4, sticky="ew")
         
         customtkinter.CTkLabel(self, text="Use Yuzu Installer").grid(row=6, column=0, padx=10, pady=10, sticky="w")
         customtkinter.CTkCheckBox(self, text="", variable=self.use_yuzu_installer_variable, onvalue="True", offvalue="False", command=self.change_yuzu_installer_option).grid(row=6, column=2, padx=(100,0), pady=10, sticky="we")

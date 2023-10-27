@@ -14,7 +14,7 @@ class AppSettings:
             'colour_theme': "dark-blue",
             'appearance_mode': "dark",
             'use_yuzu_installer': "False",
-            'default_yuzu_channel': 'Mainline',
+            'current_yuzu_channel': 'Mainline',
             'delete_files': 'True', 
             'ask_firmware': 'True',
             'token': ''
@@ -42,8 +42,8 @@ class AppSettings:
     use_yuzu_installer = property(lambda self: self._get_property('use_yuzu_installer'), 
                                      lambda self, value: self._set_property('use_yuzu_installer', value))
    
-    default_yuzu_channel = property(lambda self: self._get_property('default_yuzu_channel'), 
-                                     lambda self, value: self._set_property('default_yuzu_channel', value))
+    current_yuzu_channel = property(lambda self: self._get_property('current_yuzu_channel'), 
+                                     lambda self, value: self._set_property('current_yuzu_channel', value))
     delete_files = property(lambda self: self._get_property('delete_files'), 
                                      lambda self, value: self._set_property('delete_files', value))
     ask_firmware = property(lambda self: self._get_property('ask_firmware'), 

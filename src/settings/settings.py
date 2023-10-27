@@ -61,7 +61,7 @@ class Settings:
                 "colour_theme" : "",
                 "use_yuzu_installer":  "",
                 "delete_files": "",
-                "default_yuzu_channel": "",
+                "current_yuzu_channel": "",
                 "ask_firmware": ""
             }
         }
@@ -160,7 +160,7 @@ class Settings:
                 "colour_theme" : self.app.colour_theme,
                 "use_yuzu_installer":  self.app.use_yuzu_installer,
                 "delete_files" : self.app.delete_files,
-                "default_yuzu_channel": self.app.default_yuzu_channel,
+                "current_yuzu_channel": self.app.current_yuzu_channel,
                 "ask_firmware": self.app.ask_firmware
             }
         }
