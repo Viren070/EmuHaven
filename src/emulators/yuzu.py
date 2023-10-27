@@ -289,48 +289,41 @@ class Yuzu:
     
 
         
-    def export_yuzu_data(self, mode):
+    def export_yuzu_data(self, mode, directory_to_export_to):
         user_directory = self.settings.yuzu.user_directory
-        export_directory = self.settings.yuzu.export_directory
-        users_export_directory = os.path.join(export_directory, os.getlogin())
         
         if not os.path.exists(user_directory):
             messagebox.showerror("Missing Folder", "No yuzu data on local drive found")
             return  # Handle the case when the user directory doesn't exist.
 
         if mode == "All Data":
-            copy_directory_with_progress(user_directory, users_export_directory, "Exporting All Yuzu Data", self.data_progress_frame)
+            copy_directory_with_progress(user_directory, directory_to_export_to, "Exporting All Yuzu Data", self.data_progress_frame)
         elif mode == "Save Data":
             save_dir = os.path.join(user_directory, 'nand', 'user', 'save')
-            copy_directory_with_progress(save_dir, os.path.join(users_export_directory, 'nand', 'user', 'save'), "Exporting Yuzu Save Data", self.data_progress_frame)
+            copy_directory_with_progress(save_dir, os.path.join(directory_to_export_to, 'nand', 'user', 'save'), "Exporting Yuzu Save Data", self.data_progress_frame)
         elif mode == "Exclude 'nand' & 'keys'":
-            copy_directory_with_progress(user_directory, users_export_directory, "Exporting All Yuzu Data", self.data_progress_frame, ["nand", "keys"])
+            copy_directory_with_progress(user_directory, directory_to_export_to, "Exporting All Yuzu Data", self.data_progress_frame, ["nand", "keys"])
         else:
             messagebox.showerror("Error", f"An unexpected error has occured, {mode} is an invalid option.")
-    def import_yuzu_data(self, mode):
-        export_directory = self.settings.yuzu.export_directory
+    def import_yuzu_data(self, mode, directory_to_import_from):
         user_directory = self.settings.yuzu.user_directory
-        users_export_directory = os.path.join(export_directory, os.getlogin())
-        
-        if not os.path.exists(users_export_directory):
+        if not os.path.exists(directory_to_import_from):
             messagebox.showerror("Missing Folder", "No yuzu data associated with your username found")
             return
         if mode == "All Data":
-            copy_directory_with_progress(users_export_directory, user_directory, "Import All Yuzu Data", self.data_progress_frame)
+            copy_directory_with_progress(directory_to_import_from, user_directory, "Import All Yuzu Data", self.data_progress_frame)
         elif mode == "Save Data":
-            save_dir = os.path.join(users_export_directory, 'nand', 'user', 'save')
+            save_dir = os.path.join(directory_to_import_from, 'nand', 'user', 'save')
             copy_directory_with_progress(save_dir, os.path.join(user_directory, 'nand', 'user', 'save'), "Importing Yuzu Save Data", self.data_progress_frame)
         elif mode == "Exclude 'nand' & 'keys'":
-            copy_directory_with_progress(users_export_directory, user_directory, "Import All Yuzu Data", self.data_progress_frame, ["nand", "keys"])
+            copy_directory_with_progress(directory_to_import_from, user_directory, "Import All Yuzu Data", self.data_progress_frame, ["nand", "keys"])
         else:
             messagebox.showerror("Error", f"An unexpected error has occured, {mode} is an invalid option.")
     def delete_yuzu_data(self, mode):
         result = ""
 
         user_directory = self.settings.yuzu.user_directory
-        export_directory = self.settings.yuzu.export_directory
-        users_export_directory = os.path.join(export_directory, os.getlogin())
-        
+    
         def delete_directory(directory):
             if os.path.exists(directory):
                 try:
@@ -343,15 +336,12 @@ class Yuzu:
 
         if mode == "All Data":
             result += f"Data Deleted from {user_directory}\n" if delete_directory(user_directory) else ""
-            result += f"Data deleted from {users_export_directory}\n" if delete_directory(users_export_directory) else ""
         elif mode == "Save Data":
             save_dir = os.path.join(user_directory, 'nand', 'user', 'save')
             result += f"Data deleted from {save_dir}\n" if delete_directory(save_dir) else ""
-            result += f"Data deleted from {save_dir}\n" if delete_directory(save_dir) else ""
         elif mode == "Exclude 'nand' & 'keys'":
-            # Iterate through each of the 3 root folders and exclude 'nand' and 'keys' subfolder
             deleted = False
-            for root_folder in [user_directory, users_export_directory]:
+            for root_folder in user_directory:
                 if os.path.exists(root_folder) and os.listdir(root_folder):
                     subfolders_failed = []
                     for folder_name in os.listdir(root_folder):
