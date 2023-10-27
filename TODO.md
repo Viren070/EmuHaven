@@ -10,7 +10,7 @@
 
 - [x] Make menubar on LHS scrollable 
 - [ ] add console name if possible for each emulator
-- [ ] Don't update text to include version if text has been altered
+- [x] Don't update text to include version if text has been altered
 - [x] Move `Use Yuzu Installer` setting to yuzu settings
 - [x] Redesign firmware and key install section and add dropdown menu to select version and show installed version
 - [x] Rewrite or delete firmware downloader

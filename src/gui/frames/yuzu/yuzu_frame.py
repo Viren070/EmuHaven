@@ -437,16 +437,18 @@ class YuzuFrame(EmulatorFrame):
         self.update_version_text()
         
     def update_version_text(self):
-        if self.early_access_version is not None:
+        if self.early_access_version is not None and self.install_early_access_button.cget("state") != "disabled":
             self.install_early_access_button.configure(text=f"Install Yuzu EA {self.early_access_version}")
-        if self.mainline_version is not None:
+        if self.mainline_version is not None and self.install_mainline_button.cget("state") != "disabled":
             self.install_mainline_button.configure(text=f"Install Yuzu {self.mainline_version}")
         if self.installed_mainline_version != "":
-            self.launch_mainline_button.configure(text=f"Launch Yuzu {self.installed_mainline_version}  ")
+            if self.launch_mainline_button.cget("state") != "disabled":
+                self.launch_mainline_button.configure(text=f"Launch Yuzu {self.installed_mainline_version}  ")
         else:
             self.launch_mainline_button.configure(text="Launch Yuzu  ")
         if self.installed_early_access_version != "":
-            self.launch_early_access_button.configure(text=F"Launch Yuzu EA {self.installed_early_access_version}  ")
+            if self.launch_early_access_button.cget("state") != "disabled":
+                self.launch_early_access_button.configure(text=F"Launch Yuzu EA {self.installed_early_access_version}  ")
         else:
             self.launch_early_access_button.configure(text="Launch Yuzu EA  ")
         
