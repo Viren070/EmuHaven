@@ -35,6 +35,13 @@ def create_get_connection(url, **kwargs):
         return (False, error)
     return (True, response)
 
+def get_all_releases(api_url, headers):
+    response = create_get_connection(api_url, headers=headers, timeout=20)
+    if not all(response): return (False, response[1])
+    response = response[1]
+    releases = json.loads(response.text)
+    return (True, releases)
+
 def get_assets_from_latest_release(api_url, headers):
     response = create_get_connection(api_url, headers=headers, timeout=20)
     if not all(response): return (False, response[1])
