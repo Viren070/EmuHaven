@@ -14,6 +14,7 @@
 - [x] Move `Use Yuzu Installer` setting to yuzu settings
 - [x] Redesign firmware and key install section and add dropdown menu to select version and show installed version
 - [x] Rewrite or delete firmware downloader
+- [ ] Use Dolphin website for dolphin downloads and add ability to switch from beta and development channels.
 
 - [x] factor out common switch emulator functions from yuzu into switch emulator 
 - [x] Write firmware and key version to metadata
