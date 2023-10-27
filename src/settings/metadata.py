@@ -57,7 +57,7 @@ class Metadata:
                 current_contents["dolphin"]["installed_version"] = version 
             case "yuzu_firmware":
                 current_contents["yuzu"]["firmware_version"] = version 
-            case "yuzu_key":
+            case "yuzu_keys":
                 current_contents["yuzu"]["key_version"] = version
             case _:
                 raise ValueError(f"Expected str argument of mainline or early access, but got {mode}")
@@ -75,14 +75,14 @@ class Metadata:
                 version = current_contents["dolphin"]["installed_version"] if os.path.exists(os.path.join(self.settings.dolphin.install_directory, "Dolphin.exe")) else self.update_installed_version("dolphin", "")
             case "yuzu_firmware":
                 version = current_contents["yuzu"]["firmware_version"] if ( os.path.exists(os.path.join(self.settings.yuzu.user_directory, "nand", "system", "Contents", "registered")) and os.listdir(os.path.join(self.settings.yuzu.user_directory, "nand", "system", "Contents", "registered")) ) else self.update_installed_version("yuzu_firmware", "")
-            case "yuzu_key":
+            case "yuzu_keys":
                 version = current_contents["yuzu"]["key_version"] if os.path.exists(os.path.join(self.settings.yuzu.user_directory, "keys", "prod.keys")) else self.update_installed_version("yuzu_key", "")
             case _:
                 raise ValueError(f"Expected str argument of mainline or early access, but got {mode}")
         return version
     def is_metadata_valid(self):
         try:
-            for mode in ["mainline", "early_access", "dolphin", "yuzu_firmware", "yuzu_key"]:
+            for mode in ["mainline", "early_access", "dolphin", "yuzu_firmware", "yuzu_keys"]:
                 self.get_installed_version(mode)
             return True
         except (KeyError, TypeError):

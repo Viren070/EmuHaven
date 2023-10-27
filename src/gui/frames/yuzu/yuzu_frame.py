@@ -6,12 +6,14 @@ import customtkinter
 from CTkToolTip import CTkToolTip
 from PIL import Image
 
+from gui.CTkScrollableDropdown import CTkScrollableDropdown
 from emulators.yuzu import Yuzu
+from gui.frames.emulator_frame import EmulatorFrame
 from gui.frames.progress_frame import ProgressFrame
 from gui.frames.yuzu.yuzu_rom_frame import YuzuROMFrame
 from gui.windows.path_dialog import PathDialog
-from utils.requests_utils import get_headers, get_resources_release
-from gui.frames.emulator_frame import EmulatorFrame
+from utils.requests_utils import get_headers, get_all_releases
+
 
 class YuzuFrame(EmulatorFrame):
     def __init__(self, parent_frame, settings, metadata):
@@ -94,26 +96,52 @@ class YuzuFrame(EmulatorFrame):
         self.install_early_access_button.bind("<Button-1>", command=self.install_early_access_button_event)
         CTkToolTip(self.install_early_access_button, message="Click me to download and install the latest early access release of yuzu from the internet\nShift-Click me to install yuzu with a custom archive.")
         
+        
+
+        
         firmware_keys_frame = customtkinter.CTkFrame(self.center_frame)
         firmware_keys_frame.grid(row=3, column=0, padx=10, pady=10, columnspan=3)
         firmware_keys_frame.grid_columnconfigure(0, weight=1)
         firmware_keys_frame.grid_columnconfigure(1, weight=1)
-        firmware_keys_frame.grid_columnconfigure(2, weight=1)
-        firmware_keys_frame.grid_rowconfigure(0, weight=1)
-        self.install_firmware_button = customtkinter.CTkButton(firmware_keys_frame, text="Install Firmware", command=self.install_firmware_button_event)
-        self.install_firmware_button.grid(row=0, column=0, pady=5, padx=20, sticky="w")
+
+        
+        
+        self.firmware_option_menu_variable = customtkinter.StringVar()
+        self.firmware_option_menu_variable.set("Fetching...")
+        self.key_option_menu_variable = customtkinter.StringVar()
+        self.key_option_menu_variable.set("Fetching...")
+        # Firmware Row
+        firmware_label = customtkinter.CTkLabel(firmware_keys_frame, text="Installed Firmware:")
+        firmware_label.grid(row=0, column=0, padx=10, pady=5, sticky="e")
+        self.installed_firmware_version_label = customtkinter.CTkLabel(firmware_keys_frame, text="Unknown")
+        self.installed_firmware_version_label.grid(row=0, column=1, padx=(10,20), pady=5, sticky="w")
+
+        self.firmware_option_menu = customtkinter.CTkOptionMenu(firmware_keys_frame, state="disabled", variable=self.firmware_option_menu_variable, dynamic_resizing=False, width=175)
+        self.firmware_option_menu.grid(row=0, column=2, padx=(20,10), pady=5, sticky="w")
+        
+
+        self.install_firmware_button = customtkinter.CTkButton(firmware_keys_frame, text="Download", width=100, command=self.install_firmware_button_event)
         self.install_firmware_button.bind("<Button-1>", command=self.install_firmware_button_event)
-        CTkToolTip(self.install_firmware_button, message="Click me to download and install the latest firmware files for the Nintendo Switch from the internet.\nShift-Click me to use a custom firmware archive to install firmware.")
-        self.install_keys_button = customtkinter.CTkButton(firmware_keys_frame, text="Install Keys", command=self.install_keys_button_event)
-        self.install_keys_button.grid(row=0, column=3, pady=5, padx=20, sticky="e")
-        self.install_keys_button.bind("<Button-1>", self.install_keys_button_event)
-        CTkToolTip(self.install_keys_button, message="Click me to download and install the latest decryption keys for the Nintendo Switch from the internet. \nShift-Click me to use a custom key archive to install keys.")
-        
-        
+        self.install_firmware_button.grid(row=0, column=3, padx=10, pady=5, sticky="w")
+
+        # Keys Row
+        keys_label = customtkinter.CTkLabel(firmware_keys_frame, text="Installed Keys:")
+        keys_label.grid(row=1, column=0, padx=10, pady=5, sticky="e")
+        self.installed_key_version_label = customtkinter.CTkLabel(firmware_keys_frame, text="Unknown")
+        self.installed_key_version_label.grid(row=1, column=1, padx=(10,20), pady=5, sticky="w")
+
+        self.key_option_menu = customtkinter.CTkOptionMenu(firmware_keys_frame, width=175, state="disabled", dynamic_resizing=False, variable=self.key_option_menu_variable)
+        self.key_option_menu.grid(row=1, column=2, padx=(20,10), pady=5, sticky="w")
+       
+
+        self.install_keys_button = customtkinter.CTkButton(firmware_keys_frame, text="Download", width=100, command=self.install_keys_button_event)
+        self.install_keys_button.bind("<Button-1>", command=self.install_keys_button_event)
+        self.install_keys_button.grid(row=1, column=3, padx=10, pady=5, sticky="w")
+
    
         self.yuzu_log_frame = customtkinter.CTkFrame(self.center_frame, fg_color='transparent', border_width=0)
         self.yuzu_log_frame.grid(row=4, column=0, padx=80, sticky="ew")
-        self.yuzu_log_frame.grid_propagate(False)
+        #self.yuzu_log_frame.grid_propagate(False)
         self.yuzu_log_frame.grid_columnconfigure(0, weight=3)
         self.yuzu.main_progress_frame = ProgressFrame(self.yuzu_log_frame)
         # create yuzu 'Manage Data' frame and widgets
@@ -160,6 +188,11 @@ class YuzuFrame(EmulatorFrame):
         self.rom_frame.grid(row=0, column=0,  padx=20, pady=20, sticky="nsew")
     
         Thread(target=self.fetch_versions, args=(False,)).start()
+        
+
+    
+        
+ 
     def configure_data_buttons(self, **kwargs):
         self.yuzu_delete_button.configure(**kwargs)
         self.yuzu_import_button.configure(**kwargs)
@@ -300,10 +333,17 @@ class YuzuFrame(EmulatorFrame):
                     messagebox.showerror("Error", "The path you have provided is invalid")
                 return 
             path_to_archive = path_to_archive[1]
+            args = ("path", path_to_archive, )
+        else:
+            if self.firmware_option_menu.cget("state") == "disabled":
+                messagebox.showerror("Error", "Please ensure that a correct version has been chosen from the menu to the left")
+                return 
+            release = self.firmware_key_version_dict["firmware"][self.firmware_option_menu_variable.get()] 
+            args = ("release", release)
         self.configure_firmware_key_buttons("disabled")
         self.configure_mainline_buttons("disabled")
         self.configure_early_access_buttons("disabled")
-        thread=Thread(target=self.yuzu.install_firmware_handler, args=(path_to_archive, ))
+        thread=Thread(target=self.yuzu.install_firmware_handler, args=args)
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["firmware_keys","mainline","early_access"], )).start()
    
@@ -319,10 +359,18 @@ class YuzuFrame(EmulatorFrame):
                     messagebox.showerror("Error", "The path you have provided is invalid")
                 return 
             path_to_archive = path_to_archive[1]
+            args = ("path", path_to_archive, )
+        else:
+            if self.key_option_menu.cget("state") == "disabled":
+                messagebox.showerror("Error", "Please ensure that a correct version has been chosen from the menu to the left")
+                return 
+            release = self.firmware_key_version_dict["keys"][self.key_option_menu_variable.get()]  
+            args = ("release", release, )
         self.configure_firmware_key_buttons("disabled")
         self.configure_mainline_buttons("disabled")
-        self.configure_early_access_buttons("disabled")
-        thread = Thread(target=self.yuzu.install_key_handler, args=(path_to_archive, ))
+        self.configure_early_access_buttons("disabled")  
+        
+        thread = Thread(target=self.yuzu.install_key_handler, args=args)
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["firmware_keys","mainline","early_access"],)).start()
     def import_data_button_event(self):
@@ -357,25 +405,24 @@ class YuzuFrame(EmulatorFrame):
         self.update_version_text()
     def fetch_versions(self, installed_only=True):
         if not installed_only:
+            self.fetch_firmware_and_key_versions()
             mainline_release = self.yuzu.get_latest_release("mainline")
             early_access_release = self.yuzu.get_latest_release("early_access")
-            firmware_keys_release = get_resources_release("Firmware", get_headers(self.settings.app.token))
-            if not all(all( val for val in arr) for arr in (mainline_release, early_access_release, firmware_keys_release)):
+            if not all(all( val for val in arr) for arr in (mainline_release, early_access_release)):
                 return 
             self.mainline_version = mainline_release[1].version
             self.early_access_version = early_access_release[1].version
-            self.firmware_keys_version = firmware_keys_release[1].name.replace("Alpha.", "").replace(".zip", "")
         self.installed_mainline_version = self.metadata.get_installed_version("mainline")
         self.installed_early_access_version = self.metadata.get_installed_version("early_access")
+        self.installed_firmware_version = self.metadata.get_installed_version("yuzu_firmware")
+        self.installed_key_version = self.metadata.get_installed_version("yuzu_keys")
         self.update_version_text()
+        
     def update_version_text(self):
         if self.early_access_version is not None:
             self.install_early_access_button.configure(text=f"Install Yuzu EA {self.early_access_version}")
         if self.mainline_version is not None:
             self.install_mainline_button.configure(text=f"Install Yuzu {self.mainline_version}")
-        if self.firmware_keys_version is not None:
-            self.install_firmware_button.configure(text=f"Install Firmware {self.firmware_keys_version}")
-            self.install_keys_button.configure(text=f"Install Keys {self.firmware_keys_version}")
         if self.installed_mainline_version != "":
             self.launch_mainline_button.configure(text=f"Launch Yuzu {self.installed_mainline_version}  ")
         else:
@@ -384,3 +431,82 @@ class YuzuFrame(EmulatorFrame):
             self.launch_early_access_button.configure(text=F"Launch Yuzu EA {self.installed_early_access_version}  ")
         else:
             self.launch_early_access_button.configure(text="Launch Yuzu EA  ")
+        
+        self.installed_firmware_version_label.configure(text=self.installed_firmware_version if self.installed_firmware_version != "" else "Unknown")
+        self.installed_key_version_label.configure(text=self.installed_key_version if self.installed_key_version != "" else "Unknown")
+    
+    def fetch_firmware_and_key_versions(self):
+        class Release:
+            def __init__(self):
+                self.name = None
+                self.download_url = None
+                self.size = None 
+                self.version = None
+                
+        self.firmware_key_version_dict = {
+            "firmware": {},
+            "keys": {}
+        }
+        
+        releases = get_all_releases("https://api.github.com/repos/Viren070/Emulator-Manager-Resources/releases", get_headers(self.settings.app.token))
+        if not all(releases):
+            self.firmware_option_menu_variable.set("Error")
+            self.key_option_menu_variable.set("Error")
+            return 
+        releases = releases[1]
+        for release in releases:
+            if "-ns" not in release["tag_name"]:
+                continue 
+            if not release["assets"]:
+                continue 
+            version = release["name"]
+            assets = release["assets"]
+            
+            
+            key_release = None
+            firmware_release = None
+            
+            for asset in assets:
+                if "Alpha" in asset["name"]:
+                    firmware_release = Release()
+                    firmware_release.name = asset["name"].replace("Alpha","Firmware")
+                    firmware_release.download_url = asset["browser_download_url"]
+                    firmware_release.size = asset["size"]
+                    firmware_release.version = version 
+                elif "Rebootless" not in version and "Beta" in asset["name"]:
+                    key_release = Release()
+                    key_release.name = asset["name"].replace("Beta", "Keys")
+                    key_release.download_url = asset["browser_download_url"]
+                    key_release.size = asset["size"]
+                    key_release.version = version
+            
+            if firmware_release is not None:
+                self.firmware_key_version_dict["firmware"][version] = firmware_release
+            if key_release is not None and "Rebootless" not in version:
+                self.firmware_key_version_dict["keys"][version] = key_release
+            
+        # Extract firmware versions from the self.firmware_key_version_dict
+        firmware_versions = [release.version for release in self.firmware_key_version_dict.get("firmware", {}).values()]
+
+        # Extract key versions from the self.firmware_key_version_dict
+        key_versions = [release.version for release in self.firmware_key_version_dict.get("keys", {}).values()]
+
+        # Sort the versions in descending order (optional)
+        firmware_versions.sort(reverse=True)
+        key_versions.sort(reverse=True)
+
+        if not len(key_versions) == 0:
+            self.key_option_menu_variable.set(key_versions[0])
+            self.key_option_menu.configure(state="normal")
+        else:
+            self.key_option_menu_variable.set("None Found")
+        if not len(firmware_versions) == 0:
+            self.firmware_option_menu_variable.set(firmware_versions[0])
+            self.firmware_option_menu.configure(state="normal")
+        else:
+            self.firmware_option_menu_variable.set("None Found")
+        
+        self.install_firmware_button.configure(state="normal")
+        self.install_keys_button.configure(state="normal")
+        CTkScrollableDropdown(self.firmware_option_menu, width=300, height=200, values=firmware_versions, resize=False, button_height=30)
+        CTkScrollableDropdown(self.key_option_menu, width=300, height=200, values=key_versions, resize=False, button_height=30)
