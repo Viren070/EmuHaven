@@ -37,7 +37,9 @@ class Settings:
             "yuzu_settings": {
                 "user_directory": "",
                 "install_directory": "",
-                "installer_path" : ""
+                "installer_path" : "",
+                "use_yuzu_installer": "",
+                "rom_directory": ""
                 
             },
             "app_settings": {
@@ -57,7 +59,6 @@ class Settings:
                     },
                 "appearance_mode" : "",
                 "colour_theme" : "",
-                "use_yuzu_installer":  "",
                 "delete_files": "",
                 "current_yuzu_channel": "",
                 "ask_firmware": ""
@@ -116,9 +117,7 @@ class Settings:
         for section_name, section_obj in sections.items():
             section_settings = settings[section_name]
             for setting_name, value in section_settings.items():
-                if (setting_name == "export_directory" or setting_name == "auto_import__export_directory") and value!="" and not os.path.exists(os.path.abspath(value)):
-                    os.makedirs(os.path.abspath(value))
-                elif setting_name != "image_paths" and os.path.join("Temp", "_MEI") in os.path.normpath(value):
+                if setting_name != "image_paths" and os.path.join("Temp", "_MEI") in os.path.normpath(value):
                     continue # skip as settings file contains old MEI path.
                 elif setting_name == "image_paths":
                     for _, path in value.items():
@@ -146,16 +145,15 @@ class Settings:
             "yuzu_settings": {
                 "user_directory": self.yuzu.user_directory,
                 "install_directory": self.yuzu.install_directory,
-                "export_directory" : self.yuzu.export_directory,
                 "rom_directory" : self.yuzu.rom_directory,
-                "installer_path" : self.yuzu.installer_path
+                "installer_path" : self.yuzu.installer_path,
+                "use_yuzu_installer":  self.yuzu.use_yuzu_installer,
                 
             },
             "app_settings": {
                 "image_paths": self.get_image_path("all"),
                 "appearance_mode" : self.app.appearance_mode,
                 "colour_theme" : self.app.colour_theme,
-                "use_yuzu_installer":  self.app.use_yuzu_installer,
                 "delete_files" : self.app.delete_files,
                 "current_yuzu_channel": self.app.current_yuzu_channel,
                 "ask_firmware": self.app.ask_firmware

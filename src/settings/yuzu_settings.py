@@ -9,8 +9,10 @@ class YuzuSettings:
         self.default_settings = {
             'user_directory': os.path.join(os.getenv("APPDATA"), "Yuzu"),
             'install_directory': os.path.join(os.getenv("LOCALAPPDATA"), "Yuzu"),
-            'installer_path': os.path.join(self.emulator_file_path, "yuzu_install.exe"),
+            'installer_path': "",
+            'use_yuzu_installer': 'False',
             'rom_directory': os.path.join(os.getcwd(), "ROMS",)
+            
         }
         self._settings = self.default_settings.copy()
         self.app_settings = master.app
@@ -25,6 +27,10 @@ class YuzuSettings:
                 else:
                     os.makedirs(value)
                     setattr(self, name, value)
+                    
+    def _set_property(self, property_name, value):
+        self._settings[property_name] = value
+        
     def _set_directory_property(self, property_name, value):
         if is_path_exists_or_creatable(value):
             self._settings[property_name] = value
@@ -64,3 +70,6 @@ class YuzuSettings:
     
     installer_path = property(lambda self: self._get_property('installer_path'), 
                               lambda self, value: self._set_path_property('installer_path', value))
+    
+    use_yuzu_installer = property(lambda self: self._get_property('use_yuzu_installer'), 
+                                     lambda self, value: self._set_property('use_yuzu_installer', value))

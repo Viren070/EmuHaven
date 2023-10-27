@@ -13,7 +13,7 @@ class YuzuSettingsFrame(customtkinter.CTkFrame):
     def build_frame(self):
         self.grid_columnconfigure(0, weight=1)
         
-        
+        self.use_yuzu_installer_variable = customtkinter.StringVar()
         customtkinter.CTkLabel(self, text="User Directory: ").grid(row=0, column=0, padx=10, pady=10, sticky="w")
         self.user_directory_entry = customtkinter.CTkEntry(self,  width=300)
         self.user_directory_entry.grid(row=0, column=2, padx=10, pady=10, sticky="e")
@@ -38,6 +38,10 @@ class YuzuSettingsFrame(customtkinter.CTkFrame):
         customtkinter.CTkButton(self, text="Browse", width=50, command=lambda entry_widget=self.yuzu_installer_path_entry: self.update_with_explorer(entry_widget, "installer")).grid(row=10, column=3, padx=5, sticky="E")
         ttk.Separator(self, orient='horizontal').grid(row=11, columnspan=4, sticky="ew")
         
+        customtkinter.CTkLabel(self, text="Use Yuzu Installer").grid(row=12, column=0, padx=10, pady=10, sticky="w")
+        customtkinter.CTkCheckBox(self, text="", variable=self.use_yuzu_installer_variable, width=45, onvalue="True", offvalue="False", command=self.change_yuzu_installer_option).grid(row=12, column=3, pady=10, sticky="E")
+        ttk.Separator(self, orient='horizontal').grid(row=13, columnspan=4, sticky="ew")
+        
         self.actions_frame = customtkinter.CTkFrame(self, fg_color="transparent")
         self.actions_frame.grid_columnconfigure(0, weight=1)
         self.actions_frame.grid(row=14,sticky="ew", columnspan=4, padx=10, pady=10)
@@ -50,6 +54,15 @@ class YuzuSettingsFrame(customtkinter.CTkFrame):
             "rom_directory": self.rom_directory_entry,
             "installer_path":  self.yuzu_installer_path_entry
         }
+        
+    def change_yuzu_installer_option(self):
+        value = self.use_yuzu_installer_variable.get()
+        if value == "True" and not os.path.exists(self.settings.yuzu.installer_path):
+            self.use_yuzu_installer_variable.set("False")
+            messagebox.showerror("Yuzu Installer", "Please ensure you have set the path to the yuzu installer in the settings before attempting to enable this option")
+            return
+        self.settings.app.use_yuzu_installer = self.use_yuzu_installer_variable.get()
+        self.settings.update_file()
     def update_entry_widgets(self):
         for setting_name, entry_widget in self.matching_dict.items():
             entry_widget.delete(0, 'end')

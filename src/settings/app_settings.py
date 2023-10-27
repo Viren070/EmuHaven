@@ -13,7 +13,6 @@ class AppSettings:
         self.default_settings = {
             'colour_theme': "dark-blue",
             'appearance_mode': "dark",
-            'use_yuzu_installer': "False",
             'current_yuzu_channel': 'Mainline',
             'delete_files': 'True', 
             'ask_firmware': 'True',
@@ -38,9 +37,6 @@ class AppSettings:
     
     appearance_mode = property(lambda self: self._get_property('appearance_mode'), 
                                  lambda self, value: self._set_property('appearance_mode', value))
-    
-    use_yuzu_installer = property(lambda self: self._get_property('use_yuzu_installer'), 
-                                     lambda self, value: self._set_property('use_yuzu_installer', value))
    
     current_yuzu_channel = property(lambda self: self._get_property('current_yuzu_channel'), 
                                      lambda self, value: self._set_property('current_yuzu_channel', value))

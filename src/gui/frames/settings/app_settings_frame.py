@@ -46,10 +46,6 @@ class AppSettingsFrame(customtkinter.CTkFrame):
         customtkinter.CTkOptionMenu(self, variable=self.colour_theme_variable, values=colour_themes, command=self.change_colour_theme).grid(row=2, column=2, padx=10, pady=10, sticky="e")
         ttk.Separator(self, orient='horizontal').grid(row=3, columnspan=4, sticky="ew") 
         
-        customtkinter.CTkLabel(self, text="Use Yuzu Installer").grid(row=6, column=0, padx=10, pady=10, sticky="w")
-        customtkinter.CTkCheckBox(self, text="", variable=self.use_yuzu_installer_variable, onvalue="True", offvalue="False", command=self.change_yuzu_installer_option).grid(row=6, column=2, padx=(100,0), pady=10, sticky="we")
-        ttk.Separator(self, orient='horizontal').grid(row=7, columnspan=4, sticky="ew")
-        
         customtkinter.CTkLabel(self, text="Delete Files after installing").grid(row=8, column=0, padx=10, pady=10, sticky="w")
         customtkinter.CTkCheckBox(self, text="", variable=self.delete_files_variable, onvalue="True", offvalue="False", command=self.change_delete_files_option).grid(row=8, column=2, padx=(100,0), pady=10, sticky="ew")
         ttk.Separator(self, orient="horizontal").grid(row=9, columnspan=4, sticky="ew")
@@ -117,14 +113,7 @@ class AppSettingsFrame(customtkinter.CTkFrame):
         customtkinter.set_appearance_mode(mode.lower()) # change appearance mode using customtkinters function 
         self.settings.app.appearance_mode = mode.lower()
         self.update_settings()   # update settings.json if change was through settings menu
-    def change_yuzu_installer_option(self):
-        value = self.use_yuzu_installer_variable.get()
-        if value == "True" and not os.path.exists(self.settings.yuzu.installer_path):
-            self.use_yuzu_installer_variable.set("False")
-            messagebox.showerror("Yuzu Installer", "Please ensure you have set the path to the yuzu installer in the settings before attempting to enable this option")
-            return
-        self.settings.app.use_yuzu_installer = self.use_yuzu_installer_variable.get()
-        self.update_settings()
+
     def change_default_yuzu_channel(self, value):
         self.settings.app.default_yuzu_channel = value
         self.update_settings()
