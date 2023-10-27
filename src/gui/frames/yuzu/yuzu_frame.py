@@ -448,7 +448,7 @@ class YuzuFrame(EmulatorFrame):
             "keys": {}
         }
         
-        releases = get_all_releases("https://api.github.com/repos/Viren070/Emulator-Manager-Resources/releases", get_headers(self.settings.app.token))
+        releases = get_all_releases("https://api.github.com/repos/Viren070/Emulator-Manager-Resources/releases?per_page=100", get_headers(self.settings.app.token))
         if not all(releases):
             self.firmware_option_menu_variable.set("Error")
             self.key_option_menu_variable.set("Error")
@@ -461,7 +461,6 @@ class YuzuFrame(EmulatorFrame):
                 continue 
             version = release["name"]
             assets = release["assets"]
-            
             
             key_release = None
             firmware_release = None
