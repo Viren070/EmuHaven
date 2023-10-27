@@ -9,12 +9,12 @@ class YuzuSettings:
         self.default_settings = {
             'user_directory': os.path.join(os.getenv("APPDATA"), "Yuzu"),
             'install_directory': os.path.join(os.getenv("LOCALAPPDATA"), "Yuzu"),
-            'export_directory': os.path.join(os.getcwd(), "User Data","Yuzu"),
             'installer_path': os.path.join(self.emulator_file_path, "yuzu_install.exe"),
             'rom_directory': os.path.join(os.getcwd(), "ROMS",)
         }
         self._settings = self.default_settings.copy()
         self.app_settings = master.app
+        self.refresh_app_settings = sum
     def restore_default(self):
         for name, value in self.default_settings.items():
             try:
@@ -59,8 +59,6 @@ class YuzuSettings:
     install_directory = property(lambda self: self._get_property('install_directory'), 
                                  lambda self, value: self._set_directory_property('install_directory', value))
     
-    export_directory = property(lambda self: self._get_property('export_directory'), 
-                                lambda self, value: self._set_directory_property('export_directory', value))
     rom_directory = property(lambda self: self._get_property('rom_directory'), 
                                 lambda self, value: self._set_directory_property('rom_directory', value))
     

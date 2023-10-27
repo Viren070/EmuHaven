@@ -31,14 +31,12 @@ class Settings:
             "dolphin_settings": {
                 "user_directory": "",
                 "install_directory": "",
-                "export_directory": "",
                 "rom_directory": ""
                 
             },
             "yuzu_settings": {
                 "user_directory": "",
                 "install_directory": "",
-                "export_directory" : "",
                 "installer_path" : ""
                 
             },
@@ -142,7 +140,6 @@ class Settings:
             "dolphin_settings": {
                 "user_directory": self.dolphin.user_directory,
                 "install_directory": self.dolphin.install_directory,
-                "export_directory": self.dolphin.export_directory,
                 "rom_directory": self.dolphin.rom_directory
                 
             },
