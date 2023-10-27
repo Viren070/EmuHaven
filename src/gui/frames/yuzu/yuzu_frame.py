@@ -120,7 +120,7 @@ class YuzuFrame(EmulatorFrame):
         self.firmware_option_menu.grid(row=0, column=2, padx=10, pady=5, sticky="w")
         
 
-        self.install_firmware_button = customtkinter.CTkButton(firmware_keys_frame, text="Download", width=100, command=self.install_firmware_button_event)
+        self.install_firmware_button = customtkinter.CTkButton(firmware_keys_frame, text="Install", width=100, command=self.install_firmware_button_event)
         self.install_firmware_button.bind("<Button-1>", command=self.install_firmware_button_event)
         self.install_firmware_button.grid(row=0, column=3, padx=10, pady=5, sticky="w")
 
@@ -134,7 +134,7 @@ class YuzuFrame(EmulatorFrame):
         self.key_option_menu.grid(row=1, column=2, padx=10, pady=5, sticky="w")
        
 
-        self.install_keys_button = customtkinter.CTkButton(firmware_keys_frame, text="Download", width=100, command=self.install_keys_button_event)
+        self.install_keys_button = customtkinter.CTkButton(firmware_keys_frame, text="Install", width=100, command=self.install_keys_button_event)
         self.install_keys_button.bind("<Button-1>", command=self.install_keys_button_event)
         self.install_keys_button.grid(row=1, column=3, padx=10, pady=5, sticky="w")
 
