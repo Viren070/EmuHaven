@@ -173,13 +173,11 @@ class Yuzu:
         self.running = False
         
     def verify_and_install_firmware_keys(self):
-        if not switch_emu.check_current_keys(os.path.join(self.settings.yuzu.user_directory, "keys", "prod.keys")) and messagebox.askyesno("Missing Keys", "It seems you are missing the switch decryption keys. These keys are required to emulate games. Would you like to install them?"):
-            self.install_key_handler()
+        if not switch_emu.check_current_keys(os.path.join(self.settings.yuzu.user_directory, "keys", "prod.keys")):
+            messagebox.showwarning("Missing Keys", "It seems you are missing the switch decryption keys. These keys are required to emulate games. Please install them using the download button below")
         
         if self.settings.app.ask_firmware != "False" and not switch_emu.check_current_firmware(os.path.join(self.settings.yuzu.user_directory, "nand", "system", "Contents", "registered")):
-            if messagebox.askyesno("Firmware Missing", "It seems you are missing the switch firmware files. Without these files, some games may not run. Would you like to install the firmware now? If you select no, then you will not be asked again."):
-                self.install_firmware_handler()
-            else:
+            if not messagebox.askyesno("Firmware Missing", "It seems you are missing the switch firmware files. Without these files, some games may not run. You can install the firmware using the buttons below. Press Yes to remind you later or No to never ask again."):
                 self.settings.app.ask_firmware = "False"
             
 
