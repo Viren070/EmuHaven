@@ -11,55 +11,30 @@ from gui.frames.progress_frame import ProgressFrame
 from gui.frames.yuzu.yuzu_rom_frame import YuzuROMFrame
 from gui.windows.path_dialog import PathDialog
 from utils.requests_utils import get_headers, get_resources_release
+from gui.frames.emulator_frame import EmulatorFrame
 
-
-class YuzuFrame(customtkinter.CTkFrame):
+class YuzuFrame(EmulatorFrame):
     def __init__(self, parent_frame, settings, metadata):
-        super().__init__(parent_frame,  corner_radius=0, bg_color="transparent")
-        self.settings = settings
-        self.metadata = metadata
+        super().__init__(parent_frame, settings, metadata)
         self.yuzu = Yuzu(self, settings, metadata)
         self.mainline_version = None 
         self.early_access_version = None 
         self.firmware_keys_version = None
         self.installed_mainline_version = ""
         self.installed_early_access_version = ""
-        self.build_frame()
-    def build_frame(self):
+        self.add_to_frame()
+    def add_to_frame(self):
         self.play_image = customtkinter.CTkImage(light_image=Image.open(self.settings.get_image_path("play_light")),
                                                      dark_image=Image.open(self.settings.get_image_path("play_dark")), size=(20, 20))
         self.yuzu_mainline = customtkinter.CTkImage(Image.open(self.settings.get_image_path("yuzu_mainline")), size=(276, 129))
         self.yuzu_early_access = customtkinter.CTkImage(Image.open(self.settings.get_image_path("yuzu_early_access")), size=(276, 129))
-        
-        self.grid_columnconfigure(1, weight=1)
-        self.grid_rowconfigure(0, weight=1)
-        # create yuzu navigation frame
-        self.yuzu_navigation_frame = customtkinter.CTkFrame(self, corner_radius=0, width=20, border_width=2, border_color=("white","black"))
-        self.yuzu_navigation_frame.grid(row=0, column=0, sticky="nsew")
-        self.yuzu_navigation_frame.grid_rowconfigure(5, weight=1)
-        # create yuzu menu buttons
-        self.yuzu_start_button = customtkinter.CTkButton(self.yuzu_navigation_frame, corner_radius=0, width=100, height=25, image = self.play_image, border_spacing=10, text="Play",
-                                                   fg_color="transparent", text_color=("gray10", "gray90"),
-                                                   anchor="w", command=self.yuzu_start_button_event)
-        self.yuzu_start_button.grid(row=1, column=0, sticky="ew", padx=2, pady=(2,0))
 
-        self.yuzu_manage_data_button = customtkinter.CTkButton(self.yuzu_navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Manage Data",
-                                                   fg_color="transparent", text_color=("gray10", "gray90"),
-                                                   anchor="w", command=self.yuzu_manage_data_button_event)
-        self.yuzu_manage_data_button.grid(row=2, column=0, padx=2, sticky="ew")
-        
-        self.manage_roms_button = customtkinter.CTkButton(self.yuzu_navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Manage ROMs",
-                                                   fg_color="transparent", text_color=("gray10", "gray90"),
-                                                   anchor="w", command=self.manage_roms_button_event)
-        self.manage_roms_button.grid(row=3, column=0, padx=2, sticky="ew")
-        
-        
         # create yuzu 'Play' frame and widgets
-        self.yuzu_start_frame = customtkinter.CTkFrame(self, corner_radius=0, border_width=0)
-        self.yuzu_start_frame.grid_columnconfigure(0, weight=1)
-        self.yuzu_start_frame.grid_rowconfigure(0, weight=1)
+        self.start_frame = customtkinter.CTkFrame(self, corner_radius=0, border_width=0)
+        self.start_frame.grid_columnconfigure(0, weight=1)
+        self.start_frame.grid_rowconfigure(0, weight=1)
         
-        self.center_frame = customtkinter.CTkFrame(self.yuzu_start_frame, border_width=0)
+        self.center_frame = customtkinter.CTkFrame(self.start_frame, border_width=0)
         self.center_frame.grid(row=0, column=0, sticky="nsew")
         #self.center_frame.grid_propagate(False)
         self.center_frame.grid_columnconfigure(0, weight=1)
@@ -142,12 +117,12 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.yuzu_log_frame.grid_columnconfigure(0, weight=3)
         self.yuzu.main_progress_frame = ProgressFrame(self.yuzu_log_frame)
         # create yuzu 'Manage Data' frame and widgets
-        self.yuzu_manage_data_frame = customtkinter.CTkFrame(self, corner_radius=0, bg_color="transparent")
-        self.yuzu_manage_data_frame.grid_columnconfigure(0, weight=1)
-        self.yuzu_manage_data_frame.grid_columnconfigure(1, weight=1)
-        self.yuzu_manage_data_frame.grid_rowconfigure(0, weight=1)
-        self.yuzu_manage_data_frame.grid_rowconfigure(1, weight=2)
-        self.yuzu_data_actions_frame = customtkinter.CTkFrame(self.yuzu_manage_data_frame, height=150)
+        self.manage_data_frame = customtkinter.CTkFrame(self, corner_radius=0, bg_color="transparent")
+        self.manage_data_frame.grid_columnconfigure(0, weight=1)
+        self.manage_data_frame.grid_columnconfigure(1, weight=1)
+        self.manage_data_frame.grid_rowconfigure(0, weight=1)
+        self.manage_data_frame.grid_rowconfigure(1, weight=2)
+        self.yuzu_data_actions_frame = customtkinter.CTkFrame(self.manage_data_frame, height=150)
         self.yuzu_data_actions_frame.grid(row=0, column=0, padx=20, columnspan=3, pady=20, sticky="ew")
         self.yuzu_data_actions_frame.grid_columnconfigure(1, weight=1)
 
@@ -166,7 +141,7 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.yuzu_delete_optionmenu.grid(row=2, column=0, padx=10, pady=10, sticky="w")
         self.yuzu_delete_button.grid(row=2, column=1, padx=10, pady=10, sticky="e")
 
-        self.yuzu_data_log = customtkinter.CTkFrame(self.yuzu_manage_data_frame) 
+        self.yuzu_data_log = customtkinter.CTkFrame(self.manage_data_frame) 
         self.yuzu_data_log.grid(row=1, column=0, padx=20, pady=20, columnspan=3, sticky="new")
         self.yuzu_data_log.grid_columnconfigure(0, weight=1)
         self.yuzu_data_log.grid_rowconfigure(1, weight=1)
@@ -184,7 +159,7 @@ class YuzuFrame(customtkinter.CTkFrame):
         self.rom_frame = YuzuROMFrame(self.manage_roms_frame, self.yuzu, self.settings)
         self.rom_frame.grid(row=0, column=0,  padx=20, pady=20, sticky="nsew")
     
-        Thread(target=self.fetch_versions, args=(False,)).start()
+        # Thread(target=self.fetch_versions, args=(False,)).start()
     def configure_data_buttons(self, **kwargs):
         self.yuzu_delete_button.configure(**kwargs)
         self.yuzu_import_button.configure(**kwargs)
@@ -200,29 +175,7 @@ class YuzuFrame(customtkinter.CTkFrame):
     def configure_firmware_key_buttons(self, state):
         self.install_firmware_button.configure(state=state)
         self.install_keys_button.configure(state=state)
-    def yuzu_start_button_event(self):
-        self.select_yuzu_frame_by_name("start")
-    def yuzu_manage_data_button_event(self):
-        self.select_yuzu_frame_by_name("data")
-    def manage_roms_button_event(self):
-        self.select_yuzu_frame_by_name("roms")
-
-    def select_yuzu_frame_by_name(self, name):
-        self.yuzu_start_button.configure(fg_color=self.yuzu_start_button.cget("hover_color") if name == "start" else "transparent")
-        self.yuzu_manage_data_button.configure(fg_color=self.yuzu_manage_data_button.cget("hover_color") if name == "data" else "transparent")
-        self.manage_roms_button.configure(fg_color=self.manage_roms_button.cget("hover_color") if name == "roms" else "transparent")    
-        if name == "start":
-            self.yuzu_start_frame.grid(row=0, column=1, sticky="nsew" )
-        else:
-            self.yuzu_start_frame.grid_forget()
-        if name == "data":
-            self.yuzu_manage_data_frame.grid(row=0, column=1, sticky="nsew")
-        else:
-            self.yuzu_manage_data_frame.grid_forget()
-        if name == "roms":
-            self.manage_roms_frame.grid(row=0, column=1, sticky="nsew")
-        else:
-            self.manage_roms_frame.grid_forget()
+        
     def switch_channel(self, value=None):
         value=self.selected_channel.get()
         if value == "Mainline":
