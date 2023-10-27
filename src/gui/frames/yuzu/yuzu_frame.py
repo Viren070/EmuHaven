@@ -493,10 +493,6 @@ class YuzuFrame(EmulatorFrame):
         # Extract key versions from the self.firmware_key_version_dict
         key_versions = [release.version for release in self.firmware_key_version_dict.get("keys", {}).values()]
 
-        # Sort the versions in descending order (optional)
-        firmware_versions.sort(reverse=True)
-        key_versions.sort(reverse=True)
-
         if not len(key_versions) == 0:
             self.key_option_menu_variable.set(key_versions[0])
             self.key_option_menu.configure(state="normal")
