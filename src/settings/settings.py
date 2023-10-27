@@ -22,7 +22,7 @@ class Settings:
         else:
             self.load()
                     
-        self.define_image_paths(os.path.join(root_dir, "images"))
+        self.define_image_paths(os.path.join(root_dir, "assets", "images"))
         self.update_file()
     def create_settings_file(self):
         settings_template = { 
