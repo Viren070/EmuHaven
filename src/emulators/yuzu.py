@@ -194,7 +194,7 @@ class Yuzu:
                     messagebox.showerror("Download Error", firmware_path[1])
                 return False
             firmware_path = firmware_path[1] 
-            version = os.path.basename(firmware_path).split(" ")[-1].replace(".zip", "")
+            version = release.version
         elif mode == "path" and not switch_emu.verify_firmware_archive(path_or_release):
             messagebox.showerror("Error", "The firmware archive you have provided is invalid")
             return 
@@ -246,7 +246,7 @@ class Yuzu:
                     messagebox.showerror("Download Error", key_path[1])
                 return False
             key_path = key_path[1] 
-            version = os.path.basename(key_path).split(" ")[-1].replace(".zip","")
+            version = release.version
             
         elif not switch_emu.verify_key_archive(path_or_release):
             messagebox.showerror("Error", "The key archive you have provided is invalid")
