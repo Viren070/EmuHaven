@@ -140,35 +140,41 @@ class Dolphin:
         extracted = True
 
         
-        os.makedirs(self.settings.dolphin.install_directory, exist_ok=True)
-        with py7zr.SevenZipFile(release_archive, mode="r") as archive:
-            archive.extractall(path=self.settings.dolphin.install_directory)
-        parent_folder = self.settings.dolphin.install_directory
-        subfolder = os.path.join(self.settings.dolphin.install_directory, "Dolphin-x64")
-
-        contents = os.listdir(subfolder)
-
-
-        for item in contents:
-            item_path = os.path.join(subfolder, item)
-            destination_path = os.path.join(parent_folder, item)
-            shutil.move(item_path, destination_path)
-
-
-        os.rmdir(subfolder)
-        extracted_files = os.listdir(self.settings.dolphin.install_directory)
-        self.main_progress_frame.update_extraction_progress(1)
+        try:
             
-        self.main_progress_frame.grid_forget()
-        if extracted:
-            return (True, extracted_files)
-        else:
-            return (False, "Cancelled")
-        '''
+            if os.listdir(self.settings.dolphin.install_directory):
+                self.main_progress_frame.update_status_label("Deleting old installation...")
+                shutil.rmtree(self.settings.dolphin.install_directory)
+            os.makedirs(self.settings.dolphin.install_directory, exist_ok=True)
+            self.main_progress_frame.update_status_label("Extracting (Unable to show progress)...")
+            with py7zr.SevenZipFile(release_archive, mode="r") as archive:
+                archive.extractall(path=self.settings.dolphin.install_directory)
+            parent_folder = self.settings.dolphin.install_directory
+            subfolder = os.path.join(self.settings.dolphin.install_directory, "Dolphin-x64")
+
+            contents = os.listdir(subfolder)
+
+
+            for item in contents:
+                item_path = os.path.join(subfolder, item)
+                destination_path = os.path.join(parent_folder, item)
+                shutil.move(item_path, destination_path)
+
+
+            os.rmdir(subfolder)
+            extracted_files = os.listdir(self.settings.dolphin.install_directory)
+            self.main_progress_frame.update_extraction_progress(1)
+                
+            self.main_progress_frame.grid_forget()
+            if extracted:
+                return (True, extracted_files)
+            else:
+                return (False, "Cancelled")
+    
         except Exception as error:
             self.main_progress_frame.grid_forget()
             return (False, error)
-        '''
+
     def extract_zip_archive(self, release_archive):
         self.main_progress_frame.start_download(f"{os.path.basename(release_archive).replace(".zip", "")}", 0)
         self.main_progress_frame.complete_download()
