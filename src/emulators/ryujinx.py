@@ -269,7 +269,7 @@ class Ryujinx:
     
 
         
-    def export_yuzu_data(self, mode, directory_to_export_to):
+    def export_ryujinx_data(self, mode, directory_to_export_to):
         user_directory = self.settings.ryujinx.user_directory
         
         if not os.path.exists(user_directory):
@@ -285,7 +285,7 @@ class Ryujinx:
             copy_directory_with_progress(user_directory, directory_to_export_to, "Exporting All Ryujinx Data", self.data_progress_frame, ["bis", "system"])
         else:
             messagebox.showerror("Error", f"An unexpected error has occured, {mode} is an invalid option.")
-    def import_yuzu_data(self, mode, directory_to_import_from):
+    def import_ryujinx_data(self, mode, directory_to_import_from):
         user_directory = self.settings.ryujinx.user_directory
         if not os.path.exists(directory_to_import_from):
             messagebox.showerror("Missing Folder", "No yuzu data associated with your username found")
@@ -299,7 +299,7 @@ class Ryujinx:
             copy_directory_with_progress(directory_to_import_from, user_directory, "Import All Ryujinx Data", self.data_progress_frame, ["bis", "system"])
         else:
             messagebox.showerror("Error", f"An unexpected error has occured, {mode} is an invalid option.")
-    def delete_yuzu_data(self, mode):
+    def delete_ryujinx_data(self, mode):
         result = ""
 
         user_directory = self.settings.ryujinx.user_directory
