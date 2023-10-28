@@ -41,6 +41,7 @@ class EmulatorManager(customtkinter.CTk):
             
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
         Thread(target=self.yuzu_frame.fetch_versions, args=(False,)).start()
+        Thread(target=self.dolphin_frame.fetch_versions, args=(False,)).start()
         self.mainloop()
     def define_images(self):
         self.dolphin_logo = customtkinter.CTkImage(Image.open(self.settings.get_image_path("dolphin_logo")), size=(26, 26))

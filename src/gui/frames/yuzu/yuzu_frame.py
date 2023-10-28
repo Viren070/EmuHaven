@@ -142,7 +142,7 @@ class YuzuFrame(EmulatorFrame):
         
         self.early_access_actions_frame.grid_propagate(False)
         self.mainline_actions_frame.grid_propagate(False)
-        self.selected_channel.set(self.settings.app.current_yuzu_channel)
+        self.selected_channel.set(self.settings.yuzu.current_yuzu_channel)
         self.switch_channel()
         
         self.manage_roms_frame = customtkinter.CTkFrame(self, corner_radius = 0, bg_color = "transparent")
@@ -166,7 +166,7 @@ class YuzuFrame(EmulatorFrame):
         
     def switch_channel(self, value=None):
         value=self.selected_channel.get()
-        self.settings.app.current_yuzu_channel = value
+        self.settings.yuzu.current_yuzu_channel = value
         self.settings.update_file()
         if value == "Mainline":
             self.image_button.configure(image=self.mainline_image)
@@ -322,8 +322,7 @@ class YuzuFrame(EmulatorFrame):
                 self.firmware_keys_frame.configure_firmware_key_buttons("normal")
             elif button == "data":
                 self.configure_data_buttons(state="normal")
-        Thread(target=self.fetch_versions).start()
-        self.update_version_text()
+        self.fetch_versions()
     def fetch_versions(self, installed_only=True):
         if not installed_only:
             self.firmware_keys_frame.fetch_firmware_and_key_versions()

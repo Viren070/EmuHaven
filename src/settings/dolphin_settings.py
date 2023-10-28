@@ -9,7 +9,8 @@ class DolphinSettings:
         self.default_settings = {
             'user_directory': (os.path.join(os.getenv("APPDATA"), "Dolphin Emulator")),
             'install_directory': (os.path.join(os.getenv("LOCALAPPDATA"), "Dolphin Emulator")),
-            'rom_directory': os.path.join(os.getcwd(), "ROMS", "Dolphin")
+            'rom_directory': os.path.join(os.getcwd(), "ROMS", "Dolphin"),
+            'current_channel': "beta"
         }
         self._settings = self.default_settings.copy()
 
@@ -29,6 +30,9 @@ class DolphinSettings:
         else:
             raise ValueError(f"{property_name.replace('__','/').replace('_',' ').title()} - Invalid Path: {(value)}")
    
+    def _set_property(self, property_name, value):
+        self._settings[property_name] = value
+        
     def _get_property(self, property_name):
         return self._settings[property_name]
     
@@ -40,5 +44,6 @@ class DolphinSettings:
 
     rom_directory = property(lambda self: self._get_property('rom_directory'), 
                                 lambda self, value: self._set_directory_property('rom_directory', value))
-    
+    current_channel = property(lambda self: self._get_property('current_channel'), 
+                                lambda self, value: self._set_property('current_channel', value))
    

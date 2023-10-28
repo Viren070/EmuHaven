@@ -13,7 +13,6 @@ class AppSettings:
         self.default_settings = {
             'colour_theme': "dark-blue",
             'appearance_mode': "dark",
-            'current_yuzu_channel': 'Mainline',
             'delete_files': 'True', 
             'ask_firmware': 'True',
             'token': ''
@@ -37,9 +36,6 @@ class AppSettings:
     
     appearance_mode = property(lambda self: self._get_property('appearance_mode'), 
                                  lambda self, value: self._set_property('appearance_mode', value))
-   
-    current_yuzu_channel = property(lambda self: self._get_property('current_yuzu_channel'), 
-                                     lambda self, value: self._set_property('current_yuzu_channel', value))
     delete_files = property(lambda self: self._get_property('delete_files'), 
                                      lambda self, value: self._set_property('delete_files', value))
     ask_firmware = property(lambda self: self._get_property('ask_firmware'), 

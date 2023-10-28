@@ -30,7 +30,7 @@ class AppSettingsFrame(customtkinter.CTkFrame):
         self.appearance_mode_variable = customtkinter.StringVar()
         self.colour_theme_variable = customtkinter.StringVar()
         self.use_yuzu_installer_variable = customtkinter.StringVar()
-        self.use_yuzu_installer_variable.set(self.settings.app.use_yuzu_installer)
+        self.use_yuzu_installer_variable.set(self.settings.yuzu.use_yuzu_installer)
         self.appearance_mode_variable.set(self._get_appearance_mode().title())
         self.colour_theme_variable.set(os.path.basename(customtkinter.ThemeManager._currently_loaded_theme).replace("-"," ").replace(".json", "").title())
         self.delete_files_variable = customtkinter.StringVar()

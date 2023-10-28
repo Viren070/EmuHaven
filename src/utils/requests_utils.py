@@ -91,7 +91,7 @@ def get_resources_release(file, headers=None):
     release = get_release_from_assets(assets, query)
     return (True, release)
     
-def get_file_links_from_page(url, file_ext=None, headers=None):
+def get_file_links_from_page(url, file_ext, headers=None):
     if headers is None:
         headers = DEFAULT_HEADER
 
@@ -105,7 +105,7 @@ def get_file_links_from_page(url, file_ext=None, headers=None):
     for link in links:
         href = link.get('href')
         if (file_ext is None) or (href.endswith(file_ext) and href not in [file.url for file in files]):
-            filename=re.sub('<[^>]+>', '', str(link)).replace("&amp;", "&")
+            filename=link['href'].split('/')[-1].split(file_ext)[-2] 
             result=urlparse(href)
             if all([result.scheme, result.netloc]):
                 file_url = href
@@ -116,5 +116,3 @@ def get_file_links_from_page(url, file_ext=None, headers=None):
                     continue
             files.append(File(file_url, filename))
     return (True, files)
-    
-            
