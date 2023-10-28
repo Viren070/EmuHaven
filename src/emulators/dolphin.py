@@ -68,8 +68,7 @@ class Dolphin:
             return 
         extract_result = self.extract_release(release_archive)
         if path_to_archive is None and self.settings.app.delete_files == "True":
-            pass
-            #os.remove(release_archive)
+            os.remove(release_archive)
         if not all(extract_result):
             if extract_result[1]!="Cancelled":
                 messagebox.showerror("Extract Error", f"An error occurred while extracting the release: \n\n{extract_result[1]}")
