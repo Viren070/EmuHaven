@@ -91,7 +91,9 @@ def get_resources_release(file, headers=None):
     release = get_release_from_assets(assets, query)
     return (True, release)
     
-def get_file_links_from_page(url, file_ext=None, headers=DEFAULT_HEADER):
+def get_file_links_from_page(url, file_ext=None, headers=None):
+    if headers is None:
+        headers = DEFAULT_HEADER
 
     response_result = create_get_connection(url, headers=headers, timeout=30)
     if not all(response_result):
