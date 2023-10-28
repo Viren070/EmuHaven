@@ -9,22 +9,21 @@
 ## For 0.12
 
 - [x] Make menubar on LHS scrollable 
-- [ ] add console name if possible for each emulator
 - [x] Don't update text to include version if text has been altered
 - [x] Move `Use Yuzu Installer` setting to yuzu settings
 - [x] Redesign firmware and key install section and add dropdown menu to select version and show installed version
 - [x] Rewrite or delete firmware downloader
-- [ ] Use Dolphin website for dolphin downloads and add ability to switch from beta and development channels.
-- [ ] More accurate download speed by averaging across set amount of intervals and not since starting time
+- [x] Use Dolphin website for dolphin downloads and add ability to switch from beta and development channels.
 - [x] factor out common switch emulator functions from yuzu into switch emulator 
 - [x] Write firmware and key version to metadata
-- [ ] Add Ryujinx Support 
-    - [ ] Add ryujinx.py 
-    - [ ] Add ryujinx_frame.py
-    - [ ] Add ryujinx_settings_frame.py
-    - [ ] Add ryujinx_settings.py 
+- [x] Add Ryujinx Support 
+    - [x] Add ryujinx.py 
+    - [x] Add ryujinx_frame.py
+    - [x] Add ryujinx_settings_frame.py
+    - [x] Add ryujinx_settings.py 
     
 - [x] Add base EmulatorFrame class that all other emulator_frame classes inherit from.
+- [ ] More accurate download speed by averaging across set amount of intervals and not since starting time
 
 
 ## other 
