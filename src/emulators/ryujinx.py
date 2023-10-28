@@ -185,7 +185,10 @@ class Ryujinx:
         result = result[1]
         if mode == "release": 
             if self.settings.app.delete_files == "True" and os.path.exists(firmware_path):
-                os.remove(firmware_path)
+                try:
+                    os.remove(firmware_path)
+                except PermissionError as error:
+                    messagebox.showerror("Error", f"Failed to delete firmware archive due to error below \n\n{error}")
             self.metadata.update_installed_version("ryujinx_firmware", version)
         if result:
             messagebox.showwarning("Unexpected Files" , f"These files were skipped in the extraction process: {result}")
