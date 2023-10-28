@@ -15,7 +15,8 @@ class DolphinFrame(EmulatorFrame):
     def __init__(self, parent_frame, settings, metadata):
         super().__init__(parent_frame, settings, metadata)
         self.dolphin = Dolphin(self, settings, metadata)
-        
+        self.dolphin_version = None 
+        self.installed_dolphin_version = None
         self.add_to_frame()
     def add_to_frame(self):
         self.dolphin_banner =  customtkinter.CTkImage(light_image=Image.open(self.settings.get_image_path("dolphin_banner_light")),
@@ -38,6 +39,11 @@ class DolphinFrame(EmulatorFrame):
         self.center_frame.grid_rowconfigure(1, weight=1)
         self.center_frame.grid_rowconfigure(2, weight=1)
         self.center_frame.grid_rowconfigure(3, weight=2)
+        
+        self.selected_channel = customtkinter.StringVar()
+        self.selected_channel.set(self.settings.dolphin.current_channel.title())
+        self.channel_optionmenu = customtkinter.CTkOptionMenu(self.center_frame, variable=self.selected_channel, command=self.switch_channel, values=["Beta", "Development"])
+        self.channel_optionmenu.grid(row=0, column=0, padx=10, pady=20, sticky="ne")
         
         self.image_button = customtkinter.CTkButton(self.center_frame, text="", fg_color='transparent', hover=False, bg_color='transparent', border_width=0, image=self.dolphin_banner)
         self.image_button.grid(row=0, column=0, columnspan=3, sticky="n", padx=10, pady=20)
@@ -106,6 +112,10 @@ class DolphinFrame(EmulatorFrame):
         self.rom_frame = DolphinROMFrame(self.manage_roms_frame, self.dolphin, self.settings)
         self.rom_frame.grid(row=0, column=0,  padx=20, pady=20, sticky="nsew")
     
+    def switch_channel(self, *args):
+        value = self.selected_channel.get()
+        self.settings.dolphin.current_channel = value.lower()
+        self.settings.update_file()
     def configure_data_buttons(self, **kwargs):
         self.dolphin_delete_button.configure(**kwargs)
         self.dolphin_import_button.configure(**kwargs)
@@ -124,7 +134,7 @@ class DolphinFrame(EmulatorFrame):
             return 
         self.configure_buttons("disabled", text="Launching...")
         shift_clicked = True if event.state & 1 else False
-        thread = Thread(target=self.dolphin.launch_dolphin_handler, args=(shift_clicked, ))
+        thread = Thread(target=self.dolphin.launch_dolphin_handler, args=(self.selected_channel.get().lower(), shift_clicked,))
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["main"])).start()
 
@@ -133,17 +143,20 @@ class DolphinFrame(EmulatorFrame):
             return 
         if os.path.exists(os.path.join(self.settings.dolphin.install_directory, "Dolphin.exe")) and not messagebox.askyesno("Confirmation", "Dolphin seems to already be installed, install anyways?"):
             return 
-        path_to_archive = None
+        
         if event.state & 1:
-            path_to_archive = PathDialog(filetypes=(".zip",), title="Custom Dolphin Archive", text="Type path to Dolphin Archive: ")
+            path_to_archive = PathDialog(filetypes=(".zip", ".7z", ), title="Custom Dolphin Archive", text="Type path to Dolphin Archive: ")
             path_to_archive = path_to_archive.get_input()
             if not all(path_to_archive):
                 if path_to_archive[1] is not None:
                     messagebox.showerror("Error", "The path you have provided is invalid")
                 return 
             path_to_archive = path_to_archive[1]
+            args = (None, path_to_archive, )
+        else:
+            args = (self.selected_channel.get().lower(), None)
         self.configure_buttons("disabled")
-        thread = Thread(target=self.dolphin.install_dolphin_handler, args=(False, path_to_archive, ))
+        thread = Thread(target=self.dolphin.install_dolphin_handler, args=args)
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["main"], )).start()
     def delete_dolphin_button_event(self):
@@ -197,7 +210,31 @@ class DolphinFrame(EmulatorFrame):
                 self.configure_buttons("normal", text="Launch Dolphin  ", width=170)
             elif button == "data":
                 self.configure_data_buttons(state="normal")
+        self.fetch_versions()
     
         
             
     
+    def fetch_versions(self, installed_only=True):
+        if not installed_only:
+            
+            dolphin_release = self.dolphin.get_dolphin_release(self.selected_channel.get().lower())
+            
+            if not all(dolphin_release):
+                return 
+            self.dolphin_version = dolphin_release[1].version
+            
+        self.installed_dolphin_version = self.metadata.get_installed_version("dolphin")
+      
+        self.update_version_text()
+        
+    def update_version_text(self):
+
+        if self.dolphin is not None and self.install_dolphin_button.cget("state") != "disabled":
+            self.install_dolphin_button.configure(text=f"Install Dolphin {self.dolphin_version}")
+        if self.installed_dolphin_version != "":
+            if self.launch_dolphin_button.cget("state") != "disabled":
+                self.launch_dolphin_button.configure(text=f"Launch Dolphin {self.installed_dolphin_version}  ")
+        else:
+            self.launch_dolphin_button.configure(text="Launch Dolphin  ")
+      

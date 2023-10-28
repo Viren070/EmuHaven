@@ -11,11 +11,11 @@ class YuzuSettings:
             'install_directory': os.path.join(os.getenv("LOCALAPPDATA"), "Yuzu"),
             'installer_path': "",
             'use_yuzu_installer': 'False',
+            'current_yuzu_channel': "Mainline",
             'rom_directory': os.path.join(os.getcwd(), "ROMS",)
             
         }
         self._settings = self.default_settings.copy()
-        self.app_settings = master.app
         self.refresh_app_settings = sum
     def restore_default(self):
         for name, value in self.default_settings.items():
@@ -39,18 +39,18 @@ class YuzuSettings:
     def _set_path_property(self, property_name, value):
         if value == "" or value==".":
             self._settings[property_name] = value
-            self.app_settings.use_yuzu_installer = "False"
+            self.use_yuzu_installer = "False"
             self.refresh_app_settings()
             return
         if not os.path.exists(value):
             if not os.path.exists(self.default_settings[property_name]):
                 self._settings[property_name] = ""
-            self.app_settings.use_yuzu_installer = "False"
+            self.use_yuzu_installer = "False"
             self.refresh_app_settings()
             raise FileNotFoundError(f"{property_name.replace('__','/').replace('_',' ').title()} - Path does not exist: {value}")
         
         if property_name == "installer_path" and not value.endswith(".exe"):
-            self.app_settings.use_yuzu_installer = "False"
+            self.use_yuzu_installer = "False"
             self.refresh_app_settings()
             raise ValueError(f"{property_name.replace('__','/').replace('_',' ').title()} - Invalid Filetype: Expected file extension of .exe but got {os.path.splitext(value)[-1]}")
                           
@@ -73,3 +73,7 @@ class YuzuSettings:
     
     use_yuzu_installer = property(lambda self: self._get_property('use_yuzu_installer'), 
                                      lambda self, value: self._set_property('use_yuzu_installer', value))
+    
+    current_yuzu_channel = property(lambda self: self._get_property('current_yuzu_channel'), 
+                                     lambda self, value: self._set_property('current_yuzu_channel', value))
+    

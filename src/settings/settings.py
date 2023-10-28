@@ -31,7 +31,8 @@ class Settings:
             "dolphin_settings": {
                 "user_directory": "",
                 "install_directory": "",
-                "rom_directory": ""
+                "rom_directory": "",
+                "current_channel": ""
                 
             },
             "yuzu_settings": {
@@ -39,6 +40,7 @@ class Settings:
                 "install_directory": "",
                 "installer_path" : "",
                 "use_yuzu_installer": "",
+                "current_yuzu_channel": "",
                 "rom_directory": ""
                 
             },
@@ -60,7 +62,6 @@ class Settings:
                 "appearance_mode" : "",
                 "colour_theme" : "",
                 "delete_files": "",
-                "current_yuzu_channel": "",
                 "ask_firmware": ""
             }
         }
@@ -139,7 +140,8 @@ class Settings:
             "dolphin_settings": {
                 "user_directory": self.dolphin.user_directory,
                 "install_directory": self.dolphin.install_directory,
-                "rom_directory": self.dolphin.rom_directory
+                "rom_directory": self.dolphin.rom_directory,
+                "current_channel": self.dolphin.current_channel
                 
             },
             "yuzu_settings": {
@@ -148,6 +150,7 @@ class Settings:
                 "rom_directory" : self.yuzu.rom_directory,
                 "installer_path" : self.yuzu.installer_path,
                 "use_yuzu_installer":  self.yuzu.use_yuzu_installer,
+                "current_yuzu_channel": self.yuzu.current_yuzu_channel
                 
             },
             "app_settings": {
@@ -155,7 +158,6 @@ class Settings:
                 "appearance_mode" : self.app.appearance_mode,
                 "colour_theme" : self.app.colour_theme,
                 "delete_files" : self.app.delete_files,
-                "current_yuzu_channel": self.app.current_yuzu_channel,
                 "ask_firmware": self.app.ask_firmware
             }
         }

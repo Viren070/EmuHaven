@@ -1,15 +1,18 @@
 import os
+import re
 import shutil
 import subprocess
+import time
 from tkinter import messagebox
 from zipfile import ZipFile
 
-import requests
+import py7zr 
 
 from gui.frames.progress_frame import ProgressFrame
 from utils.downloader import download_through_stream
 from utils.file_utils import copy_directory_with_progress
-from utils.requests_utils import get_headers, get_resources_release
+from utils.requests_utils import (create_get_connection,
+                                  get_file_links_from_page, get_headers)
 
 
 class Dolphin:
@@ -21,15 +24,14 @@ class Dolphin:
         self.dolphin_is_running = False
         self.main_progress_frame = None 
         self.data_progress_frame = None
-        self.dolphin_download_api = 'https://api.github.com/repos/Viren070/dolphin-beta-downloads/releases/latest'
-                    
-                
+                              
     def delete_dolphin_zip(self, zip_path):
-        import time 
         time.sleep(2)
         os.remove(zip_path)
         
     def verify_dolphin_zip(self, path_to_archive):
+        if path_to_archive.endswith(".7z"): # don't know how else to check if its valid for 7z
+            return True 
         try:
             with ZipFile(path_to_archive, 'r') as archive:
                 if 'Dolphin.exe' in archive.namelist():
@@ -38,28 +40,18 @@ class Dolphin:
                     return False
         except Exception:
             return False
-    def download_release(self, release):
-        download_folder = os.getcwd()
+   
         
-        
-        download_path = os.path.join(download_folder, f"Dolphin {release.version}.zip")
-        response = requests.get(release .download_url, stream=True, headers=get_headers(self.settings.app.token), timeout=30)
-        self.main_progress_frame.start_download(f"Dolphin {release.version}", release.size)
-        self.main_progress_frame.grid(row=0, column=0, sticky="ew")
- 
-        download_result = download_through_stream(response, download_path, self.main_progress_frame, 1024*203)
-        self.main_progress_frame.complete_download() 
-        return download_result
-        
-    def install_dolphin_handler(self, updating=False, path_to_archive=None):
+    def install_dolphin_handler(self, release_channel=None, path_to_archive=None, updating=False):
         release_archive = path_to_archive
+        if release_channel is None and path_to_archive is None:
+            raise ValueError("If release channel is None, you must provide a path to archive")
         if path_to_archive is None:
-            release_result = get_resources_release("Dolphin", headers=get_headers(self.settings.app.token))
+            release_result = self.get_dolphin_release(release_channel)
             if not all(release_result):
-                messagebox.showerror("Install Dolphin", f"There was an error while attempting to fetch the latest release of Dolphin:\n\n{release_result[1]}")
+                messagebox.showerror("Install Dolphin", f"There was an error while attempting to fetch the latest {release_channel} release of Dolphin:\n\n{release_result[1]}")
                 return 
             release = release_result[1]
-            release.version = release.name.replace("Dolphin.", "").replace(".zip", "")
             if release.version == self.metadata.get_installed_version("dolphin"):
                 if updating:
                     return 
@@ -86,14 +78,113 @@ class Dolphin:
         messagebox.showinfo("Install Dolphin", f"Dolphin was successfully installed to {self.settings.dolphin.install_directory}")
         
    
+    def get_dolphin_release(self, release_channel):
+        files=get_file_links_from_page("https://dolphin-emu.org/download/", ".7z")
+        if not all(files):
+            return files 
+        files = files[1]
+        beta_build = None
+        dev_build = None
+        beta_build_number = None
+
+        for file in files:
+            if "ARM64" in file.filename:
+                continue
+
+            build_number = int(file.filename.split("-")[-2])
+            
+            if beta_build is None:
+                beta_build = file
+                beta_build_number = build_number
+                if release_channel == "beta":
+                    beta_build.version = re.search(r'(\d+\.\d+-\d+)', beta_build.filename).group(1)
+                    return (True, beta_build)
+            elif build_number > beta_build_number:
+                dev_build = file
+                dev_build.version = re.search(r'(\d+\.\d+-\d+)', dev_build.filename).group(1)
+                return (True, dev_build) 
+
+
+    def download_release(self, release):
+        download_folder = os.getcwd()
+        
+        
+        download_path = os.path.join(download_folder, f"{release.filename}.7z")
+        response_result = create_get_connection(release.url, headers=get_headers(), stream=True, timeout=30)
+        if not all(response_result):
+            return response_result
+        response = response_result[1]
+        release.size = int(response.headers.get('content-length', 0))
+        self.main_progress_frame.start_download(release.filename, release.size)
+        self.main_progress_frame.grid(row=0, column=0, sticky="ew")
+ 
+        download_result = download_through_stream(response, download_path, self.main_progress_frame, 1024*203)
+        self.main_progress_frame.complete_download() 
+        return download_result
+
     def extract_release(self, release): 
-        self.main_progress_frame.start_download(f"{os.path.basename(release).replace(".zip", "")}", 0)
+        if release.endswith(".zip"):
+            return self.extract_zip_archive(release)
+        elif release.endswith(".7z"):
+            return self.extract_7z_archive(release)
+        else:
+            raise Exception
+        
+        
+        
+    def extract_7z_archive(self, release_archive):
+    
+        self.main_progress_frame.start_download(os.path.basename(release_archive).replace(".7z",""), 0)
+        self.main_progress_frame.complete_download()
+        self.main_progress_frame.update_status_label("Extracting... ")
+        self.main_progress_frame.cancel_download_button.configure(state="disabled")
+        self.main_progress_frame.grid(row=0, column=0, sticky="nsew")
+        extracted = True
+
+        
+        try:
+            
+            if os.listdir(self.settings.dolphin.install_directory):
+                self.main_progress_frame.update_status_label("Deleting old installation...")
+                shutil.rmtree(self.settings.dolphin.install_directory)
+            os.makedirs(self.settings.dolphin.install_directory, exist_ok=True)
+            self.main_progress_frame.update_status_label("Extracting (Unable to show progress)...")
+            with py7zr.SevenZipFile(release_archive, mode="r") as archive:
+                archive.extractall(path=self.settings.dolphin.install_directory)
+            parent_folder = self.settings.dolphin.install_directory
+            subfolder = os.path.join(self.settings.dolphin.install_directory, "Dolphin-x64")
+
+            contents = os.listdir(subfolder)
+
+
+            for item in contents:
+                item_path = os.path.join(subfolder, item)
+                destination_path = os.path.join(parent_folder, item)
+                shutil.move(item_path, destination_path)
+
+
+            os.rmdir(subfolder)
+            extracted_files = os.listdir(self.settings.dolphin.install_directory)
+            self.main_progress_frame.update_extraction_progress(1)
+                
+            self.main_progress_frame.grid_forget()
+            if extracted:
+                return (True, extracted_files)
+            else:
+                return (False, "Cancelled")
+    
+        except Exception as error:
+            self.main_progress_frame.grid_forget()
+            return (False, error)
+
+    def extract_zip_archive(self, release_archive):
+        self.main_progress_frame.start_download(f"{os.path.basename(release_archive).replace(".zip", "")}", 0)
         self.main_progress_frame.complete_download()
         self.main_progress_frame.update_status_label("Extracting... ")
         self.main_progress_frame.grid(row=0, column=0, sticky="nsew")
         extracted=True
         try:
-            with ZipFile(release, 'r') as archive:
+            with ZipFile(release_archive, 'r') as archive:
                 total_files = len(archive.namelist())
                 extracted_files = []
                 
@@ -111,6 +202,7 @@ class Dolphin:
             else:
                 return (False, "Cancelled")
         except Exception as error:
+            self.main_progress_frame.grid_forget()
             return (False, error)
    
     def delete_dolphin(self):
@@ -122,11 +214,11 @@ class Dolphin:
             return
        
         
-    def launch_dolphin_handler(self, skip_update=False):
+    def launch_dolphin_handler(self, release_channel, skip_update=False):
         if not skip_update:
 
             self.gui.configure_buttons("disabled", text="Fetching Updates...  ") 
-            self.install_dolphin_handler(True)
+            self.install_dolphin_handler(release_channel, None, True)
     
         self.gui.configure_buttons("disabled", text="Launched!  ") 
         dolphin_exe = os.path.join(self.settings.dolphin.install_directory, "Dolphin.exe")
