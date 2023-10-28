@@ -6,7 +6,7 @@ import time
 from tkinter import messagebox
 from zipfile import ZipFile
 
-import py7zr
+import py7zr 
 
 from gui.frames.progress_frame import ProgressFrame
 from utils.downloader import download_through_stream
@@ -143,11 +143,19 @@ class Dolphin:
         os.makedirs(self.settings.dolphin.install_directory, exist_ok=True)
         with py7zr.SevenZipFile(release_archive, mode="r") as archive:
             archive.extractall(path=self.settings.dolphin.install_directory)
-            extracted_files = archive.getnames()
-            archive.close()
-        shutil.move(os.path.join(self.settings.dolphin.install_directory, "Dolphin-x64"), self.settings.dolphin.install_directory)
+        parent_folder = self.settings.dolphin.install_directory
+        subfolder = os.path.join(self.settings.dolphin.install_directory, "Dolphin-x64")
 
-        
+        contents = os.listdir(subfolder)
+
+
+        for item in contents:
+            item_path = os.path.join(subfolder, item)
+            destination_path = os.path.join(parent_folder, item)
+            shutil.move(item_path, destination_path)
+
+
+        os.rmdir(subfolder)
         extracted_files = os.listdir(self.settings.dolphin.install_directory)
         self.main_progress_frame.update_extraction_progress(1)
             
