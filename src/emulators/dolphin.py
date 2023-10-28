@@ -30,6 +30,8 @@ class Dolphin:
         os.remove(zip_path)
         
     def verify_dolphin_zip(self, path_to_archive):
+        if path_to_archive.endswith(".7z"): # don't know how else to check if its valid for 7z
+            return True 
         try:
             with ZipFile(path_to_archive, 'r') as archive:
                 if 'Dolphin.exe' in archive.namelist():
@@ -136,6 +138,7 @@ class Dolphin:
         self.main_progress_frame.start_download(os.path.basename(release_archive).replace(".7z",""), 0)
         self.main_progress_frame.complete_download()
         self.main_progress_frame.update_status_label("Extracting... ")
+        self.main_progress_frame.cancel_download_button.configure(state="disabled")
         self.main_progress_frame.grid(row=0, column=0, sticky="nsew")
         extracted = True
 
