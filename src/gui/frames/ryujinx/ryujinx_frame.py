@@ -42,9 +42,6 @@ class RyujinxFrame(EmulatorFrame):
         self.center_frame.grid_rowconfigure(1, weight=1)
         self.center_frame.grid_rowconfigure(2, weight=1)
         self.center_frame.grid_rowconfigure(3, weight=2)
-        
-        ################################################# CONSIDER ADDING SEPARATE FRAMES FOR EARLY ACCESS VERSION WITH EITHER DIFFERENT MENU OR OPTIONMENU IN CORNER
-
 
         # Image button
         self.image_button = customtkinter.CTkButton(self.center_frame, text="", fg_color='transparent', hover=False, bg_color='transparent', border_width=0, image=self.ryujinx_banner)
@@ -57,11 +54,11 @@ class RyujinxFrame(EmulatorFrame):
         self.actions_frame.grid_columnconfigure(1, weight=1)  # Stretch horizontally
         self.actions_frame.grid_columnconfigure(2, weight=1)  # Stretch horizontally
         
-        self.launch_button = customtkinter.CTkButton(self.actions_frame, height=40, width=200, image=self.play_image, text="Launch Ryujinx  ", command=self.launch_button_event, font=customtkinter.CTkFont(size=15, weight="bold"))
+        self.launch_button = customtkinter.CTkButton(self.actions_frame, height=40, width=225, image=self.play_image, text="Launch Ryujinx  ", command=self.launch_button_event, font=customtkinter.CTkFont(size=15, weight="bold"))
         self.launch_button.grid(row=0, column=2, padx=30, pady=15, sticky="n")
         self.launch_button.bind("<Button-1>", command=self.launch_button_event)
         CTkToolTip(self.launch_button, message="Click me to launch Ryujinx.\nShift-click me to launch without checking for updates.")
-        self.install_button = customtkinter.CTkButton(self.actions_frame, text="Install Ryujinx", command=self.install_button_event)
+        self.install_button = customtkinter.CTkButton(self.actions_frame, text="Install Ryujinx", width=165, command=self.install_button_event)
         self.install_button.grid(row=0, column=1,padx=10, pady=5, sticky="ew")
         self.install_button.bind("<Button-1>", command=self.install_button_event)
         CTkToolTip(self.install_button, message="Click me to download and install the latest release of Ryujinx from the internet\nShift-Click me to install Ryujinx with a custom archive")
@@ -92,9 +89,9 @@ class RyujinxFrame(EmulatorFrame):
         self.data_actions_frame.grid(row=0, column=0, padx=20, columnspan=3, pady=20, sticky="ew")
         self.data_actions_frame.grid_columnconfigure(1, weight=1)
 
-        self.import_optionmenu = customtkinter.CTkOptionMenu(self.data_actions_frame, width=300, values=["All Data", "Save Data", "Exclude 'nand' & 'keys'"])
-        self.export_optionmenu = customtkinter.CTkOptionMenu(self.data_actions_frame, width=300, values=["All Data", "Save Data", "Exclude 'nand' & 'keys'"])
-        self.delete_optionmenu = customtkinter.CTkOptionMenu(self.data_actions_frame, width=300, values=["All Data", "Save Data", "Exclude 'nand' & 'keys'"])
+        self.import_optionmenu = customtkinter.CTkOptionMenu(self.data_actions_frame, width=300, values=["All Data", "Save Data", "Exclude 'bis' & 'system'"])
+        self.export_optionmenu = customtkinter.CTkOptionMenu(self.data_actions_frame, width=300, values=["All Data", "Save Data", "Exclude 'bis' & 'system'"])
+        self.delete_optionmenu = customtkinter.CTkOptionMenu(self.data_actions_frame, width=300, values=["All Data", "Save Data", "Exclude 'bis' & 'system'"])
         
         self.import_data_button = customtkinter.CTkButton(self.data_actions_frame, text="Import", command=self.import_data_button_event)
         self.export_data_button = customtkinter.CTkButton(self.data_actions_frame, text="Export", command=self.export_data_button_event)
@@ -243,7 +240,7 @@ class RyujinxFrame(EmulatorFrame):
             return
         directory = directory[1]
         self.configure_data_buttons(state="disabled")
-        thread = Thread(target=self.ryujinx.import_yuzu_data, args=(self.import_optionmenu.get(),directory,))
+        thread = Thread(target=self.ryujinx.import_ryujinx_data, args=(self.import_optionmenu.get(),directory,))
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["data"],)).start()
     def export_data_button_event(self):
@@ -256,14 +253,14 @@ class RyujinxFrame(EmulatorFrame):
             return
         directory = directory[1]
         self.configure_data_buttons(state="disabled")
-        thread = Thread(target=self.ryujinx.export_yuzu_data, args=(self.export_optionmenu.get(), directory,))
+        thread = Thread(target=self.ryujinx.export_ryujinx_data, args=(self.export_optionmenu.get(), directory,))
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["data"],)).start()
     def delete_data_button_event(self):
         if not messagebox.askyesno("Confirmation", "This will delete the data from Yuzu's directory and from the global saves directory. This action cannot be undone, are you sure you wish to continue?"):
             return
         self.configure_data_buttons(state="disabled")
-        thread = Thread(target=self.ryujinx.delete_yuzu_data, args=(self.delete_optionmenu.get(),))
+        thread = Thread(target=self.ryujinx.delete_ryujinx_data, args=(self.delete_optionmenu.get(),))
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["data"],)).start()
     def enable_buttons_after_thread(self, thread, buttons):
