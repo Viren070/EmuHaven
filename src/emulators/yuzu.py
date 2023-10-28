@@ -201,7 +201,7 @@ class Yuzu:
         else:
             firmware_path = path_or_release
         
-        result = switch_emu.install_firmware_from_archive(firmware_path, os.path.join(self.settings.yuzu.user_directory, "nand", "system", "Contents", "registered"), self.main_progress_frame)
+        result = switch_emu.install_firmware_from_archive(firmware_path, os.path.join(self.settings.yuzu.user_directory, "nand", "system", "Contents", "registered"), self.main_progress_frame, "yuzu")
         if not result[0]:
             messagebox.showerror("Extract Error", f"There was an error while trying to extract the firmware archive: \n\n{result[1]}")
             return 

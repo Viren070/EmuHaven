@@ -282,6 +282,59 @@ class YuzuFrame(EmulatorFrame):
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["mainline"],)).start()
     
+    def install_firmware_button_event(self, event=None):
+        if event is None or self.firmware_keys_frame.install_firmware_button.cget("state") == "disabled":
+            return
+        path_to_archive = None
+        if event.state & 1:
+            path_to_archive = PathDialog(filetypes=(".zip",), title="Custom Firmware Archive", text="Type path to Firmware Archive: ")
+            path_to_archive = path_to_archive.get_input()
+            if not all(path_to_archive):
+                if path_to_archive[1] is not None:
+                    messagebox.showerror("Error", "The path you have provided is invalid")
+                return 
+            path_to_archive = path_to_archive[1]
+            args = ("path", path_to_archive, )
+        else:
+            if self.firmware_keys_frame.firmware_option_menu.cget("state") == "disabled":
+                messagebox.showerror("Error", "Please ensure that a correct version has been chosen from the menu to the left")
+                return 
+            release = self.firmware_keys_frame.firmware_key_version_dict["firmware"][self.firmware_keys_frame.firmware_option_menu_variable.get()] 
+            args = ("release", release)
+        self.firmware_keys_frame.configure_firmware_key_buttons("disabled")
+        self.configure_mainline_buttons("disabled")
+        self.configure_early_access_buttons("disabled")
+        thread=Thread(target=self.yuzu.install_firmware_handler, args=args)
+        thread.start()
+        Thread(target=self.enable_buttons_after_thread, args=(thread, ["firmware_keys","mainline","early_access"], )).start()
+   
+    def install_keys_button_event(self, event=None):
+        if event is None or self.firmware_keys_frame.install_keys_button.cget("state") == "disabled":
+            return 
+        path_to_archive = None
+        if event.state & 1:
+            path_to_archive = PathDialog(filetypes=(".zip", ".keys"), title="Custom Key Archive", text="Type path to Key Archive: ")
+            path_to_archive = path_to_archive.get_input()
+            if not all(path_to_archive):
+                if path_to_archive[1] is not None:
+                    messagebox.showerror("Error", "The path you have provided is invalid")
+                return 
+            path_to_archive = path_to_archive[1]
+            args = ("path", path_to_archive, )
+        else:
+            if self.firmware_keys_frame.key_option_menu.cget("state") == "disabled":
+                messagebox.showerror("Error", "Please ensure that a correct version has been chosen from the menu to the left")
+                return 
+            release = self.firmware_keys_frame.firmware_key_version_dict["keys"][self.firmware_keys_frame.key_option_menu_variable.get()]  
+            args = ("release", release, )
+        self.firmware_keys_frame.configure_firmware_key_buttons("disabled")
+        self.configure_mainline_buttons("disabled")
+        self.configure_early_access_buttons("disabled")  
+        
+        thread = Thread(target=self.yuzu.install_key_handler, args=args)
+        thread.start()
+        Thread(target=self.enable_buttons_after_thread, args=(thread, ["firmware_keys","mainline","early_access"],)).start()
+        
     def import_data_button_event(self):
         directory = PathDialog(title="Import Directory", text="Enter directory to import from: ", directory=True)
         directory = directory.get_input()

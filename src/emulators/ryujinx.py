@@ -25,66 +25,54 @@ class Ryujinx:
         self.installing_firmware_or_keys = False
         self.running = False
         
-    def verify_yuzu_zip(self, path_to_archive, release_type):
+    def verify_ryujinx_zip(self, path_to_archive):
         try:
             with ZipFile(path_to_archive, 'r') as archive:
-                if (release_type == "mainline" and 'yuzu-windows-msvc/yuzu.exe' in archive.namelist()) or (release_type == "early_access" and "yuzu-windows-msvc-early-access/yuzu.exe" in archive.namelist()):
+                if 'publish/Ryujinx.exe' in archive.namelist():
                     return True 
                 else:
                     return False
         except Exception:
             return False
 
-# 
-# 
-
-    def delete_early_access(self, skip_prompt=False):
-        try:
-            shutil.rmtree(os.path.join(self.settings.yuzu.install_directory, "yuzu-windows-msvc-early-access"))
-            if not skip_prompt:
-                messagebox.showinfo("Success", "The installation of yuzu EA was successfully deleted!")
-        except Exception as error_msg:
-            messagebox.showerror("Delete Error", f"Failed to delete yuzu-ea: \n\n{error_msg}")     
             
-    def get_latest_release(self, release_type):
-        response = create_get_connection('https://api.github.com/repos/pineappleEA/pineapple-src/releases' if release_type == "early_access" else "https://api.github.com/repos/yuzu-emu/yuzu-mainline/releases", headers=get_headers(self.settings.app.token))
+    def get_latest_release(self):
+        response = create_get_connection('https://api.github.com/repos/Ryujinx/release-channel-master/releases' , headers=get_headers(self.settings.app.token))
         if not all(response): return (False, response[1])
         response = response[1]
         try:
             release_info = json.loads(response.text)[0]
-            latest_version = release_info["tag_name"].split("-")[-1]
+            latest_version = release_info["tag_name"]
             assets = release_info['assets']
         except KeyError:
             return (False, "API Rate Limited")
-        release = get_release_from_assets(assets, "Windows" if release_type == "early_access" else "yuzu-windows-msvc-{}.zip", False if release_type == "early_access" else True)
+        release = get_release_from_assets(assets, "win_x64")
         release.version = latest_version
         return (True, release )
 
     
-    def download_release(self, release, release_type):
+    def download_release(self, release):
         
         response_result = create_get_connection(release.download_url, stream=True, headers=get_headers(self.settings.app.token))
         if not all(response_result):
             return response_result 
         response = response_result[1]   
-        download_title = f"{{}} {release.version}".format("Yuzu" if release_type == "mainline" else "Yuzu EA")
-        self.main_progress_frame.start_download(download_title, release.size)
+        self.main_progress_frame.start_download(f"Ryujinx {release.version}", release.size)
         self.main_progress_frame.grid(row=0, column=0, sticky="ew")
-        download_path = os.path.join(os.getcwd(), f"Yuzu-{release.version}.zip" if release_type == "mainline" else f"Yuzu-EA-{release.version}.zip")
+        download_path = os.path.join(os.getcwd(), f"ryujinx-{release.version}-win_x64.zip")
         download_result = download_through_stream(response, download_path, self.main_progress_frame, 1024*203)
         return download_result
     
-    def extract_release(self, zip_path, release_type):
-        extract_folder = self.settings.yuzu.install_directory
+    def extract_release(self, zip_path):
+        extract_folder = self.settings.ryujinx.install_directory
         extracted_files = []
 
         self.main_progress_frame.start_download(os.path.basename(zip_path).replace(".zip", ""), 0)
         self.main_progress_frame.complete_download()
         self.main_progress_frame.update_status_label("Extracting... ")
         self.main_progress_frame.grid(row=0, column=0, sticky="ew")
-        if os.path.exists(os.path.join(self.settings.yuzu.install_directory,"yuzu-windows-msvc" if release_type == "mainline" else "yuzu-windows-msvc-early-access")):
-            delete_func = self.delete_mainline if release_type == "mainline" else self.delete_early_access
-            delete_func(True)
+        if os.path.exists(os.path.join(self.settings.ryujinx.install_directory,"publish")):
+            self.delete_ryujinx()
         try:
             with ZipFile(zip_path, 'r') as archive:
                 total_files = len(archive.namelist())     
@@ -102,88 +90,77 @@ class Ryujinx:
         self.main_progress_frame.grid_forget()
         return (True, extract_folder)
     
-    def install_release_handler(self, release_type, updating=False, path_to_archive=None):
+    def install_release_handler(self, updating=False, path_to_archive=None):
         release_archive = path_to_archive
         if path_to_archive is None:
-            release_result = self.get_latest_release(release_type)
+            release_result = self.get_latest_release()
             if not all(release_result):
-                messagebox.showerror("Install Yuzu", f"There was an error while attempting to fetch the latest release of Yuzu:\n\n{release_result[1]}")
+                messagebox.showerror("Install Ryujinx", f"There was an error while attempting to fetch the latest release of Ryujinx:\n\n{release_result[1]}")
                 return
             release = release_result[1]
-            if release.version == self.metadata.get_installed_version(release_type):
+            if release.version == self.metadata.get_installed_version("ryujinx"):
                 if updating:
                     return 
-                if not messagebox.askyesno("Yuzu", f"You already have the latest version of yuzu {release_type.replace('_',' ').title()} installed, download anyways?"):
+                if not messagebox.askyesno("Ryujinx", "You already have the latest version of Ryujinx  installed, download anyways?"):
                     return
-            download_result = self.download_release(release, release_type)
+            download_result = self.download_release(release)
             if not all(download_result):
                 if download_result[1] != "Cancelled":
-                    messagebox.showerror("Error", f"There was an error while attempting to download the latest release of yuzu {release_type.replace('_',' ').title()}:\n\n{download_result[1]}")
+                    messagebox.showerror("Error", f"There was an error while attempting to download the latest release of Ryujinx:\n\n{download_result[1]}")
                 return 
             release_archive = download_result[1]
-        elif not self.verify_yuzu_zip(path_to_archive, release_type):
+        elif not self.verify_ryujinx_zip(path_to_archive):
             messagebox.showerror("Error", "The archive you have provided is invalid")
             return 
-        extract_result = self.extract_release(release_archive, release_type)
+        extract_result = self.extract_release(release_archive)
         if not all(extract_result):
             if extract_result[1]!="Cancelled":
                 messagebox.showerror("Extract Error", f"An error occurred while extracting the release: \n\n{extract_result[1]}")
             return 
         if path_to_archive is None:
-            self.metadata.update_installed_version(release_type, release.version)
+            self.metadata.update_installed_version("ryujinx", release.version)
         if path_to_archive is None and self.settings.app.delete_files == "True" and os.path.exists(release_archive):
             os.remove(release_archive)
-        messagebox.showinfo("Install Yuzu", f"Yuzu was successfully installed to {extract_result[1]}")
+        messagebox.showinfo("Install Ryujinx", f"Ryujinx was successfully installed to {extract_result[1]}")
 
+    
         
-    def launch_yuzu_installer(self):
-        path_to_installer = self.settings.yuzu.installer_path
-        self.running = True
-        subprocess.run([path_to_installer], capture_output = True, check=False)
-        self.running = False
-        
-    def delete_mainline(self, skip_prompt=False):
+    def delete_ryujinx(self, skip_prompt=False):
         try:
-            shutil.rmtree(os.path.join(self.settings.yuzu.install_directory, "yuzu-windows-msvc"))
+            shutil.rmtree(os.path.join(self.settings.ryujinx.install_directory, "publish"))
             if not skip_prompt:
-                messagebox.showinfo("Delete Yuzu", "Installation of yuzu successfully deleted")
+                messagebox.showinfo("Delete Yuzu", "Installation of Ryujinx successfully deleted")
         except Exception as error:
-            messagebox.showerror("Delete Error", f"An error occured while trying to delete the installation of yuzu:\n\n{error}")
+            messagebox.showerror("Delete Error", f"An error occured while trying to delete the installation of Ryujinx:\n\n{error}")
         
-    def launch_yuzu_handler(self, release_type, skip_update=False):
+    
+    def launch_ryujinx_handler(self, skip_update=False):
         if not skip_update:
-            if (release_type == "mainline" and self.settings.app.use_yuzu_installer == "False") or release_type == "early_access":
-                func = self.gui.configure_mainline_buttons if release_type == "mainline"  else self.gui.configure_early_access_buttons
-                func("disabled", text="Fetching Updates...  ")
-                self.install_release_handler(release_type, True)
-        if release_type == "mainline":
-            self.gui.configure_mainline_buttons("disabled", text="Launching...  ")
-            yuzu_folder = "yuzu-windows-msvc"
-        elif release_type == "early_access":
-            self.gui.configure_early_access_buttons("disabled", text="Launching...  ")
-            yuzu_folder = "yuzu-windows-msvc-early-access"    
+            self.gui.configure_action_buttons("disabled", text="Fetching Updates...")
+            self.install_release_handler(True)
+ 
         self.verify_and_install_firmware_keys()
-        func_to_call=self.gui.configure_mainline_buttons if release_type == "mainline" else self.gui.configure_early_access_buttons
-        func_to_call("disabled", text="Launched!  ")
-        yuzu_exe = os.path.join(self.settings.yuzu.install_directory, yuzu_folder, "yuzu.exe")
-        maintenance_tool = os.path.join(self.settings.yuzu.install_directory, "maintenancetool.exe")
-        args = [maintenance_tool, "--launcher", yuzu_exe] if release_type == "mainline" and self.settings.app.use_yuzu_installer == "True" and not skip_update else [yuzu_exe]
+        
+        self.gui.configure_action_buttons("disabled", text="Launched!  ")
+        ryujinx_exe = os.path.join(self.settings.ryujinx.install_directory, "publish", "Ryujinx.exe")
+       
+        args = [ryujinx_exe]
         self.running = True
         subprocess.run(args, capture_output=True, check=False)
         self.running = False
         
     def verify_and_install_firmware_keys(self):
-        if not switch_emu.check_current_keys(os.path.join(self.settings.yuzu.user_directory, "keys", "prod.keys")):
+        if not switch_emu.check_current_keys(os.path.join(self.settings.ryujinx.user_directory, "system", "prod.keys")):
             messagebox.showwarning("Missing Keys", "It seems you are missing the switch decryption keys. These keys are required to emulate games. Please install them using the download button below")
         
-        if self.settings.app.ask_firmware != "False" and not switch_emu.check_current_firmware(os.path.join(self.settings.yuzu.user_directory, "nand", "system", "Contents", "registered")):
+        if self.settings.app.ask_firmware != "False" and not switch_emu.check_current_firmware(os.path.join(self.settings.ryujinx.user_directory, "bis", "system", "Contents", "registered")):
             if not messagebox.askyesno("Firmware Missing", "It seems you are missing the switch firmware files. Without these files, some games may not run. You can install the firmware using the buttons below. Press Yes to remind you later or No to never ask again."):
                 self.settings.app.ask_firmware = "False"
             
 
        
     def install_firmware_handler(self, mode, path_or_release):
-        if switch_emu.check_current_firmware(os.path.join(self.settings.yuzu.user_directory, "nand", "system", "Contents", "registered")) and not messagebox.askyesno("Firmware Exists", "You already seem to have firmware installed, install anyways?"):
+        if switch_emu.check_current_firmware(os.path.join(self.settings.ryujinx.user_directory, "bis", "system", "Contents", "registered")) and not messagebox.askyesno("Firmware Exists", "You already seem to have firmware installed, install anyways?"):
             return 
    
         if mode == "release":
@@ -201,7 +178,7 @@ class Ryujinx:
         else:
             firmware_path = path_or_release
         
-        result = switch_emu.install_firmware_from_archive(firmware_path, os.path.join(self.settings.yuzu.user_directory, "nand", "system", "Contents", "registered"), self.main_progress_frame)
+        result = switch_emu.install_firmware_from_archive(firmware_path, os.path.join(self.settings.ryujinx.user_directory, "bis", "system", "Contents", "registered"), self.main_progress_frame, "ryujinx")
         if not result[0]:
             messagebox.showerror("Extract Error", f"There was an error while trying to extract the firmware archive: \n\n{result[1]}")
             return 
@@ -209,7 +186,7 @@ class Ryujinx:
         if mode == "release": 
             if self.settings.app.delete_files == "True" and os.path.exists(firmware_path):
                 os.remove(firmware_path)
-            self.metadata.update_installed_version("yuzu_firmware", version)
+            self.metadata.update_installed_version("ryujinx_firmware", version)
         if result:
             messagebox.showwarning("Unexpected Files" , f"These files were skipped in the extraction process: {result}")
         messagebox.showinfo("Firmware Install", "The switch firmware files were successfully installed")
@@ -235,7 +212,7 @@ class Ryujinx:
     
 
     def install_key_handler(self, mode, path_or_release):
-        if switch_emu.check_current_keys(os.path.join(self.settings.yuzu.user_directory, "keys", "prod.keys")) and not messagebox.askyesno("Keys Exist", "You already seem to have the decryption keys, install anyways?"):
+        if switch_emu.check_current_keys(os.path.join(self.settings.ryujinx.user_directory, "system", "prod.keys")) and not messagebox.askyesno("Keys Exist", "You already seem to have the decryption keys, install anyways?"):
             return 
         
         if mode == "release":
@@ -254,9 +231,9 @@ class Ryujinx:
         else:
             key_path = path_or_release
         if key_path.endswith(".keys"):
-            switch_emu.install_keys_from_file(key_path, os.path.join(self.settings.yuzu.user_directory, "keys"))
+            switch_emu.install_keys_from_file(key_path, os.path.join(self.settings.ryujinx.user_directory, "system"))
         else:
-            result = switch_emu.install_keys_from_archive(key_path, os.path.join(self.settings.yuzu.user_directory, "keys"), self.main_progress_frame)
+            result = switch_emu.install_keys_from_archive(key_path, os.path.join(self.settings.ryujinx.user_directory, "system"), self.main_progress_frame)
             if not all(result):
                 messagebox.showerror("Extract Error", f"There was an error while trying to extract the key archive: \n\n{result[1]}")
                 return 
@@ -267,7 +244,7 @@ class Ryujinx:
         if mode == "release":
             if self.settings.app.delete_files == "True" and os.path.exists(key_path):
                 os.remove(key_path)
-            self.metadata.update_installed_version("yuzu_keys", version)
+            self.metadata.update_installed_version("ryujinx_keys", version)
         messagebox.showinfo("Keys", "Decryption keys were successfully installed!")
         return True 
             

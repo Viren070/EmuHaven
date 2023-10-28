@@ -143,14 +143,14 @@ class RyujinxFrame(EmulatorFrame):
         if not os.path.exists(os.path.join(self.settings.ryujinx.install_directory,"publish", "ryujinx.exe")):
             messagebox.showerror("Ryujinx", "Installation of Ryujinx not found, please install Ryujinx using the button to the left")
             return 
-        self.configure_mainline_buttons("disabled")
+        self.configure_action_buttons("disabled")
         self.firmware_keys_frame.configure_firmware_key_buttons("disabled")
         shift_clicked = True if event.state & 1 else False
-        thread=Thread(target=self.ryujinx.launch_ryujinx_handler, args=("mainline", shift_clicked, ))
+        thread=Thread(target=self.ryujinx.launch_ryujinx_handler, args=(shift_clicked, ))
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["action", "firmware_keys"],)).start()
     def install_button_event(self, event=None):
-        if event is None or self.install_mainline_button.cget("state") == "disabled":
+        if event is None or self.install_button.cget("state") == "disabled":
             return 
         if os.path.exists(os.path.join(self.settings.ryujinx.install_directory,"publish")) and not messagebox.askyesno("Ryujinx Exists", "There is already an installation of Ryujinx at the specified install directory, overwrite this installation?"):
             return 
@@ -163,8 +163,7 @@ class RyujinxFrame(EmulatorFrame):
                     messagebox.showerror("Error", "The path you have provided is invalid")
                 return 
             path_to_archive = path_to_archive[1]
-        self.configure_mainline_buttons("disabled")
-        self.configure_early_access_buttons("disabled")
+        self.configure_action_buttons("disabled")
         self.firmware_keys_frame.configure_firmware_key_buttons("disabled")
         
         thread = Thread(target=self.ryujinx.install_release_handler, args=(False, path_to_archive, ))
@@ -172,7 +171,56 @@ class RyujinxFrame(EmulatorFrame):
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["action", "firmware_keys"],)).start()
         
     
-
+    def install_firmware_button_event(self, event=None):
+        if event is None or self.firmware_keys_frame.install_firmware_button.cget("state") == "disabled":
+            return
+        path_to_archive = None
+        if event.state & 1:
+            path_to_archive = PathDialog(filetypes=(".zip",), title="Custom Firmware Archive", text="Type path to Firmware Archive: ")
+            path_to_archive = path_to_archive.get_input()
+            if not all(path_to_archive):
+                if path_to_archive[1] is not None:
+                    messagebox.showerror("Error", "The path you have provided is invalid")
+                return 
+            path_to_archive = path_to_archive[1]
+            args = ("path", path_to_archive, )
+        else:
+            if self.firmware_keys_frame.firmware_option_menu.cget("state") == "disabled":
+                messagebox.showerror("Error", "Please ensure that a correct version has been chosen from the menu to the left")
+                return 
+            release = self.firmware_keys_frame.firmware_key_version_dict["firmware"][self.firmware_keys_frame.firmware_option_menu_variable.get()] 
+            args = ("release", release)
+        self.firmware_keys_frame.configure_firmware_key_buttons("disabled")
+        self.configure_action_buttons("disabled")
+        thread=Thread(target=self.ryujinx.install_firmware_handler, args=args)
+        thread.start()
+        Thread(target=self.enable_buttons_after_thread, args=(thread, ["firmware_keys","action"], )).start()
+   
+    def install_keys_button_event(self, event=None):
+        if event is None or self.firmware_keys_frame.install_keys_button.cget("state") == "disabled":
+            return 
+        path_to_archive = None
+        if event.state & 1:
+            path_to_archive = PathDialog(filetypes=(".zip", ".keys"), title="Custom Key Archive", text="Type path to Key Archive: ")
+            path_to_archive = path_to_archive.get_input()
+            if not all(path_to_archive):
+                if path_to_archive[1] is not None:
+                    messagebox.showerror("Error", "The path you have provided is invalid")
+                return 
+            path_to_archive = path_to_archive[1]
+            args = ("path", path_to_archive, )
+        else:
+            if self.firmware_keys_frame.key_option_menu.cget("state") == "disabled":
+                messagebox.showerror("Error", "Please ensure that a correct version has been chosen from the menu to the left")
+                return 
+            release = self.firmware_keys_frame.firmware_key_version_dict["keys"][self.firmware_keys_frame.key_option_menu_variable.get()]  
+            args = ("release", release, )
+        self.firmware_keys_frame.configure_firmware_key_buttons("disabled")
+        self.configure_action_buttons("disabled")
+        
+        thread = Thread(target=self.ryujinx.install_key_handler, args=args)
+        thread.start()
+        Thread(target=self.enable_buttons_after_thread, args=(thread, ["firmware_keys","action"],)).start()
         
     def delete_button_event(self):
         if not os.path.exists(os.path.join(self.settings.ryujinx.install_directory,"publish")):
@@ -231,7 +279,7 @@ class RyujinxFrame(EmulatorFrame):
     def fetch_versions(self, installed_only=True):
         if not installed_only:
             self.firmware_keys_frame.fetch_firmware_and_key_versions()
-            ryujinx_release = self.ryujinx.get_latest_release("mainline")
+            ryujinx_release = self.ryujinx.get_latest_release()
             if not all(ryujinx_release):
                 return 
             self.ryujinx_version = ryujinx_release[1].version
@@ -242,7 +290,7 @@ class RyujinxFrame(EmulatorFrame):
         
     def update_version_text(self):
        
-        if self.mainline_version is not None and self.install_button.cget("state") != "disabled":
+        if self.ryujinx_version is not None and self.install_button.cget("state") != "disabled":
             self.install_button.configure(text=f"Install Ryujinx {self.ryujinx_version}")
         if self.installed_ryujinx_version != "":
             if self.launch_button.cget("state") != "disabled":
