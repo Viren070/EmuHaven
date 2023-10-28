@@ -145,7 +145,7 @@ class DolphinFrame(EmulatorFrame):
             return 
         
         if event.state & 1:
-            path_to_archive = PathDialog(filetypes=(".zip",), title="Custom Dolphin Archive", text="Type path to Dolphin Archive: ")
+            path_to_archive = PathDialog(filetypes=(".zip", ".7z", ), title="Custom Dolphin Archive", text="Type path to Dolphin Archive: ")
             path_to_archive = path_to_archive.get_input()
             if not all(path_to_archive):
                 if path_to_archive[1] is not None:
