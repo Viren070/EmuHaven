@@ -257,7 +257,7 @@ class RyujinxFrame(EmulatorFrame):
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["data"],)).start()
     def delete_data_button_event(self):
-        if not messagebox.askyesno("Confirmation", "This will delete the data from Yuzu's directory and from the global saves directory. This action cannot be undone, are you sure you wish to continue?"):
+        if not messagebox.askyesno("Confirmation", "This will delete the data from Ryujinx's directory. This action cannot be undone, are you sure you wish to continue?"):
             return
         self.configure_data_buttons(state="disabled")
         thread = Thread(target=self.ryujinx.delete_ryujinx_data, args=(self.delete_optionmenu.get(),))
