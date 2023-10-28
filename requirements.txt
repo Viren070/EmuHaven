@@ -6,6 +6,8 @@
 #
 beautifulsoup4==4.12.2
     # via -r requirements.in
+brotli==1.1.0
+    # via py7zr
 certifi==2023.7.22
     # via requests
 charset-normalizer==3.2.0
@@ -18,11 +20,29 @@ darkdetect==0.8.0
     # via customtkinter
 idna==3.4
     # via requests
+inflate64==0.3.1
+    # via py7zr
+multivolumefile==0.2.3
+    # via py7zr
 pillow==10.1.0
     # via -r requirements.in
+psutil==5.9.6
+    # via py7zr
+py7zr==0.20.6
+    # via -r requirements.in
+pybcj==1.0.1
+    # via py7zr
+pycryptodomex==3.19.0
+    # via py7zr
+pyppmd==1.0.0
+    # via py7zr
+pyzstd==0.15.9
+    # via py7zr
 requests==2.31.0
     # via -r requirements.in
 soupsieve==2.5
     # via beautifulsoup4
+texttable==1.7.0
+    # via py7zr
 urllib3==2.0.7
     # via requests
