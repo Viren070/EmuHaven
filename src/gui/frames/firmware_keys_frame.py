@@ -34,8 +34,8 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
         self.firmware_option_menu.grid(row=0, column=2, padx=10, pady=5, sticky="w")
         self.firmware_option_menu.bind("<Button-1>", command=self.attempt_fetch)
 
-        self.install_firmware_button = customtkinter.CTkButton(self, text="Install", width=100, command=self.install_firmware_button_event)
-        self.install_firmware_button.bind("<Button-1>", command=self.install_firmware_button_event)
+        self.install_firmware_button = customtkinter.CTkButton(self, text="Install", width=100, command=self.gui.install_firmware_button_event)
+        self.install_firmware_button.bind("<Button-1>", command=self.gui.install_firmware_button_event)
         self.install_firmware_button.grid(row=0, column=3, padx=10, pady=5, sticky="w")
 
         # Keys Row
@@ -49,8 +49,8 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
         self.key_option_menu.bind("<Button-1>", command=self.attempt_fetch)
        
 
-        self.install_keys_button = customtkinter.CTkButton(self, text="Install", width=100, command=self.install_keys_button_event)
-        self.install_keys_button.bind("<Button-1>", command=self.install_keys_button_event)
+        self.install_keys_button = customtkinter.CTkButton(self, text="Install", width=100, command=self.gui.install_keys_button_event)
+        self.install_keys_button.bind("<Button-1>", command=self.gui.install_keys_button_event)
         self.install_keys_button.grid(row=1, column=3, padx=10, pady=5, sticky="w")
         
         
@@ -66,60 +66,7 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
         self.install_firmware_button.configure(state=state)
         self.install_keys_button.configure(state=state)
         
-    def install_firmware_button_event(self, event=None):
-        if event is None or self.install_firmware_button.cget("state") == "disabled":
-            return
-        path_to_archive = None
-        if event.state & 1:
-            path_to_archive = PathDialog(filetypes=(".zip",), title="Custom Firmware Archive", text="Type path to Firmware Archive: ")
-            path_to_archive = path_to_archive.get_input()
-            if not all(path_to_archive):
-                if path_to_archive[1] is not None:
-                    messagebox.showerror("Error", "The path you have provided is invalid")
-                return 
-            path_to_archive = path_to_archive[1]
-            args = ("path", path_to_archive, )
-        else:
-            if self.firmware_option_menu.cget("state") == "disabled":
-                messagebox.showerror("Error", "Please ensure that a correct version has been chosen from the menu to the left")
-                return 
-            release = self.firmware_key_version_dict["firmware"][self.firmware_option_menu_variable.get()] 
-            args = ("release", release)
-        self.configure_firmware_key_buttons("disabled")
-        self.gui.configure_mainline_buttons("disabled")
-        self.gui.configure_early_access_buttons("disabled")
-        thread=Thread(target=self.gui.yuzu.install_firmware_handler, args=args)
-        thread.start()
-        Thread(target=self.gui.enable_buttons_after_thread, args=(thread, ["firmware_keys","mainline","early_access"], )).start()
-   
-    def install_keys_button_event(self, event=None):
-        if event is None or self.install_keys_button.cget("state") == "disabled":
-            return 
-        path_to_archive = None
-        if event.state & 1:
-            path_to_archive = PathDialog(filetypes=(".zip", ".keys"), title="Custom Key Archive", text="Type path to Key Archive: ")
-            path_to_archive = path_to_archive.get_input()
-            if not all(path_to_archive):
-                if path_to_archive[1] is not None:
-                    messagebox.showerror("Error", "The path you have provided is invalid")
-                return 
-            path_to_archive = path_to_archive[1]
-            args = ("path", path_to_archive, )
-        else:
-            if self.key_option_menu.cget("state") == "disabled":
-                messagebox.showerror("Error", "Please ensure that a correct version has been chosen from the menu to the left")
-                return 
-            release = self.firmware_key_version_dict["keys"][self.key_option_menu_variable.get()]  
-            args = ("release", release, )
-        self.gui.configure_firmware_key_buttons("disabled")
-        self.gui.configure_mainline_buttons("disabled")
-        self.gui.configure_early_access_buttons("disabled")  
-        
-        thread = Thread(target=self.gui.yuzu.install_key_handler, args=args)
-        thread.start()
-        Thread(target=self.gui.enable_buttons_after_thread, args=(thread, ["firmware_keys","mainline","early_access"],)).start()
-        
-    def fetch_firmware_and_key_versions(self, manual_fetch=False):
+    def fetch_firmware_and_key_versions(self, manual_fetch=False, return_dict=False):
         class Release:
             def __init__(self):
                 self.name = None
@@ -172,6 +119,9 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
                 self.firmware_key_version_dict["firmware"][version] = firmware_release
             if key_release is not None and "Rebootless" not in version:
                 self.firmware_key_version_dict["keys"][version] = key_release
+                
+        if return_dict:
+            return self.firmware_key_version_dict
             
         # Extract firmware versions from the self.firmware_key_version_dict
         firmware_versions = [release.version for release in self.firmware_key_version_dict.get("firmware", {}).values()]

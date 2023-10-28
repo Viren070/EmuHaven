@@ -6,7 +6,7 @@ from PIL import Image
 from gui.frames.settings.app_settings_frame import AppSettingsFrame
 from gui.frames.settings.dolphin_settings_frame import DolphinSettingsFrame
 from gui.frames.settings.yuzu_settings_frame import YuzuSettingsFrame
-
+from gui.frames.settings.ryujinx_settings_frame import RyujinxSettingsFrame
 
 class SettingsFrame(customtkinter.CTkFrame):
     def __init__(self, parent_frame, settings):
@@ -22,7 +22,7 @@ class SettingsFrame(customtkinter.CTkFrame):
         # create settings navigation frame      
         self.settings_navigation_frame = customtkinter.CTkFrame(self, corner_radius=0, width=100, border_width=2, border_color=("white","black"))
         self.settings_navigation_frame.grid(row=0, column=0, sticky="nsew")
-        self.settings_navigation_frame.grid_rowconfigure(4, weight=1)
+        self.settings_navigation_frame.grid_rowconfigure(5, weight=1)
 
         # create settings navigation menu buttons
         self.app_settings_button = customtkinter.CTkButton(self.settings_navigation_frame, corner_radius=0, width=90, height=25, border_spacing=10, text="App",
@@ -40,37 +40,28 @@ class SettingsFrame(customtkinter.CTkFrame):
                                                    anchor="w", command=self.yuzu_settings_button_event)
         self.yuzu_settings_button.grid(row=3, column=0, padx=2, sticky="ew")
         
+        self.ryujinx_settings_button = customtkinter.CTkButton(self.settings_navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Ryujinx",
+                                                   fg_color="transparent", text_color=("gray10", "gray90"),
+                                                   anchor="w", command=self.ryujinx_settings_button_event)
+        self.ryujinx_settings_button.grid(row=4, column=0, padx=2, sticky="ew")
         
 
         # set default paths and other useful paths 
         installer_paths = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Emulator Files")
-        user_saves_directory = os.path.join(os.getcwd(), "User Data")
-        switch_firmware_keys_folder_path = os.path.join(installer_paths, "Yuzu Files")
         self.user_profile = os.path.expanduser('~')
         self.temp_extract_directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Temp")
-         
-        self.default_dolphin_settings_install_directory = os.path.join(self.user_profile, "AppData\\Local\\Dolphin Emulator\\")
-        self.default_dolphin_settings_user_directory = os.path.join(self.user_profile, "AppData\\Roaming\\Dolphin Emulator")
-        self.default_dolphin_settings_global_save_directory = os.path.join(user_saves_directory, "Dolphin")
-        self.default_dolphin_settings_export_directory = os.path.join(user_saves_directory, "Dolphin")
-        self.default_dolphin_settings_dolphin_zip_directory = os.path.join(installer_paths, 'Dolphin 5.0-19870.zip')
-            
-        self.default_yuzu_settings_install_directory = os.path.join(self.user_profile, "AppData\\Local\\yuzu\\yuzu-windows-msvc\\")
-        self.default_yuzu_settings_user_directory = os.path.join(self.user_profile, "AppData\\Roaming\\yuzu\\")
-        self.default_yuzu_settings_global_save_directory = os.path.join(user_saves_directory, "Yuzu")
-        self.default_yuzu_settings_export_directory = os.path.join(user_saves_directory, "Yuzu")
-        self.default_yuzu_settings_installer_path = os.path.join(installer_paths, 'yuzu_install.exe')
-        self.default_yuzu_settings_firmware_path = os.path.join(switch_firmware_keys_folder_path, "Firmware 16.0.3 (Rebootless Update 2).zip")
-        self.default_yuzu_settings_key_path = os.path.join(switch_firmware_keys_folder_path, "Keys 16.0.3.zip")
         
         self.dolphin_settings_frame = DolphinSettingsFrame(self, self.settings)
         self.yuzu_settings_frame = YuzuSettingsFrame(self, self.settings)
+        self.ryujinx_settings_frame = RyujinxSettingsFrame(self, self.settings)
         self.app_settings_frame = AppSettingsFrame(self, self.settings)
         
     def dolphin_settings_button_event(self):
         self.select_settings_frame_by_name("dolphin")
     def yuzu_settings_button_event(self):
         self.select_settings_frame_by_name("yuzu")
+    def ryujinx_settings_button_event(self):
+        self.select_settings_frame_by_name("ryujinx")
     def app_settings_button_event(self):
         self.select_settings_frame_by_name("app")
         
@@ -78,6 +69,7 @@ class SettingsFrame(customtkinter.CTkFrame):
         # set button color for selected button
         self.yuzu_settings_button.configure(fg_color=self.yuzu_settings_button.cget("hover_color") if name == "yuzu" else "transparent")
         self.dolphin_settings_button.configure(fg_color=self.dolphin_settings_button.cget("hover_color") if name == "dolphin" else "transparent")
+        self.ryujinx_settings_button.configure(fg_color=self.ryujinx_settings_button.cget("hover_color") if name == "ryujinx" else "transparent")
         self.app_settings_button.configure(fg_color=self.app_settings_button.cget("hover_color") if name == "app" else "transparent")
         # show selected frame
         if name == "dolphin":
@@ -88,6 +80,10 @@ class SettingsFrame(customtkinter.CTkFrame):
             self.yuzu_settings_frame.grid(row=0, column=1, sticky="nsew")
         else:
             self.yuzu_settings_frame.grid_forget()
+        if name == "ryujinx":
+            self.ryujinx_settings_frame.grid(row=0, column=1, sticky="nsew")
+        else:
+            self.ryujinx_settings_frame.grid_forget()
         if name == "app":
             self.app_settings_frame.grid(row=0, column=1, sticky="nsew")
         else:

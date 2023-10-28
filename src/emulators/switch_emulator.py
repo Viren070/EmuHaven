@@ -44,7 +44,7 @@ def verify_key_archive(path_to_archive):
     return found
 
 
-def install_firmware_from_archive(firmware_source, extract_folder, progress_frame):
+def install_firmware_from_archive(firmware_source, extract_folder, progress_frame, emulator):
 
     if os.path.exists(extract_folder):
         shutil.rmtree(extract_folder)
@@ -66,14 +66,22 @@ def install_firmware_from_archive(firmware_source, extract_folder, progress_fram
                         if nca_id == "00":
                             nca_id = path_components[-2]
                         if ".nca" in nca_id:
-                            extracted_file_path = os.path.join(extract_folder, nca_id)
-                            os.makedirs(extract_folder, exist_ok=True)
-                            with open(extracted_file_path, "wb") as f:
-                                f.write(archive.read(entry))
+                            if emulator == "ryujinx":
+                                new_path = os.path.join(extract_folder, nca_id)
+                                os.makedirs(new_path, exist_ok=True)
+                                with open(os.path.join(new_path, "00"), "wb") as f:
+                                    f.write(archive.read(entry))
+                            elif emulator == "yuzu":
+                                new_path = os.path.join(extract_folder, nca_id)
+                                os.makedirs(extract_folder, exist_ok=True)
+                                with open(new_path, "wb") as f:
+                                    f.write(archive.read(entry))
+                          
                             extracted_files.append(entry.filename)
                             progress_frame.update_extraction_progress(len(extracted_files)/total)
                         else:
                             excluded.append(entry.filename)
+                        
     except Exception as error:
         progress_frame.grid_forget()
         return (False, error)

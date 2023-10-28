@@ -19,6 +19,11 @@ class Metadata:
                 },
                 "firmware_version": "",
                 "key_version": ""
+            },
+            "ryujinx": {
+                "installed_version": "",
+                "installed_firmware_version": "",
+                "installed_key_version": ""
             }
         }
         self.metadata_file = os.path.join(os.getenv("APPDATA"), "Emulator Manager", "metadata.json")
@@ -59,6 +64,12 @@ class Metadata:
                 current_contents["yuzu"]["firmware_version"] = version 
             case "yuzu_keys":
                 current_contents["yuzu"]["key_version"] = version
+            case "ryujinx":
+                current_contents["ryujinx"]["installed_version"] = version
+            case "ryujinx_firmware":
+                current_contents["ryujinx"]["installed_firmware_version"] = version 
+            case "ryujinx_keys":
+                current_contents["ryujinx"]["installed_key_version"] = version
             case _:
                 raise ValueError(f"Expected str argument of mainline or early access, but got {mode}")
                 
@@ -77,15 +88,21 @@ class Metadata:
                 version = current_contents["yuzu"]["firmware_version"] if ( os.path.exists(os.path.join(self.settings.yuzu.user_directory, "nand", "system", "Contents", "registered")) and os.listdir(os.path.join(self.settings.yuzu.user_directory, "nand", "system", "Contents", "registered")) ) else self.update_installed_version("yuzu_firmware", "")
             case "yuzu_keys":
                 version = current_contents["yuzu"]["key_version"] if os.path.exists(os.path.join(self.settings.yuzu.user_directory, "keys", "prod.keys")) else self.update_installed_version("yuzu_key", "")
+            case "ryujinx":
+                version = current_contents["ryujinx"]["installed_version"] if os.path.exists(os.path.join(self.settings.ryujinx.install_directory, "publish", "Ryujinx.exe")) else self.update_installed_version("ryujinx", "")
+            case "ryujinx_firmware":
+                version = current_contents["ryujinx"]["installed_firmware_version"] if ( os.path.exists(os.path.join(self.settings.ryujinx.user_directory, "bis", "system", "Contents", "registered")) and os.listdir(os.path.join(self.settings.ryujinx.user_directory, "bis", "system", "Contents", "registered")) ) else self.update_installed_version("ryujinx_firmware", "")
+            case "ryujinx_keys":
+                version = current_contents["ryujinx"]["installed_key_version"] if os.path.exists(os.path.join(self.settings.ryujinx.user_directory, "system", "prod.keys")) else self.update_installed_version("ryujinx_keys", "")
+            
             case _:
                 raise ValueError(f"Expected str argument of mainline or early access, but got {mode}")
         return version
     def is_metadata_valid(self):
         try:
-            for mode in ["mainline", "early_access", "dolphin", "yuzu_firmware", "yuzu_keys"]:
+            for mode in ["mainline", "early_access", "dolphin", "yuzu_firmware", "yuzu_keys", "ryujinx", "ryujinx_firmware", "ryujinx_keys"]:
                 self.get_installed_version(mode)
             return True
         except (KeyError, TypeError):
-            print("invalid metadata file")
             return False 
                 
