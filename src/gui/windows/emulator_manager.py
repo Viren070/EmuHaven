@@ -7,7 +7,9 @@ from threading import Thread
 import customtkinter
 from PIL import Image
 
+from gui.CTkScrollableDropdown import CTkScrollableDropdown
 from gui.frames.dolphin.dolphin_frame import DolphinFrame
+from gui.frames.ryujinx.ryujinx_frame import RyujinxFrame
 from gui.frames.settings.settings_frame import SettingsFrame
 from gui.frames.yuzu.yuzu_frame import YuzuFrame
 from settings.app_settings import load_customtkinter_themes
@@ -41,8 +43,10 @@ class EmulatorManager(customtkinter.CTk):
             
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
         Thread(target=self.yuzu_frame.fetch_versions, args=(False,)).start()
+        Thread(target=self.ryujinx_frame.fetch_versions, args=(False,)).start()
         Thread(target=self.dolphin_frame.fetch_versions, args=(False,)).start()
-        self.mainloop()
+        self.mainloop()  
+
     def define_images(self):
         self.dolphin_logo = customtkinter.CTkImage(Image.open(self.settings.get_image_path("dolphin_logo")), size=(26, 26))
         self.dolphin_banner =  customtkinter.CTkImage(light_image=Image.open(self.settings.get_image_path("dolphin_banner_light")),
@@ -50,6 +54,7 @@ class EmulatorManager(customtkinter.CTk):
         self.yuzu_logo = customtkinter.CTkImage(Image.open(self.settings.get_image_path("yuzu_logo")), size=(26, 26))
         self.yuzu_mainline = customtkinter.CTkImage(Image.open(self.settings.get_image_path("yuzu_mainline")), size=(120, 40))
         self.yuzu_early_access = customtkinter.CTkImage(Image.open(self.settings.get_image_path("yuzu_early_access")), size=(120, 40))
+        self.ryujinx_logo = customtkinter.CTkImage(Image.open(self.settings.get_image_path("ryujinx_logo")), size=(26, 26))
         self.play_image = customtkinter.CTkImage(light_image=Image.open(self.settings.get_image_path("play_light")),
                                                      dark_image=Image.open(self.settings.get_image_path("play_dark")), size=(20, 20))
         self.settings_image =  customtkinter.CTkImage(light_image=Image.open(self.settings.get_image_path("settings_light")),
@@ -93,6 +98,11 @@ class EmulatorManager(customtkinter.CTk):
                                                 anchor="w", command=self.yuzu_button_event)
         self.yuzu_button.grid(row=1, column=0, sticky="ew")
             
+        self.ryujinx_button = customtkinter.CTkButton(scrollable_frame, corner_radius=0, height=40, image=self.ryujinx_logo, border_spacing=10, text="Ryujinx",
+                                                fg_color="transparent", text_color=("gray10", "gray90"),
+                                                anchor="w", command=self.ryujinx_button_event)
+        self.ryujinx_button.grid(row=2, column=0, sticky="ew")
+        
         # Set column weights of scrollable_frame to make buttons expand
         scrollable_frame.grid_columnconfigure(0, weight=1)
 
@@ -104,6 +114,7 @@ class EmulatorManager(customtkinter.CTk):
 
         self.yuzu_frame = YuzuFrame(self, self.settings, self.metadata)
         self.dolphin_frame = DolphinFrame(self, self.settings, self.metadata)
+        self.ryujinx_frame = RyujinxFrame(self, self.settings, self.metadata)
         self.settings_frame = SettingsFrame(self, self.settings)
         self.settings.yuzu.refresh_app_settings = self.settings_frame.app_settings_frame.refresh_settings
 
@@ -113,6 +124,8 @@ class EmulatorManager(customtkinter.CTk):
     def yuzu_button_event(self):
         self.select_frame_by_name("yuzu")
 
+    def ryujinx_button_event(self):
+        self.select_frame_by_name("ryujinx")
     def settings_button_event(self):
         self.select_frame_by_name("settings")
     
@@ -125,6 +138,7 @@ class EmulatorManager(customtkinter.CTk):
         self.settings_button.configure(fg_color=self.settings_button.cget("hover_color") if name == "settings" else "transparent")
         self.dolphin_button.configure(fg_color=self.dolphin_button.cget("hover_color") if name == "dolphin" else "transparent")
         self.yuzu_button.configure(fg_color=self.yuzu_button.cget("hover_color") if name == "yuzu" else "transparent")
+        self.ryujinx_button.configure(fg_color=self.ryujinx_button.cget("hover_color") if name == "ryujinx" else "transparent")
         
         # show selected frame
         if name == "settings":
@@ -143,6 +157,11 @@ class EmulatorManager(customtkinter.CTk):
         else:
             self.yuzu_frame.grid_forget()
             self.yuzu_frame.select_frame_by_name(None)
+        if name == "ryujinx":
+            self.ryujinx_frame.grid(row=0, column=1, sticky="nsew")
+        else:
+            self.ryujinx_frame.grid_forget()
+            self.ryujinx_frame.select_frame_by_name(None)
         
         
     def settings_changed(self):

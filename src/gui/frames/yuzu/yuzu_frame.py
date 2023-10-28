@@ -181,6 +181,10 @@ class YuzuFrame(EmulatorFrame):
             
             
             
+    def install_firmware_handler(self, *args):
+        self.yuzu.install_firmware_handler(*args)
+    def install_key_handler(self, *args):
+        self.yuzu.install_key_handler(*args)
     def launch_mainline_button_event(self, event=None):
         if event is None or self.launch_mainline_button.cget("state") == "disabled":
             return 

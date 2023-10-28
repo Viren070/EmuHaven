@@ -88,7 +88,7 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
         self.configure_firmware_key_buttons("disabled")
         self.gui.configure_mainline_buttons("disabled")
         self.gui.configure_early_access_buttons("disabled")
-        thread=Thread(target=self.gui.yuzu.install_firmware_handler, args=args)
+        thread=Thread(target=self.gui.install_firmware_handler, args=args)
         thread.start()
         Thread(target=self.gui.enable_buttons_after_thread, args=(thread, ["firmware_keys","mainline","early_access"], )).start()
    
@@ -115,11 +115,11 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
         self.gui.configure_mainline_buttons("disabled")
         self.gui.configure_early_access_buttons("disabled")  
         
-        thread = Thread(target=self.gui.yuzu.install_key_handler, args=args)
+        thread = Thread(target=self.gui.install_key_handler, args=args)
         thread.start()
         Thread(target=self.gui.enable_buttons_after_thread, args=(thread, ["firmware_keys","mainline","early_access"],)).start()
         
-    def fetch_firmware_and_key_versions(self, manual_fetch=False):
+    def fetch_firmware_and_key_versions(self, manual_fetch=False, return_dict=False):
         class Release:
             def __init__(self):
                 self.name = None
@@ -172,6 +172,9 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
                 self.firmware_key_version_dict["firmware"][version] = firmware_release
             if key_release is not None and "Rebootless" not in version:
                 self.firmware_key_version_dict["keys"][version] = key_release
+                
+        if return_dict:
+            return self.firmware_key_version_dict
             
         # Extract firmware versions from the self.firmware_key_version_dict
         firmware_versions = [release.version for release in self.firmware_key_version_dict.get("firmware", {}).values()]

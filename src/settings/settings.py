@@ -4,6 +4,7 @@ import os
 from settings.app_settings import AppSettings
 from settings.dolphin_settings import DolphinSettings
 from settings.yuzu_settings import YuzuSettings
+from settings.ryujinx_settings import RyujinxSettings
 
 
 class Settings:
@@ -16,6 +17,7 @@ class Settings:
         self.app = AppSettings(self)
         self.yuzu = YuzuSettings(self)
         self.dolphin = DolphinSettings(self)
+        self.ryujinx = RyujinxSettings(self)
         
         if not os.path.exists(self.settings_file) or not self.settings_file_valid():
             self.create_settings_file() 
@@ -52,6 +54,8 @@ class Settings:
                     "yuzu_logo": "", 
                     "yuzu_mainline": "",
                     "yuzu_early_access": "",
+                    "ryujinx_logo": "",
+                    "ryujinx_banner": "",
                     "padlock_dark": "",
                     "padlock_light": "",
                     "play_dark": "",
@@ -75,7 +79,7 @@ class Settings:
         with open(self.settings_file, "r", encoding="utf-8") as f:
             settings = json.load(f)
         image_paths = settings["app_settings"]["image_paths"]
-        if len(image_paths) != 12:
+        if len(image_paths) != 14:
             settings["app_settings"]["image_paths"] = {
                     "dolphin_logo": '',
                     "dolphin_banner_dark": '',
@@ -83,6 +87,8 @@ class Settings:
                     "yuzu_logo": "", 
                     "yuzu_mainline": "",
                     "yuzu_early_access": "",
+                    "ryujinx_logo": "",
+                    "ryujinx_banner": "",
                     "padlock_dark": "",
                     "padlock_light": "",
                     "play_dark": "",
