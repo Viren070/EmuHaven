@@ -6,14 +6,12 @@ import customtkinter
 from CTkToolTip import CTkToolTip
 from PIL import Image
 
-from gui.CTkScrollableDropdown import CTkScrollableDropdown
 from emulators.yuzu import Yuzu
 from gui.frames.emulator_frame import EmulatorFrame
-from gui.frames.progress_frame import ProgressFrame
 from gui.frames.firmware_keys_frame import FirmwareKeysFrame
+from gui.frames.progress_frame import ProgressFrame
 from gui.frames.yuzu.yuzu_rom_frame import YuzuROMFrame
 from gui.windows.path_dialog import PathDialog
-from utils.requests_utils import get_headers, get_all_releases
 
 
 class YuzuFrame(EmulatorFrame):

@@ -5,7 +5,7 @@ import customtkinter
 
 from gui.CTkScrollableDropdown import CTkScrollableDropdown
 from gui.windows.path_dialog import PathDialog
-from utils.requests_utils import get_headers, get_all_releases
+from utils.requests_utils import get_all_releases, get_headers
 
 
 class FirmwareKeysFrame(customtkinter.CTkFrame):
@@ -55,7 +55,6 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
         
         
     def attempt_fetch(self, *args):
-        print(*args)
         if self.fetching_versions:
             messagebox.showwarning("Version Fetch", "A Fetch is already in progress, please try again later")
             return 
