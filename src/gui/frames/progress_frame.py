@@ -78,10 +78,10 @@ class ProgressFrame(customtkinter.CTkFrame):
 
         self.progress_bar.set(done)
         self.progress_label.configure(
-            text=f"{downloaded_bytes/1024/1024:.1f} MB / {self.total_size/1024/1024:.1f} MB"
+            text=f"{downloaded_bytes/1024/1024:.1f} MiB / {self.total_size/1024/1024:.1f} MiB"
         )
-        self.percentage_complete.configure(text=f"{str(done*100).split('.')[0]}%")
-        self.download_speed_label.configure(text=f"{avg_speed/1024/1024:.1f} MB/s")
+        self.percentage_complete.configure(text=f"{str(done*100).split('.', maxsplit=1)[0]}%")
+        self.download_speed_label.configure(text=f"{self.average_speed/1024/1024:.1f} MiB/s")
         self.eta_label.configure(text=f"Time Left: {time_left_str}")
         if self.install_status_label.cget("text") != "Status: Downloading...":
             self.install_status_label.configure(text="Status: Downloading...")
