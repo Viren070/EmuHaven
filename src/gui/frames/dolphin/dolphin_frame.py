@@ -225,7 +225,7 @@ class DolphinFrame(EmulatorFrame):
         
     def update_version_text(self):
 
-        if self.dolphin is not None and self.install_dolphin_button.cget("state") != "disabled":
+        if self.dolphin_version is not None and self.install_dolphin_button.cget("state") != "disabled":
             self.install_dolphin_button.configure(text=f"Install Dolphin {self.dolphin_version}")
         if self.installed_dolphin_version != "":
             if self.launch_dolphin_button.cget("state") != "disabled":
