@@ -149,7 +149,7 @@ class Dolphin:
         
         try:
             
-            if os.listdir(self.settings.dolphin.install_directory):
+            if os.path.exists(self.settings.dolphin.install_directory) and os.listdir(self.settings.dolphin.install_directory):
                 self.main_progress_frame.update_status_label("Deleting old installation...")
                 shutil.rmtree(self.settings.dolphin.install_directory)
             os.makedirs(self.settings.dolphin.install_directory, exist_ok=True)
