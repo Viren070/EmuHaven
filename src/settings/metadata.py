@@ -79,22 +79,47 @@ class Metadata:
         current_contents = self.get_metadata_contents()
         match(mode):
             case "mainline":
-                version = current_contents["yuzu"]["mainline"]["installed_version"] if os.path.exists(os.path.join(self.settings.yuzu.install_directory, "yuzu-windows-msvc", "yuzu.exe")) else self.update_installed_version("mainline", "")
+                yuzu_mainline_exe_path = os.path.join(self.settings.yuzu.install_directory, "yuzu-windows-msvc", "yuzu.exe")
+                version = current_contents["yuzu"]["mainline"]["installed_version"] if os.path.exists(yuzu_mainline_exe_path) else self.update_installed_version("mainline", "")
             case "early_access":
-                version = current_contents["yuzu"]["early_access"]["installed_version"] if os.path.exists(os.path.join(self.settings.yuzu.install_directory, "yuzu-windows-msvc-early-access", "yuzu.exe")) else self.update_installed_version("early_access", "")
+                yuzu_early_access_exe_path = os.path.join(self.settings.yuzu.install_directory, "yuzu-windows-msvc-early-access", "yuzu.exe")
+                version = current_contents["yuzu"]["early_access"]["installed_version"] if os.path.exists(yuzu_early_access_exe_path) else self.update_installed_version("early_access", "")
             case "dolphin":
-                version = current_contents["dolphin"]["installed_version"] if os.path.exists(os.path.join(self.settings.dolphin.install_directory, "Dolphin.exe")) else self.update_installed_version("dolphin", "")
+                dolphin_exe_path = os.path.join(self.settings.dolphin.install_directory, "Dolphin.exe")
+                version = current_contents["dolphin"]["installed_version"] if os.path.exists(dolphin_exe_path) else self.update_installed_version("dolphin", "")
             case "yuzu_firmware":
-                version = current_contents["yuzu"]["firmware_version"] if ( os.path.exists(os.path.join(self.settings.yuzu.user_directory, "nand", "system", "Contents", "registered")) and os.listdir(os.path.join(self.settings.yuzu.user_directory, "nand", "system", "Contents", "registered")) ) else self.update_installed_version("yuzu_firmware", "")
+                yuzu_firmware_directory = os.path.join(self.settings.yuzu.user_directory, "nand", "system", "Contents", "registered")
+                stored_version = current_contents["yuzu"]["firmware_version"]
+                if os.path.exists(yuzu_firmware_directory) and os.listdir(yuzu_firmware_directory):
+                    version = stored_version if stored_version else "Unknown"
+                else:
+                    version = self.update_installed_version("yuzu_firmware", "")   
             case "yuzu_keys":
-                version = current_contents["yuzu"]["key_version"] if os.path.exists(os.path.join(self.settings.yuzu.user_directory, "keys", "prod.keys")) else self.update_installed_version("yuzu_keys", "")
+                yuzu_key_path = os.path.join(self.settings.yuzu.user_directory, "keys", "prod.keys")
+                stored_version = current_contents["yuzu"]["key_version"]
+                if os.path.exists(yuzu_key_path):
+                    version = stored_version if stored_version else "Unknown"
+                else:
+                    version = self.update_installed_version("yuzu_keys", "")
             case "ryujinx":
-                version = current_contents["ryujinx"]["installed_version"] if os.path.exists(os.path.join(self.settings.ryujinx.install_directory, "publish", "Ryujinx.exe")) else self.update_installed_version("ryujinx", "")
+                ryujinx_exe_path = os.path.join(self.settings.ryujinx.install_directory, "publish", "Ryujinx.exe")
+                version = current_contents["ryujinx"]["installed_version"] if os.path.exists(ryujinx_exe_path) else self.update_installed_version("ryujinx", "")
+           
             case "ryujinx_firmware":
-                version = current_contents["ryujinx"]["installed_firmware_version"] if ( os.path.exists(os.path.join(self.settings.ryujinx.user_directory, "bis", "system", "Contents", "registered")) and os.listdir(os.path.join(self.settings.ryujinx.user_directory, "bis", "system", "Contents", "registered")) ) else self.update_installed_version("ryujinx_firmware", "")
+                ryujinx_firmware_directory = os.path.join(self.settings.ryujinx.user_directory, "bis", "system", "Contents", "registered")
+                stored_version = current_contents["ryujinx"]["installed_firmware_version"]
+                if os.path.exists(ryujinx_firmware_directory) and os.listdir(ryujinx_firmware_directory):
+                    version = stored_version if stored_version else "Unknown"
+                else:
+                    version = self.update_installed_version("ryujinx_firmware", "")
+                    
             case "ryujinx_keys":
-                version = current_contents["ryujinx"]["installed_key_version"] if os.path.exists(os.path.join(self.settings.ryujinx.user_directory, "system", "prod.keys")) else self.update_installed_version("ryujinx_keys", "")
-            
+                ryujinx_key_path = os.path.join(self.settings.ryujinx.user_directory, "system", "prod.keys")
+                stored_version = current_contents["ryujinx"]["installed_key_version"]
+                if os.path.exists(ryujinx_key_path):
+                    version = stored_version if stored_version else "Unknown"
+                else:
+                    version = self.update_installed_version("ryujinx_keys", "")
             case _:
                 raise ValueError(f"Expected str argument of mainline or early access, but got {mode}")
         return version

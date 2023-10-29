@@ -244,6 +244,7 @@ class Yuzu:
         if result:
             messagebox.showwarning("Unexpected Files" , f"These files were skipped in the extraction process: {result}")
         messagebox.showinfo("Firmware Install", "The switch firmware files were successfully installed")
+        self.gui.fetch_versions()
         return True 
     
     def download_firmware_archive(self, release):
@@ -305,6 +306,7 @@ class Yuzu:
                 os.remove(key_path)
             self.metadata.update_installed_version("yuzu_keys", version)
         messagebox.showinfo("Keys", "Decryption keys were successfully installed!")
+        self.gui.fetch_versions()
         return True 
             
     def download_key_archive(self, release):

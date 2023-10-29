@@ -65,7 +65,7 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
     def configure_firmware_key_buttons(self, state):
         self.install_firmware_button.configure(state=state)
         self.install_keys_button.configure(state=state)
-        
+        self.gui.fetch_versions()
     def fetch_firmware_and_key_versions(self, manual_fetch=False, return_dict=False):
         class Release:
             def __init__(self):
