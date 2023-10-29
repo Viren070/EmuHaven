@@ -206,7 +206,7 @@ class YuzuFrame(EmulatorFrame):
         if os.path.exists(os.path.join(self.settings.yuzu.install_directory,"yuzu-windows-msvc")) and not messagebox.askyesno("Yuzu Exists", "There is already an installation of yuzu at the specified install directory, overwrite this installation?"):
             return 
         path_to_archive = None
-        if not self.settings.app.use_yuzu_installer == "True" and event.state & 1:
+        if not self.settings.yuzu.use_yuzu_installer == "True" and event.state & 1:
             path_to_archive = PathDialog(filetypes=(".zip",), title="Custom Yuzu Archive", text="Enter path to yuzu archive: ")
             path_to_archive = path_to_archive.get_input()
             if not all(path_to_archive):
@@ -218,7 +218,7 @@ class YuzuFrame(EmulatorFrame):
         self.configure_early_access_buttons("disabled")
         self.firmware_keys_frame.configure_firmware_key_buttons("disabled")
         
-        thread = Thread(target=self.yuzu.launch_yuzu_installer) if self.settings.app.use_yuzu_installer == "True" else Thread(target=self.yuzu.install_release_handler, args=("mainline", False, path_to_archive))
+        thread = Thread(target=self.yuzu.launch_yuzu_installer) if self.settings.yuzu.use_yuzu_installer == "True" else Thread(target=self.yuzu.install_release_handler, args=("mainline", False, path_to_archive))
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["mainline","early_access", "firmware_keys"],)).start()
         
