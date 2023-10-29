@@ -161,10 +161,21 @@ class Ryujinx:
         
     def verify_and_install_firmware_keys(self):
         if not switch_emu.check_current_keys(os.path.join(self.settings.ryujinx.user_directory, "system", "prod.keys")):
-            messagebox.showwarning("Missing Keys", "It seems you are missing the switch decryption keys. These keys are required to emulate games. Please install them using the download button below")
-        
+            if messagebox.askyesno("Missing Keys", "It seems you are missing the switch decryption keys. These keys are required to emulate games. Would you like to install them right now?"):
+                if self.gui.firmware_keys_frame.key_option_menu.cget("state") == "disabled":
+                    messagebox.showerror("Install Keys", "Unable to fetch latest prod.keys. Please try again later or restart the application")
+                else:
+                    latest_key_release = self.gui.firmware_keys_frame.firmware_key_version_dict["keys"][self.gui.firmware_keys_frame.key_option_menu.cget("values")[0]]
+                    self.install_key_handler("release", latest_key_release)
         if self.settings.app.ask_firmware != "False" and not switch_emu.check_current_firmware(os.path.join(self.settings.ryujinx.user_directory, "bis", "system", "Contents", "registered")):
-            if not messagebox.askyesno("Firmware Missing", "It seems you are missing the switch firmware files. Without these files, some games may not run. You can install the firmware using the buttons below. Press Yes to remind you later or No to never ask again."):
+            if messagebox.askyesno("Firmware Missing", "It seems you are missing the switch firmware files. Without these files, some games may not run. You can install the firmware using the buttons below. \n\nWould you like to install the firmware now? If you select no, you will not be asked again"):
+                if self.gui.firmware_keys_frame.firmware_option_menu.cget("state") == "disabled":
+                    messagebox.showerror("Install Firmware", "Unable to fetch latest Firmware. Please try again later or restart the application")
+                   
+                else:
+                    latest_firmware_release = self.gui.firmware_keys_frame.firmware_key_version_dict["firmware"][self.gui.firmware_keys_frame.key_option_menu.cget("values")[0]]
+                    self.install_firmware_handler("release", latest_firmware_release)
+            else:
                 self.settings.app.ask_firmware = "False"
             
 
