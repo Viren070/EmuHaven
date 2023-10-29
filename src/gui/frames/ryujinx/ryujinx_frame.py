@@ -276,10 +276,6 @@ class RyujinxFrame(EmulatorFrame):
     def fetch_versions(self, installed_only=True):
         if not installed_only:
             self.firmware_keys_frame.fetch_firmware_and_key_versions()
-            ryujinx_release = self.ryujinx.get_latest_release()
-            if not all(ryujinx_release):
-                return 
-            self.ryujinx_version = ryujinx_release[1].version
         self.installed_ryujinx_version = self.metadata.get_installed_version("ryujinx")
         self.installed_firmware_version = self.metadata.get_installed_version("ryujinx_firmware")
         self.installed_key_version = self.metadata.get_installed_version("ryujinx_keys")

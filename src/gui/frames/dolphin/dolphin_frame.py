@@ -217,12 +217,7 @@ class DolphinFrame(EmulatorFrame):
     
     def fetch_versions(self, installed_only=True):
         if not installed_only:
-            
-            dolphin_release = self.dolphin.get_dolphin_release(self.selected_channel.get().lower())
-            
-            if not all(dolphin_release):
-                return 
-            self.dolphin_version = dolphin_release[1].version
+            pass
             
         self.installed_dolphin_version = self.metadata.get_installed_version("dolphin")
       

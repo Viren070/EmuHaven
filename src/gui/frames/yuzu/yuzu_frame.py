@@ -179,12 +179,6 @@ class YuzuFrame(EmulatorFrame):
         else:
             self.early_access_actions_frame.grid_forget()
             
-            
-            
-    def install_firmware_handler(self, *args):
-        self.yuzu.install_firmware_handler(*args)
-    def install_key_handler(self, *args):
-        self.yuzu.install_key_handler(*args)
     def launch_mainline_button_event(self, event=None):
         if event is None or self.launch_mainline_button.cget("state") == "disabled":
             return 
@@ -383,12 +377,6 @@ class YuzuFrame(EmulatorFrame):
     def fetch_versions(self, installed_only=True):
         if not installed_only:
             self.firmware_keys_frame.fetch_firmware_and_key_versions()
-            mainline_release = self.yuzu.get_latest_release("mainline")
-            early_access_release = self.yuzu.get_latest_release("early_access")
-            if not all(all( val for val in arr) for arr in (mainline_release, early_access_release)):
-                return 
-            self.mainline_version = mainline_release[1].version
-            self.early_access_version = early_access_release[1].version
         self.installed_mainline_version = self.metadata.get_installed_version("mainline")
         self.installed_early_access_version = self.metadata.get_installed_version("early_access")
         self.installed_firmware_version = self.metadata.get_installed_version("yuzu_firmware")
