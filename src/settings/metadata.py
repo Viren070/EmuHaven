@@ -87,7 +87,7 @@ class Metadata:
             case "yuzu_firmware":
                 version = current_contents["yuzu"]["firmware_version"] if ( os.path.exists(os.path.join(self.settings.yuzu.user_directory, "nand", "system", "Contents", "registered")) and os.listdir(os.path.join(self.settings.yuzu.user_directory, "nand", "system", "Contents", "registered")) ) else self.update_installed_version("yuzu_firmware", "")
             case "yuzu_keys":
-                version = current_contents["yuzu"]["key_version"] if os.path.exists(os.path.join(self.settings.yuzu.user_directory, "keys", "prod.keys")) else self.update_installed_version("yuzu_key", "")
+                version = current_contents["yuzu"]["key_version"] if os.path.exists(os.path.join(self.settings.yuzu.user_directory, "keys", "prod.keys")) else self.update_installed_version("yuzu_keys", "")
             case "ryujinx":
                 version = current_contents["ryujinx"]["installed_version"] if os.path.exists(os.path.join(self.settings.ryujinx.install_directory, "publish", "Ryujinx.exe")) else self.update_installed_version("ryujinx", "")
             case "ryujinx_firmware":
