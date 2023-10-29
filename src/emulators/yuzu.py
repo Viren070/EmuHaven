@@ -152,7 +152,7 @@ class Yuzu:
         
     def launch_yuzu_handler(self, release_type, skip_update=False):
         if not skip_update:
-            if (release_type == "mainline" and self.settings.app.use_yuzu_installer == "False") or release_type == "early_access":
+            if (release_type == "mainline" and self.settings.yuzu.use_yuzu_installer == "False") or release_type == "early_access":
                 func = self.gui.configure_mainline_buttons if release_type == "mainline"  else self.gui.configure_early_access_buttons
                 func("disabled", text="Fetching Updates...  ")
                 self.install_release_handler(release_type, True)
@@ -167,7 +167,7 @@ class Yuzu:
         func_to_call("disabled", text="Launched!  ")
         yuzu_exe = os.path.join(self.settings.yuzu.install_directory, yuzu_folder, "yuzu.exe")
         maintenance_tool = os.path.join(self.settings.yuzu.install_directory, "maintenancetool.exe")
-        args = [maintenance_tool, "--launcher", yuzu_exe] if release_type == "mainline" and self.settings.app.use_yuzu_installer == "True" and not skip_update else [yuzu_exe]
+        args = [maintenance_tool, "--launcher", yuzu_exe] if release_type == "mainline" and self.settings.yuzu.use_yuzu_installer == "True" and not skip_update else [yuzu_exe]
         self.running = True
         subprocess.run(args, capture_output=True, check=False)
         self.running = False
