@@ -6,6 +6,7 @@ A program that will help manage your emulators, currently supports:
 
  - Dolphin
  - Yuzu
+ - Ryujinx
 
 Only tested on Windows 10 and 11, not sure if it will work on anything else
 
@@ -18,7 +19,7 @@ Download the latest release from [here](https://github.com/Viren070/Emulator-Man
 ### Dolphin 
 
 - Download any game you want for the GameCube or Wii directly from the manager. It is easy to use and you can browse or search for whatever game you want. 
-- Download the latest beta release of dolphin through the manager and keep Dolphin updated. 
+- Download the latest beta or development build of dolphin and keep it updated through the manager.
 - Manage your user data and export it to any directory
 
 
@@ -29,9 +30,14 @@ An all in one launcher for yuzu. Allows you to switch between mainline and early
 - Allows you to install, delete and launch yuzu
 - Can switch channels between mainline and early access through a dropdown menu in the corner
 - Will automatically update yuzu when you launch it
-- Will detect any missing firmware or keys and then automaticaly install them for you. 
+- Will detect any missing firmware or keys and then automaticaly install them for you.
+- Can switch between different versions for firmware and keys.
 - Manage your user data, you can choose to specifically delete/import/export certain folders.
+- Can choose to still use the Yuzu installer (liftinstall) when launching or installing yuzu.
+- 
+### Ryujinx 
 
+Same features as Yuzu, where applicable.
 
 ### App
 
@@ -52,17 +58,20 @@ The GitHub login feature is optional and should only be used if you ran out of A
 The settings for dolphin and yuzu are used to change where yuzu/dolphin is installed and where your user data is stored (if you are using the portable version). You can only change the install location if you are not using the yuzu installer, otherwise it will always install in the default location. 
 
 ### Images
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/9b421e17-65a0-4a89-8178-b5c25754ae74)
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/b48d7b97-a4dd-45ae-b9a6-17cf8e65adfb)
+
 
 ![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/a0637a78-7307-4476-aa11-d2dd83882e94)
 
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/1ea40ed6-9e42-4ef0-8804-4f84090b0109)
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/ee2c7d8b-08b1-4407-96bf-cd8143f05d06)
+
 
 ![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/2b86392c-7694-42f8-b6e7-4a9610f74256)
 
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/0a6361b2-5b54-4801-a87c-69d32c999ed4)
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/da785edf-9cb9-40c1-89f0-6af895f7ad53)
 
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/0093c941-fd3e-4ed6-9d26-b4265aa22bcf)
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/81e77b74-2032-4cea-9aaf-e8554456b671)
+
 
 
 
