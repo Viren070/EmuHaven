@@ -23,7 +23,7 @@
     - [x] Add ryujinx_settings.py 
     
 - [x] Add base EmulatorFrame class that all other emulator_frame classes inherit from.
-- [ ] More accurate download speed by averaging across set amount of intervals and not since starting time
+- [x] More accurate download speed by averaging across set amount of intervals and not since starting time
 
 
 ## other 
