@@ -88,8 +88,6 @@ class ProgressFrame(customtkinter.CTkFrame):
 
 
     def cancel_button_event(self):
-        start_time = perf_counter()
-
         if messagebox.askyesno(
             "Confirmation", "Are you sure you want to cancel this download?"
         ):
@@ -98,7 +96,6 @@ class ProgressFrame(customtkinter.CTkFrame):
             self.cancel_download_button.configure(state="disabled")
             return True
         
-        self.time_during_cancel += perf_counter() - start_time
         return False
 
     def remove_status_frame(self):
