@@ -61,6 +61,11 @@ class Dolphin:
             if not all(download_result):
                 if download_result[1] != "Cancelled":
                     messagebox.showerror("Error", f"There was an error while attempting to download the latest release of Dolphin\n\n{download_result[1]}")
+                else:
+                    try:
+                        os.remove(download_result[2])
+                    except Exception as error:
+                        messagebox.showwarning("Error", "Failed to delete file after cancelling due to error below:\n\n{error}")
                 return 
             release_archive = download_result[1]
         elif not self.verify_dolphin_zip(path_to_archive):

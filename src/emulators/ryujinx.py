@@ -107,6 +107,11 @@ class Ryujinx:
             if not all(download_result):
                 if download_result[1] != "Cancelled":
                     messagebox.showerror("Error", f"There was an error while attempting to download the latest release of Ryujinx:\n\n{download_result[1]}")
+                else:
+                    try:
+                        os.remove(download_result[2])
+                    except Exception as error:
+                        messagebox.showwarning("Error", f"Failed to delete file after cancelling due to error below \n\n {error}")
                 return 
             release_archive = download_result[1]
         elif not self.verify_ryujinx_zip(path_to_archive):
@@ -116,6 +121,11 @@ class Ryujinx:
         if not all(extract_result):
             if extract_result[1]!="Cancelled":
                 messagebox.showerror("Extract Error", f"An error occurred while extracting the release: \n\n{extract_result[1]}")
+            elif path_to_archive is None:
+                try:
+                    os.remove(release_archive)
+                except Exception as error:
+                    messagebox.showwarning("Error", f"Failed to delete file after cancelling due to error below:\n\n{error}")
             return 
         if path_to_archive is None:
             self.metadata.update_installed_version("ryujinx", release.version)
@@ -169,6 +179,11 @@ class Ryujinx:
             if not all(firmware_path):
                 if firmware_path[1] != "Cancelled":
                     messagebox.showerror("Download Error", firmware_path[1])
+                else:
+                    try:
+                        os.remove(firmware_path[2])
+                    except Exception as error:
+                        messagebox.showwarning("Error", "Failed to delete file after cancelling due to error below:\n\n{error}")
                 return False
             firmware_path = firmware_path[1] 
             version = release.version
@@ -224,6 +239,11 @@ class Ryujinx:
             if not all(key_path):
                 if key_path[1] != "Cancelled":
                     messagebox.showerror("Download Error", key_path[1])
+                else:
+                    try:
+                        os.remove(key_path[2])
+                    except Exception as error:
+                        messagebox.showwarning("Error", "Failed to delete file after cancelling due to below error:\n\n{error}")
                 return False
             key_path = key_path[1] 
             version = release.version
