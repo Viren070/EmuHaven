@@ -72,7 +72,7 @@ class Ryujinx:
         self.main_progress_frame.update_status_label("Extracting... ")
         self.main_progress_frame.grid(row=0, column=0, sticky="ew")
         if os.path.exists(os.path.join(self.settings.ryujinx.install_directory,"publish")):
-            self.delete_ryujinx()
+            self.delete_ryujinx(True)
         try:
             with ZipFile(zip_path, 'r') as archive:
                 total_files = len(archive.namelist())     
