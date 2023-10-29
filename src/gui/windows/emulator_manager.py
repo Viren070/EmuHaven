@@ -24,7 +24,7 @@ class EmulatorManager(customtkinter.CTk):
         super().__init__()
         self.settings = Settings(self, root_dir)
         self.metadata = Metadata(self, self.settings)
-        self.version = "v0.12.0"
+        self.version = "v0.12.1"
         self.root_dir = root_dir
         if pos is None:
             pos = ["",""]
