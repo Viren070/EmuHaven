@@ -200,7 +200,7 @@ class Yuzu:
                     self.install_firmware_handler("release", latest_firmware_release)
             else:
                 self.settings.app.ask_firmware = "False"
-                            
+                self.settings.update_file()
         
             
         return True

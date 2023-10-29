@@ -177,7 +177,7 @@ class Ryujinx:
                     self.install_firmware_handler("release", latest_firmware_release)
             else:
                 self.settings.app.ask_firmware = "False"
-            
+                self.settings.update_file()
 
        
     def install_firmware_handler(self, mode, path_or_release):
