@@ -2,7 +2,6 @@ from requests.exceptions import RequestException
 
 
 def download_through_stream(response, download_path, progress_frame, chunk_size):
-    progress_frame.cancel_download_raised = False
     with open(download_path, 'wb') as f:
         downloaded_bytes = 0
         try:

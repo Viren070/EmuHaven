@@ -8,13 +8,15 @@ class ProgressFrame(customtkinter.CTkFrame):
     def __init__(self, parent_frame):
         super().__init__(parent_frame)
         self.grid_columnconfigure(0, weight=1)
+        self.smoothing_factor = 0.3
         self.cancel_download_raised = False
         self.start_time = perf_counter()
         self.filename = None
         self.total_size = 0
         self.time_during_cancel = 0
         self._current_width = 200
-        
+        self.last_speed = 0
+        self.average_speed = 0
         self.download_name = customtkinter.CTkLabel(self)
         self.progress_label = customtkinter.CTkLabel(self)
         self.progress_bar = customtkinter.CTkProgressBar(
@@ -33,7 +35,10 @@ class ProgressFrame(customtkinter.CTkFrame):
     def start_download(self, filename, total_size):
         self.filename = filename
         self.total_size = total_size
-        
+        self.start_time = perf_counter()
+        self.average_speed = 0
+        self.last_speed = 0
+        self.cancel_download_raised = False
         self.download_name.configure(text=filename)
         self.progress_label.configure(text="0 MB / 0 MB")
         self.progress_bar.set(0)
@@ -56,12 +61,17 @@ class ProgressFrame(customtkinter.CTkFrame):
         
     def update_download_progress(self, downloaded_bytes):
         done = downloaded_bytes / self.total_size
-        avg_speed = downloaded_bytes / (
-            (perf_counter() - self.start_time) - self.time_during_cancel
+        
+        self.last_speed = downloaded_bytes / (
+        (perf_counter() - self.start_time) 
         )
-
-        time_left = (self.total_size - downloaded_bytes) / avg_speed
-
+        self.average_speed = (
+            self.smoothing_factor * self.last_speed +
+            (1 - self.smoothing_factor) * self.average_speed  # use exponential moving average to calculate download speed 
+        )
+      
+    
+        time_left =  (self.total_size - downloaded_bytes) / self.average_speed
         minutes, seconds = divmod(int(time_left), 60)
         hours, minutes = divmod(minutes, 60)
         time_left_str = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
