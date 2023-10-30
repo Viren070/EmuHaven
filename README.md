@@ -16,6 +16,8 @@ Download the latest release from [here](https://github.com/Viren070/Emulator-Man
 
 ## Features
 
+You can shift-click any install button to use a custom archive. You can also shift click the launch button to skip updating the emulator and launch immediately. 
+
 ### Dolphin 
 
 - Download any game you want for the GameCube or Wii directly from the manager. It is easy to use and you can browse or search for whatever game you want. 
