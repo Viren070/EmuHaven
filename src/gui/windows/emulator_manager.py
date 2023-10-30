@@ -173,7 +173,7 @@ class EmulatorManager(customtkinter.CTk):
             self.after_cancel(after_id)
         pos = [self.winfo_x(), self.winfo_y()]
         self.destroy()
-        load_customtkinter_themes(os.path.join(self.root_dir, "themes"))
+        load_customtkinter_themes(os.path.join(self.root_dir, "assets", "themes"))
         EmulatorManager(self.root_dir, True, pos)
         
     def on_closing(self):
