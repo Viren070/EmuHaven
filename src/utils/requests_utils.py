@@ -3,7 +3,7 @@ import re
 
 import requests
 from bs4 import BeautifulSoup
-from urllib.parse import urlparse, urljoin
+from urllib.parse import urlparse, urljoin, urlquote
 
 DEFAULT_HEADER = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246",
                   'Accept-Encoding': 'identity'}
@@ -105,7 +105,7 @@ def get_file_links_from_page(url, file_ext, headers=None):
     for link in links:
         href = link.get('href')
         if (file_ext is None) or (href.endswith(file_ext) and href not in [file.url for file in files]):
-            filename=link['href'].split('/')[-1].split(file_ext)[-2] 
+            filename=unquote(link['href']).split('/')[-1].split(file_ext)[-2] 
             result=urlparse(href)
             if all([result.scheme, result.netloc]):
                 file_url = href
