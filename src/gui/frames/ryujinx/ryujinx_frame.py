@@ -76,7 +76,7 @@ class RyujinxFrame(EmulatorFrame):
    
         self.log_frame = customtkinter.CTkFrame(self.center_frame, fg_color='transparent', border_width=0)
         self.log_frame.grid(row=4, column=0, padx=80, sticky="ew")
-        #self._log_frame.grid_propagate(False)
+        self.log_frame.grid_propagate(False)
         self.log_frame.grid_columnconfigure(0, weight=3)
         self.ryujinx.main_progress_frame = ProgressFrame(self.log_frame)
         # create yuzu 'Manage Data' frame and widgets
