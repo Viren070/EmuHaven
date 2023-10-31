@@ -56,7 +56,7 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
         
     def attempt_fetch(self, *args):
         if self.fetching_versions:
-            messagebox.showwarning("Version Fetch", "A Fetch is already in progress, please try again later")
+            messagebox.showwarning("Version Fetch", "A fetch is already in progress or the menu is currently being initialised, please try again later.")
             return 
         if not (self.firmware_option_menu_variable.get() == "Click to fetch versions" or self.key_option_menu_variable.get() == "Click to fetch versions"):
             return 
