@@ -29,7 +29,7 @@ class RyujinxFrame(EmulatorFrame):
         self.ryujinx_banner = customtkinter.CTkImage(Image.open(self.settings.get_image_path("ryujinx_banner")), size=(276, 129))
 
 
-        # create yuzu 'Play' frame and widgets
+        # create ryujinx 'Play' frame and widgets
         self.start_frame = customtkinter.CTkFrame(self, corner_radius=0, border_width=0)
         self.start_frame.grid_columnconfigure(0, weight=1)
         self.start_frame.grid_rowconfigure(0, weight=1)
@@ -79,7 +79,7 @@ class RyujinxFrame(EmulatorFrame):
         self.log_frame.grid_propagate(False)
         self.log_frame.grid_columnconfigure(0, weight=3)
         self.ryujinx.main_progress_frame = ProgressFrame(self.log_frame)
-        # create yuzu 'Manage Data' frame and widgets
+        # create ryujinx 'Manage Data' frame and widgets
         self.manage_data_frame = customtkinter.CTkFrame(self, corner_radius=0, bg_color="transparent")
         self.manage_data_frame.grid_columnconfigure(0, weight=1)
         self.manage_data_frame.grid_columnconfigure(1, weight=1)
@@ -109,7 +109,7 @@ class RyujinxFrame(EmulatorFrame):
         self.data_log.grid_columnconfigure(0, weight=1)
         self.data_log.grid_rowconfigure(1, weight=1)
         self.ryujinx.data_progress_frame = ProgressFrame(self.data_log)
-        # create yuzu downloader button, frame and widgets
+        # create ryujinx downloader button, frame and widgets
  
         self.actions_frame.grid_propagate(False)
 
@@ -267,7 +267,7 @@ class RyujinxFrame(EmulatorFrame):
         thread.join()
         for button in buttons:
             if button == "action":
-                self.configure_action_buttons("normal", text="Launch Yuzu  ", width=200)
+                self.configure_action_buttons("normal", text="Launch Ryujinx  ", width=200)
             elif button == "firmware_keys":
                 self.firmware_keys_frame.configure_firmware_key_buttons("normal")
             elif button == "data":

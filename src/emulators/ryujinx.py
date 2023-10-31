@@ -139,7 +139,7 @@ class Ryujinx:
         try:
             shutil.rmtree(os.path.join(self.settings.ryujinx.install_directory, "publish"))
             if not skip_prompt:
-                messagebox.showinfo("Delete Yuzu", "Installation of Ryujinx successfully deleted")
+                messagebox.showinfo("Delete Ryujinx", "Installation of Ryujinx successfully deleted")
         except Exception as error:
             messagebox.showerror("Delete Error", f"An error occured while trying to delete the installation of Ryujinx:\n\n{error}")
         
@@ -323,7 +323,7 @@ class Ryujinx:
     def import_ryujinx_data(self, mode, directory_to_import_from):
         user_directory = self.settings.ryujinx.user_directory
         if not os.path.exists(directory_to_import_from):
-            messagebox.showerror("Missing Folder", "No yuzu data associated with your username found")
+            messagebox.showerror("Missing Folder", "No Ryujinx data associated with your username found")
             return
         if mode == "All Data":
             copy_directory_with_progress(directory_to_import_from, user_directory, "Import All Ryujinx Data", self.data_progress_frame)
