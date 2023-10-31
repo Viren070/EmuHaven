@@ -21,9 +21,9 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
 
 
         self.firmware_option_menu_variable = customtkinter.StringVar()
-        self.firmware_option_menu_variable.set("Fetching...")
+        self.firmware_option_menu_variable.set("Click to fetch versions")
         self.key_option_menu_variable = customtkinter.StringVar()
-        self.key_option_menu_variable.set("Fetching...")
+        self.key_option_menu_variable.set("Click to fetch versions")
         # Firmware Row
         firmware_label = customtkinter.CTkLabel(self, text="Installed Firmware:")
         firmware_label.grid(row=0, column=0, padx=10, pady=5, sticky="e")

@@ -381,8 +381,6 @@ class YuzuFrame(EmulatorFrame):
         self.installed_firmware_version = self.metadata.get_installed_version("yuzu_firmware")
         self.installed_key_version = self.metadata.get_installed_version("yuzu_keys")
         self.update_version_text()
-        if not installed_only:
-            self.firmware_keys_frame.fetch_firmware_and_key_versions()
         
     def update_version_text(self):
         if self.early_access_version is not None and self.install_early_access_button.cget("state") != "disabled":
