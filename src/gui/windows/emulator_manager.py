@@ -42,9 +42,9 @@ class EmulatorManager(customtkinter.CTk):
             self.settings_frame.select_settings_frame_by_name("app")
             
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
-        Thread(target=self.yuzu_frame.fetch_versions, args=(False,)).start()
-        Thread(target=self.ryujinx_frame.fetch_versions, args=(False,)).start()
-        Thread(target=self.dolphin_frame.fetch_versions, args=(False,)).start()
+        self.yuzu_frame.fetch_versions()
+        self.ryujinx_frame.fetch_versions()
+        self.dolphin_frame.fetch_versions()
         self.mainloop()  
 
     def define_images(self):
