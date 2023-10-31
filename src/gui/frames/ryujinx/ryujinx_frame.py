@@ -58,7 +58,7 @@ class RyujinxFrame(EmulatorFrame):
         self.launch_button.grid(row=0, column=2, padx=30, pady=15, sticky="n")
         self.launch_button.bind("<Button-1>", command=self.launch_button_event)
         CTkToolTip(self.launch_button, message="Click me to launch Ryujinx.\nShift-click me to launch without checking for updates.")
-        self.install_button = customtkinter.CTkButton(self.actions_frame, text="Install Ryujinx", width=165, command=self.install_button_event)
+        self.install_button = customtkinter.CTkButton(self.actions_frame, text="Install Ryujinx", command=self.install_button_event)
         self.install_button.grid(row=0, column=1,padx=10, pady=5, sticky="ew")
         self.install_button.bind("<Button-1>", command=self.install_button_event)
         CTkToolTip(self.install_button, message="Click me to download and install the latest release of Ryujinx from the internet\nShift-Click me to install Ryujinx with a custom archive")
