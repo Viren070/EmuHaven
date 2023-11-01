@@ -161,11 +161,10 @@ class Yuzu:
             messagebox.showerror("Delete Error", f"An error occured while trying to delete the installation of yuzu:\n\n{error}")
         
     def launch_yuzu_handler(self, release_type, skip_update=False):
-        if not skip_update:
-            if (release_type == "mainline" and self.settings.yuzu.use_yuzu_installer == "False") or release_type == "early_access":
-                func = self.gui.configure_mainline_buttons if release_type == "mainline"  else self.gui.configure_early_access_buttons
-                func("disabled", text="Fetching Updates...  ")
-                self.install_release_handler(release_type, True)
+        if not skip_update and self.settings.yuzu.use_yuzu_installer != "True":
+            func = self.gui.configure_mainline_buttons if release_type == "mainline"  else self.gui.configure_early_access_buttons
+            func("disabled", text="Fetching Updates...  ")
+            self.install_release_handler(release_type, True)
         if release_type == "mainline":
             self.gui.configure_mainline_buttons("disabled", text="Launching...  ")
             yuzu_folder = "yuzu-windows-msvc"
