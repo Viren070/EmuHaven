@@ -211,8 +211,7 @@ class YuzuFrame(EmulatorFrame):
         self.configure_mainline_buttons("disabled")
         self.configure_early_access_buttons("disabled")
         self.firmware_keys_frame.configure_firmware_key_buttons("disabled")
-        
-        thread = Thread(target=self.yuzu.launch_yuzu_installer) if self.settings.yuzu.use_yuzu_installer == "True" else Thread(target=self.yuzu.install_release_handler, args=("mainline", False, path_to_archive))
+        thread = Thread(target=self.yuzu.launch_yuzu_installer) if self.settings.yuzu.use_yuzu_installer == "True" and path_to_archive is None else Thread(target=self.yuzu.install_release_handler, args=("mainline", False, path_to_archive))
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["mainline","early_access", "firmware_keys"],)).start()
         
@@ -249,7 +248,8 @@ class YuzuFrame(EmulatorFrame):
         self.configure_mainline_buttons("disabled")
         self.configure_early_access_buttons("disabled")
         self.firmware_keys_frame.configure_firmware_key_buttons("disabled")
-        thread=Thread(target=self.yuzu.install_release_handler, args=("early_access", False, path_to_archive)) if self.settings.yuzu.use_yuzu_installer != "True" else Thread(target=self.yuzu.launch_yuzu_installer)
+        
+        thread = Thread(target=self.yuzu.launch_yuzu_installer) if self.settings.yuzu.use_yuzu_installer == "True" and path_to_archive is None else Thread(target=self.yuzu.install_release_handler, args=("early_access", False, path_to_archive))
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["mainline", "early_access", "firmware_keys"],)).start()
    
