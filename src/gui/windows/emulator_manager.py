@@ -116,7 +116,6 @@ class EmulatorManager(customtkinter.CTk):
         self.dolphin_frame = DolphinFrame(self, self.settings, self.metadata)
         self.ryujinx_frame = RyujinxFrame(self, self.settings, self.metadata)
         self.settings_frame = SettingsFrame(self, self.settings)
-        self.settings.yuzu.refresh_app_settings = self.settings_frame.app_settings_frame.refresh_settings
 
     def dolphin_button_event(self):
         self.select_frame_by_name("dolphin")

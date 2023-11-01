@@ -106,9 +106,6 @@ class AppSettingsFrame(customtkinter.CTkFrame):
         # self.parent_frame.parent_frame.destroy()
 
         
-    def refresh_settings(self):
-        self.use_yuzu_installer_variable.set(self.settings.app.use_yuzu_installer)
-        
     def change_appearance_mode(self, mode):
         customtkinter.set_appearance_mode(mode.lower()) # change appearance mode using customtkinters function 
         self.settings.app.appearance_mode = mode.lower()

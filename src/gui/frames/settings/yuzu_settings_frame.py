@@ -56,6 +56,9 @@ class YuzuSettingsFrame(customtkinter.CTkFrame):
             "installer_path":  self.yuzu_installer_path_entry
         }
         
+    def refresh_checkbox(self):
+        self.use_yuzu_installer_variable.set(self.settings.yuzu.use_yuzu_installer)
+        self.settings.update_file()
     def change_yuzu_installer_option(self):
         value = self.use_yuzu_installer_variable.get()
         if value == "True" and not os.path.exists(self.settings.yuzu.installer_path):

@@ -6,6 +6,7 @@ from utils.paths import is_path_exists_or_creatable
 class YuzuSettings:
     def __init__(self, master):
         self.emulator_file_path = os.path.join(master.root_dir,"Emulator Files")
+        self.master = master
         self.default_settings = {
             'user_directory': os.path.join(os.getenv("APPDATA"), "Yuzu"),
             'install_directory': os.path.join(os.getenv("LOCALAPPDATA"), "Yuzu"),
@@ -16,7 +17,8 @@ class YuzuSettings:
             
         }
         self._settings = self.default_settings.copy()
-        self.refresh_app_settings = sum
+    def refresh_app_settings(self):
+        self.master.master.settings_frame.yuzu_settings_frame.refresh_checkbox()
     def restore_default(self):
         for name, value in self.default_settings.items():
             try:
