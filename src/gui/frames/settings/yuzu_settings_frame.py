@@ -61,7 +61,7 @@ class YuzuSettingsFrame(customtkinter.CTkFrame):
             self.use_yuzu_installer_variable.set("False")
             messagebox.showerror("Yuzu Installer", "Please ensure you have set the path to the yuzu installer in the settings before attempting to enable this option")
             return
-        self.settings.app.use_yuzu_installer = self.use_yuzu_installer_variable.get()
+        self.settings.yuzu.use_yuzu_installer = self.use_yuzu_installer_variable.get()
         self.settings.update_file()
     def update_entry_widgets(self):
         for setting_name, entry_widget in self.matching_dict.items():
