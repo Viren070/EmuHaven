@@ -196,7 +196,7 @@ class Ryujinx:
                     try:
                         os.remove(firmware_path[2])
                     except Exception as error:
-                        messagebox.showwarning("Error", "Failed to delete file after cancelling due to error below:\n\n{error}")
+                        messagebox.showwarning("Error", f"Failed to delete file after cancelling due to error below:\n\n{error}")
                 return False
             firmware_path = firmware_path[1] 
             version = release.version
@@ -257,7 +257,7 @@ class Ryujinx:
                     try:
                         os.remove(key_path[2])
                     except Exception as error:
-                        messagebox.showwarning("Error", "Failed to delete file after cancelling due to below error:\n\n{error}")
+                        messagebox.showwarning("Error", f"Failed to delete file after cancelling due to below error:\n\n{error}")
                 return False
             key_path = key_path[1] 
             version = release.version
@@ -267,6 +267,7 @@ class Ryujinx:
             return
         else:
             key_path = path_or_release
+
         if key_path.endswith(".keys"):
             switch_emu.install_keys_from_file(key_path, os.path.join(self.settings.ryujinx.user_directory, "system"))
         else:

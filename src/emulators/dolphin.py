@@ -65,7 +65,7 @@ class Dolphin:
                     try:
                         os.remove(download_result[2])
                     except Exception as error:
-                        messagebox.showwarning("Error", "Failed to delete file after cancelling due to error below:\n\n{error}")
+                        messagebox.showwarning("Error", f"Failed to delete file after cancelling due to error below:\n\n{error}")
                 return 
             release_archive = download_result[1]
         elif not self.verify_dolphin_zip(path_to_archive):
