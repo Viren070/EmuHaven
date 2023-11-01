@@ -113,10 +113,7 @@ class AppSettingsFrame(customtkinter.CTkFrame):
         customtkinter.set_appearance_mode(mode.lower()) # change appearance mode using customtkinters function 
         self.settings.app.appearance_mode = mode.lower()
         self.update_settings()   # update settings.json if change was through settings menu
-
-    def change_default_yuzu_channel(self, value):
-        self.settings.app.default_yuzu_channel = value
-        self.update_settings()
+        
     def change_delete_files_option(self):
         self.settings.app.delete_files = self.delete_files_variable.get()
         self.update_settings()
