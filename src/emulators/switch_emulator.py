@@ -50,10 +50,10 @@ def install_firmware_from_archive(firmware_source, extract_folder, progress_fram
         shutil.rmtree(extract_folder)
     os.makedirs(extract_folder, exist_ok=True)
     extracted_files = []
-    progress_frame.grid(row=0, column=0, sticky="ew")
-    progress_frame.update_extraction_progress(0)
+    progress_frame.start_download(os.path.basename(firmware_source), 0)
     progress_frame.complete_download()
     progress_frame.update_status_label("Extracting...")
+    progress_frame.grid(row=0, column=0, sticky="ew")
     excluded = []
     try:
         with open(firmware_source, "rb") as file:
@@ -99,8 +99,8 @@ def install_keys_from_file(self, key_path):
 
 def install_keys_from_archive(key_archive, extract_folder, progress_frame):
     extracted_files = []
+    progress_frame.start_download(os.path.basename(key_archive).replace(".zip", ""), 0)
     progress_frame.grid(row=0, column=0, sticky="ew")
-    progress_frame.update_extraction_progress(0)
     try:
         with ZipFile(key_archive, 'r') as zip_ref:
             total = len(zip_ref.namelist())
