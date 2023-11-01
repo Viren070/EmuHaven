@@ -14,6 +14,7 @@ class YuzuSettingsFrame(customtkinter.CTkFrame):
         self.grid_columnconfigure(0, weight=1)
         
         self.use_yuzu_installer_variable = customtkinter.StringVar()
+        self.use_yuzu_installer_variable.set(self.settings.yuzu.use_yuzu_installer)
         customtkinter.CTkLabel(self, text="User Directory: ").grid(row=0, column=0, padx=10, pady=10, sticky="w")
         self.user_directory_entry = customtkinter.CTkEntry(self,  width=300)
         self.user_directory_entry.grid(row=0, column=2, padx=10, pady=10, sticky="e")
