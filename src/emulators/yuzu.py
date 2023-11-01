@@ -243,6 +243,8 @@ class Yuzu:
                 except PermissionError as error:
                     messagebox.showerror("Error", f"Failed to delete firmware archive after installing due to error below: \n\n{error}")
             self.metadata.update_installed_version("yuzu_firmware", version)
+        else:
+            self.metadata.update_installed_version("yuzu_firmware", "")
         if result:
             messagebox.showwarning("Unexpected Files" , f"These files were skipped in the extraction process: {result}")
         messagebox.showinfo("Firmware Install", "The switch firmware files were successfully installed")
@@ -307,6 +309,8 @@ class Yuzu:
             if self.settings.app.delete_files == "True" and os.path.exists(key_path):
                 os.remove(key_path)
             self.metadata.update_installed_version("yuzu_keys", version)
+        else:
+            self.metadata.update_installed_version("yuzu_keys", "")
         messagebox.showinfo("Keys", "Decryption keys were successfully installed!")
         self.gui.fetch_versions()
         return True 

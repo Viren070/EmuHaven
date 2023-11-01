@@ -218,6 +218,8 @@ class Ryujinx:
                 except PermissionError as error:
                     messagebox.showerror("Error", f"Failed to delete firmware archive due to error below \n\n{error}")
             self.metadata.update_installed_version("ryujinx_firmware", version)
+        else:
+            self.metadata.update_installed_version("ryujinx_firmware", version)
         if result:
             messagebox.showwarning("Unexpected Files" , f"These files were skipped in the extraction process: {result}")
         messagebox.showinfo("Firmware Install", "The switch firmware files were successfully installed")
@@ -283,6 +285,8 @@ class Ryujinx:
             if self.settings.app.delete_files == "True" and os.path.exists(key_path):
                 os.remove(key_path)
             self.metadata.update_installed_version("ryujinx_keys", version)
+        else:
+            self.metadata.update_installed_version("ryujinx_keys", "")
         messagebox.showinfo("Keys", "Decryption keys were successfully installed!")
         self.gui.fetch_versions()
         return True 
