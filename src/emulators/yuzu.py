@@ -177,7 +177,14 @@ class Yuzu:
         func_to_call("disabled", text="Launched!  ")
         yuzu_exe = os.path.join(self.settings.yuzu.install_directory, yuzu_folder, "yuzu.exe")
         maintenance_tool = os.path.join(self.settings.yuzu.install_directory, "maintenancetool.exe")
-        args = [maintenance_tool, "--launcher", yuzu_exe] if release_type == "mainline" and self.settings.yuzu.use_yuzu_installer == "True" and not skip_update else [yuzu_exe]
+        use_installer = self.settings.yuzu.use_yuzu_installer == "True"
+
+        if use_installer and not skip_update and not os.path.exists(maintenance_tool):
+            messagebox.showerror("Error", "The update tool 'maintenancetool.exe' was not found, and it's required to update yuzu due to your use of the yuzu installer option. Please install yuzu first before launching it.")
+            args = [yuzu_exe]
+        else:
+            args = [maintenance_tool, "--launcher", yuzu_exe] if use_installer and not skip_update else [yuzu_exe]
+
         self.running = True
         subprocess.run(args, capture_output=True, check=False)
         self.running = False
