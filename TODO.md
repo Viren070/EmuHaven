@@ -28,11 +28,12 @@
 ## For 0.13
 
 - [ ] redesign "My ROMS" section for yuzu and ryujinx
-      - Use cache\game_list\ for yuzu
-      - use games for ryujinx
-      - use https://github.com/arch-box/titledb for covers
-      - https://new.mirror.lewd.wtf/archive/nintendo/switch/savegames/ for saves
-      - maybe mods as well 
+
+    - Use cache\game_list\ for yuzu
+    - use games for ryujinx
+    - use https://github.com/arch-box/titledb for covers
+    - https://new.mirror.lewd.wtf/archive/nintendo/switch/savegames/ for saves
+    - maybe mods as well 
 
 ## other 
 
