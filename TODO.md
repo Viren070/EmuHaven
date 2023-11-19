@@ -33,7 +33,10 @@
     - use games for ryujinx
     - use https://github.com/arch-box/titledb for covers
     - https://new.mirror.lewd.wtf/archive/nintendo/switch/savegames/ for saves
-    - maybe mods as well 
+    - maybe mods as well
+     
+- [ ] Add shortcuts for emulators which will show window with progress bar for updating.
+
 
 ## other 
 
