@@ -36,6 +36,8 @@
     - maybe mods as well
      
 - [ ] Add shortcuts for emulators which will show window with progress bar for updating.
+      - Add shortcut setting to each emulator. User provides path. If left empty or changed to empty, disable and/or remove shortcut.
+      - Add new updater window and logic to handle launching this window and updating emulator through arguments 
 
 
 ## other 
