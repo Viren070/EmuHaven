@@ -6,6 +6,7 @@ from threading import Thread
 from tkinter import messagebox
 
 import customtkinter
+from customtkinter import ThemeManager
 from PIL import Image
 
 from gui.frames.dolphin.dolphin_frame import DolphinFrame
@@ -46,8 +47,8 @@ class EmulatorManager(customtkinter.CTk):
         self.yuzu_frame.fetch_versions()
         self.ryujinx_frame.fetch_versions()
         self.dolphin_frame.fetch_versions()
-        Thread(target=self.fetch_firmware_and_keys).start()
-        Thread(target=self.check_for_update).start()
+        if not open_app_settings:
+            Thread(target=self.check_for_update).start()
         self.mainloop()
 
     def fetch_firmware_and_keys(self):
@@ -111,18 +112,19 @@ class EmulatorManager(customtkinter.CTk):
         self.navigation_frame.grid_rowconfigure(1, weight=1)
 
         # Create navigation menu buttons
+        text_color = ThemeManager.theme["CTkLabel"]["text_color"]
         self.dolphin_button = customtkinter.CTkButton(scrollable_frame, corner_radius=0, height=40, width=100, image=self.dolphin_logo, border_spacing=10, text="Dolphin",
-                                                      fg_color="transparent", text_color=("gray10", "gray90"),
+                                                      fg_color="transparent", text_color=text_color,
                                                       anchor="w", command=self.dolphin_button_event)
         self.dolphin_button.grid(row=0, column=0, sticky="ew")
 
         self.yuzu_button = customtkinter.CTkButton(scrollable_frame, corner_radius=0, height=40, image=self.yuzu_logo, border_spacing=10, text="Yuzu",
-                                                   fg_color="transparent", text_color=("gray10", "gray90"),
+                                                   fg_color="transparent", text_color=text_color,
                                                    anchor="w", command=self.yuzu_button_event)
         self.yuzu_button.grid(row=1, column=0, sticky="ew")
 
         self.ryujinx_button = customtkinter.CTkButton(scrollable_frame, corner_radius=0, height=40, image=self.ryujinx_logo, border_spacing=10, text="Ryujinx",
-                                                      fg_color="transparent", text_color=("gray10", "gray90"),
+                                                      fg_color="transparent", text_color=text_color,
                                                       anchor="w", command=self.ryujinx_button_event)
         self.ryujinx_button.grid(row=2, column=0, sticky="ew")
 
@@ -131,7 +133,7 @@ class EmulatorManager(customtkinter.CTk):
 
         # Create settings button at the bottom
         self.settings_button = customtkinter.CTkButton(self.navigation_frame, corner_radius=0, height=40, image=self.settings_image, border_spacing=10, text="Settings",
-                                                       fg_color="transparent", text_color=("gray10", "gray90"),
+                                                       fg_color="transparent", text_color=text_color,
                                                        anchor="w", command=self.settings_button_event)
         self.settings_button.grid(row=2, column=0, sticky="ew")
 
