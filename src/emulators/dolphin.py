@@ -6,9 +6,8 @@ import time
 from tkinter import messagebox
 from zipfile import ZipFile
 
-import py7zr 
+import py7zr
 
-from gui.frames.progress_frame import ProgressFrame
 from utils.downloader import download_through_stream
 from utils.file_utils import copy_directory_with_progress
 from utils.requests_utils import (create_get_connection,
@@ -22,20 +21,20 @@ class Dolphin:
         self.gui = gui
         self.running = False
         self.dolphin_is_running = False
-        self.main_progress_frame = None 
+        self.main_progress_frame = None
         self.data_progress_frame = None
-                              
+
     def delete_dolphin_zip(self, zip_path):
         time.sleep(2)
         os.remove(zip_path)
-        
+
     def verify_dolphin_zip(self, path_to_archive):
-        if path_to_archive.endswith(".7z"): # don't know how else to check if its valid for 7z
-            return True 
+        if path_to_archive.endswith(".7z"):  # don't know how else to check if its valid for 7z
+            return True
         try:
             with ZipFile(path_to_archive, 'r') as archive:
                 if 'Dolphin.exe' in archive.namelist():
-                    return True 
+                    return True
                 else:
                     return False
         except Exception:
@@ -49,11 +48,11 @@ class Dolphin:
             release_result = self.get_dolphin_release(release_channel)
             if not all(release_result):
                 messagebox.showerror("Install Dolphin", f"There was an error while attempting to fetch the latest {release_channel} release of Dolphin:\n\n{release_result[1]}")
-                return 
+                return
             release = release_result[1]
             if release.version == self.metadata.get_installed_version("dolphin"):
                 if updating:
-                    return 
+                    return
                 if not messagebox.askyesno("Dolphin", "You already have the latest version of Dolphin installed, install anyways?"):
                     return
             download_result = self.download_release(release)
@@ -65,28 +64,27 @@ class Dolphin:
                         os.remove(download_result[2])
                     except Exception as error:
                         messagebox.showwarning("Error", f"Failed to delete file after cancelling due to error below:\n\n{error}")
-                return 
+                return
             release_archive = download_result[1]
         elif not self.verify_dolphin_zip(path_to_archive):
             messagebox.showerror("Error", "The dolphin archive you have provided is invalid. ")
-            return 
+            return
         extract_result = self.extract_release(release_archive)
         if path_to_archive is None and self.settings.app.delete_files == "True":
             os.remove(release_archive)
         if not all(extract_result):
-            if extract_result[1]!="Cancelled":
+            if extract_result[1] != "Cancelled":
                 messagebox.showerror("Extract Error", f"An error occurred while extracting the release: \n\n{extract_result[1]}")
-            return 
+            return
         if path_to_archive is None:
             self.metadata.update_installed_version("dolphin", release.version)
         if not updating:
             messagebox.showinfo("Install Dolphin", f"Dolphin was successfully installed to {self.settings.dolphin.install_directory}")
-        
-   
+
     def get_dolphin_release(self, release_channel):
-        files=get_file_links_from_page("https://dolphin-emu.org/download/", ".7z")
+        files = get_file_links_from_page("https://dolphin-emu.org/download/", ".7z")
         if not all(files):
-            return files 
+            return files
         files = files[1]
         beta_build = None
         dev_build = None
@@ -97,7 +95,7 @@ class Dolphin:
                 continue
 
             build_number = int(file.filename.split("-")[-2])
-            
+
             if beta_build is None:
                 beta_build = file
                 beta_build_number = build_number
@@ -107,13 +105,10 @@ class Dolphin:
             elif build_number > beta_build_number:
                 dev_build = file
                 dev_build.version = re.search(r'(\d+\.\d+-\d+)', dev_build.filename).group(1)
-                return (True, dev_build) 
-
+                return (True, dev_build)
 
     def download_release(self, release):
         download_folder = os.getcwd()
-        
-        
         download_path = os.path.join(download_folder, f"{release.filename}.7z")
         response_result = create_get_connection(release.url, headers=get_headers(), stream=True, timeout=30)
         if not all(response_result):
@@ -122,33 +117,28 @@ class Dolphin:
         release.size = int(response.headers.get('content-length', 0))
         self.main_progress_frame.start_download(release.filename, release.size)
         self.main_progress_frame.grid(row=0, column=0, sticky="ew")
- 
+
         download_result = download_through_stream(response, download_path, self.main_progress_frame, 1024*203)
-        self.main_progress_frame.complete_download() 
+        self.main_progress_frame.complete_download()
         return download_result
 
-    def extract_release(self, release): 
+    def extract_release(self, release):
         if release.endswith(".zip"):
             return self.extract_zip_archive(release)
         elif release.endswith(".7z"):
             return self.extract_7z_archive(release)
         else:
             raise Exception
-        
-        
-        
+
     def extract_7z_archive(self, release_archive):
-    
-        self.main_progress_frame.start_download(os.path.basename(release_archive).replace(".7z",""), 0)
+        self.main_progress_frame.start_download(os.path.basename(release_archive).replace(".7z", ""), 0)
         self.main_progress_frame.complete_download()
         self.main_progress_frame.update_status_label("Extracting... ")
         self.main_progress_frame.cancel_download_button.configure(state="disabled")
         self.main_progress_frame.grid(row=0, column=0, sticky="nsew")
         extracted = True
 
-        
         try:
-            
             if os.path.exists(self.settings.dolphin.install_directory) and os.listdir(self.settings.dolphin.install_directory):
                 self.main_progress_frame.update_status_label("Deleting old installation...")
                 shutil.rmtree(self.settings.dolphin.install_directory)
@@ -160,24 +150,19 @@ class Dolphin:
             subfolder = os.path.join(self.settings.dolphin.install_directory, "Dolphin-x64")
 
             contents = os.listdir(subfolder)
-
-
             for item in contents:
                 item_path = os.path.join(subfolder, item)
                 destination_path = os.path.join(parent_folder, item)
                 shutil.move(item_path, destination_path)
-
-
             os.rmdir(subfolder)
             extracted_files = os.listdir(self.settings.dolphin.install_directory)
             self.main_progress_frame.update_extraction_progress(1)
-                
             self.main_progress_frame.grid_forget()
             if extracted:
                 return (True, extracted_files)
             else:
                 return (False, "Cancelled")
-    
+
         except Exception as error:
             self.main_progress_frame.grid_forget()
             return (False, error)
@@ -187,20 +172,19 @@ class Dolphin:
         self.main_progress_frame.complete_download()
         self.main_progress_frame.update_status_label("Extracting... ")
         self.main_progress_frame.grid(row=0, column=0, sticky="nsew")
-        extracted=True
+        extracted = True
         try:
             with ZipFile(release_archive, 'r') as archive:
                 total_files = len(archive.namelist())
                 extracted_files = []
-                
                 for file in archive.namelist():
                     if self.main_progress_frame.cancel_download_raised:
-                        extracted=False
+                        extracted = False
                         break
                     archive.extract(file, self.settings.dolphin.install_directory)
                     extracted_files.append(file)
                     # Calculate and display progress
-                    self.main_progress_frame.update_extraction_progress(len(extracted_files) / total_files) 
+                    self.main_progress_frame.update_extraction_progress(len(extracted_files) / total_files)
             self.main_progress_frame.grid_forget()
             if extracted:
                 return (True, extracted_files)
@@ -209,7 +193,7 @@ class Dolphin:
         except Exception as error:
             self.main_progress_frame.grid_forget()
             return (False, error)
-   
+
     def delete_dolphin(self):
         try:
             shutil.rmtree(self.settings.dolphin.install_directory)
@@ -217,51 +201,51 @@ class Dolphin:
         except Exception as e:
             messagebox.showerror("Error", f"There was an error while attempting to delete Dolphin: \n\\n{e}")
             return
-       
-        
+
     def launch_dolphin_handler(self, release_channel, skip_update=False):
         if not skip_update:
 
-            self.gui.configure_buttons("disabled", text="Fetching Updates...  ") 
+            self.gui.configure_buttons("disabled", text="Fetching Updates...  ")
             self.install_dolphin_handler(release_channel, None, True)
-    
-        self.gui.configure_buttons("disabled", text="Launched!  ") 
+
+        self.gui.configure_buttons("disabled", text="Launched!  ")
         dolphin_exe = os.path.join(self.settings.dolphin.install_directory, "Dolphin.exe")
         args = [dolphin_exe]
         self.running = True
         subprocess.run(args, capture_output=True, check=False)
         self.running = False
-    
+
     def export_dolphin_data(self, mode, directory_to_export_to):
         user_directory = self.settings.dolphin.user_directory
-        
+
         if not os.path.exists(user_directory):
             messagebox.showerror("Missing Folder", "No dolphin data on local drive found")
             self.gui.configure_data_buttons(state="normal")
             return  # Handle the case when the user directory doesn't exist.
         if mode == "All Data":
             copy_directory_with_progress(user_directory, directory_to_export_to, "Exporting All Dolphin Data", self.data_progress_frame)
+
     def import_dolphin_data(self, mode, directory_to_import_from):
         user_directory = self.settings.dolphin.user_directory
-        
+
         if not os.path.exists(directory_to_import_from):
             messagebox.showerror("Missing Folder", "No dolphin data associated with your username was found")
             return  # Handle the case when the user directory doesn't exist.
         if mode == "All Data":
             copy_directory_with_progress(directory_to_import_from, user_directory, "Importing All Dolphin Data", self.data_progress_frame)
+
     def delete_dolphin_data(self, mode):
         result = ""
         user_directory = self.settings.dolphin.user_directory
-        
+
         def delete_directory(directory):
             if os.path.exists(directory):
                 try:
                     shutil.rmtree(directory)
                     return True
-                except:
-                    messagebox.showerror("Delete Dolphin Data", f"Unable to delete {directory}")
+                except Exception as error:
+                    messagebox.showerror("Delete Dolphin Data", f"Unable to delete \n{directory}\ndue to error:\n\n{error}")
                     return False
-                
             return False
         if mode == "All Data":
             result += f"Data Deleted from {user_directory}\n" if delete_directory(user_directory) else ""
@@ -269,5 +253,3 @@ class Dolphin:
             messagebox.showinfo("Delete result", result)
         else:
             messagebox.showinfo("Delete result", "Nothing was deleted.")
-   
-   

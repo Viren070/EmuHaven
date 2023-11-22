@@ -115,7 +115,7 @@ class CurrentROMSFrame(ROMSearchFrame):
             self.update_results()
             return
         if not messagebox.askyesno("Delete ROM", f"This will delete the ROM located at: \n\n{path_to_rom}\nThis action cannot be undone. Are you sure you wish to continue?"):
-            return 
+            return
         try:
             os.remove(path_to_rom)
         except Exception as error:
