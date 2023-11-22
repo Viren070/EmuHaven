@@ -5,15 +5,15 @@ def download_through_stream(response, download_path, progress_frame, chunk_size)
     with open(download_path, 'wb') as f:
         downloaded_bytes = 0
         try:
-            for chunk in response.iter_content(chunk_size=chunk_size): 
+            for chunk in response.iter_content(chunk_size=chunk_size):
                 if progress_frame.cancel_download_raised:
                     progress_frame.grid_forget()
                     return (False, "Cancelled", download_path)
                 f.write(chunk)
                 downloaded_bytes += len(chunk)
-                
+
                 progress_frame.update_download_progress(downloaded_bytes)
-                
+
             progress_frame.complete_download()
         except RequestException as error:
             progress_frame.grid_forget()

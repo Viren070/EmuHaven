@@ -3,8 +3,10 @@ import os
 from sys import platform
 
 ERROR_INVALID_NAME = 123
+
+
 def is_pathname_valid(pathname: str) -> bool:
-          
+
     # If this pathname is either not a string or is but is empty, this pathname
     # is invalid.
     try:
@@ -58,7 +60,7 @@ def is_pathname_valid(pathname: str) -> bool:
                     return False
     # If a "TypeError" exception was raised, it almost certainly has the
     # error message "embedded NUL character" indicating an invalid pathname.
-    except TypeError as exc:
+    except TypeError:
         return False
     # If no exception was raised, all path components and hence this
     # pathname itself are valid. (Praise be to the curmudgeonly python.)
@@ -68,6 +70,8 @@ def is_pathname_valid(pathname: str) -> bool:
     # (e.g., a bug). Permit this exception to unwind the call stack.
     #
     # Did we mention this should be shipped with Python already?
+
+
 def is_path_creatable(pathname: str) -> bool:
     '''
     `True` if the current user has sufficient permissions to create the passed
@@ -76,23 +80,24 @@ def is_path_creatable(pathname: str) -> bool:
     # Parent directory of the passed path. If empty, we substitute the current
     # working directory (CWD) instead.
     dirname = os.path.dirname(pathname) or os.getcwd()
-    if os.path.exists(pathname): return True
-    
+    if os.path.exists(pathname):
+        return True
+
     return os.access(dirname, os.W_OK)
-    
+
+
 def is_path_exists_or_creatable(pathname: str) -> bool:
-    
     '''
     `True` if the passed pathname is a valid pathname for the current OS _and_
     either currently exists or is hypothetically creatable; `False` otherwise.
 
     This function is guaranteed to _never_ raise exceptions.
     '''
-    
+
     try:
         # To prevent "os" module calls from raising undesirable exceptions on
         # invalid pathnames, is_pathname_valid() is explicitly called first.
-        #return self.is_pathname_valid(pathname)
+        # return self.is_pathname_valid(pathname)
         return is_pathname_valid(pathname) and (os.path.exists(pathname) or is_path_creatable(pathname))
     # Report failure on non-fatal filesystem complaints (e.g., connection
     # timeouts, permissions issues) implying this path to be inaccessible. All
