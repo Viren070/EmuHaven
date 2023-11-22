@@ -25,6 +25,18 @@
 - [x] Add base EmulatorFrame class that all other emulator_frame classes inherit from.
 - [x] More accurate download speed by averaging across set amount of intervals and not since starting time
 
+## For 0.13
+
+- [ ] redesign "My ROMS" section for yuzu and ryujinx
+
+    - Use cache\game_list\ for yuzu
+    - use games for ryujinx
+    - use https://github.com/arch-box/titledb for covers
+    - https://new.mirror.lewd.wtf/archive/nintendo/switch/savegames/ for saves
+    - maybe mods as well
+     
+- [ ] Add shortcuts for emulators which will show window with progress bar for updating.
+
 
 ## other 
 

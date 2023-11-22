@@ -14,6 +14,8 @@ Only tested on Windows 10 and 11, not sure if it will work on anything else
 
 Download the latest release from [here](https://github.com/Viren070/Emulator-Manager/releases/latest) by scrolling to the bottom and downloading the exe from the assets. 
 
+Note: Windows Defender will detect the file as a virus since the file is unsigned. This is a false positive and can be ignored. If you don't want to run the exe, you can [run the source code](https://github.com/Viren070/Emulator-Manager/tree/main#building-yourself)
+
 ## Features
 
 You can shift-click any install button to use a custom archive. You can also shift click the launch button to skip updating the emulator and launch immediately. 
@@ -72,6 +74,25 @@ The settings for dolphin and yuzu are used to change where yuzu/dolphin is insta
 ![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/da785edf-9cb9-40c1-89f0-6af895f7ad53)
 
 ![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/81e77b74-2032-4cea-9aaf-e8554456b671)
+
+## Building yourself 
+
+### Requirements:
+ - Latest version of python
+
+1. Clone the repository or click the download ZIP button. 
+2. Run
+   ```
+   pip install -r requirements.txt
+   ```
+3. You should be able to run main.py
+4. To build the executable run:
+   ```
+   pyinstaller --noconfirm --onefile --windowed --name "Emulator Manager" --clean --add-data "%localappdata%/Programs/Python/Python312/Lib/site-packages/customtkinter;customtkinter/" --add-data src/assets;assets/  src/main.py
+   ```
+   - You can replace `--onefile` with `--onedir`.
+   - Replace the path to customtkinter as necessary
+   
 
 
 

@@ -89,8 +89,7 @@ def install_firmware_from_archive(firmware_source, extract_folder, progress_fram
     return (True, excluded)
 
 
-def install_keys_from_file(self, key_path):
-    target_key_folder = os.path.join(self.settings.yuzu.user_directory, "keys")
+def install_keys_from_file(key_path, target_key_folder):
     if not os.path.exists(target_key_folder):
         os.makedirs(target_key_folder)
     target_key_location = os.path.join(target_key_folder, "prod.keys")
