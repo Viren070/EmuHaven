@@ -12,8 +12,8 @@ class PathDialog(CTkToplevel):
     """
 
     def __init__(self,
-                 filetypes = None,
-                 directory = None,
+                 filetypes=None,
+                 directory=None,
                  fg_color: Optional[Union[str, Tuple[str, str]]] = None,
                  text_color: Optional[Union[str, Tuple[str, str]]] = None,
                  button_fg_color: Optional[Union[str, Tuple[str, str]]] = None,
@@ -60,12 +60,12 @@ class PathDialog(CTkToplevel):
         self.rowconfigure(2, weight=1)
 
         self._label = CTkLabel(master=self,
-                            width=300,
-                            wraplength=300,
-                            fg_color="transparent",
-                            text_color=self._text_color,
-                            text=self._text,
-                            font=self._font)
+                               width=300,
+                               wraplength=300,
+                               fg_color="transparent",
+                               text_color=self._text_color,
+                               text=self._text,
+                               font=self._font)
         self._label.grid(row=0, column=0, padx=20, pady=20, sticky="ew")
 
         # Create a frame for the entry and browse button
@@ -75,11 +75,11 @@ class PathDialog(CTkToplevel):
         entry_frame.grid_columnconfigure(1, weight=1)  # Browse button takes up 1/5 of the frame
 
         self._entry = CTkEntry(master=entry_frame,
-                            width=1,  # Adjust width as needed
-                            fg_color=self._entry_fg_color,
-                            border_color=self._entry_border_color,
-                            text_color=self._entry_text_color,
-                            font=self._font)
+                               width=1,  # Adjust width as needed
+                               fg_color=self._entry_fg_color,
+                               border_color=self._entry_border_color,
+                               text_color=self._entry_text_color,
+                               font=self._font)
         self._entry.grid(row=0, column=0, padx=0, pady=0, sticky="ew")
 
         self._browse_button = CTkButton(master=entry_frame,
@@ -97,7 +97,6 @@ class PathDialog(CTkToplevel):
         ok_cancel_frame.grid(row=2, column=0, padx=20, pady=(0, 20), sticky="ew")
         ok_cancel_frame.grid_columnconfigure(0, weight=1)  # Center "Ok" button horizontally
         ok_cancel_frame.grid_columnconfigure(1, weight=1)  # Center "Cancel" button horizontally
-
 
         self._ok_button = CTkButton(master=ok_cancel_frame,
                                     width=100,
@@ -123,13 +122,13 @@ class PathDialog(CTkToplevel):
 
         self.after(150, lambda: self._entry.focus())  # set focus to entry with slight delay, otherwise, it won't work
         self._entry.bind("<Return>", self._ok_event)
+
     def _browse_event(self):
-        
         self.withdraw()
         if self.directory_mode:
             path = filedialog.askdirectory()
         else:
-            extensions= ["*" + ext[1:] for ext in self._filetypes]
+            extensions = ["*" + ext[1:] for ext in self._filetypes]
             path = filedialog.askopenfilename(filetypes=[("Custom file", extensions)])
         self.deiconify()
         self.lift()
@@ -137,6 +136,7 @@ class PathDialog(CTkToplevel):
             return
         self._entry.delete(0, 'end')
         self._entry.insert(0, path)
+
     def _ok_event(self, event=None):
         if self._entry.get() == "":
             return
@@ -156,7 +156,7 @@ class PathDialog(CTkToplevel):
         self.master.wait_window(self)
         if self._user_input is None:
             return (False, None)
-        if os.path.exists(self._user_input) and ( (self._filetypes is not None and os.path.splitext(self._user_input)[1].lower() in self._filetypes) or (self._filetypes is None)):
+        if os.path.exists(self._user_input) and ((self._filetypes is not None and os.path.splitext(self._user_input)[1].lower() in self._filetypes) or (self._filetypes is None)):
             return (True, self._user_input)
         else:
             return (False, "Path does not exist or invalid filetype")

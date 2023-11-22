@@ -2,21 +2,22 @@ import os
 import shutil
 import webbrowser
 from sys import exit as sysexit
+from threading import Thread
 from tkinter import messagebox
 
 import customtkinter
 from PIL import Image
-from threading import Thread 
 
 from gui.frames.dolphin.dolphin_frame import DolphinFrame
 from gui.frames.ryujinx.ryujinx_frame import RyujinxFrame
 from gui.frames.settings.settings_frame import SettingsFrame
 from gui.frames.yuzu.yuzu_frame import YuzuFrame
 from settings.app_settings import load_customtkinter_themes
-from settings.settings import Settings
 from settings.metadata import Metadata
+from settings.settings import Settings
 from utils.auth_token_manager import delete_token_file
-from utils.requests_utils import get_headers, fetch_firmware_keys_dict, get_all_releases
+from utils.requests_utils import (fetch_firmware_keys_dict, get_all_releases,
+                                  get_headers)
 
 
 class EmulatorManager(customtkinter.CTk):
@@ -41,21 +42,20 @@ class EmulatorManager(customtkinter.CTk):
         if open_app_settings:
             self.select_frame_by_name("settings")
             self.settings_frame.select_settings_frame_by_name("app")
-            
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.yuzu_frame.fetch_versions()
         self.ryujinx_frame.fetch_versions()
         self.dolphin_frame.fetch_versions()
         Thread(target=self.fetch_firmware_and_keys).start()
         Thread(target=self.check_for_update).start()
-        self.mainloop()  
+        self.mainloop()
 
     def fetch_firmware_and_keys(self):
         yuzu_frame = self.yuzu_frame.firmware_keys_frame
         ryujinx_frame = self.ryujinx_frame.firmware_keys_frame
         frames = [self.yuzu_frame.firmware_keys_frame, self.ryujinx_frame.firmware_keys_frame]
         for frame in frames:
-            frame.fetching_versions = True 
+            frame.fetching_versions = True
         variables = [yuzu_frame.firmware_option_menu, yuzu_frame.key_option_menu_variable, ryujinx_frame.firmware_option_menu_variable, ryujinx_frame.key_option_menu_variable]
         [variable.set("Fetching...") for variable in variables]
         firmware_key_dict_result = fetch_firmware_keys_dict(headers=get_headers(self.settings.app.token))
@@ -63,26 +63,27 @@ class EmulatorManager(customtkinter.CTk):
             [variable.set("Click to fetch versions") for variable in variables]
             for frame in frames:
                 frame.fetching_versions = False
-            return 
+            return
         firmware_key_dict = firmware_key_dict_result[1]
         for frame in frames:
             frame.create_scrollable_dropdown_with_dict(firmware_key_dict)
             frame.fetching_versions = False
-        
+
     def define_images(self):
         self.dolphin_logo = customtkinter.CTkImage(Image.open(self.settings.get_image_path("dolphin_logo")), size=(26, 26))
-        self.dolphin_banner =  customtkinter.CTkImage(light_image=Image.open(self.settings.get_image_path("dolphin_banner_light")),
+        self.dolphin_banner = customtkinter.CTkImage(light_image=Image.open(self.settings.get_image_path("dolphin_banner_light")),
                                                      dark_image=Image.open(self.settings.get_image_path("dolphin_banner_dark")), size=(276, 129))
         self.yuzu_logo = customtkinter.CTkImage(Image.open(self.settings.get_image_path("yuzu_logo")), size=(26, 26))
         self.yuzu_mainline = customtkinter.CTkImage(Image.open(self.settings.get_image_path("yuzu_mainline")), size=(120, 40))
         self.yuzu_early_access = customtkinter.CTkImage(Image.open(self.settings.get_image_path("yuzu_early_access")), size=(120, 40))
         self.ryujinx_logo = customtkinter.CTkImage(Image.open(self.settings.get_image_path("ryujinx_logo")), size=(26, 26))
         self.play_image = customtkinter.CTkImage(light_image=Image.open(self.settings.get_image_path("play_light")),
-                                                     dark_image=Image.open(self.settings.get_image_path("play_dark")), size=(20, 20))
-        self.settings_image =  customtkinter.CTkImage(light_image=Image.open(self.settings.get_image_path("settings_light")),
+                                                 dark_image=Image.open(self.settings.get_image_path("play_dark")), size=(20, 20))
+        self.settings_image = customtkinter.CTkImage(light_image=Image.open(self.settings.get_image_path("settings_light")),
                                                      dark_image=Image.open(self.settings.get_image_path("settings_dark")), size=(20, 20))
-        self.lock_image =  customtkinter.CTkImage(light_image=Image.open(self.settings.get_image_path("padlock_light")),
-                                                     dark_image=Image.open(self.settings.get_image_path("padlock_dark")), size=(20, 20))
+        self.lock_image = customtkinter.CTkImage(light_image=Image.open(self.settings.get_image_path("padlock_light")),
+                                                 dark_image=Image.open(self.settings.get_image_path("padlock_dark")), size=(20, 20))
+
     def build_gui(self):
         self.resizable(False, False)  # disable resizing of window
         self.title("Emulator Manager")  # set title of window
@@ -100,7 +101,7 @@ class EmulatorManager(customtkinter.CTk):
 
         # Create navigation frame title.
         self.navigation_frame_label = customtkinter.CTkLabel(self.navigation_frame, text=f"Emulator Manager {self.version}",
-                                                                compound="left", padx=5, font=customtkinter.CTkFont(size=12, weight="bold"))
+                                                             compound="left", padx=5, font=customtkinter.CTkFont(size=12, weight="bold"))
         self.navigation_frame_label.grid(row=0, column=0, padx=20, pady=20)
         self.navigation_frame_label.bind('<Double-Button-1>', command=lambda event: messagebox.showinfo("About", f"Emulator Manager {self.version}, made by Viren070 on GitHub."))
 
@@ -111,27 +112,27 @@ class EmulatorManager(customtkinter.CTk):
 
         # Create navigation menu buttons
         self.dolphin_button = customtkinter.CTkButton(scrollable_frame, corner_radius=0, height=40, width=100, image=self.dolphin_logo, border_spacing=10, text="Dolphin",
-                                                    fg_color="transparent", text_color=("gray10", "gray90"),
-                                                    anchor="w", command=self.dolphin_button_event)
+                                                      fg_color="transparent", text_color=("gray10", "gray90"),
+                                                      anchor="w", command=self.dolphin_button_event)
         self.dolphin_button.grid(row=0, column=0, sticky="ew")
 
         self.yuzu_button = customtkinter.CTkButton(scrollable_frame, corner_radius=0, height=40, image=self.yuzu_logo, border_spacing=10, text="Yuzu",
-                                                fg_color="transparent", text_color=("gray10", "gray90"),
-                                                anchor="w", command=self.yuzu_button_event)
+                                                   fg_color="transparent", text_color=("gray10", "gray90"),
+                                                   anchor="w", command=self.yuzu_button_event)
         self.yuzu_button.grid(row=1, column=0, sticky="ew")
-            
+
         self.ryujinx_button = customtkinter.CTkButton(scrollable_frame, corner_radius=0, height=40, image=self.ryujinx_logo, border_spacing=10, text="Ryujinx",
-                                                fg_color="transparent", text_color=("gray10", "gray90"),
-                                                anchor="w", command=self.ryujinx_button_event)
+                                                      fg_color="transparent", text_color=("gray10", "gray90"),
+                                                      anchor="w", command=self.ryujinx_button_event)
         self.ryujinx_button.grid(row=2, column=0, sticky="ew")
-        
+
         # Set column weights of scrollable_frame to make buttons expand
         scrollable_frame.grid_columnconfigure(0, weight=1)
 
         # Create settings button at the bottom
         self.settings_button = customtkinter.CTkButton(self.navigation_frame, corner_radius=0, height=40, image=self.settings_image, border_spacing=10, text="Settings",
-                                                    fg_color="transparent", text_color=("gray10", "gray90"),
-                                                    anchor="w", command=self.settings_button_event)
+                                                       fg_color="transparent", text_color=("gray10", "gray90"),
+                                                       anchor="w", command=self.settings_button_event)
         self.settings_button.grid(row=2, column=0, sticky="ew")
 
         self.yuzu_frame = YuzuFrame(self, self.settings, self.metadata)
@@ -147,23 +148,24 @@ class EmulatorManager(customtkinter.CTk):
 
     def ryujinx_button_event(self):
         self.select_frame_by_name("ryujinx")
+
     def settings_button_event(self):
         self.select_frame_by_name("settings")
-    
+
     def select_frame_by_name(self, name):
-        if not self.just_opened and ( self.settings_changed()) and name != "settings":
+        if not self.just_opened and (self.settings_changed()) and name != "settings":
             if messagebox.askyesno("Confirmation", "You have unsaved changes in the settings. If you leave now, the changes you made will be discarded. Continue?"):
                 self.revert_settings()
             else:
-                return 
+                return
         self.settings_button.configure(fg_color=self.settings_button.cget("hover_color") if name == "settings" else "transparent")
         self.dolphin_button.configure(fg_color=self.dolphin_button.cget("hover_color") if name == "dolphin" else "transparent")
         self.yuzu_button.configure(fg_color=self.yuzu_button.cget("hover_color") if name == "yuzu" else "transparent")
         self.ryujinx_button.configure(fg_color=self.ryujinx_button.cget("hover_color") if name == "ryujinx" else "transparent")
-        
+
         # show selected frame
         if name == "settings":
-            self.settings_frame.grid(row=0, column=1, sticky="nsew")       
+            self.settings_frame.grid(row=0, column=1, sticky="nsew")
         else:
             self.settings_frame.grid_forget()
             self.settings_frame.select_settings_frame_by_name(None)
@@ -183,12 +185,13 @@ class EmulatorManager(customtkinter.CTk):
         else:
             self.ryujinx_frame.grid_forget()
             self.ryujinx_frame.select_frame_by_name(None)
-        
-        
+
     def settings_changed(self):
         return self.settings_frame.settings_changed()
+
     def revert_settings(self):
         self.settings_frame.revert_settings()
+
     def restart(self):
         for after_id in self.tk.eval('after info').split():
             self.after_cancel(after_id)
@@ -196,29 +199,27 @@ class EmulatorManager(customtkinter.CTk):
         self.destroy()
         load_customtkinter_themes(os.path.join(self.root_dir, "assets", "themes"))
         EmulatorManager(self.root_dir, True, pos)
-        
+
     def check_for_update(self):
         releases = get_all_releases("https://api.github.com/repos/Viren070/Emulator-Manager/releases?per_page=1", headers=get_headers(self.settings.app.token))
         if not all(releases):
-            return 
+            return
         releases = releases[1]
         latest_release = releases[0]
         if latest_release["tag_name"] != self.version:
             if messagebox.askyesno("Update Available", f"There is an update ({latest_release["tag_name"]}) available to download from the GitHub Repository. \nWould you like to download it now?"):
                 webbrowser.open("https://github.com/Viren070/Emulator-Manager/releases/latest")
-            
-        
+
     def on_closing(self):
         if (self.dolphin_frame.dolphin.running or self.yuzu_frame.yuzu.running):
             messagebox.showerror("Emulator Manager", "Please close any emulators before attempting to exit.")
-            return 
+            return
         temp_folder = os.path.join(os.getenv("TEMP"), "Emulator Manager")
         if os.path.exists(temp_folder):
             try:
                 shutil.rmtree(temp_folder)
-            except:
+            except PermissionError:
                 pass
         delete_token_file()
         self.destroy()
         sysexit()
-        

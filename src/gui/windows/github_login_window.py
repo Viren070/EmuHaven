@@ -16,37 +16,35 @@ class GitHubLoginWindow(customtkinter.CTkToplevel):
         self.settings = master.settings
         self.geometry("500x150")
         self.resizable(False, False)
-        self.poll_token = True 
-        self.master = master 
+        self.poll_token = True
+        self.master = master
         self.token_response = 0
         self.wm_protocol("WM_DELETE_WINDOW", self.on_closing)
         self.create_widgets()
         self.token_path = os.path.join(os.getenv("APPDATA"), "Emulator Manager", ".token")
 
     def on_closing(self):
-        self.master.token_gen = None 
+        self.master.token_gen = None
         self.poll_token = False
         self.token_response = "EXIT"
         self.destroy()
+
     def create_widgets(self):
         self.label = customtkinter.CTkLabel(self, text="Click the 'Authorise' button to start the authentication process.")
         self.label.pack(pady=20)
         self.login_button = customtkinter.CTkButton(self, text="Authorise", command=self.start_authentication)
         self.login_button.pack()
 
-
-
     def start_authentication(self):
         self.login_button.configure(state="disabled", text="Getting Code...")
         device_code_thread = Thread(target=self.get_device_code_and_token)
         device_code_thread.start()
-            
 
     def get_device_code_and_token(self):
-        device_code_response = request_device_code() # 1
+        device_code_response = request_device_code()
         if not all(device_code_response):
             messagebox.showerror("Requests Error", device_code_response[1])
-            return 
+            return
         device_code_response = device_code_response[1]
         verification_uri = device_code_response["verification_uri"]
         user_code = device_code_response["user_code"]
@@ -55,7 +53,7 @@ class GitHubLoginWindow(customtkinter.CTkToplevel):
         self.login_button.configure(state="disabled", text="Authorising...")
         self.countdown_on_widget(5, self.label, f"You will be redirected in {{}} seconds to {verification_uri}\nPlease enter the code: {user_code}. It has been copied to your clipboard", f"You are being redirected to {verification_uri}...\nPlease enter the code: {user_code}. It has been copied to your clipboard")
         if not self.poll_token:
-            return 
+            return
         self.clipboard_clear()
         self.clipboard_append(user_code)
         webbrowser.open(verification_uri, new=0)
@@ -63,32 +61,29 @@ class GitHubLoginWindow(customtkinter.CTkToplevel):
         self.login_button.configure(state="disabled", text="Authorising...")
         # Poll for the access token
         token_poll_thread = Thread(target=self.poll_for_token, args=(device_code, interval, ))
-        
+
         self.countdown_on_widget(15, self.login_button, "Checking in {}s")
-        
+
         token_poll_thread.start()
         self.check_token_status(token_poll_thread)
-    
 
     def countdown_on_widget(self, countdown_time, widget, default_text, final_text=None):
         left = countdown_time
         widget.configure(text=default_text.format(left))
-        while left>0:
+        while left > 0:
             time.sleep(1)
             if not self.poll_token:
-                return   
-            left-=1
+                return
+            left -= 1
             widget.configure(text=default_text.format(left))
         if final_text:
             widget.configure(text=final_text)
-            
-            
 
     def poll_for_token(self, device_code, interval):
         requests_made = 2
-        while self.poll_token:         
+        while self.poll_token:
             token_response = request_token(device_code)
-            requests_made+=1
+            requests_made += 1
             if interval < 15:
                 interval = 15
             print(f"requests made with interval {interval}s: {requests_made}")
@@ -98,8 +93,8 @@ class GitHubLoginWindow(customtkinter.CTkToplevel):
             if not all(token_response):
                 messagebox.showerror("Requests Error", token_response[1])
                 self.token_response = None
-                return 
-            token_response=token_response[1]
+                return
+            token_response = token_response[1]
             if "access_token" in token_response:
                 self.token_response = token_response["access_token"]
                 return
@@ -113,11 +108,12 @@ class GitHubLoginWindow(customtkinter.CTkToplevel):
                     self.token_response = None
                     return
             else:
-                self.token_response = None 
-        return    
+                self.token_response = None
+        return
+
     def check_token_status(self, token_poll_thread):
         token_poll_thread.join()
- 
+
         # Polling thread has finished, handle the result
         if self.token_response == "EXIT":
             return
@@ -138,12 +134,9 @@ class GitHubLoginWindow(customtkinter.CTkToplevel):
             self.login_button.configure(state="normal", text="Authorise")
             self.label.configure(text="Click the 'Authorise' button to start the authentication process.")
 
-
     def bring_window_to_top(self, window):
         window.deiconify()  # Restore the window if minimized
         window.focus_force()  # Bring the window into focus
         window.lift()  # Raise the window to the top
         window.attributes('-topmost', True)  # Set it as topmost
-        window.attributes('-topmost', False) 
-   
-    
+        window.attributes('-topmost', False)

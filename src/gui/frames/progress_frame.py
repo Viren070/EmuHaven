@@ -32,6 +32,7 @@ class ProgressFrame(customtkinter.CTkFrame):
         self.cancel_download_button = customtkinter.CTkButton(
             self, text="Cancel", command=self.cancel_button_event
         )
+
     def start_download(self, filename, total_size):
         self.filename = filename
         self.total_size = total_size
@@ -47,10 +48,8 @@ class ProgressFrame(customtkinter.CTkFrame):
         self.install_status_label.configure(text="Status: Downloading")
         self.eta_label.configure(text="Time Left: N/A")
         self.cancel_download_button.configure(state="normal", text="Cancel", command=self.cancel_button_event)
-        
         self.download_name.grid(row=0, column=0, sticky="W", padx=10, pady=5)
 
-        
         self.progress_label.grid(row=1, column=0, sticky="W", padx=10)
         self.progress_bar.grid(row=2, column=0, columnspan=6, padx=(10, 45), pady=5, sticky="EW")
         self.percentage_complete.grid(row=2, column=5, sticky="E", padx=10)
@@ -58,20 +57,20 @@ class ProgressFrame(customtkinter.CTkFrame):
         self.install_status_label.grid(row=3, column=0, sticky="W", padx=10, pady=5)
         self.eta_label.grid(row=0, column=5, sticky="E", pady=5, padx=10)
         self.cancel_download_button.grid(row=3, column=5, pady=10, padx=10, sticky="E")
-        
+
     def update_download_progress(self, downloaded_bytes):
         done = downloaded_bytes / self.total_size
-        
+
         self.last_speed = downloaded_bytes / (
-        (perf_counter() - self.start_time) 
+            (perf_counter() - self.start_time)
         )
+        # use exponential moving average to calculate download speed
         self.average_speed = (
             self.smoothing_factor * self.last_speed +
-            (1 - self.smoothing_factor) * self.average_speed  # use exponential moving average to calculate download speed 
+
+            (1 - self.smoothing_factor) * self.average_speed
         )
-      
-    
-        time_left =  (self.total_size - downloaded_bytes) / self.average_speed
+        time_left = (self.total_size - downloaded_bytes) / self.average_speed
         minutes, seconds = divmod(int(time_left), 60)
         hours, minutes = divmod(minutes, 60)
         time_left_str = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
@@ -86,7 +85,6 @@ class ProgressFrame(customtkinter.CTkFrame):
         if self.install_status_label.cget("text") != "Status: Downloading...":
             self.install_status_label.configure(text="Status: Downloading...")
 
-
     def cancel_button_event(self):
         if messagebox.askyesno(
             "Confirmation", "Are you sure you want to cancel this download?"
@@ -95,7 +93,6 @@ class ProgressFrame(customtkinter.CTkFrame):
             self.cancel_download_raised = True
             self.cancel_download_button.configure(state="disabled")
             return True
-        
         return False
 
     def remove_status_frame(self):
@@ -119,9 +116,9 @@ class ProgressFrame(customtkinter.CTkFrame):
         self.cancel_download_button.configure(state="disabled")
         self.progress_label.grid_forget()
 
-
     def update_status_label(self, new_status):
         self.install_status_label.configure(text=f"Status: {new_status}")
+
     def finish_installation(self):
         minutes, seconds = divmod(int(perf_counter() - self.start_time), 60)
         hours, minutes = divmod(minutes, 60)
@@ -133,11 +130,3 @@ class ProgressFrame(customtkinter.CTkFrame):
             text="Remove", command=self.remove_status_frame, state="normal"
         )
         messagebox.showinfo("Download Complete", f"{self.filename} has been installed")
-
-
-
-if __name__ == "__main__":
-    root = customtkinter.CTk()
-    root.progress_frame = ProgressFrame(root)
-    root.progress_frame.grid(row=0, column=0, sticky="ew")
-    root.mainloop()

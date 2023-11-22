@@ -7,12 +7,10 @@ from tkinter import messagebox
 from zipfile import ZipFile
 
 import emulators.switch_emulator as switch_emu
-from gui.frames.progress_frame import ProgressFrame
 from utils.downloader import download_through_stream
 from utils.file_utils import copy_directory_with_progress
 from utils.requests_utils import (create_get_connection, get_headers,
-                                  get_release_from_assets,
-                                  get_resources_release)
+                                  get_release_from_assets)
 
 
 class Ryujinx:
@@ -25,21 +23,21 @@ class Ryujinx:
         self.updating_ea = False
         self.installing_firmware_or_keys = False
         self.running = False
-        
+
     def verify_ryujinx_zip(self, path_to_archive):
         try:
             with ZipFile(path_to_archive, 'r') as archive:
                 if 'publish/Ryujinx.exe' in archive.namelist():
-                    return True 
+                    return True
                 else:
                     return False
         except Exception:
             return False
 
-            
     def get_latest_release(self):
-        response = create_get_connection('https://api.github.com/repos/Ryujinx/release-channel-master/releases' , headers=get_headers(self.settings.app.token))
-        if not all(response): return (False, response[1])
+        response = create_get_connection('https://api.github.com/repos/Ryujinx/release-channel-master/releases', headers=get_headers(self.settings.app.token))
+        if not all(response):
+            return (False, response[1])
         response = response[1]
         try:
             release_info = json.loads(response.text)[0]
@@ -49,21 +47,19 @@ class Ryujinx:
             return (False, "API Rate Limited")
         release = get_release_from_assets(assets, "win_x64")
         release.version = latest_version
-        return (True, release )
+        return (True, release)
 
-    
     def download_release(self, release):
-        
         response_result = create_get_connection(release.download_url, stream=True, headers=get_headers(self.settings.app.token))
         if not all(response_result):
-            return response_result 
-        response = response_result[1]   
+            return response_result
+        response = response_result[1]
         self.main_progress_frame.start_download(f"Ryujinx {release.version}", release.size)
         self.main_progress_frame.grid(row=0, column=0, sticky="ew")
         download_path = os.path.join(os.getcwd(), f"ryujinx-{release.version}-win_x64.zip")
         download_result = download_through_stream(response, download_path, self.main_progress_frame, 1024*203)
         return download_result
-    
+
     def extract_release(self, zip_path):
         extract_folder = self.settings.ryujinx.install_directory
         extracted_files = []
@@ -72,11 +68,11 @@ class Ryujinx:
         self.main_progress_frame.complete_download()
         self.main_progress_frame.update_status_label("Extracting... ")
         self.main_progress_frame.grid(row=0, column=0, sticky="ew")
-        if os.path.exists(os.path.join(self.settings.ryujinx.install_directory,"publish")):
+        if os.path.exists(os.path.join(self.settings.ryujinx.install_directory, "publish")):
             self.delete_ryujinx(True)
         try:
             with ZipFile(zip_path, 'r') as archive:
-                total_files = len(archive.namelist())     
+                total_files = len(archive.namelist())
                 for file in archive.namelist():
                     if self.main_progress_frame.cancel_download_raised:
                         self.main_progress_frame.grid_forget()
@@ -84,13 +80,13 @@ class Ryujinx:
                     archive.extract(file, extract_folder)
                     extracted_files.append(file)
                     # Calculate and display progress
-                    self.main_progress_frame.update_extraction_progress(len(extracted_files) / total_files) 
+                    self.main_progress_frame.update_extraction_progress(len(extracted_files) / total_files)
         except Exception as error:
             self.main_progress_frame.grid_forget()
             return (False, error)
         self.main_progress_frame.grid_forget()
         return (True, extract_folder)
-    
+
     def install_release_handler(self, updating=False, path_to_archive=None):
         release_archive = path_to_archive
         if path_to_archive is None:
@@ -101,7 +97,7 @@ class Ryujinx:
             release = release_result[1]
             if release.version == self.metadata.get_installed_version("ryujinx"):
                 if updating:
-                    return 
+                    return
                 if not messagebox.askyesno("Ryujinx", "You already have the latest version of Ryujinx  installed, download anyways?"):
                     return
             download_result = self.download_release(release)
@@ -113,29 +109,27 @@ class Ryujinx:
                         os.remove(download_result[2])
                     except Exception as error:
                         messagebox.showwarning("Error", f"Failed to delete file after cancelling due to error below \n\n {error}")
-                return 
+                return
             release_archive = download_result[1]
         elif not self.verify_ryujinx_zip(path_to_archive):
             messagebox.showerror("Error", "The archive you have provided is invalid")
-            return 
+            return
         extract_result = self.extract_release(release_archive)
         if not all(extract_result):
-            if extract_result[1]!="Cancelled":
+            if extract_result[1] != "Cancelled":
                 messagebox.showerror("Extract Error", f"An error occurred while extracting the release: \n\n{extract_result[1]}")
             elif path_to_archive is None:
                 try:
                     os.remove(release_archive)
                 except Exception as error:
                     messagebox.showwarning("Error", f"Failed to delete file after cancelling due to error below:\n\n{error}")
-            return 
+            return
         if path_to_archive is None:
             self.metadata.update_installed_version("ryujinx", release.version)
         if path_to_archive is None and self.settings.app.delete_files == "True" and os.path.exists(release_archive):
             os.remove(release_archive)
         messagebox.showinfo("Install Ryujinx", f"Ryujinx was successfully installed to {extract_result[1]}")
 
-    
-        
     def delete_ryujinx(self, skip_prompt=False):
         try:
             shutil.rmtree(os.path.join(self.settings.ryujinx.install_directory, "publish"))
@@ -143,25 +137,21 @@ class Ryujinx:
                 messagebox.showinfo("Delete Ryujinx", "Installation of Ryujinx successfully deleted")
         except Exception as error:
             messagebox.showerror("Delete Error", f"An error occured while trying to delete the installation of Ryujinx:\n\n{error}")
-        
-    
+
     def launch_ryujinx_handler(self, skip_update=False):
         if not skip_update:
             self.gui.configure_action_buttons("disabled", text="Fetching Updates...")
             self.install_release_handler(True)
- 
         self.verify_and_install_firmware_keys()
-        
         self.gui.configure_action_buttons("disabled", text="Launched!  ")
         ryujinx_exe = os.path.join(self.settings.ryujinx.install_directory, "publish", "Ryujinx.exe")
-       
         args = [ryujinx_exe]
         self.running = True
         subprocess.run(args, capture_output=True, check=False)
         self.running = False
-        
+
     def verify_and_install_firmware_keys(self):
-        installed_firmware_version =  re.compile(r'(\d+\.\d+\.\d+)').findall(self.metadata.get_installed_version("ryujinx_firmware"))
+        installed_firmware_version = re.compile(r'(\d+\.\d+\.\d+)').findall(self.metadata.get_installed_version("ryujinx_firmware"))
         if not installed_firmware_version:
             installed_firmware_version = ""
         if installed_firmware_version != "" and self.metadata.get_installed_version("ryujinx_keys") != "" and installed_firmware_version != self.metadata.get_installed_version("ryujinx_keys"):
@@ -177,7 +167,6 @@ class Ryujinx:
             if messagebox.askyesno("Firmware Missing", "It seems you are missing the switch firmware files. Without these files, some games may not run. You can install the firmware using the buttons below. \n\nWould you like to install the firmware now? If you select no, you will not be asked again"):
                 if self.gui.firmware_keys_frame.firmware_option_menu.cget("state") == "disabled":
                     messagebox.showerror("Install Firmware", "Unable to fetch latest Firmware. Please try again later or restart the application")
-                   
                 else:
                     latest_firmware_release = self.gui.firmware_keys_frame.firmware_key_version_dict["firmware"][self.gui.firmware_keys_frame.key_option_menu.cget("values")[0]]
                     self.install_firmware_handler("release", latest_firmware_release)
@@ -185,14 +174,12 @@ class Ryujinx:
                 self.settings.app.ask_firmware = "False"
                 self.settings.update_file()
 
-       
     def install_firmware_handler(self, mode, path_or_release):
         if switch_emu.check_current_firmware(os.path.join(self.settings.ryujinx.user_directory, "bis", "system", "Contents", "registered")) and not messagebox.askyesno("Firmware Exists", "You already seem to have firmware installed, install anyways?"):
-            return 
-   
+            return
         if mode == "release":
             release = path_or_release
-            firmware_path= self.download_firmware_archive(release)
+            firmware_path = self.download_firmware_archive(release)
             if not all(firmware_path):
                 if firmware_path[1] != "Cancelled":
                     messagebox.showerror("Download Error", firmware_path[1])
@@ -202,20 +189,19 @@ class Ryujinx:
                     except Exception as error:
                         messagebox.showwarning("Error", f"Failed to delete file after cancelling due to error below:\n\n{error}")
                 return False
-            firmware_path = firmware_path[1] 
+            firmware_path = firmware_path[1]
             version = release.version
         elif mode == "path" and not switch_emu.verify_firmware_archive(path_or_release):
             messagebox.showerror("Error", "The firmware archive you have provided is invalid")
-            return 
+            return
         else:
             firmware_path = path_or_release
-        
         result = switch_emu.install_firmware_from_archive(firmware_path, os.path.join(self.settings.ryujinx.user_directory, "bis", "system", "Contents", "registered"), self.main_progress_frame, "ryujinx")
         if not result[0]:
             messagebox.showerror("Extract Error", f"There was an error while trying to extract the firmware archive: \n\n{result[1]}")
-            return 
+            return
         result = result[1]
-        if mode == "release": 
+        if mode == "release":
             if self.settings.app.delete_files == "True" and os.path.exists(firmware_path):
                 try:
                     os.remove(firmware_path)
@@ -225,11 +211,11 @@ class Ryujinx:
         else:
             self.metadata.update_installed_version("ryujinx_firmware", version)
         if result:
-            messagebox.showwarning("Unexpected Files" , f"These files were skipped in the extraction process: {result}")
+            messagebox.showwarning("Unexpected Files", f"These files were skipped in the extraction process: {result}")
         messagebox.showinfo("Firmware Install", "The switch firmware files were successfully installed")
         self.gui.fetch_versions()
-        return True 
-    
+        return True
+
     def download_firmware_archive(self, release):
         firmware = release
 
@@ -240,19 +226,14 @@ class Ryujinx:
         response = response_result[1]
         self.main_progress_frame.start_download(f"Firmware {firmware.version}", firmware.size)
         self.main_progress_frame.grid(row=0, column=0, sticky="ew")
-        
         download_path = os.path.join(os.getcwd(), f"Firmware {firmware.version}.zip")
         download_result = download_through_stream(response, download_path, self.main_progress_frame, 1024*203)
         self.main_progress_frame.complete_download()
         return download_result
 
-    
-    
-
     def install_key_handler(self, mode, path_or_release):
         if switch_emu.check_current_keys(os.path.join(self.settings.ryujinx.user_directory, "system", "prod.keys")) and not messagebox.askyesno("Keys Exist", "You already seem to have the decryption keys, install anyways?"):
-            return 
-        
+            return
         if mode == "release":
             release = path_or_release
             key_path = self.download_key_archive(release)
@@ -265,9 +246,9 @@ class Ryujinx:
                     except Exception as error:
                         messagebox.showwarning("Error", f"Failed to delete file after cancelling due to below error:\n\n{error}")
                 return False
-            key_path = key_path[1] 
+            key_path = key_path[1]
             version = release.version
-            
+
         elif not switch_emu.verify_key_archive(path_or_release):
             messagebox.showerror("Error", "The key archive you have provided is invalid")
             return
@@ -280,11 +261,11 @@ class Ryujinx:
             result = switch_emu.install_keys_from_archive(key_path, os.path.join(self.settings.ryujinx.user_directory, "system"), self.main_progress_frame)
             if not all(result):
                 messagebox.showerror("Extract Error", f"There was an error while trying to extract the key archive: \n\n{result[1]}")
-                return 
+                return
             result = result[1]
             if "prod.keys" not in result:
                 messagebox.showwarning("Keys", "Was not able to find any prod.keys within the archive, the archive was still extracted successfully.")
-                return False 
+                return False
         if mode == "release":
             if self.settings.app.delete_files == "True" and os.path.exists(key_path):
                 os.remove(key_path)
@@ -293,29 +274,23 @@ class Ryujinx:
             self.metadata.update_installed_version("ryujinx_keys", "")
         messagebox.showinfo("Keys", "Decryption keys were successfully installed!")
         self.gui.fetch_versions()
-        return True 
-            
+        return True
+
     def download_key_archive(self, release):
-       
         key = release
         response_result = create_get_connection(key.download_url, stream=True, headers=get_headers(self.settings.app.token), timeout=30)
         if not all(response_result):
             return response_result
-           
         response = response_result[1]
         self.main_progress_frame.start_download(f"Keys {key.version}", key.size)
         self.main_progress_frame.grid(row=0, column=0, sticky="ew")
         download_path = os.path.join(os.getcwd(), f"Keys {key.version}.zip")
         download_result = download_through_stream(response, download_path, self.main_progress_frame, 1024*128)
         self.main_progress_frame.complete_download()
-        
         return download_result
-    
 
-        
     def export_ryujinx_data(self, mode, directory_to_export_to):
         user_directory = self.settings.ryujinx.user_directory
-        
         if not os.path.exists(user_directory):
             messagebox.showerror("Missing Folder", "No Ryujinx data on local drive found")
             return  # Handle the case when the user directory doesn't exist.
@@ -329,6 +304,7 @@ class Ryujinx:
             copy_directory_with_progress(user_directory, directory_to_export_to, "Exporting All Ryujinx Data", self.data_progress_frame, ["bis", "system"])
         else:
             messagebox.showerror("Error", f"An unexpected error has occured, {mode} is an invalid option.")
+
     def import_ryujinx_data(self, mode, directory_to_import_from):
         user_directory = self.settings.ryujinx.user_directory
         if not os.path.exists(directory_to_import_from):
@@ -343,11 +319,12 @@ class Ryujinx:
             copy_directory_with_progress(directory_to_import_from, user_directory, "Import All Ryujinx Data", self.data_progress_frame, ["bis", "system"])
         else:
             messagebox.showerror("Error", f"An unexpected error has occured, {mode} is an invalid option.")
+
     def delete_ryujinx_data(self, mode):
         result = ""
 
         user_directory = self.settings.ryujinx.user_directory
-    
+
         def delete_directory(directory):
             if os.path.exists(directory):
                 try:
@@ -370,7 +347,7 @@ class Ryujinx:
                     subfolders_failed = []
                     for folder_name in os.listdir(root_folder):
                         folder_path = os.path.join(root_folder, folder_name)
-                        if os.path.isdir(folder_path) and not(folder_name == 'bis' or folder_name == 'system'):
+                        if os.path.isdir(folder_path) and not (folder_name == 'bis' or folder_name == 'system'):
                             deleted = True
                             if not delete_directory(folder_path):
                                 subfolders_failed.append(folder_name)
@@ -388,4 +365,3 @@ class Ryujinx:
         else:
             messagebox.showinfo("Delete result", "Nothing was deleted.")
         self.gui.configure_data_buttons(state="normal")
-

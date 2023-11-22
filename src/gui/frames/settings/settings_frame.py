@@ -1,5 +1,3 @@
-import os
-
 import customtkinter
 from PIL import Image
 
@@ -11,60 +9,58 @@ from gui.frames.settings.ryujinx_settings_frame import RyujinxSettingsFrame
 class SettingsFrame(customtkinter.CTkFrame):
     def __init__(self, parent_frame, settings):
         super().__init__(parent_frame, corner_radius=0, bg_color="transparent", width=20)
-        self.settings = settings 
+        self.settings = settings
         self.parent_frame = parent_frame
         self.build_gui()
+
     def build_gui(self):
-        self.lock_image =  customtkinter.CTkImage(light_image=Image.open(self.settings.get_image_path("padlock_light")),
-                                                     dark_image=Image.open(self.settings.get_image_path("padlock_dark")), size=(20, 20))
+        self.lock_image = customtkinter.CTkImage(light_image=Image.open(self.settings.get_image_path("padlock_light")),
+                                                 dark_image=Image.open(self.settings.get_image_path("padlock_dark")), size=(20, 20))
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
-        # create settings navigation frame      
-        self.settings_navigation_frame = customtkinter.CTkFrame(self, corner_radius=0, width=100, border_width=2, border_color=("white","black"))
+        # create settings navigation frame
+        self.settings_navigation_frame = customtkinter.CTkFrame(self, corner_radius=0, width=100, border_width=2, border_color=("white", "black"))
         self.settings_navigation_frame.grid(row=0, column=0, sticky="nsew")
         self.settings_navigation_frame.grid_rowconfigure(5, weight=1)
 
         # create settings navigation menu buttons
         self.app_settings_button = customtkinter.CTkButton(self.settings_navigation_frame, corner_radius=0, width=90, height=25, border_spacing=10, text="App",
-                                                   fg_color="transparent", text_color=("gray10", "gray90"),
-                                                   anchor="w", command=self.app_settings_button_event)
-        self.app_settings_button.grid(row=1, column=0, padx=2, pady=(2,0), sticky="ew")
-        
-        self.dolphin_settings_button = customtkinter.CTkButton(self.settings_navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Dolphin",
-                                                   fg_color="transparent", text_color=("gray10", "gray90"),
-                                                   anchor="w", command=self.dolphin_settings_button_event)
-        self.dolphin_settings_button.grid(row=2, column=0, padx=2, sticky="ew")
-        
-        self.yuzu_settings_button = customtkinter.CTkButton(self.settings_navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Yuzu",
-                                                   fg_color="transparent", text_color=("gray10", "gray90"),
-                                                   anchor="w", command=self.yuzu_settings_button_event)
-        self.yuzu_settings_button.grid(row=3, column=0, padx=2, sticky="ew")
-        
-        self.ryujinx_settings_button = customtkinter.CTkButton(self.settings_navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Ryujinx",
-                                                   fg_color="transparent", text_color=("gray10", "gray90"),
-                                                   anchor="w", command=self.ryujinx_settings_button_event)
-        self.ryujinx_settings_button.grid(row=4, column=0, padx=2, sticky="ew")
-        
+                                                           fg_color="transparent", text_color=("gray10", "gray90"),
+                                                           anchor="w", command=self.app_settings_button_event)
+        self.app_settings_button.grid(row=1, column=0, padx=2, pady=(2, 0), sticky="ew")
 
-        # set default paths and other useful paths 
-        installer_paths = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Emulator Files")
-        self.user_profile = os.path.expanduser('~')
-        self.temp_extract_directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Temp")
-        
+        self.dolphin_settings_button = customtkinter.CTkButton(self.settings_navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Dolphin",
+                                                               fg_color="transparent", text_color=("gray10", "gray90"),
+                                                               anchor="w", command=self.dolphin_settings_button_event)
+        self.dolphin_settings_button.grid(row=2, column=0, padx=2, sticky="ew")
+
+        self.yuzu_settings_button = customtkinter.CTkButton(self.settings_navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Yuzu",
+                                                            fg_color="transparent", text_color=("gray10", "gray90"),
+                                                            anchor="w", command=self.yuzu_settings_button_event)
+        self.yuzu_settings_button.grid(row=3, column=0, padx=2, sticky="ew")
+
+        self.ryujinx_settings_button = customtkinter.CTkButton(self.settings_navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Ryujinx",
+                                                               fg_color="transparent", text_color=("gray10", "gray90"),
+                                                               anchor="w", command=self.ryujinx_settings_button_event)
+        self.ryujinx_settings_button.grid(row=4, column=0, padx=2, sticky="ew")
+
         self.dolphin_settings_frame = DolphinSettingsFrame(self, self.settings)
         self.yuzu_settings_frame = YuzuSettingsFrame(self, self.settings)
         self.ryujinx_settings_frame = RyujinxSettingsFrame(self, self.settings)
         self.app_settings_frame = AppSettingsFrame(self, self.settings)
-        
+
     def dolphin_settings_button_event(self):
         self.select_settings_frame_by_name("dolphin")
+
     def yuzu_settings_button_event(self):
         self.select_settings_frame_by_name("yuzu")
+
     def ryujinx_settings_button_event(self):
         self.select_settings_frame_by_name("ryujinx")
+
     def app_settings_button_event(self):
         self.select_settings_frame_by_name("app")
-        
+
     def select_settings_frame_by_name(self, name):
         # set button color for selected button
         self.yuzu_settings_button.configure(fg_color=self.yuzu_settings_button.cget("hover_color") if name == "yuzu" else "transparent")
@@ -88,9 +84,10 @@ class SettingsFrame(customtkinter.CTkFrame):
             self.app_settings_frame.grid(row=0, column=1, sticky="nsew")
         else:
             self.app_settings_frame.grid_forget()
+
     def settings_changed(self):
-        return (self.yuzu_settings_frame.settings_changed() or self.dolphin_settings_frame.settings_changed() )
+        return (self.yuzu_settings_frame.settings_changed() or self.dolphin_settings_frame.settings_changed())
+
     def revert_settings(self):
         self.yuzu_settings_frame.update_entry_widgets()
         self.dolphin_settings_frame.update_entry_widgets()
-    

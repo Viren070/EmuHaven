@@ -4,8 +4,7 @@ from tkinter import messagebox
 import customtkinter
 
 from gui.CTkScrollableDropdown import CTkScrollableDropdown
-from gui.windows.path_dialog import PathDialog
-from utils.requests_utils import get_all_releases, get_headers, fetch_firmware_keys_dict
+from utils.requests_utils import fetch_firmware_keys_dict, get_headers
 
 
 class FirmwareKeysFrame(customtkinter.CTkFrame):
@@ -14,12 +13,11 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
         self.gui = gui
         self.fetching_versions = False
         self.build_frame()
+
     def build_frame(self):
-      
+
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
-
-
         self.firmware_option_menu_variable = customtkinter.StringVar()
         self.firmware_option_menu_variable.set("Click to fetch versions")
         self.key_option_menu_variable = customtkinter.StringVar()
@@ -47,29 +45,26 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
         self.key_option_menu = customtkinter.CTkOptionMenu(self, width=200, state="disabled", dynamic_resizing=False, variable=self.key_option_menu_variable)
         self.key_option_menu.grid(row=1, column=2, padx=10, pady=5, sticky="w")
         self.key_option_menu.bind("<Button-1>", command=self.attempt_fetch)
-       
 
         self.install_keys_button = customtkinter.CTkButton(self, text="Install", width=100, command=self.gui.install_keys_button_event)
         self.install_keys_button.bind("<Button-1>", command=self.gui.install_keys_button_event)
         self.install_keys_button.grid(row=1, column=3, padx=10, pady=5, sticky="w")
-        
-        
+
     def attempt_fetch(self, *args):
         if self.fetching_versions:
             messagebox.showwarning("Version Fetch", "A fetch is already in progress or the menu is currently being initialised, please try again later.")
-            return 
+            return
         if not (self.firmware_option_menu_variable.get() == "Click to fetch versions" or self.key_option_menu_variable.get() == "Click to fetch versions"):
-            return 
-        self.fetching_versions = True 
+            return
+        self.fetching_versions = True
         Thread(target=self.fetch_firmware_and_key_versions, args=(True,)).start()
+
     def configure_firmware_key_buttons(self, state):
         self.install_firmware_button.configure(state=state)
         self.install_keys_button.configure(state=state)
         self.gui.fetch_versions()
-        
-        
+
     def create_scrollable_dropdown_with_dict(self, version_dict):
-        
         firmware_versions = [release.version for release in version_dict.get("firmware", {}).values()]
 
         # Extract key versions from the self.firmware_key_version_dict
@@ -86,10 +81,10 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
             self.firmware_option_menu.configure(state="normal")
         else:
             self.firmware_option_menu_variable.set("None Found")
-        
+
         self.firmware_option_menu.configure(values=firmware_versions)
         self.key_option_menu.configure(values=key_versions)
-        
+
     def fetch_firmware_and_key_versions(self, manual_fetch=False):
         self.fetching_versions = True
         self.firmware_option_menu_variable.set("Fetching...")
@@ -101,7 +96,7 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
             self.fetching_versions = False
             if manual_fetch:
                 messagebox.showerror("Fetch Error", f"There was an error while attempting to fetch the available versions for firmware and keys:\n\n {firmware_key_dict_result[1]}")
-            return 
+            return
         firmware_key_version_dict = firmware_key_dict_result[1]
         # Extract firmware versions from the self.firmware_key_version_dict
         self.create_scrollable_dropdown_with_dict(firmware_key_version_dict)
