@@ -138,7 +138,8 @@ class Yuzu:
             self.metadata.update_installed_version(release_type, release.version)
         if path_to_archive is None and self.settings.app.delete_files == "True" and os.path.exists(release_archive):
             os.remove(release_archive)
-        messagebox.showinfo("Install Yuzu", f"Yuzu was successfully installed to {extract_result[1]}")
+        if not updating:
+            messagebox.showinfo("Install Yuzu", f"Yuzu was successfully installed to {extract_result[1]}")
 
     def launch_yuzu_installer(self):
         path_to_installer = self.settings.yuzu.installer_path

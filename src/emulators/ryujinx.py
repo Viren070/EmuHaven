@@ -128,7 +128,8 @@ class Ryujinx:
             self.metadata.update_installed_version("ryujinx", release.version)
         if path_to_archive is None and self.settings.app.delete_files == "True" and os.path.exists(release_archive):
             os.remove(release_archive)
-        messagebox.showinfo("Install Ryujinx", f"Ryujinx was successfully installed to {extract_result[1]}")
+        if not updating:
+            messagebox.showinfo("Install Ryujinx", f"Ryujinx was successfully installed to {extract_result[1]}")
 
     def delete_ryujinx(self, skip_prompt=False):
         try:

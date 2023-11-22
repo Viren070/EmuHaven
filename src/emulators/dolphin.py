@@ -40,8 +40,7 @@ class Dolphin:
                     return False
         except Exception:
             return False
-   
-        
+
     def install_dolphin_handler(self, release_channel=None, path_to_archive=None, updating=False):
         release_archive = path_to_archive
         if release_channel is None and path_to_archive is None:
@@ -80,7 +79,8 @@ class Dolphin:
             return 
         if path_to_archive is None:
             self.metadata.update_installed_version("dolphin", release.version)
-        messagebox.showinfo("Install Dolphin", f"Dolphin was successfully installed to {self.settings.dolphin.install_directory}")
+        if not updating:
+            messagebox.showinfo("Install Dolphin", f"Dolphin was successfully installed to {self.settings.dolphin.install_directory}")
         
    
     def get_dolphin_release(self, release_channel):
