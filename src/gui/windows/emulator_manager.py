@@ -1,5 +1,6 @@
 import os
 import shutil
+import webbrowser
 from sys import exit as sysexit
 from tkinter import messagebox
 
@@ -15,7 +16,7 @@ from settings.app_settings import load_customtkinter_themes
 from settings.settings import Settings
 from settings.metadata import Metadata
 from utils.auth_token_manager import delete_token_file
-from utils.requests_utils import get_headers, fetch_firmware_keys_dict
+from utils.requests_utils import get_headers, fetch_firmware_keys_dict, get_all_releases
 
 
 class EmulatorManager(customtkinter.CTk):
@@ -46,6 +47,7 @@ class EmulatorManager(customtkinter.CTk):
         self.ryujinx_frame.fetch_versions()
         self.dolphin_frame.fetch_versions()
         Thread(target=self.fetch_firmware_and_keys).start()
+        Thread(target=self.check_for_update).start()
         self.mainloop()  
 
     def fetch_firmware_and_keys(self):
@@ -194,6 +196,17 @@ class EmulatorManager(customtkinter.CTk):
         self.destroy()
         load_customtkinter_themes(os.path.join(self.root_dir, "assets", "themes"))
         EmulatorManager(self.root_dir, True, pos)
+        
+    def check_for_update(self):
+        releases = get_all_releases("https://api.github.com/repos/Viren070/Emulator-Manager/releases?per_page=1", headers=get_headers(self.settings.app.token))
+        if not all(releases):
+            return 
+        releases = releases[1]
+        latest_release = releases[0]
+        if latest_release["tag_name"] != self.version:
+            if messagebox.askyesno("Update Available", f"There is an update ({latest_release["tag_name"]}) available to download from the GitHub Repository. \nWould you like to download it now?"):
+                webbrowser.open("https://github.com/Viren070/Emulator-Manager/releases/latest")
+            
         
     def on_closing(self):
         if (self.dolphin_frame.dolphin.running or self.yuzu_frame.yuzu.running):
