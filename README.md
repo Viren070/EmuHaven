@@ -60,21 +60,6 @@ The GitHub login feature is optional and should only be used if you ran out of A
 
 The settings for dolphin and yuzu are used to change where yuzu/dolphin is installed and where your user data is stored (if you are using the portable version). You can only change the install location if you are not using the yuzu installer, otherwise it will always install in the default location. 
 
-### Images
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/b48d7b97-a4dd-45ae-b9a6-17cf8e65adfb)
-
-
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/a0637a78-7307-4476-aa11-d2dd83882e94)
-
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/ee2c7d8b-08b1-4407-96bf-cd8143f05d06)
-
-
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/2b86392c-7694-42f8-b6e7-4a9610f74256)
-
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/da785edf-9cb9-40c1-89f0-6af895f7ad53)
-
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/81e77b74-2032-4cea-9aaf-e8554456b671)
-
 ## Building yourself 
 
 ### Requirements:
@@ -90,16 +75,24 @@ The settings for dolphin and yuzu are used to change where yuzu/dolphin is insta
    ```
    pyinstaller --noconfirm --onefile --windowed --name "Emulator Manager" --clean --add-data "%localappdata%/Programs/Python/Python312/Lib/site-packages/customtkinter;customtkinter/" --add-data src/assets;assets/  src/main.py
    ```
+   - If you don't have pyinstaller, you can install it with `pip install pyinstaller`
    - You can replace `--onefile` with `--onedir`.
    - Replace the path to customtkinter as necessary
    
+### Images
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/b48d7b97-a4dd-45ae-b9a6-17cf8e65adfb)
 
 
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/a0637a78-7307-4476-aa11-d2dd83882e94)
+
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/ee2c7d8b-08b1-4407-96bf-cd8143f05d06)
+
+
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/2b86392c-7694-42f8-b6e7-4a9610f74256)
+
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/da785edf-9cb9-40c1-89f0-6af895f7ad53)
+
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/81e77b74-2032-4cea-9aaf-e8554456b671)
 
 
 ## [Early Access Source](https://github.com/pineappleEA/pineapple-src) | [Firmware](https://archive.org/download/nintendo-switch-global-firmwares) | [Keys](https://github.com/Viren070/SwitchFirmwareKeysInstaller/tree/main/Keys)  | [Dolphin](https://github.com/Viren070/dolphin-beta-downloads) | [Dolphin ROMs](https://myrient.erista.me/)
-
-
-
-
-
