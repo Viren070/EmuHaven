@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import shutil
 import subprocess
 from tkinter import messagebox
@@ -189,7 +190,10 @@ class Yuzu:
         self.running = False
         
     def verify_and_install_firmware_keys(self):
-        if self.metadata.get_installed_version("yuzu_firmware") != "" and self.metadata.get_installed_version("yuzu_keys") != "" and self.metadata.get_installed_version("yuzu_firmware") != self.metadata.get_installed_version("yuzu_keys"):
+        installed_firmware_version = re.compile(r'(\d+\.\d+\.\d+)').findall(self.metadata.get_installed_version("yuzu_firmware"))
+        if not installed_firmware_version:
+            installed_firmware_version = ""
+        if installed_firmware_version != "" and self.metadata.get_installed_version("yuzu_keys") != "" and installed_firmware_version != self.metadata.get_installed_version("yuzu_keys"):
             messagebox.showwarning("Version Mismatch", "It seems you have a different version for your keys and firmware. You need the same version of both keys and firmware to be able to decrypt and run games. Please install the same versions for both.")
         if not switch_emu.check_current_keys(os.path.join(self.settings.yuzu.user_directory, "keys", "prod.keys")):
             if messagebox.askyesno("Missing Keys", "It seems you are missing the switch decryption keys. These keys are required to emulate games. Would you like to install them right now?"):
