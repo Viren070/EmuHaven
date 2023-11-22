@@ -22,17 +22,17 @@ class EmulatorFrame(customtkinter.CTkFrame):
         self.navigation_frame.grid_rowconfigure(5, weight=1)
         # create yuzu menu buttons
         text_color = ThemeManager.theme["CTkLabel"]["text_color"]
-        self.start_button = customtkinter.CTkButton(self.navigation_frame, corner_radius=0, width=100, height=25, image=self.play_image, border_color=border_color, border_spacing=10, text="Play",
+        self.start_button = customtkinter.CTkButton(self.navigation_frame, corner_radius=0, width=100, height=25, image=self.play_image, border_spacing=10, text="Play",
                                                     fg_color="transparent", text_color=text_color,
                                                     anchor="w", command=self.start_button_event)
         self.start_button.grid(row=1, column=0, sticky="ew", padx=2, pady=(2, 0))
 
-        self.manage_data_button = customtkinter.CTkButton(self.navigation_frame, corner_radius=0, width=100, height=25, border_color=border_color, border_spacing=10, text="Manage Data",
+        self.manage_data_button = customtkinter.CTkButton(self.navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Manage Data",
                                                           fg_color="transparent", text_color=text_color,
                                                           anchor="w", command=self.manage_data_button_event)
         self.manage_data_button.grid(row=2, column=0, padx=2, sticky="ew")
 
-        self.manage_roms_button = customtkinter.CTkButton(self.navigation_frame, corner_radius=0, width=100, height=25, border_color=border_color, border_spacing=10, text="Manage ROMs",
+        self.manage_roms_button = customtkinter.CTkButton(self.navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Manage ROMs",
                                                           fg_color="transparent", text_color=text_color,
                                                           anchor="w", command=self.manage_roms_button_event)
         self.manage_roms_button.grid(row=3, column=0, padx=2, sticky="ew")
