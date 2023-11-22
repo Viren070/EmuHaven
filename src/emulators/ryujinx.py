@@ -158,18 +158,18 @@ class Ryujinx:
         else:
             installed_firmware_version = installed_firmware_version[0]
         if installed_firmware_version != "" and self.metadata.get_installed_version("ryujinx_keys") != "" and installed_firmware_version != self.metadata.get_installed_version("ryujinx_keys"):
-            messagebox.showwarning("Version Mismatch", "It seems you have a different version for your keys and firmware. You need the same version of both keys and firmware to be able to decrypt and run games. Please install the same versions for both.")
+            messagebox.showwarning("Version Mismatch", "It seems you have a different version for your keys and firmware. This may cause issues and it is recommended that you install the same versions.")
         if not switch_emu.check_current_keys(os.path.join(self.settings.ryujinx.user_directory, "system", "prod.keys")):
             if messagebox.askyesno("Missing Keys", "It seems you are missing the switch decryption keys. These keys are required to emulate games. Would you like to install them right now?"):
                 if self.gui.firmware_keys_frame.key_option_menu.cget("state") == "disabled":
-                    messagebox.showerror("Install Keys", "Unable to fetch latest prod.keys. Please try again later or restart the application")
+                    messagebox.showerror("Install Keys", "Unable to fetch latest prod.keys. Please try again later or restart the application.")
                 else:
                     latest_key_release = self.gui.firmware_keys_frame.firmware_key_version_dict["keys"][self.gui.firmware_keys_frame.key_option_menu.cget("values")[0]]
                     self.install_key_handler("release", latest_key_release)
         if self.settings.app.ask_firmware != "False" and not switch_emu.check_current_firmware(os.path.join(self.settings.ryujinx.user_directory, "bis", "system", "Contents", "registered")):
-            if messagebox.askyesno("Firmware Missing", "It seems you are missing the switch firmware files. Without these files, some games may not run. You can install the firmware using the buttons below. \n\nWould you like to install the firmware now? If you select no, you will not be asked again"):
+            if messagebox.askyesno("Firmware Missing", "It seems you are missing the switch firmware files. Without these files, some games may not run. \n\nWould you like to install the firmware now? If you select no, you will not be asked again."):
                 if self.gui.firmware_keys_frame.firmware_option_menu.cget("state") == "disabled":
-                    messagebox.showerror("Install Firmware", "Unable to fetch latest Firmware. Please try again later or restart the application")
+                    messagebox.showerror("Install Firmware", "Unable to fetch latest Firmware. Please try again later or restart the application.")
                 else:
                     latest_firmware_release = self.gui.firmware_keys_frame.firmware_key_version_dict["firmware"][self.gui.firmware_keys_frame.key_option_menu.cget("values")[0]]
                     self.install_firmware_handler("release", latest_firmware_release)
@@ -178,7 +178,7 @@ class Ryujinx:
                 self.settings.update_file()
 
     def install_firmware_handler(self, mode, path_or_release):
-        if switch_emu.check_current_firmware(os.path.join(self.settings.ryujinx.user_directory, "bis", "system", "Contents", "registered")) and not messagebox.askyesno("Firmware Exists", "You already seem to have firmware installed, install anyways?"):
+        if switch_emu.check_current_firmware(os.path.join(self.settings.ryujinx.user_directory, "bis", "system", "Contents", "registered")) and not messagebox.askyesno("Firmware Exists", "It seems that you already have firmware installed. Would you like to continue?"):
             return
         if mode == "release":
             release = path_or_release
@@ -235,7 +235,7 @@ class Ryujinx:
         return download_result
 
     def install_key_handler(self, mode, path_or_release):
-        if switch_emu.check_current_keys(os.path.join(self.settings.ryujinx.user_directory, "system", "prod.keys")) and not messagebox.askyesno("Keys Exist", "You already seem to have the decryption keys, install anyways?"):
+        if switch_emu.check_current_keys(os.path.join(self.settings.ryujinx.user_directory, "system", "prod.keys")) and not messagebox.askyesno("Keys Exist", "It seems that you already have the decryption keys installed. Would you like to continue?"):
             return
         if mode == "release":
             release = path_or_release
