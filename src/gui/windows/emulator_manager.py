@@ -2,12 +2,11 @@ import os
 import shutil
 from sys import exit as sysexit
 from tkinter import messagebox
-from threading import Thread 
 
 import customtkinter
 from PIL import Image
+from threading import Thread 
 
-from gui.CTkScrollableDropdown import CTkScrollableDropdown
 from gui.frames.dolphin.dolphin_frame import DolphinFrame
 from gui.frames.ryujinx.ryujinx_frame import RyujinxFrame
 from gui.frames.settings.settings_frame import SettingsFrame
@@ -16,6 +15,7 @@ from settings.app_settings import load_customtkinter_themes
 from settings.settings import Settings
 from settings.metadata import Metadata
 from utils.auth_token_manager import delete_token_file
+from utils.requests_utils import get_headers, fetch_firmware_keys_dict
 
 
 class EmulatorManager(customtkinter.CTk):
@@ -27,7 +27,7 @@ class EmulatorManager(customtkinter.CTk):
         self.version = "v0.12.5"
         self.root_dir = root_dir
         if pos is None:
-            pos = ["",""]
+            pos = ["", ""]
         self.x = pos[0]
         self.y = pos[1]
         try:
@@ -45,8 +45,28 @@ class EmulatorManager(customtkinter.CTk):
         self.yuzu_frame.fetch_versions()
         self.ryujinx_frame.fetch_versions()
         self.dolphin_frame.fetch_versions()
+        Thread(target=self.fetch_firmware_and_keys).start()
         self.mainloop()  
 
+    def fetch_firmware_and_keys(self):
+        yuzu_frame = self.yuzu_frame.firmware_keys_frame
+        ryujinx_frame = self.ryujinx_frame.firmware_keys_frame
+        frames = [self.yuzu_frame.firmware_keys_frame, self.ryujinx_frame.firmware_keys_frame]
+        for frame in frames:
+            frame.fetching_versions = True 
+        variables = [yuzu_frame.firmware_option_menu, yuzu_frame.key_option_menu_variable, ryujinx_frame.firmware_option_menu_variable, ryujinx_frame.key_option_menu_variable]
+        [variable.set("Fetching...") for variable in variables]
+        firmware_key_dict_result = fetch_firmware_keys_dict(headers=get_headers(self.settings.app.token))
+        if not all(firmware_key_dict_result):
+            [variable.set("Click to fetch versions") for variable in variables]
+            for frame in frames:
+                frame.fetching_versions = False
+            return 
+        firmware_key_dict = firmware_key_dict_result[1]
+        for frame in frames:
+            frame.create_scrollable_dropdown_with_dict(firmware_key_dict)
+            frame.fetching_versions = False
+        
     def define_images(self):
         self.dolphin_logo = customtkinter.CTkImage(Image.open(self.settings.get_image_path("dolphin_logo")), size=(26, 26))
         self.dolphin_banner =  customtkinter.CTkImage(light_image=Image.open(self.settings.get_image_path("dolphin_banner_light")),

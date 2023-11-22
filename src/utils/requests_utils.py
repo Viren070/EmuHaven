@@ -116,3 +116,46 @@ def get_file_links_from_page(url, file_ext, headers=None):
                     continue
             files.append(File(file_url, filename))
     return (True, files)
+
+def fetch_firmware_keys_dict(headers=None):
+    firmware_keys_dict = {
+            "firmware": {},
+            "keys": {}
+        }
+    releases = get_all_releases("https://api.github.com/repos/Viren070/Emulator-Manager-Resources/releases?per_page=100", headers=headers)
+    if not all(releases):
+        return releases
+       
+    releases = releases[1]
+    for release in releases:
+        if "-ns" not in release["tag_name"]:
+            continue 
+        if not release["assets"]:
+            continue 
+        version = release["name"]
+        assets = release["assets"]
+        
+        
+        key_release = None
+        firmware_release = None
+        
+        for asset in assets:
+            if "Alpha" in asset["name"]:
+                firmware_release = Release()
+                firmware_release.name = asset["name"].replace("Alpha","Firmware")
+                firmware_release.download_url = asset["browser_download_url"]
+                firmware_release.size = asset["size"]
+                firmware_release.version = version 
+            elif "Rebootless" not in version and "Beta" in asset["name"]:
+                key_release = Release()
+                key_release.name = asset["name"].replace("Beta", "Keys")
+                key_release.download_url = asset["browser_download_url"]
+                key_release.size = asset["size"]
+                key_release.version = version
+        
+        if firmware_release is not None:
+            firmware_keys_dict["firmware"][version] = firmware_release
+        if key_release is not None and "Rebootless" not in version:
+            firmware_keys_dict["keys"][version] = key_release
+    
+    return (True, firmware_keys_dict)
