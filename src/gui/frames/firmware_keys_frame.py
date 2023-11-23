@@ -12,6 +12,10 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
         super().__init__(master)
         self.gui = gui
         self.fetching_versions = False
+        self.firmware_key_version_dict = {
+            "firmware": {},
+            "keys": {}
+        }
         self.build_frame()
 
     def build_frame(self):
@@ -101,4 +105,4 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
         # Extract firmware versions from the self.firmware_key_version_dict
         self.create_scrollable_dropdown_with_dict(firmware_key_version_dict)
         self.fetching_versions = False
-        return firmware_key_version_dict
+        self.firmware_key_version_dict = firmware_key_version_dict
