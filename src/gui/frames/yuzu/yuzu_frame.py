@@ -256,7 +256,7 @@ class YuzuFrame(EmulatorFrame):
         if not os.path.exists(os.path.join(self.settings.yuzu.install_directory, "yuzu-windows-msvc-early-access")):
             messagebox.showinfo("Delete Yuzu EA", f"Could not find a yuzu EA installation at {os.path.join(self.settings.yuzu.install_directory, 'yuzu-windows-msvc-early-access')} ")
             return
-        if not messagebox.askyesno("Delete Yuzu EA", "Are you sure you want to delete yuzu EA?"):
+        if not messagebox.askyesno("Delete Yuzu EA", f"Are you sure you want to delete yuzu early access and its contents from {os.path.join(self.settings.yuzu.install_directory, "yuzu-windows-msvc-early-access")}?"):
             return
 
         self.configure_early_access_buttons("disabled")
@@ -268,7 +268,7 @@ class YuzuFrame(EmulatorFrame):
         if not os.path.exists(os.path.join(self.settings.yuzu.install_directory, "yuzu-windows-msvc")):
             messagebox.showinfo("Delete Yuzu", f"Could not find a yuzu installation at {os.path.join(self.settings.yuzu.install_directory, 'yuzu-windows-msvc')} ")
             return
-        if not messagebox.askyesno("Delete Yuzu", "Are you sure you want to delete yuzu?"):
+        if not messagebox.askyesno("Delete Yuzu", f"Are you sure you want to delete yuzu and its contents from '{os.path.join(self.settings.yuzu.install_directory, "yuzu-windows-mscv")}'?"):
             return
         self.configure_mainline_buttons("disabled")
         thread = Thread(target=self.yuzu.delete_mainline)

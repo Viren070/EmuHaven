@@ -141,7 +141,7 @@ class DolphinFrame(EmulatorFrame):
     def install_dolphin_button_event(self, event=None):
         if event is None or self.install_dolphin_button.cget("state") == "disabled":
             return
-        if os.path.exists(os.path.join(self.settings.dolphin.install_directory, "Dolphin.exe")) and not messagebox.askyesno("Confirmation", "Dolphin seems to already be installed, install anyways?"):
+        if os.path.exists(self.settings.dolphin.install_directory) and not messagebox.askyesno("Directory Exists", "The directory already exists. Are you sure you want to overwrite the contents inside?"):
             return
 
         if event.state & 1:
@@ -161,8 +161,8 @@ class DolphinFrame(EmulatorFrame):
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["main"], )).start()
 
     def delete_dolphin_button_event(self):
-        if not os.path.exists(os.path.join(self.settings.dolphin.install_directory, "Dolphin.exe")):
-            messagebox.showinfo("Delete Dolphin", f"Dolphin installation not found at {os.path.join(self.settings.dolphin.install_directory, 'Dolphin.exe')}")
+        if not os.path.exists(self.settings.dolphin.install_directory):
+            messagebox.showinfo("Delete Dolphin", f"The dolphin installation directory does not exist:\n {self.settings.dolphin.install_directory}")
             return
         self.configure_buttons("disabled")
         thread = Thread(target=self.dolphin.delete_dolphin)

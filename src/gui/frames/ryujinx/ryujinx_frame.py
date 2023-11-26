@@ -146,7 +146,7 @@ class RyujinxFrame(EmulatorFrame):
     def install_button_event(self, event=None):
         if event is None or self.install_button.cget("state") == "disabled":
             return
-        if os.path.exists(os.path.join(self.settings.ryujinx.install_directory, "publish")) and not messagebox.askyesno("Ryujinx Exists", "There is already an installation of Ryujinx at the specified install directory, overwrite this installation?"):
+        if os.path.exists(os.path.join(self.settings.ryujinx.install_directory, "publish")) and not messagebox.askyesno("Directory Exists", "The directory already exists. Are you sure you want to overwrite the contents inside?"):
             return
         path_to_archive = None
         if event.state & 1:
@@ -219,7 +219,7 @@ class RyujinxFrame(EmulatorFrame):
         if not os.path.exists(os.path.join(self.settings.ryujinx.install_directory, "publish")):
             messagebox.showinfo("Delete Ryujinx", f"Could not find a Ryujinx installation at {os.path.join(self.settings.ryujinx.install_directory, 'publish')} ")
             return
-        if not messagebox.askyesno("Delete Ryujinx", "Are you sure you want to delete Ryujinx?"):
+        if not messagebox.askyesno("Confirmation", f"Are you sure you want to delete the contents of '{self.settings.ryujinx.install_directory}'?"):
             return
         self.configure_action_buttons("disabled")
         thread = Thread(target=self.ryujinx.delete_ryujinx)

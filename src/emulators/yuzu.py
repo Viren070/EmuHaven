@@ -171,7 +171,7 @@ class Yuzu:
         use_installer = self.settings.yuzu.use_yuzu_installer == "True"
 
         if use_installer and not skip_update and not os.path.exists(maintenance_tool):
-            messagebox.showerror("Error", "The update tool 'maintenancetool.exe' was not found, and it's required to update yuzu due to your use of the yuzu installer option. Please install yuzu first before launching it.")
+            messagebox.showerror("Error", "The update tool 'maintenancetool.exe' was not found, and it's required to update yuzu as the yuzu installer option is enabled. Please install yuzu first through the installer before launching it.")
             args = [yuzu_exe]
         else:
             args = [maintenance_tool, "--launcher", yuzu_exe] if use_installer and not skip_update else [yuzu_exe]
