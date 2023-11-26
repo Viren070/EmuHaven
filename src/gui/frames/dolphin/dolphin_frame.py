@@ -164,6 +164,8 @@ class DolphinFrame(EmulatorFrame):
         if not os.path.exists(self.settings.dolphin.install_directory):
             messagebox.showinfo("Delete Dolphin", f"The dolphin installation directory does not exist:\n {self.settings.dolphin.install_directory}")
             return
+        if not messagebox.askyesno("Confirmation", f"Are you sure you want to delete the contents of `{self.settings.dolphin.install_directory}`"):
+            return
         self.configure_buttons("disabled")
         thread = Thread(target=self.dolphin.delete_dolphin)
         thread.start()
