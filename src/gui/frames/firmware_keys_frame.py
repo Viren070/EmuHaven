@@ -34,8 +34,9 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
 
         self.firmware_option_menu = customtkinter.CTkOptionMenu(self, state="disabled", variable=self.firmware_option_menu_variable, dynamic_resizing=False, width=200)
         self.firmware_option_menu.grid(row=0, column=2, padx=10, pady=5, sticky="w")
+        self.scrollable_firmware_option_menu = CTkScrollableDropdown(self.firmware_option_menu, width=300, height=200, resize=False, button_height=30)
         self.firmware_option_menu.bind("<Button-1>", command=self.attempt_fetch)
-
+        
         self.install_firmware_button = customtkinter.CTkButton(self, text="Install", width=100, command=self.gui.install_firmware_button_event)
         self.install_firmware_button.bind("<Button-1>", command=self.gui.install_firmware_button_event)
         self.install_firmware_button.grid(row=0, column=3, padx=10, pady=5, sticky="w")
@@ -48,6 +49,7 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
 
         self.key_option_menu = customtkinter.CTkOptionMenu(self, width=200, state="disabled", dynamic_resizing=False, variable=self.key_option_menu_variable)
         self.key_option_menu.grid(row=1, column=2, padx=10, pady=5, sticky="w")
+        self.scrollable_key_option_menu = CTkScrollableDropdown(self.key_option_menu, width=300, height=200, resize=False, button_height=30)
         self.key_option_menu.bind("<Button-1>", command=self.attempt_fetch)
 
         self.install_keys_button = customtkinter.CTkButton(self, text="Install", width=100, command=self.gui.install_keys_button_event)
@@ -74,13 +76,15 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
         # Extract key versions from the self.firmware_key_version_dict
         key_versions = [release.version for release in version_dict.get("keys", {}).values()]
         if not len(key_versions) == 0:
-            CTkScrollableDropdown(self.key_option_menu, width=300, height=200, values=key_versions, resize=False, button_height=30)
+            self.scrollable_firmware_option_menu.configure(values=key_versions)
+            # CTkScrollableDropdown(self.key_option_menu, width=300, height=200, values=key_versions, resize=False, button_height=30)
             self.key_option_menu_variable.set(key_versions[0])
             self.key_option_menu.configure(state="normal")
         else:
             self.key_option_menu_variable.set("None Found")
         if not len(firmware_versions) == 0:
-            CTkScrollableDropdown(self.firmware_option_menu, width=300, height=200, values=firmware_versions, resize=False, button_height=30)
+            self.scrollable_key_option_menu.configure(values=firmware_versions)
+            # CTkScrollableDropdown(self.firmware_option_menu, width=300, height=200, values=firmware_versions, resize=False, button_height=30)
             self.firmware_option_menu_variable.set(firmware_versions[0])
             self.firmware_option_menu.configure(state="normal")
         else:
