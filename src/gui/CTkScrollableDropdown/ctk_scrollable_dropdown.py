@@ -6,6 +6,7 @@ Author: Akash Bora
 import customtkinter
 import sys
 import time
+import difflib
 
 class CTkScrollableDropdown(customtkinter.CTkToplevel):
     
@@ -46,9 +47,8 @@ class CTkScrollableDropdown(customtkinter.CTkToplevel):
         self.hide = True
         self.attach.bind('<Configure>', lambda e: self._withdraw() if not self.disable else None, add="+")
         self.attach.winfo_toplevel().bind('<Configure>', lambda e: self._withdraw() if not self.disable else None, add="+")
-        self.attach.winfo_toplevel().bind("<Triple-Button-1>", lambda e: self._withdraw() if not self.disable else None, add="+")        
-        self.attach.winfo_toplevel().bind("<Button-3>", lambda e: self._withdraw() if not self.disable else None, add="+")
-        self.attach.winfo_toplevel().bind("<Button-2>", lambda e: self._withdraw() if not self.disable else None, add="+")
+        self.attach.winfo_toplevel().bind("<ButtonPress>", lambda e: self._withdraw() if not self.disable else None, add="+")        
+   
         
         self.attributes('-alpha', 0)
         self.disable = False
@@ -116,7 +116,7 @@ class CTkScrollableDropdown(customtkinter.CTkToplevel):
             if self.command is None:
                 self.command = self.attach.set
                 
-        self.attach.bind("<Destroy>", lambda _: self.destroy(), add="+")
+        self.attach.bind("<Destroy>", lambda _: self._destroy(), add="+")
         
         self.update_idletasks()
         self.x = x
@@ -129,10 +129,15 @@ class CTkScrollableDropdown(customtkinter.CTkToplevel):
         self.withdraw()
         
         self.attributes("-alpha", self.alpha)
+
+    def _destroy(self):
+        self.after(500, self.destroy_popup)
         
     def _withdraw(self):
+        if self.winfo_viewable() and self.hide:
+            self.withdraw()
+        
         self.event_generate("<<Closed>>")
-        if self.hide is False: self.withdraw()
         self.hide = True
 
     def _update(self, a, b, c):
@@ -172,7 +177,7 @@ class CTkScrollableDropdown(customtkinter.CTkToplevel):
     def _init_buttons(self, **button_kwargs):
         self.i = 0
         self.widgets = {}
-        for row in self.values:                                
+        for row in self.values:
             self.widgets[self.i] = customtkinter.CTkButton(self.frame,
                                                           text=row,
                                                           height=self.button_height,
@@ -183,7 +188,7 @@ class CTkScrollableDropdown(customtkinter.CTkToplevel):
                                                           command=lambda k=row: self._attach_key_press(k), **button_kwargs)
             self.widgets[self.i].pack(fill="x", pady=2, padx=(self.padding, 0))
             self.i+=1
-             
+ 
         self.hide = False
             
     def destroy_popup(self):
@@ -196,8 +201,8 @@ class CTkScrollableDropdown(customtkinter.CTkToplevel):
         self.width_new = self.attach.winfo_width() if self.width is None else self.width
         
         if self.resize:
-            if self.button_num==1:      
-                self.height_new = self.button_height * self.button_num + 45
+            if self.button_num<=5:      
+                self.height_new = self.button_height * self.button_num + 55
             else:
                 self.height_new = self.button_height * self.button_num + 35
             if self.height_new>self.height:
@@ -240,11 +245,14 @@ class CTkScrollableDropdown(customtkinter.CTkToplevel):
         if self.disable: return
         if self.fade: return
         if string:
+            string = string.lower()
             self._deiconify()
             i=1
             for key in self.widgets.keys():
-                s = self.widgets[key].cget("text")
-                if not s.startswith(string):
+                s = self.widgets[key].cget("text").lower()
+                text_similarity = difflib.SequenceMatcher(None, s[0:len(string)], string).ratio()
+                similar = s.startswith(string) or text_similarity > 0.75
+                if not similar:
                     self.widgets[key].pack_forget()
                 else:
                     self.widgets[key].pack(fill="x", pady=2, padx=(self.padding, 0))
@@ -307,10 +315,11 @@ class CTkScrollableDropdown(customtkinter.CTkToplevel):
         if "values" in kwargs:
             self.values = kwargs.pop("values")
             self.image_values = None
+            self.button_num = len(self.values)
             for key in self.widgets.keys():
                 self.widgets[key].destroy()
             self._init_buttons()
-            
+ 
         if "image_values" in kwargs:
             self.image_values = kwargs.pop("image_values")
             self.image_values = None if len(self.image_values)!=len(self.values) else self.image_values
