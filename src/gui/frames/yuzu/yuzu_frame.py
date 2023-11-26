@@ -196,7 +196,7 @@ class YuzuFrame(EmulatorFrame):
     def install_mainline_button_event(self, event=None):
         if event is None or self.install_mainline_button.cget("state") == "disabled":
             return
-        if os.path.exists(os.path.join(self.settings.yuzu.install_directory, "yuzu-windows-msvc")) and not messagebox.askyesno("Yuzu Exists", "There is already an installation of yuzu at the specified install directory, overwrite this installation?"):
+        if self.settings.yuzu.use_yuzu_installer == "False" and os.path.exists(os.path.join(self.settings.yuzu.install_directory, "yuzu-windows-msvc")) and not messagebox.askyesno("Directory Exists", "The directory already exists. Are you sure you want to overwrite the contents inside?"):
             return
         path_to_archive = None
         if event.state & 1:
@@ -233,7 +233,7 @@ class YuzuFrame(EmulatorFrame):
     def install_early_access_button_event(self, event=None):
         if event is None or self.install_early_access_button.cget("state") == "disabled":
             return
-        if os.path.exists(os.path.join(self.settings.yuzu.install_directory, "yuzu-windows-msvc-early-access")) and not messagebox.askyesno("Yuzu Exists", "There is already an installation of yuzu at the specified install directory, overwrite this installation?"):
+        if self.settings.yuzu.use_yuzu_installer == "False" and os.path.exists(os.path.join(self.settings.yuzu.install_directory, "yuzu-windows-msvc-early-access")) and not messagebox.askyesno("Directory Exists", "The directory already exists, are you sure you want to overwrite the contents inside?"):
             return
         path_to_archive = None
         if event.state & 1:
