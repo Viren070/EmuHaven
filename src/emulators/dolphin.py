@@ -50,11 +50,8 @@ class Dolphin:
                 messagebox.showerror("Install Dolphin", f"There was an error while attempting to fetch the latest {release_channel} release of Dolphin:\n\n{release_result[1]}")
                 return
             release = release_result[1]
-            if release.version == self.metadata.get_installed_version("dolphin"):
-                if updating:
-                    return
-                if not messagebox.askyesno("Dolphin", "You already have the latest version of Dolphin installed, install anyways?"):
-                    return
+            if updating and release.version == self.metadata.get_installed_version("dolphin"):
+                return
             download_result = self.download_release(release)
             if not all(download_result):
                 if download_result[1] != "Cancelled":

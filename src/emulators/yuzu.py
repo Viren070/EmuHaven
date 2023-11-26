@@ -105,11 +105,8 @@ class Yuzu:
                 messagebox.showerror("Install Yuzu", f"There was an error while attempting to fetch the latest release of Yuzu:\n\n{release_result[1]}")
                 return
             release = release_result[1]
-            if release.version == self.metadata.get_installed_version(release_type):
-                if updating:
-                    return
-                if not messagebox.askyesno("Yuzu", f"You already have the latest version of yuzu {release_type.replace('_', ' ').title()} installed, download anyways?"):
-                    return
+            if updating and release.version == self.metadata.get_installed_version(release_type):
+                return
             download_result = self.download_release(release, release_type)
             if not all(download_result):
                 if download_result[1] != "Cancelled":

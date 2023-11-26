@@ -95,11 +95,8 @@ class Ryujinx:
                 messagebox.showerror("Install Ryujinx", f"There was an error while attempting to fetch the latest release of Ryujinx:\n\n{release_result[1]}")
                 return
             release = release_result[1]
-            if release.version == self.metadata.get_installed_version("ryujinx"):
-                if updating:
-                    return
-                if not messagebox.askyesno("Ryujinx", "You already have the latest version of Ryujinx  installed, download anyways?"):
-                    return
+            if updating and release.version == self.metadata.get_installed_version("ryujinx"):
+                return
             download_result = self.download_release(release)
             if not all(download_result):
                 if download_result[1] != "Cancelled":
