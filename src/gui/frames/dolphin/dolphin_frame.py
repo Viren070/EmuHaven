@@ -56,7 +56,7 @@ class DolphinFrame(EmulatorFrame):
         self.dolphin_actions_frame.grid_columnconfigure(1, weight=1)  # Stretch horizontally
         self.dolphin_actions_frame.grid_columnconfigure(2, weight=1)  # Stretch horizontally
 
-        self.launch_dolphin_button = customtkinter.CTkButton(self.dolphin_actions_frame, height=40, width=180, text="Launch Dolphin  ", image=self.play_image, font=customtkinter.CTkFont(size=15, weight="bold"), command=self.launch_dolphin_button_event)
+        self.launch_dolphin_button = customtkinter.CTkButton(self.dolphin_actions_frame, width=250, height=40, text="Launch Dolphin  ", image=self.play_image, font=customtkinter.CTkFont(size=15, weight="bold"), command=self.launch_dolphin_button_event)
         self.launch_dolphin_button.grid(row=0, column=1, padx=30, pady=15, sticky="nsew")
         self.launch_dolphin_button.bind("<Button-1>", command=self.launch_dolphin_button_event)
         CTkToolTip(self.launch_dolphin_button, message="Click me to launch Dolphin.\nShift-Click me to launch Dolphin without checking for updates.")
@@ -211,7 +211,7 @@ class DolphinFrame(EmulatorFrame):
         thread.join()
         for button in buttons:
             if button == "main":
-                self.configure_buttons("normal", text="Launch Dolphin  ", width=170)
+                self.configure_buttons("normal", text="Launch Dolphin  ", width=230)
             elif button == "data":
                 self.configure_data_buttons(state="normal")
         self.fetch_versions()

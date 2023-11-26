@@ -202,10 +202,10 @@ class Dolphin:
     def launch_dolphin_handler(self, release_channel, skip_update=False):
         if not skip_update:
 
-            self.gui.configure_buttons("disabled", text="Fetching Updates...  ")
+            self.gui.configure_buttons("disabled", text="Fetching Updates...  ", width=170)
             self.install_dolphin_handler(release_channel, None, True)
 
-        self.gui.configure_buttons("disabled", text="Launched!  ")
+        self.gui.configure_buttons("disabled", text="Launched!  ", width=170)
         dolphin_exe = os.path.join(self.settings.dolphin.install_directory, "Dolphin.exe")
         args = [dolphin_exe]
         self.running = True
