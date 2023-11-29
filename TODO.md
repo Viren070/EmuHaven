@@ -39,6 +39,7 @@
       - Add shortcut setting to each emulator. User provides path. If left empty or changed to empty, disable and/or remove shortcut.
       - Add new updater window and logic to handle launching this window and updating emulator through arguments 
 
+- [ ] Add custom option for import/exports. remove 'exclude nand and keys'
 
 ## other 
 
