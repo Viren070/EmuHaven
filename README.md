@@ -80,19 +80,29 @@ The settings for dolphin and yuzu are used to change where yuzu/dolphin is insta
    - Replace the path to customtkinter as necessary
    
 ### Images
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/b48d7b97-a4dd-45ae-b9a6-17cf8e65adfb)
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/0ea2e7d0-43f5-4ad0-a523-5959ca8a841a)
+
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/1a86bc03-555e-414e-a063-f3ec9e02af14)
+
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/f31767b9-689d-4de6-a468-266525b6eb5a)
+
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/8e098494-a1a1-481c-a73c-46d2b5a1f040)
+
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/1ed421bd-cd16-4820-90e1-9fdefbb2847e)
+
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/01491588-c2ab-41d7-b9e7-d7b2ffd983d4)
+
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/b9626aaa-e959-41d5-a203-7eee1d1c02eb)
+
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/dc8cbc5b-2cab-434e-bf05-5ab131b11d7f)
+
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/a57140aa-9262-489e-9fde-e2c363a1521e)
+
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/771e601e-a0f7-4828-95cd-ad5fb3d0b85a)
 
 
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/a0637a78-7307-4476-aa11-d2dd83882e94)
-
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/ee2c7d8b-08b1-4407-96bf-cd8143f05d06)
 
 
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/2b86392c-7694-42f8-b6e7-4a9610f74256)
-
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/da785edf-9cb9-40c1-89f0-6af895f7ad53)
-
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/81e77b74-2032-4cea-9aaf-e8554456b671)
 
 
 ## [Early Access Source](https://github.com/pineappleEA/pineapple-src) | [Firmware](https://archive.org/download/nintendo-switch-global-firmwares) | [Keys](https://github.com/Viren070/SwitchFirmwareKeysInstaller/tree/main/Keys)  | [Dolphin](https://github.com/Viren070/dolphin-beta-downloads) | [Dolphin ROMs](https://myrient.erista.me/)
