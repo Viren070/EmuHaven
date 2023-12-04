@@ -34,12 +34,15 @@
     - use https://github.com/arch-box/titledb for covers
     - https://new.mirror.lewd.wtf/archive/nintendo/switch/savegames/ for saves
     - maybe mods as well
+
      
 - [ ] Add shortcuts for emulators which will show window with progress bar for updating.
-      - Add shortcut setting to each emulator. User provides path. If left empty or changed to empty, disable and/or remove shortcut.
-      - Add new updater window and logic to handle launching this window and updating emulator through arguments 
+    - basically just add CLI support
+    - Add shortcut setting to each emulator. User provides path. If left empty or changed to empty, disable and/or remove shortcut.
+    - Add new updater window and logic to handle launching this window and updating emulator through arguments 
 
 - [ ] Add custom option for import/exports. remove 'exclude nand and keys'
+- [ ] add option `check for update at start-up` that will control whether or not the app will check for an update at start-up
 
 ## other 
 
