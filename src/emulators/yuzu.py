@@ -152,7 +152,7 @@ class Yuzu:
         except Exception as error:
             messagebox.showerror("Delete Error", f"An error occured while trying to delete the installation of yuzu:\n\n{error}")
 
-    def launch_yuzu_handler(self, release_type, skip_update=False):
+    def launch_yuzu_handler(self, release_type, skip_update=False, capture_output=True):
         if not skip_update and self.settings.yuzu.use_yuzu_installer != "True":
             func = self.gui.configure_mainline_buttons if release_type == "mainline" else self.gui.configure_early_access_buttons
             func("disabled", text="Fetching Updates...  ")
@@ -177,7 +177,7 @@ class Yuzu:
             args = [maintenance_tool, "--launcher", yuzu_exe] if use_installer and not skip_update else [yuzu_exe]
 
         self.running = True
-        subprocess.run(args, capture_output=True, check=False)
+        subprocess.run(args, capture_output=capture_output, check=False)
         self.running = False
 
     def verify_and_install_firmware_keys(self):

@@ -136,7 +136,7 @@ class Ryujinx:
         except Exception as error:
             messagebox.showerror("Delete Error", f"An error occured while trying to delete the installation of Ryujinx:\n\n{error}")
 
-    def launch_ryujinx_handler(self, skip_update=False):
+    def launch_ryujinx_handler(self, skip_update=False, capture_output=True):
         if not skip_update:
             self.gui.configure_action_buttons("disabled", text="Fetching Updates...")
             self.install_release_handler(True)
@@ -145,7 +145,7 @@ class Ryujinx:
         ryujinx_exe = os.path.join(self.settings.ryujinx.install_directory, "publish", "Ryujinx.exe")
         args = [ryujinx_exe]
         self.running = True
-        subprocess.run(args, capture_output=True, check=False)
+        subprocess.run(args, capture_output=capture_output, check=False)
         self.running = False
 
     def verify_and_install_firmware_keys(self):

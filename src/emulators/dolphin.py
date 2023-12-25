@@ -199,7 +199,7 @@ class Dolphin:
             messagebox.showerror("Error", f"There was an error while attempting to delete Dolphin: \n\\n{e}")
             return
 
-    def launch_dolphin_handler(self, release_channel, skip_update=False):
+    def launch_dolphin_handler(self, release_channel, skip_update=False, capture_output=True):
         if not skip_update:
 
             self.gui.configure_buttons("disabled", text="Fetching Updates...  ", width=170)
@@ -209,7 +209,7 @@ class Dolphin:
         dolphin_exe = os.path.join(self.settings.dolphin.install_directory, "Dolphin.exe")
         args = [dolphin_exe]
         self.running = True
-        subprocess.run(args, capture_output=True, check=False)
+        subprocess.run(args, capture_output=capture_output, check=False)
         self.running = False
 
     def export_dolphin_data(self, mode, directory_to_export_to):
