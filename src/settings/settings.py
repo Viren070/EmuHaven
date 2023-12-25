@@ -68,6 +68,7 @@ class Settings:
                 "appearance_mode": "",
                 "colour_theme": "",
                 "delete_files": "",
+                "check_for_updates": "",
                 "ask_firmware": ""
             }
         }
@@ -167,6 +168,7 @@ class Settings:
                 "appearance_mode": self.app.appearance_mode,
                 "colour_theme": self.app.colour_theme,
                 "delete_files": self.app.delete_files,
+                "check_for_updates": self.app.check_for_updates,
                 "ask_firmware": self.app.ask_firmware
             }
         }

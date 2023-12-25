@@ -16,6 +16,7 @@ class AppSettings:
             'colour_theme': "dark-blue",
             'appearance_mode': "dark",
             'delete_files': 'True',
+            'check_for_updates': 'True',
             'ask_firmware': 'True',
             'token': ''
         }
@@ -42,6 +43,8 @@ class AppSettings:
                                lambda self, value: self._set_property('appearance_mode', value))
     delete_files = property(lambda self: self._get_property('delete_files'),
                             lambda self, value: self._set_property('delete_files', value))
+    check_for_updates = property(lambda self: self._get_property('check_for_updates'),
+                                 lambda self, value: self._set_property('check_for_updates', value))
     ask_firmware = property(lambda self: self._get_property('ask_firmware'),
                             lambda self, value: self._set_property('ask_firmware', value))
     token = property(lambda self: self._get_property('token'),

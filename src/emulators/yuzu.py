@@ -39,6 +39,7 @@ class Yuzu:
             shutil.rmtree(os.path.join(self.settings.yuzu.install_directory, "yuzu-windows-msvc-early-access"))
             if not skip_prompt:
                 messagebox.showinfo("Success", "The installation of yuzu EA was successfully deleted!")
+            return (True, "Success")
         except Exception as error_msg:
             messagebox.showerror("Delete Error", f"Failed to delete yuzu-ea: \n\n{error_msg}")
             return (False, error_msg)
@@ -152,6 +153,7 @@ class Yuzu:
             shutil.rmtree(os.path.join(self.settings.yuzu.install_directory, "yuzu-windows-msvc"))
             if not skip_prompt:
                 messagebox.showinfo("Delete Yuzu", "Installation of yuzu successfully deleted")
+            return (True, "Success")
         except Exception as error:
             messagebox.showerror("Delete Error", f"An error occured while trying to delete the installation of yuzu:\n\n{error}")
             return (False, error)
