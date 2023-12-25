@@ -20,22 +20,31 @@ def handle_launch(arguments):
         from emulators.yuzu import Yuzu
         progress_window.yuzu = Yuzu(progress_window, progress_window.settings, progress_window.metadata)
         progress_window.yuzu.main_progress_frame = progress_window.progress_frame
-        progress_window.yuzu.launch_yuzu_handler(progress_window.settings.yuzu.current_yuzu_channel.lower().replace(" ", "_"), skip_update, wait_for_exit==False)
-        exit(0)
+        def launch():
+            progress_window.yuzu.launch_yuzu_handler(progress_window.settings.yuzu.current_yuzu_channel.lower().replace(" ", "_"), skip_update, wait_for_exit=False)
+            progress_window.after(1000, progress_window.destroy)
+            sys.exit(0)
+        threading.Thread(target=launch).start()
 
     def launch_ryujinx():
         from emulators.ryujinx import Ryujinx
         progress_window.ryujinx = Ryujinx(progress_window, progress_window.settings, progress_window.metadata)
         progress_window.ryujinx.main_progress_frame = progress_window.progress_frame
-        progress_window.ryujinx.launch_ryujinx_handler(skip_update, wait_for_exit==False)
-        exit(0)
+        def launch():
+            progress_window.ryujinx.launch_ryujinx_handler(skip_update, wait_for_exit=False)
+            progress_window.after(1000, progress_window.destroy)
+            sys.exit(0)
+        threading.Thread(target=launch).start()
 
     def launch_dolphin():
         from emulators.dolphin import Dolphin   
         progress_window.dolphin = Dolphin(progress_window, progress_window.settings, progress_window.metadata)
         progress_window.dolphin.main_progress_frame = progress_window.progress_frame
-        progress_window.dolphin.launch_dolphin_handler(progress_window.settings.dolphin.current_channel, skip_update, wait_for_exit=False)
-        exit(0)
+        def launch():
+            progress_window.dolphin.launch_dolphin_handler(progress_window.settings.dolphin.current_channel, skip_update, wait_for_exit=False)
+            progress_window.after(1000, progress_window.destroy)
+            sys.exit(0)
+        threading.Thread(target=launch).start()
         
     from settings.settings import Settings
     from settings.metadata import Metadata
@@ -49,16 +58,16 @@ def handle_launch(arguments):
             skip_update = False
         match arguments[0]:
             case "yuzu":
-                threading.Thread(target=launch_yuzu).start()
+                progress_window.after(1000, launch_yuzu)
             case "ryujinx":
-                threading.Thread(target=launch_ryujinx).start()
+                progress_window.after(1000, launch_ryujinx)
             case "dolphin":
-                threading.Thread(target=launch_dolphin).start()
+                progress_window.after(1000, launch_dolphin)
             case _:
                 print(f"Unknown emulator: {arguments[0]}")
                 display_help()
-        if not skip_update:
-            progress_window.mainloop()
+   
+        progress_window.mainloop()
     else:
         print("No emulator name passed")
         display_help()
