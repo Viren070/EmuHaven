@@ -26,8 +26,11 @@ class Metadata:
                 "installed_key_version": ""
             }
         }
-        self.metadata_file = os.path.join(
-            os.getenv("APPDATA"), "Emulator Manager", "metadata.json")
+        if os.path.exists("metadata.json"):
+            self.metadata_file = "metadata.json"
+        else:
+            self.metadata_file = os.path.join(
+                os.getenv("APPDATA"), "Emulator Manager", "metadata.json")
         if not os.path.exists(self.metadata_file) or not self.is_metadata_valid():
             self.create_metadata_file()
 
