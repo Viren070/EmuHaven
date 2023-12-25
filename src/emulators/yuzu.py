@@ -41,6 +41,7 @@ class Yuzu:
                 messagebox.showinfo("Success", "The installation of yuzu EA was successfully deleted!")
         except Exception as error_msg:
             messagebox.showerror("Delete Error", f"Failed to delete yuzu-ea: \n\n{error_msg}")
+            return (False, error_msg)
 
     def get_latest_release(self, release_type):
         response = create_get_connection('https://api.github.com/repos/pineappleEA/pineapple-src/releases' if release_type == "early_access" else "https://api.github.com/repos/yuzu-emu/yuzu-mainline/releases", headers=get_headers(self.settings.app.token))
@@ -79,7 +80,9 @@ class Yuzu:
         self.main_progress_frame.grid(row=0, column=0, sticky="ew")
         if os.path.exists(os.path.join(self.settings.yuzu.install_directory, "yuzu-windows-msvc" if release_type == "mainline" else "yuzu-windows-msvc-early-access")):
             delete_func = self.delete_mainline if release_type == "mainline" else self.delete_early_access
-            delete_func(True)
+            result = delete_func(True)
+            if not all(result):
+                return (False, "Failed to delete old installation")
         try:
             with ZipFile(zip_path, 'r') as archive:
                 total_files = len(archive.namelist())
@@ -141,7 +144,7 @@ class Yuzu:
     def launch_yuzu_installer(self):
         path_to_installer = self.settings.yuzu.installer_path
         self.running = True
-        subprocess.run([path_to_installer], capture_output=True, check=False)
+        subprocess.run([path_to_installer], check=False)
         self.running = False
 
     def delete_mainline(self, skip_prompt=False):
@@ -151,8 +154,9 @@ class Yuzu:
                 messagebox.showinfo("Delete Yuzu", "Installation of yuzu successfully deleted")
         except Exception as error:
             messagebox.showerror("Delete Error", f"An error occured while trying to delete the installation of yuzu:\n\n{error}")
+            return (False, error)
 
-    def launch_yuzu_handler(self, release_type, skip_update=False):
+    def launch_yuzu_handler(self, release_type, skip_update=False, wait_for_exit=True):
         if not skip_update and self.settings.yuzu.use_yuzu_installer != "True":
             func = self.gui.configure_mainline_buttons if release_type == "mainline" else self.gui.configure_early_access_buttons
             func("disabled", text="Fetching Updates...  ")
@@ -177,7 +181,10 @@ class Yuzu:
             args = [maintenance_tool, "--launcher", yuzu_exe] if use_installer and not skip_update else [yuzu_exe]
 
         self.running = True
-        subprocess.run(args, capture_output=True, check=False)
+        if wait_for_exit:
+            subprocess.run(args, check=False)
+        else:
+            subprocess.Popen(args)
         self.running = False
 
     def verify_and_install_firmware_keys(self):
