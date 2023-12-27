@@ -3,18 +3,24 @@ import shutil
 from tkinter import messagebox
 
 
-def copy_directory_with_progress(source_dir, target_dir, title, progress_frame, exclude=None):
+def copy_directory_with_progress(source_dir, target_dir, title, progress_frame, exclude=None, include=None):
     if not os.path.exists(source_dir):
         messagebox.showerror(
             "Path Error", f"Path does not exist: {source_dir}")
         return
-
+    if include and exclude:
+        messagebox.showerror(
+            "Path Error", "Cannot specify both include and exclude")
+        return
     # Get a list of all files and folders in the source directory
     all_files = []
     for root, dirs, files in os.walk(source_dir):
         all_files.extend([os.path.join(root, file) for file in files])
 
-    if exclude:
+    if include:
+        all_files = [file for file in all_files if any(
+            incl_folder in file for incl_folder in include)]
+    elif exclude:
         all_files = [file for file in all_files if not any(
             excl_folder in file for excl_folder in exclude)]
     # Get the total number of files to copy

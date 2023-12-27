@@ -6,9 +6,9 @@ class FolderSelector(CTkToplevel):
     def __init__(self, *args, title, predefined_directory=None, allowed_folders=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.populating = False
+        self.directory = None
         self.predefined_directory = predefined_directory
         self.allowed_folders = allowed_folders
-
         # Central frame
         self.title(title)
         self.geometry("700x500")
@@ -55,6 +55,8 @@ class FolderSelector(CTkToplevel):
             self.browse_button.configure(state='disabled')
             self.populate_checkbuttons(self.predefined_directory)
         self.result = None
+        self.grab_set()
+        self.protocol("WM_DELETE_WINDOW", self._on_closing)
 
     def browse(self):
         directory = filedialog.askdirectory()
@@ -65,6 +67,7 @@ class FolderSelector(CTkToplevel):
     def populate_checkbuttons(self, directory):
         if self.populating or directory == "" or not os.path.isdir(directory) or not os.path.exists(directory):
             return
+        self.directory = None
         self.populating = True
         # Remove old checkbuttons
         for cb in self.checkbuttons:
@@ -80,14 +83,25 @@ class FolderSelector(CTkToplevel):
                 if self.allowed_folders is not None and name not in self.allowed_folders:
                     cb.configure(state='disabled')
                 self.checkbuttons.append(cb)
+        self.directory = directory
         self.populating = False
         
         
     def ok(self):
-        self.result = [cb.cget('text') for cb in self.checkbuttons if cb.get()]
+        self.result = (self.directory, [cb.cget('text') for cb in self.checkbuttons if cb.get()])
+        self.grab_release()
         self.destroy()
 
     def cancel(self):
-        self.result = None
+        self.result = (None, None)
+        self.grab_release()
         self.destroy()
+        
+    def get_input(self):
+        self.master.wait_window(self)
+        return self.result
 
+    def _on_closing(self):
+        self.result = (None, None)
+        self.grab_release()
+        self.destroy()

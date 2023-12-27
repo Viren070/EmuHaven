@@ -12,8 +12,9 @@ from gui.frames.firmware_keys_frame import FirmwareKeysFrame
 from gui.frames.progress_frame import ProgressFrame
 from gui.frames.ryujinx.ryujinx_rom_frame import RyujinxROMFrame
 from gui.windows.path_dialog import PathDialog
+from gui.windows.folder_selector import FolderSelector
 
-
+FOLDERS = ["bis", "games", "mods", "profiles", "sdcard", "system"]
 class RyujinxFrame(EmulatorFrame):
     def __init__(self, parent_frame, settings, metadata):
         super().__init__(parent_frame, settings, metadata)
@@ -84,9 +85,9 @@ class RyujinxFrame(EmulatorFrame):
         self.data_actions_frame.grid(row=0, column=0, padx=20, columnspan=3, pady=20, sticky="ew")
         self.data_actions_frame.grid_columnconfigure(1, weight=1)
 
-        self.import_optionmenu = customtkinter.CTkOptionMenu(self.data_actions_frame, width=300, values=["All Data", "Save Data", "Exclude 'bis' & 'system'"])
-        self.export_optionmenu = customtkinter.CTkOptionMenu(self.data_actions_frame, width=300, values=["All Data", "Save Data", "Exclude 'bis' & 'system'"])
-        self.delete_optionmenu = customtkinter.CTkOptionMenu(self.data_actions_frame, width=300, values=["All Data", "Save Data", "Exclude 'bis' & 'system'"])
+        self.import_optionmenu = customtkinter.CTkOptionMenu(self.data_actions_frame, width=300, values=["All Data", "Save Data", "Custom..."])
+        self.export_optionmenu = customtkinter.CTkOptionMenu(self.data_actions_frame, width=300, values=["All Data", "Save Data", "Custom..."])
+        self.delete_optionmenu = customtkinter.CTkOptionMenu(self.data_actions_frame, width=300, values=["All Data", "Save Data", "Custom..."])
 
         self.import_data_button = customtkinter.CTkButton(self.data_actions_frame, text="Import", command=self.import_data_button_event)
         self.export_data_button = customtkinter.CTkButton(self.data_actions_frame, text="Export", command=self.export_data_button_event)
@@ -227,16 +228,27 @@ class RyujinxFrame(EmulatorFrame):
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["action"],)).start()
 
     def import_data_button_event(self):
-        directory = PathDialog(title="Import Directory", text="Enter directory to import from: ", directory=True)
-        directory = directory.get_input()
-        if not all(directory):
-            if directory[1] is not None:
+        directory = None 
+        folders = None 
+        import_option = self.import_optionmenu.get()
+        
+        if import_option == "Custom...":
+            directory, folders = FolderSelector(
+                title="Choose directory and folders to import",
+                allowed_folders=FOLDERS
+            ).get_input()
+        else:
+            directory = PathDialog(title="Import Directory", text="Enter directory to import from: ", directory=True).get_input()
+            if directory and directory[1] is not None:
+                directory = directory[1]
+            else:
                 messagebox.showerror("Error", "The path you have provided is invalid")
                 return
+        if directory is None:
             return
-        directory = directory[1]
         self.configure_data_buttons(state="disabled")
-        thread = Thread(target=self.ryujinx.import_ryujinx_data, args=(self.import_optionmenu.get(), directory,))
+        thread_args = (import_option, directory, folders, ) if folders else (import_option, directory,)
+        thread = Thread(target=self.ryujinx.import_ryujinx_data, args=thread_args)
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["data"],)).start()
 
@@ -249,16 +261,30 @@ class RyujinxFrame(EmulatorFrame):
                 return
             return
         directory = directory[1]
+        if self.export_optionmenu.get() == "Custom...":
+            user_directory, folders = FolderSelector(title="Choose folders to export", predefined_directory=self.settings.ryujinx.user_directory, allowed_folders=FOLDERS).get_input() 
+            if user_directory is None or folders is None:
+                return 
+            args = ("Custom...", directory, folders)
+        else:
+            args = (self.export_optionmenu.get(), directory,)
         self.configure_data_buttons(state="disabled")
-        thread = Thread(target=self.ryujinx.export_ryujinx_data, args=(self.export_optionmenu.get(), directory,))
+        thread = Thread(target=self.ryujinx.export_ryujinx_data, args=args)
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["data"],)).start()
 
     def delete_data_button_event(self):
+        if self.delete_optionmenu.get() == "Custom...":
+            directory, folders = FolderSelector(title="Delete Directory", predefined_directory=self.settings.ryujinx.user_directory, allowed_folders=FOLDERS).get_input()
+            if directory is None or folders is None:
+                return 
+            args = ("Custom...", folders)
+        else:   
+            args = (self.delete_optionmenu.get(), )
         if not messagebox.askyesno("Confirmation", "This will delete the data from Ryujinx's directory. This action cannot be undone, are you sure you wish to continue?"):
             return
         self.configure_data_buttons(state="disabled")
-        thread = Thread(target=self.ryujinx.delete_ryujinx_data, args=(self.delete_optionmenu.get(),))
+        thread = Thread(target=self.ryujinx.delete_ryujinx_data, args=args)
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["data"],)).start()
 

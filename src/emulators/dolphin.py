@@ -216,17 +216,23 @@ class Dolphin:
             subprocess.Popen(args)
         self.running = False
 
-    def export_dolphin_data(self, mode, directory_to_export_to):
+    def export_dolphin_data(self, mode, directory_to_export_to, folders_to_export=None):
         user_directory = self.settings.dolphin.user_directory
 
         if not os.path.exists(user_directory):
             messagebox.showerror("Missing Folder", "No dolphin data on local drive found")
-            self.gui.configure_data_buttons(state="normal")
             return  # Handle the case when the user directory doesn't exist.
         if mode == "All Data":
             copy_directory_with_progress(user_directory, directory_to_export_to, "Exporting All Dolphin Data", self.data_progress_frame)
+        elif mode == "Custom":
+            if not folders_to_export:
+                messagebox.showerror("Missing Folder", "No folders were selected to export")
+                return
+            copy_directory_with_progress(user_directory, directory_to_export_to, "Exporting All Dolphin Data", self.data_progress_frame, include=folders_to_export)
+            
+            
 
-    def import_dolphin_data(self, mode, directory_to_import_from):
+    def import_dolphin_data(self, mode, directory_to_import_from, folders_to_import=None):
         user_directory = self.settings.dolphin.user_directory
 
         if not os.path.exists(directory_to_import_from):
@@ -234,8 +240,13 @@ class Dolphin:
             return  # Handle the case when the user directory doesn't exist.
         if mode == "All Data":
             copy_directory_with_progress(directory_to_import_from, user_directory, "Importing All Dolphin Data", self.data_progress_frame)
+        elif mode == "Custom":
+            if not folders_to_import:
+                messagebox.showerror("Missing Folder", "No folders were selected to import")
+                return
+            copy_directory_with_progress(directory_to_import_from, user_directory, "Importing All Dolphin Data", self.data_progress_frame, include=folders_to_import)
 
-    def delete_dolphin_data(self, mode):
+    def delete_dolphin_data(self, mode, folders_to_delete=None):
         result = ""
         user_directory = self.settings.dolphin.user_directory
 
@@ -250,6 +261,18 @@ class Dolphin:
             return False
         if mode == "All Data":
             result += f"Data Deleted from {user_directory}\n" if delete_directory(user_directory) else ""
+        elif mode == "Custom":
+            deleted = False
+            for folder in folders_to_delete:
+                folder_path = os.path.join(user_directory, folder)
+                if os.path.exists(folder_path) and os.path.isdir(folder_path):
+                    if delete_directory(folder_path):
+                        deleted = True
+                        result += f"Data deleted from {folder_path}\n"
+                    else:
+                        result += f"Deletion failed for {folder_path}\n"
+            if not deleted:
+                result = ""
         if result:
             messagebox.showinfo("Delete result", result)
         else:

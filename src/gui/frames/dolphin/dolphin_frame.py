@@ -9,10 +9,11 @@ from PIL import Image
 from emulators.dolphin import Dolphin
 from gui.frames.dolphin.dolphin_rom_frame import DolphinROMFrame
 from gui.windows.path_dialog import PathDialog
+from gui.windows.folder_selector import FolderSelector
 from gui.frames.progress_frame import ProgressFrame
 from gui.frames.emulator_frame import EmulatorFrame
 
-
+DOLPHIN_FOLDERS = ["Backup", "Cache", "Config", "Dump", "GameSettings", "GBA", "GC", "Load", "Logs", "Maps", "ResourcePacks", "SavedAssembly", "ScreenShots", "Shaders", "StateSaves", "Styles", "Themes", "Wii"]
 class DolphinFrame(EmulatorFrame):
     def __init__(self, parent_frame, settings, metadata):
         super().__init__(parent_frame, settings, metadata)
@@ -85,9 +86,9 @@ class DolphinFrame(EmulatorFrame):
         self.dolphin_data_actions_frame.grid(row=0, column=0, padx=20, columnspan=3, pady=20, sticky="ew")
         self.dolphin_data_actions_frame.grid_columnconfigure(1, weight=1)
 
-        self.dolphin_import_optionmenu = customtkinter.CTkOptionMenu(self.dolphin_data_actions_frame, width=300, values=["All Data"])
-        self.dolphin_export_optionmenu = customtkinter.CTkOptionMenu(self.dolphin_data_actions_frame, width=300, values=["All Data"])
-        self.dolphin_delete_optionmenu = customtkinter.CTkOptionMenu(self.dolphin_data_actions_frame, width=300, values=["All Data"])
+        self.dolphin_import_optionmenu = customtkinter.CTkOptionMenu(self.dolphin_data_actions_frame, width=300, values=["All Data", "Custom"])
+        self.dolphin_export_optionmenu = customtkinter.CTkOptionMenu(self.dolphin_data_actions_frame, width=300, values=["All Data", "Custom"])
+        self.dolphin_delete_optionmenu = customtkinter.CTkOptionMenu(self.dolphin_data_actions_frame, width=300, values=["All Data", "Custom"])
 
         self.dolphin_import_button = customtkinter.CTkButton(self.dolphin_data_actions_frame, text="Import", command=self.import_data_button_event)
         self.dolphin_export_button = customtkinter.CTkButton(self.dolphin_data_actions_frame, text="Export", command=self.export_data_button_event)
@@ -172,16 +173,25 @@ class DolphinFrame(EmulatorFrame):
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["main"], )).start()
 
     def import_data_button_event(self):
-        directory = PathDialog(title="Import Directory", text="Enter directory to import from: ", directory=True)
-        directory = directory.get_input()
-        if not all(directory):
-            if directory[1] is not None:
+        directory = None 
+        folders = None 
+        import_option = self.dolphin_import_optionmenu.get()
+        
+        if import_option == "Custom":
+            directory, folders = FolderSelector(
+                title="Choose directory and folders to import",
+                allowed_folders=DOLPHIN_FOLDERS
+            ).get_input()
+        else:
+            directory = PathDialog(title="Import Directory", text="Enter directory to import from: ", directory=True).get_input()
+            if directory and directory[1] is not None:
+                directory = directory[1]
+            else:
                 messagebox.showerror("Error", "The path you have provided is invalid")
                 return
-            return
-        directory = directory[1]
         self.configure_data_buttons(state="disabled")
-        thread = Thread(target=self.dolphin.import_dolphin_data, args=(self.dolphin_import_optionmenu.get(), directory, ))
+        thread_args = (import_option, directory, folders, ) if folders else (import_option, directory, )
+        thread = Thread(target=self.dolphin.import_dolphin_data, args=thread_args)
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["data"],)).start()
 
@@ -194,16 +204,30 @@ class DolphinFrame(EmulatorFrame):
                 return
             return
         directory = directory[1]
+        if self.dolphin_export_optionmenu.get() == "Custom":
+            user_directory, folders = FolderSelector(title="Choose folders to export", predefined_directory=self.settings.dolphin.user_directory, allowed_folders=DOLPHIN_FOLDERS).get_input()
+            if user_directory is None or folders is None:
+                return
+            args = ("Custom", directory, folders, )
+        else:
+            args = (self.dolphin_export_optionmenu.get(), directory, )
         self.configure_data_buttons(state="disabled")
-        thread = Thread(target=self.dolphin.export_dolphin_data, args=(self.dolphin_export_optionmenu.get(), directory, ))
+        thread = Thread(target=self.dolphin.export_dolphin_data, args=args)
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["data"],)).start()
 
     def delete_data_button_event(self):
+        if self.dolphin_export_optionmenu.get() == "Custom":
+            directory, folders = FolderSelector(title="Choose folders to delete", predefined_directory=self.settings.dolphin.user_directory, allowed_folders=DOLPHIN_FOLDERS).get_input()
+            if directory is None or folders is None:
+                return
+            args = ("Custom", folders)
+        else:
+            args = (self.dolphin_delete_optionmenu.get(), )
         if not messagebox.askyesno("Confirmation", "This will delete the data from Dolphin's directory. This action cannot be undone, are you sure you wish to continue?"):
             return
         self.configure_data_buttons(state="disabled")
-        thread = Thread(target=self.dolphin.delete_dolphin_data, args=(self.dolphin_delete_optionmenu.get(),))
+        thread = Thread(target=self.dolphin.delete_dolphin_data, args=args)
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["data"],)).start()
 

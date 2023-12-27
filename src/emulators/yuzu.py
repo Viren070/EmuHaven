@@ -333,7 +333,7 @@ class Yuzu:
         self.main_progress_frame.complete_download()
         return download_result
 
-    def export_yuzu_data(self, mode, directory_to_export_to):
+    def export_yuzu_data(self, mode, directory_to_export_to, folders=None):
         user_directory = self.settings.yuzu.user_directory
         if not os.path.exists(user_directory):
             messagebox.showerror("Missing Folder", "No yuzu data on local drive found")
@@ -344,12 +344,12 @@ class Yuzu:
         elif mode == "Save Data":
             save_dir = os.path.join(user_directory, 'nand', 'user', 'save')
             copy_directory_with_progress(save_dir, os.path.join(directory_to_export_to, 'nand', 'user', 'save'), "Exporting Yuzu Save Data", self.data_progress_frame)
-        elif mode == "Exclude 'nand' & 'keys'":
-            copy_directory_with_progress(user_directory, directory_to_export_to, "Exporting All Yuzu Data", self.data_progress_frame, ["nand", "keys"])
+        elif mode == "Custom...":
+            copy_directory_with_progress(user_directory, directory_to_export_to, "Exporting Custom Yuzu Data", self.data_progress_frame, include=folders)
         else:
             messagebox.showerror("Error", f"An unexpected error has occured, {mode} is an invalid option.")
 
-    def import_yuzu_data(self, mode, directory_to_import_from):
+    def import_yuzu_data(self, mode, directory_to_import_from, folders=None):
         user_directory = self.settings.yuzu.user_directory
         if not os.path.exists(directory_to_import_from):
             messagebox.showerror("Missing Folder", "No yuzu data associated with your username found")
@@ -359,12 +359,12 @@ class Yuzu:
         elif mode == "Save Data":
             save_dir = os.path.join(directory_to_import_from, 'nand', 'user', 'save')
             copy_directory_with_progress(save_dir, os.path.join(user_directory, 'nand', 'user', 'save'), "Importing Yuzu Save Data", self.data_progress_frame)
-        elif mode == "Exclude 'nand' & 'keys'":
-            copy_directory_with_progress(directory_to_import_from, user_directory, "Import All Yuzu Data", self.data_progress_frame, ["nand", "keys"])
+        elif mode == "Custom...":
+            copy_directory_with_progress(directory_to_import_from, user_directory, "Import Custom", self.data_progress_frame, include=folders)
         else:
             messagebox.showerror("Error", f"An unexpected error has occured, {mode} is an invalid option.")
 
-    def delete_yuzu_data(self, mode):
+    def delete_yuzu_data(self, mode, folders=None):
         result = ""
 
         user_directory = self.settings.yuzu.user_directory
@@ -384,25 +384,18 @@ class Yuzu:
         elif mode == "Save Data":
             save_dir = os.path.join(user_directory, 'nand', 'user', 'save')
             result += f"Data deleted from {save_dir}\n" if delete_directory(save_dir) else ""
-        elif mode == "Exclude 'nand' & 'keys'":
+        elif mode == "Custom...":
             deleted = False
-            for root_folder in user_directory:
-                if os.path.exists(root_folder) and os.listdir(root_folder):
-                    subfolders_failed = []
-                    for folder_name in os.listdir(root_folder):
-                        folder_path = os.path.join(root_folder, folder_name)
-                        if os.path.isdir(folder_path) and not (folder_name == 'nand' or folder_name == 'keys'):
-                            deleted = True
-                            if not delete_directory(folder_path):
-                                subfolders_failed.append(folder_name)
-
-                    if subfolders_failed:
-                        failed_subfolders_message = ", ".join(subfolders_failed)
-                        result += f"Deletion failed in {root_folder} for subfolders: {failed_subfolders_message}\n"
+            for folder in folders:
+                folder_path = os.path.join(user_directory, folder)
+                if os.path.exists(folder_path) and os.path.isdir(folder_path):
+                    if delete_directory(folder_path):
+                        deleted = True
+                        result += f"Data deleted from {folder_path}\n"
                     else:
-                        result += f"Data deleted from {root_folder}\n"
-                    if not deleted:
-                        result = ""
+                        result += f"Deletion failed for {folder_path}\n"
+            if not deleted:
+                result = ""
 
         if result:
             messagebox.showinfo("Delete result", result)

@@ -292,7 +292,7 @@ class Ryujinx:
         self.main_progress_frame.complete_download()
         return download_result
 
-    def export_ryujinx_data(self, mode, directory_to_export_to):
+    def export_ryujinx_data(self, mode, directory_to_export_to, folders=None):
         user_directory = self.settings.ryujinx.user_directory
         if not os.path.exists(user_directory):
             messagebox.showerror("Missing Folder", "No Ryujinx data on local drive found")
@@ -303,12 +303,12 @@ class Ryujinx:
         elif mode == "Save Data":
             save_dir = os.path.join(user_directory, 'bis', 'user', 'save')
             copy_directory_with_progress(save_dir, os.path.join(directory_to_export_to, 'bis', 'user', 'save'), "Exporting Ryujinx Save Data", self.data_progress_frame)
-        elif mode == "Exclude 'bis' & 'system'":
-            copy_directory_with_progress(user_directory, directory_to_export_to, "Exporting All Ryujinx Data", self.data_progress_frame, ["bis", "system"])
+        elif mode == "Custom...":
+            copy_directory_with_progress(user_directory, directory_to_export_to, "Exporting Custom Ryujinx Data", self.data_progress_frame, include=folders)
         else:
             messagebox.showerror("Error", f"An unexpected error has occured, {mode} is an invalid option.")
 
-    def import_ryujinx_data(self, mode, directory_to_import_from):
+    def import_ryujinx_data(self, mode, directory_to_import_from, folders=None):
         user_directory = self.settings.ryujinx.user_directory
         if not os.path.exists(directory_to_import_from):
             messagebox.showerror("Missing Folder", "No Ryujinx data associated with your username found")
@@ -318,12 +318,12 @@ class Ryujinx:
         elif mode == "Save Data":
             save_dir = os.path.join(directory_to_import_from, 'bis', 'user', 'save')
             copy_directory_with_progress(save_dir, os.path.join(user_directory, 'bis', 'user', 'save'), "Importing Ryujinx Save Data", self.data_progress_frame)
-        elif mode == "Exclude 'bis' & 'system'":
-            copy_directory_with_progress(directory_to_import_from, user_directory, "Import All Ryujinx Data", self.data_progress_frame, ["bis", "system"])
+        elif mode == "Custom...":
+            copy_directory_with_progress(directory_to_import_from, user_directory, "Import All Ryujinx Data", self.data_progress_frame, include=folders)
         else:
             messagebox.showerror("Error", f"An unexpected error has occured, {mode} is an invalid option.")
 
-    def delete_ryujinx_data(self, mode):
+    def delete_ryujinx_data(self, mode, folders=None):
         result = ""
 
         user_directory = self.settings.ryujinx.user_directory
@@ -343,25 +343,18 @@ class Ryujinx:
         elif mode == "Save Data":
             save_dir = os.path.join(user_directory, 'bis', 'user', 'save')
             result += f"Data deleted from {save_dir}\n" if delete_directory(save_dir) else ""
-        elif mode == "Exclude 'bis' & 'system'":
+        elif mode == "Custom...":
             deleted = False
-            for root_folder in user_directory:
-                if os.path.exists(root_folder) and os.listdir(root_folder):
-                    subfolders_failed = []
-                    for folder_name in os.listdir(root_folder):
-                        folder_path = os.path.join(root_folder, folder_name)
-                        if os.path.isdir(folder_path) and not (folder_name == 'bis' or folder_name == 'system'):
-                            deleted = True
-                            if not delete_directory(folder_path):
-                                subfolders_failed.append(folder_name)
-
-                    if subfolders_failed:
-                        failed_subfolders_message = ", ".join(subfolders_failed)
-                        result += f"Deletion failed in {root_folder} for subfolders: {failed_subfolders_message}\n"
+            for folder in folders:
+                folder_path = os.path.join(user_directory, folder)
+                if os.path.exists(folder_path) and os.path.isdir(folder_path):
+                    if delete_directory(folder_path):
+                        deleted = True
+                        result += f"Data deleted from {folder_path}\n"
                     else:
-                        result += f"Data deleted from {root_folder}\n"
-                    if not deleted:
-                        result = ""
+                        result += f"Deletion failed for {folder_path}\n"
+            if not deleted:
+                result = ""
 
         if result:
             messagebox.showinfo("Delete result", result)
