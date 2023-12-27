@@ -12,6 +12,9 @@ from gui.frames.firmware_keys_frame import FirmwareKeysFrame
 from gui.frames.progress_frame import ProgressFrame
 from gui.frames.yuzu.yuzu_rom_frame import YuzuROMFrame
 from gui.windows.path_dialog import PathDialog
+from gui.windows.folder_selector import FolderSelector
+
+FOLDERS = ["amiibo", "cache", "config", "crash_dumps", "dump", "icons", "keys", "load", "log", "nand", "play_time", "screenshots", "sdmc", "shader", "tas", "sysdata"]
 
 
 class YuzuFrame(EmulatorFrame):
@@ -114,9 +117,9 @@ class YuzuFrame(EmulatorFrame):
         self.yuzu_data_actions_frame.grid(row=0, column=0, padx=20, columnspan=3, pady=20, sticky="ew")
         self.yuzu_data_actions_frame.grid_columnconfigure(1, weight=1)
 
-        self.yuzu_import_optionmenu = customtkinter.CTkOptionMenu(self.yuzu_data_actions_frame, width=300, values=["All Data", "Save Data", "Exclude 'nand' & 'keys'"])
-        self.yuzu_export_optionmenu = customtkinter.CTkOptionMenu(self.yuzu_data_actions_frame, width=300, values=["All Data", "Save Data", "Exclude 'nand' & 'keys'"])
-        self.yuzu_delete_optionmenu = customtkinter.CTkOptionMenu(self.yuzu_data_actions_frame, width=300, values=["All Data", "Save Data", "Exclude 'nand' & 'keys'"])
+        self.yuzu_import_optionmenu = customtkinter.CTkOptionMenu(self.yuzu_data_actions_frame, width=300, values=["All Data", "Save Data", "Custom..."])
+        self.yuzu_export_optionmenu = customtkinter.CTkOptionMenu(self.yuzu_data_actions_frame, width=300, values=["All Data", "Save Data", "Custom..."])
+        self.yuzu_delete_optionmenu = customtkinter.CTkOptionMenu(self.yuzu_data_actions_frame, width=300, values=["All Data", "Save Data", "Custom..."])
 
         self.yuzu_import_button = customtkinter.CTkButton(self.yuzu_data_actions_frame, text="Import", command=self.import_data_button_event)
         self.yuzu_export_button = customtkinter.CTkButton(self.yuzu_data_actions_frame, text="Export", command=self.export_data_button_event)
@@ -329,19 +332,32 @@ class YuzuFrame(EmulatorFrame):
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["firmware_keys", "mainline", "early_access"],)).start()
 
     def import_data_button_event(self):
-        directory = PathDialog(title="Import Directory", text="Enter directory to import from: ", directory=True)
-        directory = directory.get_input()
-        if not all(directory):
-            if directory[1] is not None:
+        directory = None
+        folders = None
+        import_option = self.yuzu_import_optionmenu.get()
+
+        if import_option == "Custom...":
+            directory, folders = FolderSelector(
+                title="Choose directory and folders to import",
+                allowed_folders=FOLDERS
+            ).get_input()
+        else:
+            directory = PathDialog(title="Import Directory", text="Enter directory to import from: ", directory=True).get_input()
+            if directory and directory[1] is not None:
+                directory = directory[1]
+            else:
                 messagebox.showerror("Error", "The path you have provided is invalid")
                 return
+
+        if directory is None:
             return
-        directory = directory[1]
+
         self.configure_data_buttons(state="disabled")
-        thread = Thread(target=self.yuzu.import_yuzu_data, args=(self.yuzu_import_optionmenu.get(), directory,))
+        thread_args = (import_option, directory, folders, ) if folders else (import_option, directory, )
+        thread = Thread(target=self.yuzu.import_yuzu_data, args=thread_args)
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["data"],)).start()
-
+    
     def export_data_button_event(self):
         directory = PathDialog(title="Export Directory", text="Enter directory to export to: ", directory=True)
         directory = directory.get_input()
@@ -351,16 +367,30 @@ class YuzuFrame(EmulatorFrame):
                 return
             return
         directory = directory[1]
+        if self.yuzu_export_optionmenu.get() == "Custom...":
+            user_directory, folders = FolderSelector(title="Choose folders to export", predefined_directory=self.settings.yuzu.user_directory, allowed_folders=FOLDERS).get_input()
+            if user_directory is None or folders is None:
+                return
+            args = ("Custom...", directory, folders,)
+        else:
+            args = (self.yuzu_export_optionmenu.get(), directory,)
+        
         self.configure_data_buttons(state="disabled")
-        thread = Thread(target=self.yuzu.export_yuzu_data, args=(self.yuzu_export_optionmenu.get(), directory,))
+        thread = Thread(target=self.yuzu.export_yuzu_data, args=args)
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["data"],)).start()
 
     def delete_data_button_event(self):
+        if self.yuzu_delete_optionmenu.get() == "Custom...":
+            directory, folders = FolderSelector(title="Delete Directory", predefined_directory=self.settings.yuzu.user_directory, allowed_folders=FOLDERS).get_input()
+            if directory is None or folders is None:
+                return
+            thread = Thread(target=self.yuzu.delete_yuzu_data, args=("Custom...", folders,))
+        else:
+            thread = Thread(target=self.yuzu.delete_yuzu_data, args=(self.yuzu_delete_optionmenu.get(),))
         if not messagebox.askyesno("Confirmation", "This will delete the data from Yuzu's directory. This action cannot be undone, are you sure you wish to continue?"):
             return
         self.configure_data_buttons(state="disabled")
-        thread = Thread(target=self.yuzu.delete_yuzu_data, args=(self.yuzu_delete_optionmenu.get(),))
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["data"],)).start()
 
