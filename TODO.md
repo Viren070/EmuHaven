@@ -42,7 +42,7 @@
     - Add new updater window and logic to handle launching this window and updating emulator through arguments
 - [x] Add option to use current directory for settings and metadata instead of attempting to use %appdata%\Roaming\Emulator Manager
 
-- [ ] Add custom option for import/exports. remove 'exclude nand and keys'
+- [x] Add custom option for import/exports. remove 'exclude nand and keys'
 - [x] add option `check for update at start-up` that will control whether or not the app will check for an update at start-up
 
 ## other 
