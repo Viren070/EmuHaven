@@ -33,7 +33,10 @@
     - use games for ryujinx
     - use https://github.com/arch-box/titledb for covers
     - https://new.mirror.lewd.wtf/archive/nintendo/switch/savegames/ for saves
-    - maybe mods as well
+    - for gamebanana:
+        - use `https://api.gamebanana.com/Core/List/Like?itemtype=Game&field=name&match={match}`
+        - where match is the name of the game with non-ASCII characters removed and spaces replaced with % to get the ID of the game.
+        - then use `https://gamebanana.com/apiv10/Mod/Index?_nPage=1&_nPerpage=50&_sSort=Generic_MostDownloaded&_aFilters[Generic_Game]={id}` where id is the ID that was just found 
 
      
 - [x] Add shortcuts for emulators which will show window with progress bar for updating.
