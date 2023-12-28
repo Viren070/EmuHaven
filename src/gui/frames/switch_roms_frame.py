@@ -22,17 +22,13 @@ class SwitchTitle:
         cache_metadata_lookup_result = self.cache.get_cached_data(self.title_id)
         cache_image_lookup_result = self.cache.get_cached_data(f"{self.title_id}-Icon [PATH]")
         if not cache_metadata_lookup_result:
-            print("Gathering metadata for title from cached title db:", self.title_id)
             self.title_data = self.gather_metadata()
         else:
-            print("Using cached metadata for title:", self.title_id)
             self.title_data = cache_metadata_lookup_result["data"]
         if not cache_image_lookup_result:
-            print("Downloading cover for title:", self.title_id)
             image = settings.get_image_path("placeholder_icon")
             Thread(target=self.download_cover, args=(True,)).start()
         else:
-            print("Using cached cover for title:", self.title_id)
             image = cache_image_lookup_result["data"]
         self.cover = customtkinter.CTkImage(Image.open(image), size=(224, 224)) 
         
@@ -121,7 +117,6 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
                     break
             if missing_title:
                 with open(cache_lookup_result["data"], "r", encoding="utf-8") as f:
-                    print("Loading titles.US.en from cache")
                     self.titles_db = json.load(f)
              
         self.titles = [SwitchTitle(self, title_id, settings, cache) for title_id in title_ids]  # Create game objects
@@ -133,7 +128,6 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
     def refresh_title_list(self):
         if self.refreshing:
             return
-        print("REFRESHING...")
         self.refresh_button.configure(state="disabled", text="Refreshing...")
         self.refreshing = True 
         if not self.check_titles_db():
@@ -145,7 +139,6 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
         self.update_results()
         self.refresh_button.configure(state="normal", text="Refresh")
         self.refreshing = False
-        print("REFRESH COMPLETE")
         
    
     def build_frame(self):
@@ -336,7 +329,6 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
         progress_window.destroy()
         self.cache.move_file_to_cache("titlesDB [PATH]", download_path)
         with open(self.cache.get_cached_data("titlesDB [PATH]")["data"], "r", encoding="utf-8") as f:
-            print("Loading titles.US.en from cache")
             self.titles_db = json.load(f)
         self.refresh_title_list()
         messagebox.showinfo("Download Complete", "The TitleDB has been downloaded successfully.")
