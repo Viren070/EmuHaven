@@ -217,7 +217,7 @@ class DolphinFrame(EmulatorFrame):
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["data"],)).start()
 
     def delete_data_button_event(self):
-        if self.dolphin_export_optionmenu.get() == "Custom":
+        if self.dolphin_delete_optionmenu.get() == "Custom":
             directory, folders = FolderSelector(title="Choose folders to delete", predefined_directory=self.settings.dolphin.user_directory, allowed_folders=DOLPHIN_FOLDERS).get_input()
             if directory is None or folders is None:
                 return
