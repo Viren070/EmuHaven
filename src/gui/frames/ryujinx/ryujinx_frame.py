@@ -115,6 +115,10 @@ class RyujinxFrame(EmulatorFrame):
         self.manage_roms_frame.grid_rowconfigure(0, weight=1)
         self.rom_frame = RyujinxROMFrame(self.manage_roms_frame, self.settings, self.cache)
         self.rom_frame.grid(row=0, column=0,  padx=20, pady=20, sticky="nsew")
+        
+    def manage_roms_button_event(self):
+        self.rom_frame.current_roms_frame.refresh_title_list()
+        self.select_frame_by_name("roms")
 
     def configure_data_buttons(self, **kwargs):
         self.delete_data_button.configure(**kwargs)

@@ -130,13 +130,10 @@ class EmulatorManager(customtkinter.CTk):
         self.select_frame_by_name("dolphin")
 
     def yuzu_button_event(self):
-        self.yuzu_frame.rom_frame.current_roms_frame.check_titles_db()
-        self.yuzu_frame.rom_frame.current_roms_frame.refresh_title_list()
+
         self.select_frame_by_name("yuzu")
 
     def ryujinx_button_event(self):
-        self.ryujinx_frame.rom_frame.current_roms_frame.check_titles_db()
-        self.ryujinx_frame.rom_frame.current_roms_frame.refresh_title_list()
         self.select_frame_by_name("ryujinx")
 
     def settings_button_event(self):

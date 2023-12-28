@@ -1,14 +1,20 @@
-from threading import Thread
-from tkinter import messagebox, filedialog
+import json
 import os
-import json 
+import shutil
+import time
+import textwrap
+from threading import Thread
+from tkinter import filedialog, messagebox
+
 import customtkinter
 from PIL import Image
-import shutil
+
 from gui.windows.progress_window import ProgressWindow
-from utils.requests_utils import create_get_connection, get_headers
+from gui.windows.saves_browser import SavesBrowser
 from utils.downloader import download_file
-from threading import Thread
+from utils.requests_utils import (create_get_connection,
+                                  get_file_links_from_page, get_headers)
+
 
 class SwitchTitle:
     def __init__(self, master, title_id, settings, cache):
@@ -31,6 +37,14 @@ class SwitchTitle:
         else:
             image = cache_image_lookup_result["data"]
         self.cover = customtkinter.CTkImage(Image.open(image), size=(224, 224)) 
+        if self.title_data is not None:
+            self.name = self.title_data["name"]
+            self.description = self.title_data["description"]
+            self.publisher = self.title_data["publisher"]
+            self.intro = self.title_data["intro"]
+            self.category = self.title_data["category"]
+            self.number_of_players = self.title_data["numberOfPlayers"]
+            self.rating = self.title_data["ratingContent"]
         
 
     def gather_metadata(self): 
@@ -105,6 +119,7 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
         self.cache = cache
         self.current_page = None
         self.update_in_progress = False
+        self.searching = False
         self.build_frame()
         title_ids = self.get_title_ids()
         cache_lookup_result = self.cache.get_cached_data("titlesDB [PATH]") # Check if titles.US.en is cached
@@ -203,8 +218,7 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
         self.grid_rowconfigure(1, weight=10)
         self.grid_rowconfigure(2, weight=1)
         self.grid_columnconfigure(0, weight=10)
-        self.grid_columnconfigure(1, weight=3)
-        self.grid_columnconfigure(2, weight=1)
+
    
 
     
@@ -244,12 +258,38 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
                 break
             if i < start_index:
                 continue
-            button = customtkinter.CTkButton(self.result_frame, text="", image=game.cover)
-            game.button = button
-            button.bind("<Button-3>", command=lambda event, game=game: game.choose_custom_cover())
-            button.bind("<Shift-Button-3>", command=lambda event, game=game: game.download_cover())
-            button.grid(row=row_counter, column=0, padx=10, pady=5, sticky="w")
-            row_counter += 2
+            game_frame = customtkinter.CTkFrame(self.result_frame)
+            game_frame.grid(row=row_counter, column=0, padx=10, pady=5, sticky="nsew")
+            game_frame.grid_columnconfigure(1, weight=1)  # Allow the second column to expand
+
+            # Game cover button
+            game_cover = customtkinter.CTkButton(game_frame, hover_color=None, border_width=0, text="", image=game.cover)
+            game.button = game_cover
+            game_cover.bind("<Button-3>", command=lambda event, game=game: game.choose_custom_cover())
+            game_cover.bind("<Shift-Button-3>", command=lambda event, game=game: game.download_cover())
+            game_cover.grid(row=0, column=0, rowspan=3, padx=10, pady=5, sticky="nsew")  # Span 3 rows
+
+            # Game name label
+            game_name_label = customtkinter.CTkLabel(game_frame, text=game.name, font=customtkinter.CTkFont("Arial", 16))
+            game_name_label.grid(row=0, column=1, padx=10, columnspan=2, pady=5, sticky="nsew")
+
+            # Game description text box
+            game_desc_text = customtkinter.CTkTextbox(game_frame, height=130, border_width=0, fg_color="transparent")
+            game_desc_text.insert("1.0", game.description)
+            game_desc_text.configure(state="disabled")  # Make the text box read-only
+            game_desc_text.grid(row=1, column=1, padx=10, columnspan=2, pady=5, sticky="nsew")
+
+
+            # Download mods button
+            download_mods_button = customtkinter.CTkButton(game_frame, text="Download Mods", height=50, command=lambda game=game: self.download_mods(game), font=("Arial", 14))
+            download_mods_button.grid(row=2, column=1, padx=10, pady=10, sticky="sw")
+
+            # Download saves button
+            download_saves_button = customtkinter.CTkButton(game_frame, text="Download Saves", height=50, command=lambda game=game: self.download_saves(game), font=("Arial", 14))
+            download_saves_button.grid(row=2, column=2, padx=10, pady=10, sticky="se")
+
+            row_counter += 1
+        
         self.current_page_entry.delete(0, customtkinter.END)
         self.current_page_entry.insert(0, str(self.current_page))
         self.next_button.configure(state="normal")
@@ -257,7 +297,10 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
         self.update_in_progress = False
 
     def perform_search(self, *args):
-        query = self.search_entry.get()
+        if self.searching:
+            return
+        self.searching = True
+        query = self.search_entry.get().strip()
         if query == "":
             self.searched_titles = self.titles
         else:
@@ -269,6 +312,7 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
         self.total_pages_label.configure(text=f"/ {self.total_pages}")
         self.current_page = 1
         self.update_results()
+        self.searching = False
 
     def go_to_page(self, event=None, page_no=None):
         if self.update_in_progress:
@@ -312,8 +356,8 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
         progress_frame = progress_window.progress_frame
         progress_frame.start_download("TitleDB", 0)
         progress_frame.cancel_download_button.configure(state="disabled")
-        from utils.requests_utils import create_get_connection
         from utils.downloader import download_through_stream
+        from utils.requests_utils import create_get_connection
         response_result = create_get_connection("https://github.com/arch-box/titledb/releases/download/latest/titles.US.en.json", stream=True, headers=get_headers(self.settings.app.token), timeout=30)
         if not all(response_result):
             messagebox.showerror("Download Error", f"There was an error while attempting to download the TitleDB:\n\n {response_result[1]}")
@@ -333,3 +377,31 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
         self.refresh_title_list()
         messagebox.showinfo("Download Complete", "The TitleDB has been downloaded successfully.")
         return download_result
+
+    def download_mods(game):
+        messagebox.showinfo("Download Mods", "This feature is not yet implemented.")
+        
+    
+    def download_saves(self, game):
+        cache_save_lookup_result = self.cache.get_cached_data("switch_saves")
+        if cache_save_lookup_result is None or (time.time() - cache_save_lookup_result["time"]) > 86400: # 1 day 
+            print("Fetching saves")
+            saves = get_file_links_from_page("https://new.mirror.lewd.wtf/archive/nintendo/switch/savegames/", ".zip", get_headers(self.settings.app.token))
+            if not all(saves):
+                messagebox.showerror("Fetch Error", f"There was an error while attempting to fetch the saves:\n\n {saves[1]}")
+                return
+            links = []
+            for save in saves[1]:
+                links.append(save.url)
+            self.cache.add_to_index("switch_saves", links)
+            saves = links
+        else:
+            saves = cache_save_lookup_result["data"]
+        title_saves = []
+        for save in saves:
+            if game.title_id in save:
+                title_saves.append(save)
+        if len(title_saves) == 0:
+            messagebox.showerror("Fetch Error", "There are no saves available for this game.")
+            return
+        SavesBrowser(title=game.name, master=self, saves=title_saves, title_id=game.title_id)
