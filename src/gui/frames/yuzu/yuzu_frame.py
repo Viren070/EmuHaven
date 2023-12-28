@@ -18,9 +18,10 @@ FOLDERS = ["amiibo", "cache", "config", "crash_dumps", "dump", "icons", "keys", 
 
 
 class YuzuFrame(EmulatorFrame):
-    def __init__(self, parent_frame, settings, metadata):
+    def __init__(self, parent_frame, settings, metadata, cache):
         super().__init__(parent_frame, settings, metadata)
         self.yuzu = Yuzu(self, settings, metadata)
+        self.cache = cache
         self.mainline_version = None
         self.early_access_version = None
         self.installed_firmware_version = "Unknown"
@@ -147,7 +148,7 @@ class YuzuFrame(EmulatorFrame):
         self.manage_roms_frame = customtkinter.CTkFrame(self, corner_radius=0, bg_color="transparent")
         self.manage_roms_frame.grid_columnconfigure(0, weight=1)
         self.manage_roms_frame.grid_rowconfigure(0, weight=1)
-        self.rom_frame = YuzuROMFrame(self.manage_roms_frame, self.yuzu, self.settings)
+        self.rom_frame = YuzuROMFrame(self.manage_roms_frame, self.settings, self.cache)
         self.rom_frame.grid(row=0, column=0,  padx=20, pady=20, sticky="nsew")
 
     def configure_data_buttons(self, **kwargs):

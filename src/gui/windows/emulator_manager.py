@@ -13,7 +13,9 @@ from gui.frames.dolphin.dolphin_frame import DolphinFrame
 from gui.frames.ryujinx.ryujinx_frame import RyujinxFrame
 from gui.frames.settings.settings_frame import SettingsFrame
 from gui.frames.yuzu.yuzu_frame import YuzuFrame
+from gui.windows.progress_window import ProgressWindow
 from settings.app_settings import load_customtkinter_themes
+from settings.cache import Cache
 from settings.metadata import Metadata
 from settings.settings import Settings
 from utils.auth_token_manager import delete_token_file
@@ -27,6 +29,7 @@ class EmulatorManager(customtkinter.CTk):
         super().__init__()
         self.settings = Settings(self, root_dir)
         self.metadata = Metadata(self, self.settings)
+        self.cache = Cache(self, self.settings, self.metadata)
         self.version = "v0.12.8"
         self.root_dir = root_dir
         if pos is None:
@@ -51,25 +54,6 @@ class EmulatorManager(customtkinter.CTk):
             Thread(target=self.check_for_update).start()
         self.mainloop()
 
-    def fetch_firmware_and_keys(self):
-        yuzu_frame = self.yuzu_frame.firmware_keys_frame
-        ryujinx_frame = self.ryujinx_frame.firmware_keys_frame
-        frames = [self.yuzu_frame.firmware_keys_frame, self.ryujinx_frame.firmware_keys_frame]
-        for frame in frames:
-            frame.fetching_versions = True
-        variables = [yuzu_frame.firmware_option_menu, yuzu_frame.key_option_menu_variable, ryujinx_frame.firmware_option_menu_variable, ryujinx_frame.key_option_menu_variable]
-        [variable.set("Fetching...") for variable in variables]
-        firmware_key_dict_result = fetch_firmware_keys_dict(headers=get_headers(self.settings.app.token))
-        if not all(firmware_key_dict_result):
-            [variable.set("Click to fetch versions") for variable in variables]
-            for frame in frames:
-                frame.fetching_versions = False
-            return
-        firmware_key_dict = firmware_key_dict_result[1]
-        for frame in frames:
-            frame.create_scrollable_dropdown_with_dict(firmware_key_dict)
-            frame.fetching_versions = False
-
     def define_images(self):
         self.dolphin_logo = customtkinter.CTkImage(Image.open(self.settings.get_image_path("dolphin_logo")), size=(26, 26))
         self.dolphin_banner = customtkinter.CTkImage(light_image=Image.open(self.settings.get_image_path("dolphin_banner_light")),
@@ -86,7 +70,7 @@ class EmulatorManager(customtkinter.CTk):
                                                  dark_image=Image.open(self.settings.get_image_path("padlock_dark")), size=(20, 20))
 
     def build_gui(self):
-        self.resizable(False, False)  # disable resizing of window
+        self.resizable(True, True)  # disable resizing of window
         self.title("Emulator Manager")  # set title of window
 
         self.grid_rowconfigure(0, weight=1)
@@ -137,18 +121,20 @@ class EmulatorManager(customtkinter.CTk):
                                                        anchor="w", command=self.settings_button_event)
         self.settings_button.grid(row=2, column=0, sticky="ew")
 
-        self.yuzu_frame = YuzuFrame(self, self.settings, self.metadata)
+        self.yuzu_frame = YuzuFrame(self, self.settings, self.metadata, self.cache)
         self.dolphin_frame = DolphinFrame(self, self.settings, self.metadata)
-        self.ryujinx_frame = RyujinxFrame(self, self.settings, self.metadata)
+        self.ryujinx_frame = RyujinxFrame(self, self.settings, self.metadata, self.cache)
         self.settings_frame = SettingsFrame(self, self.settings)
 
     def dolphin_button_event(self):
         self.select_frame_by_name("dolphin")
 
     def yuzu_button_event(self):
+        #self.check_titles_db()
         self.select_frame_by_name("yuzu")
 
     def ryujinx_button_event(self):
+        #self.check_titles_db()
         self.select_frame_by_name("ryujinx")
 
     def settings_button_event(self):
@@ -202,6 +188,9 @@ class EmulatorManager(customtkinter.CTk):
         load_customtkinter_themes(os.path.join(self.root_dir, "assets", "themes"))
         EmulatorManager(self.root_dir, True, pos)
 
+
+                
+                
     def check_for_update(self):
         releases = get_all_releases("https://api.github.com/repos/Viren070/Emulator-Manager/releases?per_page=1", headers=get_headers(self.settings.app.token))
         if not all(releases):
