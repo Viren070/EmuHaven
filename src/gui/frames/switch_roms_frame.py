@@ -21,6 +21,8 @@ class SwitchTitle:
         self.title_id = title_id
         self.downloading_cover = False
         self.master = master
+        self.name = title_id 
+        self.description = ""
         self.titles_db = master.titles_db
         self.button = None
         self.settings = settings
@@ -143,10 +145,10 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
     def refresh_title_list(self):
         if self.refreshing:
             return
-        self.refresh_button.configure(state="disabled", text="Refreshing...")
-        self.refreshing = True 
         if not self.check_titles_db():
             return 
+        self.refresh_button.configure(state="disabled", text="Refreshing...")
+        self.refreshing = True 
         self.titles = [SwitchTitle(self, title_id, self.settings, self.cache) for title_id in self.get_title_ids()]  # Create game objects
         self.total_pages = (len(self.searched_titles) + self.results_per_page - 1) // self.results_per_page
         self.total_pages_label.configure(text=f"/ {self.total_pages}")
@@ -275,7 +277,7 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
 
             # Game description text box
             game_desc_text = customtkinter.CTkTextbox(game_frame, height=130, border_width=0, fg_color="transparent")
-            game_desc_text.insert("1.0", game.description)
+            game_desc_text.insert("1.0", textwrap.fill(game.description, width=57))
             game_desc_text.configure(state="disabled")  # Make the text box read-only
             game_desc_text.grid(row=1, column=1, padx=10, columnspan=2, pady=5, sticky="nsew")
 
@@ -285,7 +287,8 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
             download_mods_button.grid(row=2, column=1, padx=10, pady=10, sticky="sw")
 
             # Download saves button
-            download_saves_button = customtkinter.CTkButton(game_frame, text="Download Saves", height=50, command=lambda game=game: self.download_saves(game), font=("Arial", 14))
+            download_saves_button = customtkinter.CTkButton(game_frame, text="Download Saves", height=50, font=("Arial", 14))
+            download_saves_button.configure(command=lambda game=game, button=download_saves_button: Thread(target=self.download_saves, args=(game, button,)).start())
             download_saves_button.grid(row=2, column=2, padx=10, pady=10, sticky="se")
 
             row_counter += 1
@@ -361,6 +364,7 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
         response_result = create_get_connection("https://github.com/arch-box/titledb/releases/download/latest/titles.US.en.json", stream=True, headers=get_headers(self.settings.app.token), timeout=30)
         if not all(response_result):
             messagebox.showerror("Download Error", f"There was an error while attempting to download the TitleDB:\n\n {response_result[1]}")
+            progress_window.destroy()
             return 
         response = response_result[1]
         progress_frame.start_download("TitleDB", int(response.headers.get('content-length', 0)))
@@ -378,17 +382,19 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
         messagebox.showinfo("Download Complete", "The TitleDB has been downloaded successfully.")
         return download_result
 
-    def download_mods(game):
+    def download_mods(self, game):
         messagebox.showinfo("Download Mods", "This feature is not yet implemented.")
         
     
-    def download_saves(self, game):
+    def download_saves(self, game, button):
         cache_save_lookup_result = self.cache.get_cached_data("switch_saves")
+        button.configure(state="disabled",text="Fetching...")
         if cache_save_lookup_result is None or (time.time() - cache_save_lookup_result["time"]) > 86400: # 1 day 
-            print("Fetching saves")
+            
             saves = get_file_links_from_page("https://new.mirror.lewd.wtf/archive/nintendo/switch/savegames/", ".zip", get_headers(self.settings.app.token))
             if not all(saves):
                 messagebox.showerror("Fetch Error", f"There was an error while attempting to fetch the saves:\n\n {saves[1]}")
+                button.configure(state="normal", text="Download Saves")
                 return
             links = []
             for save in saves[1]:
@@ -401,7 +407,10 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
         for save in saves:
             if game.title_id in save:
                 title_saves.append(save)
+        
         if len(title_saves) == 0:
             messagebox.showerror("Fetch Error", "There are no saves available for this game.")
+            button.configure(state="normal", text="Download Saves")
             return
-        SavesBrowser(title=game.name, master=self, saves=title_saves, title_id=game.title_id)
+        self.wait_window(SavesBrowser(title=game.name, master=self, saves=title_saves, title_id=game.title_id))
+        button.configure(state="normal", text="Download Saves")

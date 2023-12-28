@@ -180,8 +180,8 @@ class EmulatorManager(customtkinter.CTk):
         self.settings_frame.revert_settings()
 
     def restart(self):
-        for after_id in self.tk.eval('after info').split():
-            self.after_cancel(after_id)
+        # for after_id in self.tk.eval('after info').split():
+        #     self.after_cancel(after_id)
         pos = [self.winfo_x(), self.winfo_y()]
         self.destroy()
         load_customtkinter_themes(os.path.join(self.root_dir, "assets", "themes"))

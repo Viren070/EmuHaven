@@ -1,7 +1,15 @@
-import customtkinter 
-
-from urllib.parse import unquote
+import os
 import textwrap
+from tkinter import messagebox
+from urllib.parse import unquote
+from threading import Thread
+
+import customtkinter
+
+from gui.windows.progress_window import ProgressWindow
+from utils.downloader import download_through_stream
+from utils.requests_utils import create_get_connection, get_headers
+
 
 class SavesBrowser(customtkinter.CTkToplevel):
     def __init__(self, title, saves, title_id, *args, **kwargs):
@@ -11,6 +19,8 @@ class SavesBrowser(customtkinter.CTkToplevel):
         self.build_frame()
         self.grab_set()
         self.focus_set()
+        self.lift()
+        self.attributes("-topmost", True)
 
     def build_frame(self):
         self.resizable(False, True)
@@ -33,10 +43,32 @@ class SavesBrowser(customtkinter.CTkToplevel):
 
             # Create a button for the save
             save_button_text = textwrap.fill(filename, width=42)  # Insert newlines into the filename
-            save_button = customtkinter.CTkButton(scrollable_frame, text=save_button_text, font=customtkinter.CTkFont("Arial", 20), anchor="w", command=lambda save=save: self.download_save(save))
+            save_button = customtkinter.CTkButton(scrollable_frame, text=save_button_text, font=customtkinter.CTkFont("Arial", 20), anchor="w", command=lambda save=save: Thread(target=self.download_save, args=(save, )).start())
             save_button.grid(row=i, column=0, padx=(2,10), pady=5, sticky="ew")
             
         # Configure the grid to allocate all extra space to the scrollable frame
         self.grid_rowconfigure(2, weight=1)
         self.grid_columnconfigure(0, weight=1)
+        
+    def download_save(self, save):
+        progress_window = ProgressWindow(title="Downloading Save")
+        progress_frame = progress_window.progress_frame
+        progress_frame.start_download("Save File", 0)
+        progress_frame.update_status_label("Fetching save file...")
+        response_result = create_get_connection(save, headers=get_headers(), stream=True)
+        if not all(response_result):
+            messagebox.showerror("Download Error", "An error occurred while downloading the save file.")
+            progress_window.destroy()
+            return 
+        response = response_result[1]
+        filename = unquote(save).split('/')[-1].split(".zip")[-2]
+        download_path = os.path.join(os.path.expanduser("~"), "Desktop", f"{filename}.zip")
+        progress_frame.start_download(filename, int(response.headers.get("content-length", 0)))
+        download_result = download_through_stream(response, download_path, progress_frame, chunk_size=1024*128)
+        progress_frame.complete_download()
+        progress_window.destroy()
+        if not all(download_result):
+            messagebox.showerror("Download Error", "An error occurred while downloading the save file.")
+            return 
+        messagebox.showinfo("Download Complete", "The save file has been downloaded to your desktop.")
         
