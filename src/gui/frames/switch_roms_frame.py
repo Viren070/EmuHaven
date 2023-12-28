@@ -412,5 +412,5 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
             messagebox.showerror("Fetch Error", "There are no saves available for this game.")
             button.configure(state="normal", text="Download Saves")
             return
-        self.wait_window(SavesBrowser(title=game.name, master=self, saves=title_saves, title_id=game.title_id))
+        SavesBrowser(title=game.name, master=self, saves=title_saves, title_id=game.title_id)
         button.configure(state="normal", text="Download Saves")
