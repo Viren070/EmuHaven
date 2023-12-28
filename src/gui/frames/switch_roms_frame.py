@@ -136,7 +136,8 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
         print("REFRESHING...")
         self.refresh_button.configure(state="disabled", text="Refreshing...")
         self.refreshing = True 
-        self.check_titles_db()
+        if not self.check_titles_db():
+            return 
         self.titles = [SwitchTitle(self, title_id, self.settings, self.cache) for title_id in self.get_title_ids()]  # Create game objects
         self.total_pages = (len(self.searched_titles) + self.results_per_page - 1) // self.results_per_page
         self.total_pages_label.configure(text=f"/ {self.total_pages}")
@@ -310,7 +311,7 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
             data = self.cache.get_cached_data("titlesDB [PATH]")
             import time 
             if time.time() - data["time"] < 604800:  # 7 days 
-                return 
+                return True 
         progress_window = ProgressWindow(master=self, title="Downloading TitleDB",)
         Thread(target=self.download_titles_db, args=(progress_window,)).start()
 
