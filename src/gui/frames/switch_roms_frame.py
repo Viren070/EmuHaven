@@ -268,7 +268,7 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
             game_cover = customtkinter.CTkButton(game_frame, hover_color=None, border_width=0, text="", image=game.cover)
             game.button = game_cover
             game_cover.bind("<Button-3>", command=lambda event, game=game: game.choose_custom_cover())
-            game_cover.bind("<Shift-Button-3>", command=lambda event, game=game: game.download_cover())
+            game_cover.bind("<Shift-Button-3>", command=lambda event, game=game: Thread(target=game.download_cover, args=(False, )).start())
             game_cover.grid(row=0, column=0, rowspan=3, padx=10, pady=5, sticky="nsew")  # Span 3 rows
 
             # Game name label
