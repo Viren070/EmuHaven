@@ -86,7 +86,7 @@ class Cache:
             return (False, f"Error moving file: {e}")
 
         self.add_to_index(name, new_path)
-        
+        return (True, )
     def move_file_to_cache(self, name, file_path):
         if not os.path.isfile(file_path):
             return (False, f"No such file: '{file_path}'")
@@ -101,5 +101,5 @@ class Cache:
             return (False, f"Error moving file: {e}")
 
         self.add_to_index(name, new_path)
-        return True
+        return (True, )
         
