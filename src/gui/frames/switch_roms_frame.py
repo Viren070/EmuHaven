@@ -295,7 +295,7 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
 
             # Game description text box
             game_desc_text = customtkinter.CTkTextbox(game_frame, height=130, border_width=0, fg_color="transparent")
-            game_desc_text.insert("1.0", textwrap.fill(game.description, width=57))
+            game_desc_text.insert("1.0", game.description)
             game_desc_text.configure(state="disabled")  # Make the text box read-only
             game_desc_text.grid(row=1, column=1, padx=10, columnspan=2, pady=5, sticky="nsew")
 
