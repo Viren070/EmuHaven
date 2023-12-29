@@ -26,11 +26,11 @@ class Metadata:
                 "installed_key_version": ""
             }
         }
-        if os.path.exists("metadata.json"):
-            self.metadata_file = "metadata.json"
+        if os.path.exists(os.path.join(os.getcwd(), "PORTABLE.txt")):
+            self.metadata_file = os.path.join(os.getcwd(), "metadata.json")
         else:
-            self.metadata_file = os.path.join(
-                os.getenv("APPDATA"), "Emulator Manager", "metadata.json")
+            self.metadata_file = os.path.join(os.getenv("APPDATA"), "Emulator Manager", "metadata.json")
+
         if not os.path.exists(self.metadata_file) or not self.is_metadata_valid():
             self.create_metadata_file()
 

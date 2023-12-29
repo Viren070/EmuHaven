@@ -11,11 +11,10 @@ class Settings:
     def __init__(self, master, root_dir):
         self.root_dir = root_dir
         self.version = "3"
-        if os.path.exists(os.path.join("config", "settings.json")):
-            self.settings_file = os.path.join("config", "settings.json")
+        if os.path.exists(os.path.join(os.getcwd(), "PORTABLE.txt")):
+            self.settings_file = os.path.join(os.getcwd(), "config", "settings.json")
         else:
-            self.settings_file = os.path.join(
-                os.getenv("APPDATA"), "Emulator Manager", "config", "settings.json")
+            self.settings_file = os.path.join(os.getenv("APPDATA"), "Emulator Manager", "config", "settings.json")
         self.master = master
 
         self.app = AppSettings(self)
