@@ -8,7 +8,7 @@ class Cache:
         self.settings = settings
         self.metadata = metadata
         if os.path.exists(os.path.join(os.getcwd(), "PORTABLE.txt")):
-            self.cache_directory = os.path.join(os.getcwd(), "cache")
+            self.cache_directory = os.path.join(os.getcwd(), "portable", "cache")
         else:
             self.cache_directory = os.path.join(os.getenv("APPDATA"), "Emulator Manager", "cache")
         if not os.path.exists(self.cache_directory):

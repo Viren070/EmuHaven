@@ -27,7 +27,7 @@ class Metadata:
             }
         }
         if os.path.exists(os.path.join(os.getcwd(), "PORTABLE.txt")):
-            self.metadata_file = os.path.join(os.getcwd(), "metadata.json")
+            self.metadata_file = os.path.join(os.getcwd(), "portable", "metadata.json")
         else:
             self.metadata_file = os.path.join(os.getenv("APPDATA"), "Emulator Manager", "metadata.json")
 

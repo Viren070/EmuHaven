@@ -12,7 +12,7 @@ class Settings:
         self.root_dir = root_dir
         self.version = "3"
         if os.path.exists(os.path.join(os.getcwd(), "PORTABLE.txt")):
-            self.settings_file = os.path.join(os.getcwd(), "config", "settings.json")
+            self.settings_file = os.path.join(os.getcwd(), "portable", "config", "settings.json")
         else:
             self.settings_file = os.path.join(os.getenv("APPDATA"), "Emulator Manager", "config", "settings.json")
         self.master = master

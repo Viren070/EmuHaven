@@ -86,7 +86,7 @@ def load_customtkinter_themes(theme_folder):
     VALID_COLOUR_THEMES = get_colour_themes(theme_folder)
     default_themes = ["blue", "dark-blue", "green"]
     if os.path.exists(os.path.join(os.getcwd(), "PORTABLE.txt")):
-        path_to_settings = os.path.join(os.getcwd(), "config", "settings.json")
+        path_to_settings = os.path.join(os.getcwd(), "portable", "config", "settings.json")
     else:
         path_to_settings = os.path.join(os.getenv("APPDATA"), "Emulator Manager", "config", "settings.json")
     appearance_mode = 'dark'
