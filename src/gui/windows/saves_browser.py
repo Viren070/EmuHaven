@@ -16,15 +16,16 @@ class SavesBrowser(customtkinter.CTkToplevel):
         super().__init__(*args, **kwargs)
         self.title(title)
         self.saves = saves
-        self.build_frame()
-        self.grab_set()
-        self.focus_set()
-        self.lift()
-        self.attributes("-topmost", True)
+        
+        self.lift()  # lift window on top
+        self.attributes("-topmost", True)  # stay on top
+        self.protocol("WM_DELETE_WINDOW", self.on_closing)
+        self.after(30, self.build_frame)  # create widgets with slight delay, to avoid white flickering of background
+        self.grab_set()  # make other windows not clickable
 
     def build_frame(self):
         self.resizable(False, True)
-        self.minsize(400, 400)
+        self.minsize(415, 400)
         self.geometry("415x600")
         # Create a label for the title
         title_label = customtkinter.CTkLabel(self, text="Download Saves", font=customtkinter.CTkFont("Arial", 20), anchor="center")
@@ -72,3 +73,6 @@ class SavesBrowser(customtkinter.CTkToplevel):
             return 
         messagebox.showinfo("Download Complete", "The save file has been downloaded to your desktop.")
         
+    def on_closing(self):
+        self.grab_release()
+        self.destroy()  # destroy window
