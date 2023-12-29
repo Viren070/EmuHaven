@@ -152,7 +152,7 @@ class YuzuFrame(EmulatorFrame):
         self.rom_frame.grid(row=0, column=0,  padx=20, pady=20, sticky="nsew")
 
     def manage_roms_button_event(self):
-        self.rom_frame.current_roms_frame.refresh_title_list()
+        Thread(target=self.rom_frame.current_roms_frame.refresh_title_list).start()
         self.select_frame_by_name("roms")
         
     def configure_data_buttons(self, **kwargs):

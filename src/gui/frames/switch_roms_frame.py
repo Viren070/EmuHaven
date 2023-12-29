@@ -163,7 +163,7 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
         
         self.refresh_frame = customtkinter.CTkFrame(self, corner_radius=50)
         self.refresh_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nw")
-        self.refresh_button = customtkinter.CTkButton(self.refresh_frame, text="Refresh", width=100, corner_radius=50, command=self.refresh_title_list)
+        self.refresh_button = customtkinter.CTkButton(self.refresh_frame, text="Refresh", width=100, corner_radius=50, command=lambda: Thread(target=self.refresh_title_list).start())
         self.refresh_button.grid(row=0, column=0, padx=5, pady=5)
         
         search_frame = customtkinter.CTkFrame(self, corner_radius=50)
@@ -387,9 +387,10 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
         if not all(move_to_cache_result):
             messagebox.showerror("Download Error", f"There was an error while attempting to add the downloaded database to cache :\n\n {move_to_cache_result[1]}")
             return
+        
         messagebox.showinfo("Download Complete", "The TitleDB has been downloaded successfully.")
-        return download_result
-
+        Thread(target=self.refresh_title_list).start()  
+            
     def download_mods(self, game):
         messagebox.showinfo("Download Mods", "This feature is not yet implemented.")
         
