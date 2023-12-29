@@ -14,8 +14,6 @@ class YuzuSettings:
             'installer_path': "",
             'use_yuzu_installer': 'False',
             'current_yuzu_channel': "Mainline",
-            'rom_directory': os.path.join(os.getcwd(), "ROMS",)
-
         }
         self._settings = self.default_settings.copy()
 
@@ -73,9 +71,6 @@ class YuzuSettings:
 
     install_directory = property(lambda self: self._get_property('install_directory'),
                                  lambda self, value: self._set_directory_property('install_directory', value))
-
-    rom_directory = property(lambda self: self._get_property('rom_directory'),
-                             lambda self, value: self._set_directory_property('rom_directory', value))
 
     installer_path = property(lambda self: self._get_property('installer_path'),
                               lambda self, value: self._set_path_property('installer_path', value))

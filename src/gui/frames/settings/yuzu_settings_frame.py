@@ -28,12 +28,6 @@ class YuzuSettingsFrame(customtkinter.CTkFrame):
         customtkinter.CTkButton(self, text="Browse", width=50, command=lambda entry_widget=self.install_directory_entry: self.update_with_explorer(entry_widget)).grid(row=2, column=3, padx=5, pady=5, sticky="E")
         ttk.Separator(self, orient='horizontal').grid(row=3, columnspan=4, sticky="ew")
 
-        customtkinter.CTkLabel(self, text="ROM Directory: ").grid(row=8, column=0, padx=10, pady=10, sticky="w")
-        self.rom_directory_entry = customtkinter.CTkEntry(self, width=300)
-        self.rom_directory_entry.grid(row=8, column=2, padx=10, pady=10, sticky="e")
-        customtkinter.CTkButton(self, text="Browse", width=50, command=lambda entry_widget=self.rom_directory_entry: self.update_with_explorer(entry_widget)).grid(row=8, column=3, padx=5, sticky="E")
-        ttk.Separator(self, orient='horizontal').grid(row=9, columnspan=4, sticky="ew")
-
         customtkinter.CTkLabel(self, text="Yuzu Installer: ").grid(row=10, column=0, padx=10, pady=10, sticky="w")
         self.yuzu_installer_path_entry = customtkinter.CTkEntry(self, width=300)
         self.yuzu_installer_path_entry.grid(row=10, column=2, padx=10, pady=10, sticky="e")
@@ -53,7 +47,6 @@ class YuzuSettingsFrame(customtkinter.CTkFrame):
         self.matching_dict = {
             "user_directory": self.user_directory_entry,
             "install_directory": self.install_directory_entry,
-            "rom_directory": self.rom_directory_entry,
             "installer_path":  self.yuzu_installer_path_entry
         }
 

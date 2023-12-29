@@ -47,8 +47,7 @@ class Settings:
                 "install_directory": "",
                 "installer_path": "",
                 "use_yuzu_installer": "",
-                "current_yuzu_channel": "",
-                "rom_directory": ""
+                "current_yuzu_channel": ""
 
             },
             "app_settings": {
@@ -162,7 +161,6 @@ class Settings:
             "yuzu_settings": {
                 "user_directory": self.yuzu.user_directory,
                 "install_directory": self.yuzu.install_directory,
-                "rom_directory": self.yuzu.rom_directory,
                 "installer_path": self.yuzu.installer_path,
                 "use_yuzu_installer":  self.yuzu.use_yuzu_installer,
                 "current_yuzu_channel": self.yuzu.current_yuzu_channel
