@@ -49,7 +49,7 @@ def handle_launch(arguments):
     from settings.settings import Settings
     from settings.metadata import Metadata
     from gui.windows.progress_window import ProgressWindow
-    progress_window = ProgressWindow("Updating")
+    progress_window = ProgressWindow(title="Updating")
     progress_window.settings = Settings(progress_window, os.path.dirname(os.path.realpath(__file__)))
     progress_window.metadata = Metadata(progress_window, progress_window.settings)
     if arguments:

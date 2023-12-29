@@ -9,8 +9,7 @@ class RyujinxSettings:
             master.root_dir, "Emulator Files")
         self.default_settings = {
             'user_directory': os.path.join(os.getenv("APPDATA"), "Ryujinx"),
-            'install_directory': os.path.join(os.getenv("LOCALAPPDATA"), "Ryujinx"),
-            'rom_directory': os.path.join(os.getcwd(), "ROMS",)
+            'install_directory': os.path.join(os.getenv("LOCALAPPDATA"), "Ryujinx")
 
         }
         self._settings = self.default_settings.copy()
@@ -43,5 +42,3 @@ class RyujinxSettings:
     install_directory = property(lambda self: self._get_property('install_directory'),
                                  lambda self, value: self._set_directory_property('install_directory', value))
 
-    rom_directory = property(lambda self: self._get_property('rom_directory'),
-                             lambda self, value: self._set_directory_property('rom_directory', value))

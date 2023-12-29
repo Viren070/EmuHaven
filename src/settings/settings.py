@@ -47,9 +47,12 @@ class Settings:
                 "install_directory": "",
                 "installer_path": "",
                 "use_yuzu_installer": "",
-                "current_yuzu_channel": "",
-                "rom_directory": ""
+                "current_yuzu_channel": ""
 
+            },
+            "ryujinx_settings": {
+                "user_directory": "",
+                "install_directory": ""
             },
             "app_settings": {
                 "image_paths": {
@@ -67,6 +70,7 @@ class Settings:
                     "play_light": "",
                     "settings_dark": "",
                     "settings_light": "",
+                    "placeholder_icon": ""
                 },
                 "appearance_mode": "",
                 "colour_theme": "",
@@ -85,7 +89,7 @@ class Settings:
         with open(self.settings_file, "r", encoding="utf-8") as f:
             settings = json.load(f)
         image_paths = settings["app_settings"]["image_paths"]
-        if len(image_paths) != 14:
+        if len(image_paths) != 15:
             settings["app_settings"]["image_paths"] = {
                 "dolphin_logo": '',
                 "dolphin_banner_dark": '',
@@ -101,6 +105,7 @@ class Settings:
                 "play_light": "",
                 "settings_dark": "",
                 "settings_light": "",
+                "placeholder_icon": ""
             }
         for name, path in settings["app_settings"]["image_paths"].items():
             path = os.path.join(image_path, f"{name}.png")
@@ -123,10 +128,13 @@ class Settings:
         sections = {
             "dolphin_settings": self.dolphin,
             "yuzu_settings": self.yuzu,
+            "ryujinx_settings": self.ryujinx,
             "app_settings": self.app
         }
 
         for section_name, section_obj in sections.items():
+            if section_name not in settings:
+                continue
             section_settings = settings[section_name]
             for setting_name, value in section_settings.items():
                 if setting_name != "image_paths" and os.path.join("Temp", "_MEI") in os.path.normpath(value):
@@ -160,11 +168,14 @@ class Settings:
             "yuzu_settings": {
                 "user_directory": self.yuzu.user_directory,
                 "install_directory": self.yuzu.install_directory,
-                "rom_directory": self.yuzu.rom_directory,
                 "installer_path": self.yuzu.installer_path,
                 "use_yuzu_installer":  self.yuzu.use_yuzu_installer,
                 "current_yuzu_channel": self.yuzu.current_yuzu_channel
 
+            },
+            "ryujinx_settings": {
+                "user_directory": self.ryujinx.user_directory,
+                "install_directory": self.ryujinx.install_directory
             },
             "app_settings": {
                 "image_paths": self.get_image_path("all"),
@@ -179,6 +190,8 @@ class Settings:
             json.dump(settings, f)
 
     def settings_file_valid(self):
+        if not os.path.exists(self.settings_file):
+            return False
         with open(self.settings_file, "r", encoding="utf-8") as file:
             try:
                 settings = json.load(file)

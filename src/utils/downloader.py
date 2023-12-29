@@ -1,6 +1,5 @@
 from requests.exceptions import RequestException
 
-
 def download_through_stream(response, download_path, progress_frame, chunk_size):
     with open(download_path, 'wb') as f:
         downloaded_bytes = 0
@@ -19,3 +18,13 @@ def download_through_stream(response, download_path, progress_frame, chunk_size)
             progress_frame.grid_forget()
             return (False, error)
     return (True, download_path)
+
+def download_file(response, download_path):
+    try:
+        response.raise_for_status()
+        with open(download_path, 'wb') as f:
+            f.write(response.content)
+        return (True, download_path)
+    except RequestException as error:
+        return (False, error)
+    

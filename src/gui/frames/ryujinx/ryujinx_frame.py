@@ -16,9 +16,10 @@ from gui.windows.folder_selector import FolderSelector
 
 FOLDERS = ["bis", "games", "mods", "profiles", "sdcard", "system"]
 class RyujinxFrame(EmulatorFrame):
-    def __init__(self, parent_frame, settings, metadata):
+    def __init__(self, parent_frame, settings, metadata, cache):
         super().__init__(parent_frame, settings, metadata)
         self.ryujinx = Ryujinx(self, settings, metadata)
+        self.cache = cache
         self.ryujinx_version = None
         self.installed_firmware_version = "Unknown"
         self.installed_key_version = "Unknown"
@@ -112,8 +113,12 @@ class RyujinxFrame(EmulatorFrame):
         self.manage_roms_frame = customtkinter.CTkFrame(self, corner_radius=0, bg_color="transparent")
         self.manage_roms_frame.grid_columnconfigure(0, weight=1)
         self.manage_roms_frame.grid_rowconfigure(0, weight=1)
-        self.rom_frame = RyujinxROMFrame(self.manage_roms_frame, self.ryujinx, self.settings)
+        self.rom_frame = RyujinxROMFrame(self.manage_roms_frame, self.settings, self.cache)
         self.rom_frame.grid(row=0, column=0,  padx=20, pady=20, sticky="nsew")
+        
+    def manage_roms_button_event(self):
+        Thread(target=self.rom_frame.current_roms_frame.refresh_title_list).start()
+        self.select_frame_by_name("roms")
 
     def configure_data_buttons(self, **kwargs):
         self.delete_data_button.configure(**kwargs)
