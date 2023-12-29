@@ -122,13 +122,14 @@ class SwitchTitle:
             cache_path = os.path.join(self.cache.cache_directory, "images", f"{self.title_id}.png")
             shutil.copy2(new_cover, cache_path)
 class SwitchROMSFrame(customtkinter.CTkFrame):
-    def __init__(self, master, settings, cache, get_title_ids_func):
+    def __init__(self, master, settings, cache, get_title_ids_func, emulator):
         super().__init__(master, height=700)
         self.get_title_ids = get_title_ids_func
         self.results_per_page = 10
         self.refreshing = False
         self.settings = settings
         self.cache = cache
+        self.emulator = emulator
         self.current_page = None
         self.update_in_progress = False
         self.searching = False
@@ -265,6 +266,13 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
             widget.grid_forget()
             
         row_counter = 0
+        if not self.searched_titles and not self.titles:
+            # Create a label with text that depends on the value of self.emulator
+            emulator_specific_text = " and you have launched them at least once" if self.emulator == "ryujinx" else ""
+            text = f"It appears you have no games. Any games that are visible on {self.emulator.capitalize()} {emulator_specific_text} will show up here. If you have games on {self.emulator.capitalize()} that are not showing up here, please make sure that you have the correct user directory set in the settings."
+            
+            no_games_label = customtkinter.CTkLabel(self.result_frame, text=textwrap.fill(text, 60), font=customtkinter.CTkFont("Arial", 16), anchor="center")
+            no_games_label.grid(row=0, column=0, sticky="nsew")
         for i, game in enumerate(self.searched_titles):
             if i > end_index:
                 break

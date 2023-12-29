@@ -35,5 +35,5 @@ class RyujinxROMFrame(customtkinter.CTkTabview):
         self.tab("My ROMs").grid_columnconfigure(0, weight=1)
         self.tab("My ROMs").grid_rowconfigure(0, weight=1)
 
-        self.current_roms_frame = SwitchROMSFrame(self.tab("My ROMs"), self.settings, self.cache, self.get_title_ids)
+        self.current_roms_frame = SwitchROMSFrame(self.tab("My ROMs"), self.settings, self.cache, self.get_title_ids, "ryujinx")
         self.current_roms_frame.grid(row=0, column=0, sticky="nsew")
