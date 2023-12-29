@@ -69,7 +69,7 @@ class Cache:
     
     def move_image_to_cache(self, name, image_path):
         if not os.path.isfile(image_path):
-            raise FileNotFoundError(f"No such file: '{image_path}'")
+            return (False, "No such file: '{image_path}'")
 
         new_path = os.path.join(self.cache_directory, "images", os.path.basename(image_path))
         os.makedirs(os.path.dirname(new_path), exist_ok=True)
@@ -78,13 +78,13 @@ class Cache:
         try:
             os.rename(image_path, new_path)
         except OSError as e:
-            raise OSError(f"Error moving file: {e}")
+            return (False, f"Error moving file: {e}")
 
         self.add_to_index(name, new_path)
         
     def move_file_to_cache(self, name, file_path):
         if not os.path.isfile(file_path):
-            raise FileNotFoundError(f"No such file: '{file_path}'")
+            return (False, f"No such file: '{file_path}'")
 
         new_path = os.path.join(self.cache_directory, "files", os.path.basename(file_path))
         os.makedirs(os.path.dirname(new_path), exist_ok=True)
@@ -93,6 +93,8 @@ class Cache:
         try:
             os.rename(file_path, new_path)
         except OSError as e:
-            raise OSError(f"Error moving file: {e}")
+            return (False, f"Error moving file: {e}")
 
         self.add_to_index(name, new_path)
+        return True
+        
