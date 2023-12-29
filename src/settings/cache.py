@@ -14,14 +14,19 @@ class Cache:
         if not os.path.exists(self.cache_directory):
             os.makedirs(self.cache_directory)
         self.index_file = os.path.join(self.cache_directory, "index.json")
-        if not os.path.exists(self.index_file):
+        
+        if not self.is_index_file_valid():
             self.create_index_file()
-        else:
-            with open(self.index_file, "r", encoding="utf-8") as file:
-                try:
-                    json.load(file)
-                except json.JSONDecodeError:
-                    self.create_index_file()
+
+    def is_index_file_valid(self):
+        if not os.path.exists(self.index_file):
+            return False
+        with open(self.index_file, "r", encoding="utf-8") as file:
+            try:
+                json.load(file)
+            except json.JSONDecodeError:
+                return False
+        return True
 
     def create_index_file(self):
         os.makedirs(os.path.dirname(self.index_file), exist_ok=True)
@@ -29,7 +34,7 @@ class Cache:
             json.dump({}, file)
             
     def add_to_index(self, key, data):
-        if not os.path.exists(self.index_file):
+        if not self.is_index_file_valid():
             self.create_index_file()
         with open(self.index_file, "r", encoding="utf-8") as file:
             index = json.load(file)
@@ -42,25 +47,25 @@ class Cache:
             json.dump(index, file)
     
     def remove_from_index(self, key):
-        if not os.path.exists(self.index_file):
+        if not self.is_index_file_valid():
             self.create_index_file()
         with open(self.index_file, "r", encoding="utf-8") as file:
             index = json.load(file)
         if key in index:
-            if os.path.isfile(index[key]["data"]):
+            if os.path.isfile(str(index[key]["data"])):
                 os.remove(index[key]["data"])
             del index[key]
         with open(self.index_file, "w", encoding="utf-8") as file:
             json.dump(index, file)
             
     def get_cached_data(self, key):
-        if not os.path.exists(self.index_file):
+        if not self.is_index_file_valid():
             self.create_index_file()
             return None
         with open(self.index_file, "r", encoding="utf-8") as file:
             index = json.load(file)
         if key in index:
-            if "[PATH]" in key and (not os.path.exists(index[key]["data"] or not os.path.isfile(index[key]["data"]))):
+            if "[PATH]" in key and (not os.path.exists(str(index[key]["data"]) or not os.path.isfile(str(index[key]["data"])))):
                 self.remove_from_index(key)
                 return None
             return index[key]
