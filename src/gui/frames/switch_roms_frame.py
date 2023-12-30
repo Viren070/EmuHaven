@@ -26,6 +26,7 @@ class SwitchTitle:
         self.description = "No description available. Please refresh the list to try again."
         self.titles_db = master.titles_db
         self.button = None
+        self.frame = None  # The frame that contains the title
         self.settings = settings
         self.cache = cache
         cache_metadata_lookup_result = self.cache.get_cached_data(self.title_id)
@@ -115,8 +116,8 @@ class SwitchTitle:
             shutil.copy2(new_cover, cache_path)
 
     def update_title_text(self, width):
-        char_width = self.master.char_width  # Measure the width of the widest characters
-        available_width = width - 264  # 224 for the cover image and 40 for padding
+        char_width = 11  # mode of all alphabetical charters and 3 unicode characters (2014, 2019, 2122) in Arial 16 
+        available_width = width - 244  # 224 for the cover image and 40 for padding
         max_length = available_width // char_width
         if max_length < 0:
             max_length = 30
@@ -283,6 +284,7 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
 
             # Game cover button
             game_cover = customtkinter.CTkButton(game_frame, hover_color=None, border_width=0, text="", image=game.cover)
+            game.frame = game_frame
             game.button = game_cover
             game_cover.bind("<Button-3>", command=lambda event, game=game: game.choose_custom_cover())
             game_cover.bind("<Shift-Button-3>", command=lambda event, game=game: Thread(target=game.download_cover, args=(False, )).start())
@@ -307,7 +309,7 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
             download_saves_button.configure(command=lambda game=game, button=download_saves_button: Thread(target=self.download_saves, args=(game, button,)).start())
             download_saves_button.grid(row=2, column=2, padx=10, pady=10, sticky="se")
 
-            game.update_title_text(self.result_frame.winfo_width())
+            game.update_title_text(game.frame.winfo_width())
             row_counter += 1
 
         self.current_page_entry.delete(0, customtkinter.END)
