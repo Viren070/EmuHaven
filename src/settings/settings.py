@@ -57,7 +57,9 @@ class Settings:
             },
             "xenia_settings": {
                 "user_directory": "",
-                "install_directory": ""
+                "install_directory": "",
+                "rom_directory": "",
+                "current_xenia_channel": "",
             },
             "app_settings": {
                 "image_paths": {
@@ -188,7 +190,9 @@ class Settings:
             },
             "xenia_settings": {
                 "user_directory": self.xenia.user_directory,
-                "install_directory": self.xenia.install_directory
+                "install_directory": self.xenia.install_directory,
+                "current_xenia_channel": self.xenia.current_xenia_channel,
+                "rom_directory": self.xenia.rom_directory
             },
             "app_settings": {
                 "image_paths": self.get_image_path("all"),
