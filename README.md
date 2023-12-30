@@ -132,6 +132,10 @@ The methodology is as follows:
 - Search the cache for the icon of each title and use the icon if available. If the icon has not been cached, then use a placeholder_icon for now and download the icon and update the image and cache it.
 - Generate a frame for each title. The cover will take up the left side of the frame with the title and description alongisde the download saves and download mdos button to the right.
 
+The icon for each game can be right clicked to choose a custom image as the cover. 
+
+If you hold shift while right clicking the cover, the app will attempt to download the original icon again.
+
 Upon clicking the download saves button, the presence of the list of all saves will be checked for in cache. If the list does not exist in the cache, then it will be fetched from https://new.mirror.lewd.wtf/archive/nintendo/switch/savegames/. 
 Using the games title ID, the list of saves will be searched for any saves of the corresponding title. If no saves are found, then show an error saying no saves were found. Otherwise, initialise a new window that will have a scrollable frame containing a button for each save that was found. When clicked, open a new ProgressWindow that will show the progress of the save being downloaded. 
 
