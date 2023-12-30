@@ -157,7 +157,7 @@ class Metadata:
                     xenia_master_exe_path) else self.update_installed_version("xenia_master", "")
             case "xenia_canary":
                 xenia_canary_exe_path = os.path.join(
-                    self.settings.xenia.install_directory, "canary", "xenia.exe")
+                    self.settings.xenia.install_directory, "canary", "xenia_canary.exe")
                 version = current_contents["xenia"]["installed_canary_version"] if os.path.exists(
                     xenia_canary_exe_path) else self.update_installed_version("xenia_canary", "")
             case _:
