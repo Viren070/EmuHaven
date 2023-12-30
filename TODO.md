@@ -26,7 +26,7 @@
 - [x] More accurate download speed by averaging across set amount of intervals and not since starting time
 
 ## For 0.13
-- [ ] Add Xenia support for both master and nightly builds. 
+- [x] Add Xenia support for both master and canary builds. 
 - [ ] redesign "My ROMS" section for yuzu and ryujinx
 
     - Use cache\game_list\ for yuzu
