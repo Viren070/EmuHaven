@@ -139,19 +139,55 @@ class XeniaFrame(EmulatorFrame):
         self.settings.update_file()
         if value == "Master":
             self.image_button.configure(image=self.xenia_banner)
+            self.launch_button.configure(text="Launch Xenia ")
+            self.install_button.configure(text="Install Xenia")
+            self.delete_button.configure(text="Delete Xenia")
         elif value == "Canary":
             self.image_button.configure(image=self.xenia_canary_banner)
-
+            self.launch_button.configure(text="Launch Xenia Canary")
+            self.install_button.configure(text="Install Xenia Canary")
+            self.delete_button.configure(text="Delete Xenia Canary")
+        self.fetch_versions()
 
     def launch_button_event(self, event=None):
-        pass 
-
+        if event is None or self.launch_button.cget("state") == "disabled":
+            return 
+        if not os.path.exists(os.path.join(self.settings.xenia.install_directory, self.selected_channel.get(), "xenia.exe" if self.selected_channel.get() == "Master" else "xenia_canary.exe")):
+            messagebox.showerror("Error", f"Could not find a Xenia {self.selected_channel.get()} installation at {os.path.join(self.settings.xenia.install_directory, self.selected_channel.get())}.")
+            return
+        self.configure_action_buttons("disabled")
+        thread = Thread(target=self.xenia.launch_xenia_handler, args=(self.selected_channel.get(),))
+        thread.start()
+        Thread(target=self.enable_buttons_after_thread, args=(thread, ["action"],)).start()
+        
     def install_button_event(self, event=None):
-        pass 
-
+        if event is None or self.install_button.cget("state") == "disabled":
+            return
+        if os.path.exists(os.path.join(self.settings.xenia.install_directory, self.selected_channel.get())) and not messagebox.askyesno("Directory Exists", f"The directory {os.path.join(self.settings.xenia.install_directory, self.selected_channel.get())} already exists, do you wish to continue?"):
+            return
+        path_to_archive = None
+        if event.state & 1:
+            path_to_archive = PathDialog(filetypes=(".zip",), title="Custom Xenia Archive", text=f"Enter path to Xenia {self.selected_channel.get()} archive: ").get_input()
+            if not all(path_to_archive):
+                if path_to_archive[1] is not None:
+                    messagebox.showerror("Error", "The path you have provided is invalid")
+                return
+            path_to_archive = path_to_archive[1]
+        self.configure_action_buttons("disabled")
+        thread = Thread(target=self.xenia.install_xenia_handler, args=(self.selected_channel.get(), path_to_archive))
+        thread.start()
+        Thread(target=self.enable_buttons_after_thread, args=(thread, ["action"],)).start()
+        
     def delete_button_event(self, event=None):
-        pass 
-
+        if not os.path.exists(os.path.join(self.settings.xenia.install_directory, self.selected_channel.get())):
+            messagebox.showerror("Error", f"Could not find a Xenia {self.selected_channel.get()} installation at {os.path.join(self.settings.xenia.install_directory, self.selected_channel.get())}.")
+            return
+        if not messagebox.askyesno("Confirmation", "This will delete the Xenia installation. This action cannot be undone, are you sure you wish to continue?"):
+            return
+        self.configure_action_buttons("disabled")
+        thread = Thread(target=self.xenia.delete_xenia, args=(self.selected_channel.get(),))
+        thread.start()
+        Thread(target=self.enable_buttons_after_thread, args=(thread, ["action"],)).start()
 
     def import_data_button_event(self):
         directory = None
@@ -219,33 +255,21 @@ class XeniaFrame(EmulatorFrame):
     def enable_buttons_after_thread(self, thread, buttons):
         thread.join()
         for button in buttons:
-            if button == "mainline":
-                self.configure_mainline_buttons("normal", text="Launch Yuzu  ", width=200)
-            elif button == "early_access":
-                self.configure_early_access_buttons("normal", text="Launch Yuzu EA  ", width=200)
+            if button == "action":
+                self.configure_action_buttons("normal", text="Launch Xenia  ", width=200)
             elif button == "data":
                 self.configure_data_buttons(state="normal")
         self.fetch_versions()
 
     def fetch_versions(self, installed_only=True):
-        self.installed_mainline_version = self.metadata.get_installed_version("mainline")
-        self.installed_early_access_version = self.metadata.get_installed_version("early_access")
-        self.installed_firmware_version = self.metadata.get_installed_version("yuzu_firmware")
-        self.installed_key_version = self.metadata.get_installed_version("yuzu_keys")
+        self.installed_xenia_version = self.metadata.get_installed_version("xenia_master")
+        self.installed_xenia_canary_version = self.metadata.get_installed_version("xenia_canary")
         self.update_version_text()
 
     def update_version_text(self):
-        if self.early_access_version is not None and self.install_early_access_button.cget("state") != "disabled":
-            self.install_early_access_button.configure(text=f"Install Yuzu EA {self.early_access_version}")
-        if self.mainline_version is not None and self.install_mainline_button.cget("state") != "disabled":
-            self.install_mainline_button.configure(text=f"Install Yuzu {self.mainline_version}")
-        if self.installed_mainline_version != "":
-            if self.launch_mainline_button.cget("state") != "disabled":
-                self.launch_mainline_button.configure(text=f"Launch Yuzu {self.installed_mainline_version}  ")
-        else:
-            self.launch_mainline_button.configure(text="Launch Yuzu  ")
-        if self.installed_early_access_version != "":
-            if self.launch_early_access_button.cget("state") != "disabled":
-                self.launch_early_access_button.configure(text=F"Launch Yuzu EA {self.installed_early_access_version}  ")
-        else:
-            self.launch_early_access_button.configure(text="Launch Yuzu EA  ")
+        if self.launch_button.cget("state") == "disabled":
+            return
+        if self.selected_channel.get() == "Master" and self.installed_xenia_version is not None:
+            self.launch_button.configure(text=f"Launch Xenia {self.installed_xenia_version.replace("-master", "")}")
+        elif self.selected_channel.get() == "Canary":
+            pass  # there are no versions for xenia just commit hashes and it is better to not display these
