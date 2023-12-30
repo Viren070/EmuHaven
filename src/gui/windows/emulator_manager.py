@@ -14,6 +14,7 @@ from gui.frames.dolphin.dolphin_frame import DolphinFrame
 from gui.frames.ryujinx.ryujinx_frame import RyujinxFrame
 from gui.frames.settings.settings_frame import SettingsFrame
 from gui.frames.yuzu.yuzu_frame import YuzuFrame
+from gui.frames.xenia.xenia_frame import XeniaFrame
 from gui.windows.progress_window import ProgressWindow
 from settings.app_settings import load_customtkinter_themes
 from settings.cache import Cache
@@ -51,6 +52,7 @@ class EmulatorManager(customtkinter.CTk):
         self.yuzu_frame.fetch_versions()
         self.ryujinx_frame.fetch_versions()
         self.dolphin_frame.fetch_versions()
+        self.xenia_frame.fetch_versions()
         if not open_app_settings and self.settings.app.check_for_updates == "True":
             Thread(target=self.check_for_update).start()
         self.mainloop()
@@ -63,6 +65,7 @@ class EmulatorManager(customtkinter.CTk):
         self.yuzu_mainline = customtkinter.CTkImage(Image.open(self.settings.get_image_path("yuzu_mainline")), size=(120, 40))
         self.yuzu_early_access = customtkinter.CTkImage(Image.open(self.settings.get_image_path("yuzu_early_access")), size=(120, 40))
         self.ryujinx_logo = customtkinter.CTkImage(Image.open(self.settings.get_image_path("ryujinx_logo")), size=(26, 26))
+        self.xenia_logo = customtkinter.CTkImage(Image.open(self.settings.get_image_path("xenia_logo")), size=(26, 26))
         self.play_image = customtkinter.CTkImage(light_image=Image.open(self.settings.get_image_path("play_light")),
                                                  dark_image=Image.open(self.settings.get_image_path("play_dark")), size=(20, 20))
         self.settings_image = customtkinter.CTkImage(light_image=Image.open(self.settings.get_image_path("settings_light")),
@@ -112,7 +115,11 @@ class EmulatorManager(customtkinter.CTk):
                                                       fg_color="transparent", text_color=text_color,
                                                       anchor="w", command=self.ryujinx_button_event)
         self.ryujinx_button.grid(row=2, column=0, sticky="ew")
-
+        
+        self.xenia_button = customtkinter.CTkButton(scrollable_frame, corner_radius=0, height=40, image=self.xenia_logo, border_spacing=10, text="Xenia",
+                                                    fg_color="transparent", text_color=text_color,
+                                                    anchor="w", command=lambda: self.select_frame_by_name("xenia"))
+        self.xenia_button.grid(row=3, column=0, sticky="ew")
         # Set column weights of scrollable_frame to make buttons expand
         scrollable_frame.grid_columnconfigure(0, weight=1)
 
@@ -125,6 +132,7 @@ class EmulatorManager(customtkinter.CTk):
         self.yuzu_frame = YuzuFrame(self, self.settings, self.metadata, self.cache)
         self.dolphin_frame = DolphinFrame(self, self.settings, self.metadata, self.cache)
         self.ryujinx_frame = RyujinxFrame(self, self.settings, self.metadata, self.cache)
+        self.xenia_frame = XeniaFrame(self, self.settings, self.metadata, self.cache)
         self.settings_frame = SettingsFrame(self, self.settings)
 
     def dolphin_button_event(self):
@@ -150,6 +158,7 @@ class EmulatorManager(customtkinter.CTk):
         self.dolphin_button.configure(fg_color=self.dolphin_button.cget("hover_color") if name == "dolphin" else "transparent")
         self.yuzu_button.configure(fg_color=self.yuzu_button.cget("hover_color") if name == "yuzu" else "transparent")
         self.ryujinx_button.configure(fg_color=self.ryujinx_button.cget("hover_color") if name == "ryujinx" else "transparent")
+        self.xenia_button.configure(fg_color=self.xenia_button.cget("hover_color") if name == "xenia" else "transparent")
 
         # show selected frame
         if name == "settings":
@@ -173,6 +182,11 @@ class EmulatorManager(customtkinter.CTk):
         else:
             self.ryujinx_frame.grid_forget()
             self.ryujinx_frame.select_frame_by_name(None)
+        if name == "xenia":
+            self.xenia_frame.grid(row=0, column=1, sticky="nsew")
+        else:
+            self.xenia_frame.grid_forget()
+            self.xenia_frame.select_frame_by_name(None)
 
     def settings_changed(self):
         return self.settings_frame.settings_changed()

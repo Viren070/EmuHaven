@@ -3,15 +3,16 @@ import os
 from utils.paths import is_path_exists_or_creatable
 
 
-class DolphinSettings:
+class XeniaSettings:
     def __init__(self, master):
         self.emulator_file_path = os.path.join(
             master.root_dir, "Emulator Files")
         self.default_settings = {
-            'user_directory': (os.path.join(os.getenv("APPDATA"), "Dolphin Emulator")),
-            'install_directory': (os.path.join(os.getenv("LOCALAPPDATA"), "Dolphin Emulator")),
+            'user_directory': os.path.join(os.getenv("USERPROFILE"), "Documents", "Xenia"),
+            'install_directory': os.path.join(os.getenv("LOCALAPPDATA"), "Xenia"),
             'rom_directory': '',
-            'current_channel': "beta"
+            'current_xenia_channel': 'Master',
+
         }
         self._settings = self.default_settings.copy()
 
@@ -22,21 +23,18 @@ class DolphinSettings:
             try:
                 setattr(self, name, value)
             except (ValueError, FileNotFoundError):
-                if name == "zip_path":
-                    setattr(self, name, "")
-                else:
-                    os.makedirs(value)
-                    setattr(self, name, value)
-
-    def _set_directory_property(self, property_name, value):
-        if (property_name == "rom_directory" and os.path.exists(value)) or (property_name != "rom_directory" and is_path_exists_or_creatable(value)):
-            self._settings[property_name] = value
-        else:
-            raise ValueError(f"{property_name.replace(
-                '__', '/').replace('_', ' ').title()} - Invalid Path: {(value)}")
+                os.makedirs(value)
+                setattr(self, name, value)
 
     def _set_property(self, property_name, value):
         self._settings[property_name] = value
+
+    def _set_directory_property(self, property_name, value):
+        if is_path_exists_or_creatable(value):
+            self._settings[property_name] = value
+        else:
+            raise ValueError(f"{property_name.replace(
+                '__', '/').replace('_', ' ').title()} - Invalid Path: {value}")
 
     def _get_property(self, property_name):
         return self._settings[property_name]
@@ -49,5 +47,6 @@ class DolphinSettings:
 
     rom_directory = property(lambda self: self._get_property('rom_directory'),
                              lambda self, value: self._set_directory_property('rom_directory', value))
-    current_channel = property(lambda self: self._get_property('current_channel'),
-                               lambda self, value: self._set_property('current_channel', value))
+    
+    current_xenia_channel = property(lambda self: self._get_property('current_xenia_channel'),
+                                     lambda self, value: self._set_property('current_xenia_channel', value))

@@ -5,6 +5,7 @@ from settings.app_settings import AppSettings
 from settings.dolphin_settings import DolphinSettings
 from settings.yuzu_settings import YuzuSettings
 from settings.ryujinx_settings import RyujinxSettings
+from settings.xenia_settings import XeniaSettings
 
 
 class Settings:
@@ -21,6 +22,7 @@ class Settings:
         self.yuzu = YuzuSettings(self)
         self.dolphin = DolphinSettings(self)
         self.ryujinx = RyujinxSettings(self)
+        self.xenia = XeniaSettings(self)
 
         if not os.path.exists(self.settings_file) or not self.settings_file_valid():
             self.create_settings_file()
@@ -52,6 +54,12 @@ class Settings:
             "ryujinx_settings": {
                 "user_directory": "",
                 "install_directory": ""
+            },
+            "xenia_settings": {
+                "user_directory": "",
+                "install_directory": "",
+                "rom_directory": "",
+                "current_xenia_channel": "",
             },
             "app_settings": {
                 "image_paths": {
@@ -88,7 +96,7 @@ class Settings:
         with open(self.settings_file, "r", encoding="utf-8") as f:
             settings = json.load(f)
         image_paths = settings["app_settings"]["image_paths"]
-        if len(image_paths) != 15:
+        if len(image_paths) != 18:
             settings["app_settings"]["image_paths"] = {
                 "dolphin_logo": '',
                 "dolphin_banner_dark": '',
@@ -98,6 +106,9 @@ class Settings:
                 "yuzu_early_access": "",
                 "ryujinx_logo": "",
                 "ryujinx_banner": "",
+                "xenia_logo": "",
+                "xenia_banner": "", 
+                "xenia_canary_banner": "",
                 "padlock_dark": "",
                 "padlock_light": "",
                 "play_dark": "",
@@ -128,6 +139,7 @@ class Settings:
             "dolphin_settings": self.dolphin,
             "yuzu_settings": self.yuzu,
             "ryujinx_settings": self.ryujinx,
+            "xenia_settings": self.xenia,
             "app_settings": self.app
         }
 
@@ -175,6 +187,12 @@ class Settings:
             "ryujinx_settings": {
                 "user_directory": self.ryujinx.user_directory,
                 "install_directory": self.ryujinx.install_directory
+            },
+            "xenia_settings": {
+                "user_directory": self.xenia.user_directory,
+                "install_directory": self.xenia.install_directory,
+                "current_xenia_channel": self.xenia.current_xenia_channel,
+                "rom_directory": self.xenia.rom_directory
             },
             "app_settings": {
                 "image_paths": self.get_image_path("all"),
