@@ -24,6 +24,10 @@ class Metadata:
                 "installed_version": "",
                 "installed_firmware_version": "",
                 "installed_key_version": ""
+            },
+            "xenia": {
+                "installed_master_version": "",
+                "installed_canary_version": ""
             }
         }
         if os.path.exists(os.path.join(os.getcwd(), "PORTABLE.txt")):
@@ -76,6 +80,10 @@ class Metadata:
                 current_contents["ryujinx"]["installed_firmware_version"] = version
             case "ryujinx_keys":
                 current_contents["ryujinx"]["installed_key_version"] = version
+            case "xenia_master":
+                current_contents["xenia"]["installed_master_version"] = version
+            case "xenia_canary":
+                current_contents["xenia"]["installed_canary_version"] = version
             case _:
                 raise ValueError(
                     f"Expected str argument of mainline or early access, but got {mode}")
@@ -142,6 +150,16 @@ class Metadata:
                     version = stored_version if stored_version else "Unknown"
                 else:
                     version = self.update_installed_version("ryujinx_keys", "")
+            case "xenia_master":
+                xenia_master_exe_path = os.path.join(
+                    self.settings.xenia.install_directory, "master", "xenia.exe")
+                version = current_contents["xenia"]["installed_master_version"] if os.path.exists(
+                    xenia_master_exe_path) else self.update_installed_version("xenia_master", "")
+            case "xenia_canary":
+                xenia_canary_exe_path = os.path.join(
+                    self.settings.xenia.install_directory, "canary", "xenia.exe")
+                version = current_contents["xenia"]["installed_canary_version"] if os.path.exists(
+                    xenia_canary_exe_path) else self.update_installed_version("xenia_canary", "")
             case _:
                 raise ValueError(
                     f"Expected str argument of mainline or early access, but got {mode}")
@@ -149,7 +167,7 @@ class Metadata:
 
     def is_metadata_valid(self):
         try:
-            for mode in ["mainline", "early_access", "dolphin", "yuzu_firmware", "yuzu_keys", "ryujinx", "ryujinx_firmware", "ryujinx_keys"]:
+            for mode in ["mainline", "early_access", "dolphin", "yuzu_firmware", "yuzu_keys", "ryujinx", "ryujinx_firmware", "ryujinx_keys", "xenia_master", "xenia_canary"]:
                 self.get_installed_version(mode)
             return True
         except (KeyError, TypeError):
