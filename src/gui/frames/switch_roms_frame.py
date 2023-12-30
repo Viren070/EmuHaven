@@ -42,12 +42,6 @@ class SwitchTitle:
         if self.title_data is not None:
             self.name = self.title_data["name"]
             self.description = self.title_data["description"]
-            self.publisher = self.title_data["publisher"]
-            self.intro = self.title_data["intro"]
-            self.category = self.title_data["category"]
-            self.number_of_players = self.title_data["numberOfPlayers"]
-            self.rating = self.title_data["ratingContent"]
-        
 
     def gather_metadata(self): 
         if self.titles_db is None:
