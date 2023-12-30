@@ -4,6 +4,7 @@ import webbrowser
 from sys import exit as sysexit
 from threading import Thread
 from tkinter import messagebox
+from packaging import version
 
 import customtkinter
 from customtkinter import ThemeManager
@@ -30,7 +31,7 @@ class EmulatorManager(customtkinter.CTk):
         self.settings = Settings(self, root_dir)
         self.metadata = Metadata(self, self.settings)
         self.cache = Cache(self, self.settings, self.metadata)
-        self.version = "v0.13.0-a.1"
+        self.version = "v0.12.8"
         self.root_dir = root_dir
         if pos is None:
             pos = ["", ""]
@@ -85,7 +86,7 @@ class EmulatorManager(customtkinter.CTk):
         self.navigation_frame.grid_rowconfigure(1, weight=1)
 
         # Create navigation frame title.
-        self.navigation_frame_label = customtkinter.CTkLabel(self.navigation_frame, text=f"Emulator Manager {self.version}",
+        self.navigation_frame_label = customtkinter.CTkLabel(self.navigation_frame, text=f"Emulator Manager {self.version.replace("alpha", "a")}",
                                                              compound="left", padx=5, font=customtkinter.CTkFont(size=12, weight="bold"))
         self.navigation_frame_label.grid(row=0, column=0, padx=20, pady=20)
         self.navigation_frame_label.bind('<Double-Button-1>', command=lambda event: messagebox.showinfo("About", f"Emulator Manager {self.version}, made by Viren070 on GitHub."))
@@ -187,18 +188,24 @@ class EmulatorManager(customtkinter.CTk):
         load_customtkinter_themes(os.path.join(self.root_dir, "assets", "themes"))
         EmulatorManager(self.root_dir, True, pos)
 
-
-                
-                
     def check_for_update(self):
-        releases = get_all_releases("https://api.github.com/repos/Viren070/Emulator-Manager/releases?per_page=1", headers=get_headers(self.settings.app.token))
+        releases = get_all_releases("https://api.github.com/repos/Viren070/Emulator-Manager/releases?per_page=10", headers=get_headers(self.settings.app.token))
         if not all(releases):
             return
         releases = releases[1]
+        releases.sort(key=lambda r: version.parse(r["tag_name"]), reverse=True)
+
         latest_release = releases[0]
-        if latest_release["tag_name"] != self.version:
-            if messagebox.askyesno("Update Available", f"There is an update ({latest_release["tag_name"]}) available to download from the GitHub Repository. \nWould you like to download it now?"):
-                webbrowser.open("https://github.com/Viren070/Emulator-Manager/releases/latest")
+
+        if version.parse(latest_release["tag_name"]) > version.parse(self.version):
+            is_alpha = "alpha" in latest_release["tag_name"]
+            self.prompt_update(latest_release["tag_name"], is_alpha)
+
+    def prompt_update(self, version, is_alpha):
+        release_type = "alpha" if is_alpha else "stable"
+        alpha_warning = "\nPlease note that alpha releases are unstable and bugs are to be expected." if is_alpha else ""
+        if messagebox.askyesno("Update Available", f"There is a new {release_type} update ({version}) available to download from the GitHub Repository.{alpha_warning} \nWould you like to download it now?"):
+            webbrowser.open(f"https://github.com/Viren070/Emulator-Manager/releases/tag/{version}")
 
     def on_closing(self):
         if (self.dolphin_frame.dolphin.running or self.yuzu_frame.yuzu.running):
