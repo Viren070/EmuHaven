@@ -15,9 +15,10 @@ from gui.frames.emulator_frame import EmulatorFrame
 
 DOLPHIN_FOLDERS = ["Backup", "Cache", "Config", "Dump", "GameSettings", "GBA", "GC", "Load", "Logs", "Maps", "ResourcePacks", "SavedAssembly", "ScreenShots", "Shaders", "StateSaves", "Styles", "Themes", "Wii"]
 class DolphinFrame(EmulatorFrame):
-    def __init__(self, parent_frame, settings, metadata):
+    def __init__(self, parent_frame, settings, metadata, cache):
         super().__init__(parent_frame, settings, metadata)
         self.dolphin = Dolphin(self, settings, metadata)
+        self.cache = cache
         self.dolphin_version = None
         self.installed_dolphin_version = None
         self.add_to_frame()
@@ -109,7 +110,7 @@ class DolphinFrame(EmulatorFrame):
 
         self.manage_roms_frame = customtkinter.CTkFrame(self, corner_radius=0, bg_color="transparent")
 
-        self.rom_frame = DolphinROMFrame(self.manage_roms_frame, self.dolphin, self.settings)
+        self.rom_frame = DolphinROMFrame(self.manage_roms_frame, self.dolphin, self.settings, self.cache)
         self.rom_frame.grid(row=0, column=0,  padx=20, pady=20, sticky="nsew")
 
     def switch_channel(self, *args):

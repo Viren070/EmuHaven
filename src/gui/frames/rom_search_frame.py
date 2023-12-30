@@ -5,11 +5,16 @@ import customtkinter
 
 from utils.requests_utils import get_file_links_from_page, get_headers
 
+class File:
+    def __init__(self, url, filename):
+        self.url = url
+        self.filename = filename
 
 class ROMSearchFrame(customtkinter.CTkFrame):
     def __init__(self, master, root, rom_link):
         super().__init__(master, height=700)
         self.results_per_page = 10
+        self.cache = root.cache
         self.rom_link = rom_link
         self.roms = None
         self.searched_roms = None
@@ -19,19 +24,34 @@ class ROMSearchFrame(customtkinter.CTkFrame):
         self.root = root
         self.update_in_progress = False
         self.build_frame()
+        cache_lookup_result = self.cache.get_cached_data(self.rom_link)
+        if cache_lookup_result:
+            self.define_roms(self.create_roms_from_cache(cache_lookup_result["data"]))
 
+    def create_roms_from_cache(self, cache_lookup_result):
+        roms = []
+        for url, filename in cache_lookup_result.items():
+            roms.append(File(url, filename))
+        return roms
+    
     def get_roms(self):
         self.refresh_button.configure(state="disabled", text="Fetching...")
         get_roms_thread = Thread(target=self.define_roms)
         get_roms_thread.start()
 
-    def define_roms(self):
-        self.roms = get_file_links_from_page(self.rom_link, ".zip", get_headers())
-        if not all(self.roms):
-            self.refresh_button.configure(state="normal", text="Fetch ROMs")
-            messagebox.showerror("Error", self.roms[1])
-            return
-        self.roms = self.roms[1]
+    def define_roms(self, roms=None):
+        if not roms:
+            roms = get_file_links_from_page(self.rom_link, ".zip", get_headers())
+            if not all(roms):
+                self.refresh_button.configure(state="normal", text="Fetch ROMs")
+                messagebox.showerror("Error", roms[1])
+                return
+            roms = roms[1]
+            cacheable_roms = {} 
+            for rom in roms:
+                cacheable_roms[rom.url] = rom.filename
+            self.cache.add_to_index(self.rom_link, cacheable_roms)
+        self.roms = roms
         for widget in (self.refresh_button, self.search_button, self.search_entry, self.prev_button, self.next_button, self.current_page_entry):
             widget.configure(state="normal")
 
