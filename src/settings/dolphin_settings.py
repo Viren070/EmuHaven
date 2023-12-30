@@ -10,13 +10,15 @@ class DolphinSettings:
         self.default_settings = {
             'user_directory': (os.path.join(os.getenv("APPDATA"), "Dolphin Emulator")),
             'install_directory': (os.path.join(os.getenv("LOCALAPPDATA"), "Dolphin Emulator")),
-            'rom_directory': os.path.join(os.getcwd(), "ROMS", "Dolphin"),
+            'rom_directory': '',
             'current_channel': "beta"
         }
         self._settings = self.default_settings.copy()
 
     def restore_default(self):
         for name, value in self.default_settings.items():
+            if value == '':
+                continue
             try:
                 setattr(self, name, value)
             except (ValueError, FileNotFoundError):

@@ -22,6 +22,8 @@ class YuzuSettings:
 
     def restore_default(self):
         for name, value in self.default_settings.items():
+            if value == '':
+                continue
             try:
                 setattr(self, name, value)
             except (ValueError, FileNotFoundError):
