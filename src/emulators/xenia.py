@@ -25,10 +25,10 @@ class Xenia:
         time.sleep(2)
         os.remove(zip_path)
 
-    def verify_xenia_zip(self, path_to_archive):
+    def verify_xenia_zip(self, path_to_archive, release_channel):
         try:
             with ZipFile(path_to_archive, 'r') as archive:
-                if 'xenia.exe' in archive.namelist():
+                if ("xenia.exe" if release_channel == "Master" else "xenia_canary.exe") in archive.namelist():
                     return True
                 else:
                     return False
@@ -59,7 +59,7 @@ class Xenia:
                         messagebox.showwarning("Error", f"Failed to delete file after cancelling due to error below:\n\n{error}")
                 return
             release_archive = download_result[1]
-        elif not self.verify_xenia_zip(path_to_archive):
+        elif not self.verify_xenia_zip(path_to_archive, release_channel):
             messagebox.showerror("Error", "The xenia archive you have provided is invalid. ")
             return
         extract_result = self.extract_xenia_release(release_archive, release_channel)
