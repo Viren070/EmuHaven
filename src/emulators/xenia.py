@@ -9,7 +9,7 @@ from zipfile import ZipFile
 from utils.downloader import download_through_stream
 from utils.file_utils import copy_directory_with_progress
 from utils.requests_utils import (create_get_connection,
-                                  get_file_links_from_page, get_headers)
+                                  get_release_from_assets, get_headers)
 
 
 class Xenia:
@@ -21,38 +21,37 @@ class Xenia:
         self.main_progress_frame = None
         self.data_progress_frame = None
 
-    def delete_dolphin_zip(self, zip_path):
+    def delete_xenia_zip(self, zip_path):
         time.sleep(2)
         os.remove(zip_path)
 
-    def verify_dolphin_zip(self, path_to_archive):
-        if path_to_archive.endswith(".7z"):  # don't know how else to check if its valid for 7z
-            return True
+    def verify_xenia_zip(self, path_to_archive):
         try:
             with ZipFile(path_to_archive, 'r') as archive:
-                if 'Dolphin.exe' in archive.namelist():
+                if 'xenia.exe' in archive.namelist():
                     return True
                 else:
                     return False
         except Exception:
             return False
 
-    def install_dolphin_handler(self, release_channel=None, path_to_archive=None, updating=False):
+    def install_xenia_handler(self, release_channel=None, path_to_archive=None, updating=False):
         release_archive = path_to_archive
         if release_channel is None and path_to_archive is None:
             raise ValueError("If release channel is None, you must provide a path to archive")
         if path_to_archive is None:
-            release_result = self.get_dolphin_release(release_channel)
+            release_result = self.get_xenia_release(release_channel)
             if not all(release_result):
-                messagebox.showerror("Install Dolphin", f"There was an error while attempting to fetch the latest {release_channel} release of Dolphin:\n\n{release_result[1]}")
+                messagebox.showerror("Install Xenia", f"There was an error while attempting to fetch the latest {release_channel} release of Xenia:\n\n{release_result[1]}")
                 return
             release = release_result[1]
-            if updating and release.version == self.metadata.get_installed_version("dolphin"):
+            installed_version = self.metadata.get_installed_version(f"xenia_{release_channel.lower()}")
+            if updating and release.version == installed_version:
                 return
             download_result = self.download_release(release)
             if not all(download_result):
                 if download_result[1] != "Cancelled":
-                    messagebox.showerror("Error", f"There was an error while attempting to download the latest release of Dolphin\n\n{download_result[1]}")
+                    messagebox.showerror("Error", f"There was an error while attempting to download the latest {release_channel} release of Xenia\n\n{download_result[1]}")
                 else:
                     try:
                         os.remove(download_result[2])
@@ -60,10 +59,10 @@ class Xenia:
                         messagebox.showwarning("Error", f"Failed to delete file after cancelling due to error below:\n\n{error}")
                 return
             release_archive = download_result[1]
-        elif not self.verify_dolphin_zip(path_to_archive):
-            messagebox.showerror("Error", "The dolphin archive you have provided is invalid. ")
+        elif not self.verify_xenia_zip(path_to_archive):
+            messagebox.showerror("Error", "The xenia archive you have provided is invalid. ")
             return
-        extract_result = self.extract_release(release_archive)
+        extract_result = self.extract_xenia_release(release_archive, release_channel)
         if path_to_archive is None and self.settings.app.delete_files == "True":
             os.remove(release_archive)
         if not all(extract_result):
@@ -71,58 +70,47 @@ class Xenia:
                 messagebox.showerror("Extract Error", f"An error occurred while extracting the release: \n\n{extract_result[1]}")
             return
         if path_to_archive is None:
-            self.metadata.update_installed_version("dolphin", release.version)
+            self.metadata.update_installed_version(f"xenia_{release_channel.lower()}", release.version)
         if not updating:
-            messagebox.showinfo("Install Dolphin", f"Dolphin was successfully installed to {self.settings.dolphin.install_directory}")
+            messagebox.showinfo("Install Xenia", f"Xenia was successfully installed to {self.settings.xenia.install_directory}")
 
-    def get_dolphin_release(self, release_channel):
-        files = get_file_links_from_page("https://dolphin-emu.org/download/", ".7z")
-        if not all(files):
-            return files
-        files = files[1]
-        beta_build = None
-        dev_build = None
-        beta_build_number = None
-
-        for file in files:
-            if "ARM64" in file.filename:
-                continue
-
-            build_number = int(file.filename.split("-")[-2])
-
-            if beta_build is None:
-                beta_build = file
-                beta_build_number = build_number
-                if release_channel == "beta":
-                    beta_build.version = re.search(r'(\d+\.\d+-\d+)', beta_build.filename).group(1)
-                    return (True, beta_build)
-            elif build_number > beta_build_number:
-                dev_build = file
-                dev_build.version = re.search(r'(\d+\.\d+-\d+)', dev_build.filename).group(1)
-                return (True, dev_build)
+    def get_xenia_release(self, release_channel):
+        repo_url = "https://api.github.com/repos/xenia-project/release-builds-windows/releases" if release_channel == "Master" else "https://api.github.com/repos/xenia-canary/xenia-canary/releases"
+        response = create_get_connection(repo_url, headers=get_headers(self.settings.app.token), timeout=30)
+        if not all(response):
+            return response
+        response = response[1]
+        try:
+            release_info = response.json()[0]
+            latest_version = release_info["tag_name"] if release_channel == "Master" else release_info["target_commitish"]
+            assets = release_info["assets"]
+        except KeyError:
+            return (False, "Unable to parse response from GitHub. You may have been API rate limited.")
+        release = get_release_from_assets(assets, f"xenia_{release_channel.lower()}.zip", wildcard=True)
+        release.version = latest_version
+        return (True, release)
 
     def download_release(self, release):
         download_folder = os.getcwd()
-        download_path = os.path.join(download_folder, f"{release.filename}.7z")
-        response_result = create_get_connection(release.url, headers=get_headers(), stream=True, timeout=30)
+        download_path = os.path.join(download_folder, f"{release.name.replace(".zip", "")}@{release.version}.zip")
+        response_result = create_get_connection(release.download_url, headers=get_headers(), stream=True, timeout=30)
         if not all(response_result):
             return response_result
         response = response_result[1]
-        release.size = int(response.headers.get('content-length', 0))
-        self.main_progress_frame.start_download(release.filename, release.size)
+        self.main_progress_frame.start_download(release.name, release.size)
         self.main_progress_frame.grid(row=0, column=0, sticky="ew")
 
         download_result = download_through_stream(response, download_path, self.main_progress_frame, 1024*203)
         self.main_progress_frame.complete_download()
         return download_result
 
-    def extract_release(self, release):
+    def extract_xenia_release(self, release, release_channel):
         if release.endswith(".zip"):
-            return self.extract_zip_archive(release)
+            return self.extract_xenia_zip_archive(release, release_channel)
         else:
-            raise Exception
+            return (False, "Unsupported archive type")
 
-    def extract_zip_archive(self, release_archive):
+    def extract_xenia_zip_archive(self, release_archive, release_channel):
         self.main_progress_frame.start_download(f"{os.path.basename(release_archive).replace(".zip", "")}", 0)
         self.main_progress_frame.complete_download()
         self.main_progress_frame.update_status_label("Extracting... ")
@@ -136,7 +124,7 @@ class Xenia:
                     if self.main_progress_frame.cancel_download_raised:
                         extracted = False
                         break
-                    archive.extract(file, self.settings.dolphin.install_directory)
+                    archive.extract(file, os.path.join(self.settings.xenia.install_directory, release_channel.lower()))
                     extracted_files.append(file)
                     # Calculate and display progress
                     self.main_progress_frame.update_extraction_progress(len(extracted_files) / total_files)
@@ -153,20 +141,19 @@ class Xenia:
         try:
             path_to_remove = os.path.join(self.settings.xenia.install_directory, version)
             shutil.rmtree(path_to_remove)
-            messagebox.showinfo("Success", "The Xenia installation was successfully was removed")
+            messagebox.showinfo("Success", f"The Xenia {version} installation was successfully was removed")
         except Exception as e:
-            messagebox.showerror("Error", f"There was an error while attempting to delete Xenia: \n\\n{e}")
+            messagebox.showerror("Error", f"There was an error while attempting to delete Xenia {version}: \n\\n{e}")
             return
 
-
-    def launch_dolphin_handler(self, release_channel, skip_update=False, wait_for_exit=True):
+    def launch_xenia_handler(self, release_channel, skip_update=False, wait_for_exit=True):
         if not skip_update:
-            self.gui.configure_buttons("disabled", text="Fetching Updates...  ", width=170)
-            self.install_dolphin_handler(release_channel, None, True)
+            self.gui.configure_action_buttons("disabled", text="Fetching Updates...  ", width=170)
+            self.install_xenia_handler(release_channel, None, True)
 
-        self.gui.configure_buttons("disabled", text="Launched!  ", width=170)
-        dolphin_exe = os.path.join(self.settings.dolphin.install_directory, "Dolphin.exe")
-        args = [dolphin_exe]
+        self.gui.configure_action_buttons("disabled", text="Launched!  ", width=170)
+        xenia_exe = os.path.join(self.settings.xenia.install_directory, release_channel, "xenia.exe" if release_channel == "Master" else "xenia_canary.exe")
+        args = [xenia_exe]
         self.running = True
 
         if wait_for_exit:
@@ -188,8 +175,6 @@ class Xenia:
                 messagebox.showerror("Missing Folder", "No folders were selected to export")
                 return
             copy_directory_with_progress(user_directory, directory_to_export_to, "Exporting All Xenia Data", self.data_progress_frame, include=folders_to_export)
-            
-            
 
     def import_xenia_data(self, mode, directory_to_import_from, folders_to_import=None):
         user_directory = self.settings.xenia.user_directory
