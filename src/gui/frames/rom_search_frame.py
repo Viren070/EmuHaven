@@ -89,7 +89,7 @@ class ROMSearchFrame(customtkinter.CTkFrame):
         left_frame = customtkinter.CTkFrame(page_navigation_frame)
         left_frame.grid(row=0, column=0, padx=(10, 0), pady=10, sticky="w")
 
-        self.current_page_entry = customtkinter.CTkEntry(left_frame, width=35, state="disabled")
+        self.current_page_entry = customtkinter.CTkEntry(left_frame, width=40, state="disabled")
         self.current_page_entry.grid(row=0, column=0, padx=(10, 0), pady=10, sticky="nsew")
         self.current_page_entry.insert(0, str(self.current_page))  # Set initial value
         self.current_page_entry.bind("<Return>", self.go_to_page)
