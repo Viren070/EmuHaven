@@ -11,7 +11,7 @@ class XeniaSettings:
             'user_directory': os.path.join(os.getenv("USERPROFILE"), "Documents", "Xenia"),
             'install_directory': os.path.join(os.getenv("LOCALAPPDATA"), "Xenia"),
             'rom_directory': '',
-            'current_xenia_channel': 'master',
+            'current_xenia_channel': 'Master',
 
         }
         self._settings = self.default_settings.copy()
