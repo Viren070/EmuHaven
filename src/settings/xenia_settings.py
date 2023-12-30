@@ -10,7 +10,8 @@ class XeniaSettings:
         self.default_settings = {
             'user_directory': os.path.join(os.getenv("USERPROFILE"), "Documents", "Xenia"),
             'install_directory': os.path.join(os.getenv("LOCALAPPDATA"), "Xenia"),
-            'rom_directory': ''
+            'rom_directory': '',
+            'current_xenia_channel': 'master',
 
         }
         self._settings = self.default_settings.copy()
@@ -42,3 +43,8 @@ class XeniaSettings:
     install_directory = property(lambda self: self._get_property('install_directory'),
                                  lambda self, value: self._set_directory_property('install_directory', value))
 
+    rom_directory = property(lambda self: self._get_property('rom_directory'),
+                             lambda self, value: self._set_directory_property('rom_directory', value))
+    
+    current_xenia_channel = property(lambda self: self._get_property('current_xenia_channel'),
+                                     lambda self, value: self._set_property('current_xenia_channel', value))
