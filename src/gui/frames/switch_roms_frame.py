@@ -21,8 +21,9 @@ class SwitchTitle:
         self.title_id = title_id
         self.downloading_cover = False
         self.master = master
-        self.name = title_id 
-        self.description = ""
+        self.name = customtkinter.StringVar()
+        self.name.set(title_id)
+        self.description = "No description available. Please refresh the list to try again."
         self.titles_db = master.titles_db
         self.button = None
         self.settings = settings
@@ -40,8 +41,9 @@ class SwitchTitle:
             image = cache_image_lookup_result["data"]
         self.cover = customtkinter.CTkImage(Image.open(image), size=(224, 224)) 
         if self.title_data is not None:
-            self.name = self.title_data["name"]
+            self.name.set(self.title_data["name"])
             self.description = self.title_data["description"]
+        
 
     def gather_metadata(self): 
         if self.titles_db is None:
@@ -115,12 +117,22 @@ class SwitchTitle:
                 self.master.update_results()
             cache_path = os.path.join(self.cache.cache_directory, "images", f"{self.title_id}.png")
             shutil.copy2(new_cover, cache_path)
+            
+    def update_title_text(self, width):
+        char_width = self.master.char_width  # Measure the width of the widest characters
+        available_width = width - 264  # 224 for the cover image and 40 for padding
+        max_length = available_width // char_width
+        if max_length < 0:
+            max_length = 30
+        self.name.set(textwrap.fill(self.name.get(), width=max_length))
+        
 class SwitchROMSFrame(customtkinter.CTkFrame):
     def __init__(self, master, settings, cache, get_title_ids_func, emulator):
         super().__init__(master, height=700)
         self.get_title_ids = get_title_ids_func
         self.results_per_page = 10
         self.refreshing = False
+        self.char_width = customtkinter.CTkFont("Arial", 16).measure("a")
         self.settings = settings
         self.cache = cache
         self.emulator = emulator
@@ -146,7 +158,13 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
         self.total_pages = (len(self.searched_titles) + self.results_per_page - 1) // self.results_per_page
         self.total_pages_label.configure(text=f"/ {self.total_pages}")
         self.update_results()
-        
+        self.bind("<Configure>", lambda event: [game.update_title_text(self.result_frame.winfo_width()) for game in self.get_current_page_titles()])
+
+    def get_current_page_titles(self):
+        start_index = (int(self.current_page_entry.get()) - 1) * self.results_per_page
+        end_index = start_index + self.results_per_page
+        print(start_index, end_index)
+        return self.searched_titles[start_index:end_index]
     def refresh_title_list(self):
         if self.refreshing:
             return
@@ -284,7 +302,7 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
             game_cover.grid(row=0, column=0, rowspan=3, padx=10, pady=5, sticky="nsew")  # Span 3 rows
 
             # Game name label
-            game_name_label = customtkinter.CTkLabel(game_frame, text=game.name, font=customtkinter.CTkFont("Arial", 16))
+            game_name_label = customtkinter.CTkLabel(game_frame, textvariable=game.name, font=customtkinter.CTkFont("Arial", 16))
             game_name_label.grid(row=0, column=1, padx=10, columnspan=2, pady=5, sticky="nsew")
 
             # Game description text box
@@ -303,6 +321,7 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
             download_saves_button.configure(command=lambda game=game, button=download_saves_button: Thread(target=self.download_saves, args=(game, button,)).start())
             download_saves_button.grid(row=2, column=2, padx=10, pady=10, sticky="se")
 
+            game.update_title_text(self.result_frame.winfo_width())
             row_counter += 1
         
         self.current_page_entry.delete(0, customtkinter.END)
@@ -433,5 +452,5 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
             messagebox.showerror("Fetch Error", "There are no saves available for this game.")
             button.configure(state="normal", text="Download Saves")
             return
-        SavesBrowser(title=game.name, master=self, saves=title_saves, title_id=game.title_id)
+        SavesBrowser(title=game.name.get(), master=self, saves=title_saves, title_id=game.title_id)
         button.configure(state="normal", text="Download Saves")
