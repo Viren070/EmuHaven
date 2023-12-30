@@ -82,7 +82,7 @@ class Xenia:
         response = response[1]
         try:
             release_info = response.json()[0]
-            latest_version = release_info["tag_name"] if release_channel == "Master" else release_info["target_commitish"]
+            latest_version = release_info["tag_name"] if release_channel == "Master" else release_info["target_commitish"][:7]
             assets = release_info["assets"]
         except KeyError:
             return (False, "Unable to parse response from GitHub. You may have been API rate limited.")
