@@ -80,18 +80,28 @@ The yuzu menu has a dropdown menu in the top right corner which allows you to sw
 Within the folder that is selected as the installation directory, two folders are used for mainline and early access: `yuzu-windows-msvc` and `yuzu-windows-early-access-msvc` respectively.
 If you want to be able to choose the asset that you want downloaded, create a feature request through an issue. 
 
+
 Below the 3 main buttons, there is another section that contains two dropdown menus and one install button to the left of each dropdown menu. One row is for firmware and the other for keys. You can select a version to download from the dropdown menu and then click install to download and extract the file(s) to the correct directory.
+
 If the shift key is held while clicking install, then you can use a custom firmware/key archive to install to the emulators directory instead. a .keys file will also work for keys.
+
 If it is your first time launching the app, the dropdown menus will say `Click to fetch versions`. Upon clicking the dropdown menu, a request will be sent to the website hosting the firmware and keys and a dictionary collating the information about each version will be collected. Once it has been created, it will be stored in the cache file and the next time you launch the app the dropdown menu will have the available versions displayed. 
 However, if the age of the cached data becomes more than 7 days old, it will not be used and you will have to click the dropdown menu to fetch the versions again.
+
 #### Ryujinx 
 
 The ryujinx menu has no dropdown menu (I could add one for the LDN builds, make a feature request through an issue if you want this to be added). 
 
 Within the folder that is selected as the installation directory, a `publish` folder is used to store the builds of ryujinx.
 
+
 Below the 3 main buttons, there is another section that contains two dropdown menus and one install button to the left of each dropdown menu. One row is for firmware and the other for keys. You can select a version to download from the dropdown menu and then click install to download and extract the file(s) to the correct directory.
+
 If the shift key is held while clicking install, then you can use a custom firmware/key archive to install to the emulators directory instead. a .keys file will also work for keys.
+
+If it is your first time launching the app, the dropdown menus will say `Click to fetch versions`. Upon clicking the dropdown menu, a request will be sent to the website hosting the firmware and keys and a dictionary collating the information about each version will be collected. Once it has been created, it will be stored in the cache file and the next time you launch the app the dropdown menu will have the available versions displayed. 
+However, if the age of the cached data becomes more than 7 days old, it will not be used and you will have to click the dropdown menu to fetch the versions again.
+
 
 ### `Manage Data` Menu 
 
