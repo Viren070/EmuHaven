@@ -39,21 +39,20 @@ class SwitchTitle:
             Thread(target=self.download_cover, args=(True,)).start()
         else:
             image = cache_image_lookup_result["data"]
-        self.cover = customtkinter.CTkImage(Image.open(image), size=(224, 224)) 
+        self.cover = customtkinter.CTkImage(Image.open(image), size=(224, 224))
         if self.title_data is not None:
             self.name.set(self.title_data["name"])
             self.description = self.title_data["description"]
-        
 
-    def gather_metadata(self): 
+    def gather_metadata(self):
         if self.titles_db is None:
             return None
         title_data = self.titles_db.get(self.title_id)
         if title_data is None:
-            return None 
+            return None
         self.cache.add_to_index(self.title_id, title_data)
         return title_data
-        
+
     def download_cover(self, skip_prompt=True):
         if self.downloading_cover:  # if currently downloading cover, return
             return
@@ -75,7 +74,7 @@ class SwitchTitle:
             else:
                 return
         self.downloading_cover = True
-        
+
         response_result = create_get_connection(self.title_data["iconUrl"], stream=True, headers=get_headers(self.settings.app.token), timeout=30)
         if not all(response_result):
             if not skip_prompt:
@@ -90,7 +89,7 @@ class SwitchTitle:
                 messagebox.showerror("Download Error", f"There was an error while attempting to download the cover image:\n\n {download_result[1]}")
             self.downloading_cover = False
             return
-       
+
         move_to_cache_result = self.cache.move_image_to_cache(f"{self.title_id}-Icon [PATH]", download_path)
         if not all(move_to_cache_result):
             if not skip_prompt:
@@ -102,22 +101,19 @@ class SwitchTitle:
             self.button.configure(image=self.cover)
         if not skip_prompt:
             messagebox.showinfo("Download Complete", "The cover image has been downloaded successfully.")
-    
-        
         self.downloading_cover = False
-       
-        
+
     def choose_custom_cover(self):
         new_cover = filedialog.askopenfilename(title="Select a new cover image", filetypes=[("Image Files", "*.png *.jpg *.jpeg *.gif")])
         if new_cover:
             self.cover = customtkinter.CTkImage(Image.open(new_cover), size=(224, 224))
             if self.button is not None:
-                self.button.configure(image=self.cover) 
+                self.button.configure(image=self.cover)
             else:
                 self.master.update_results()
             cache_path = os.path.join(self.cache.cache_directory, "images", f"{self.title_id}.png")
             shutil.copy2(new_cover, cache_path)
-            
+
     def update_title_text(self, width):
         char_width = self.master.char_width  # Measure the width of the widest characters
         available_width = width - 264  # 224 for the cover image and 40 for padding
@@ -125,7 +121,8 @@ class SwitchTitle:
         if max_length < 0:
             max_length = 30
         self.name.set(textwrap.fill(self.name.get(), width=max_length))
-        
+
+
 class SwitchROMSFrame(customtkinter.CTkFrame):
     def __init__(self, master, settings, cache, get_title_ids_func, emulator):
         super().__init__(master, height=700)
@@ -141,7 +138,7 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
         self.searching = False
         self.build_frame()
         title_ids = self.get_title_ids()
-        cache_lookup_result = self.cache.get_cached_data("titlesDB [PATH]") # Check if titles.US.en is cached
+        cache_lookup_result = self.cache.get_cached_data("titlesDB [PATH]")  # Check if titles.US.en is cached
         missing_title = False
         self.titles_db = None
         if cache_lookup_result is not None and os.path.exists(cache_lookup_result["data"]):
@@ -152,7 +149,7 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
             if missing_title:
                 with open(cache_lookup_result["data"], "r", encoding="utf-8") as f:
                     self.titles_db = json.load(f)
-             
+
         self.titles = [SwitchTitle(self, title_id, settings, cache) for title_id in title_ids]  # Create game objects
         self.searched_titles = self.titles
         self.total_pages = (len(self.searched_titles) + self.results_per_page - 1) // self.results_per_page
@@ -163,34 +160,32 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
     def get_current_page_titles(self):
         start_index = (int(self.current_page_entry.get()) - 1) * self.results_per_page
         end_index = start_index + self.results_per_page
-        print(start_index, end_index)
         return self.searched_titles[start_index:end_index]
+
     def refresh_title_list(self):
         if self.refreshing:
             return
         if not self.check_titles_db():
-            return 
+            return
         self.refresh_button.configure(state="disabled", text="Refreshing...")
-        self.refreshing = True 
+        self.refreshing = True
         self.titles = [SwitchTitle(self, title_id, self.settings, self.cache) for title_id in self.get_title_ids()]  # Create game objects
         self.total_pages = (len(self.searched_titles) + self.results_per_page - 1) // self.results_per_page
         self.total_pages_label.configure(text=f"/ {self.total_pages}")
-        self.searched_titles = self.titles 
+        self.searched_titles = self.titles
         self.update_results()
         self.refresh_button.configure(state="normal", text="Refresh")
         self.refreshing = False
-        
-   
+
     def build_frame(self):
         # Create a search bar
-        
         self.refresh_frame = customtkinter.CTkFrame(self, corner_radius=50)
         self.refresh_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nw")
         self.refresh_button = customtkinter.CTkButton(self.refresh_frame, text="Refresh", width=100, corner_radius=50, command=lambda: Thread(target=self.refresh_title_list).start())
         self.refresh_button.grid(row=0, column=0, padx=5, pady=5)
-        
+
         search_frame = customtkinter.CTkFrame(self, corner_radius=50)
-        search_frame.grid(row=0, column=0, pady=(10,0), padx=10, sticky="ne")
+        search_frame.grid(row=0, column=0, pady=(10, 0), padx=10, sticky="ne")
 
         self.search_entry = customtkinter.CTkEntry(search_frame, placeholder_text="Search")
         self.search_entry.grid(row=0, column=0, padx=10, pady=10, sticky="e")
@@ -202,9 +197,7 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
         self.result_frame.grid(row=1, column=0, padx=10, pady=5, sticky="nsew")
         self.result_frame.grid_columnconfigure(0, weight=1)
 
-
         self.current_page = 1
-
 
         page_navigation_frame = customtkinter.CTkFrame(self)
         page_navigation_frame.grid(row=2, column=0, padx=10, pady=10, sticky="ew")
@@ -213,7 +206,7 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
         left_frame.grid(row=0, column=0, padx=(10, 0), pady=10, sticky="w")
 
         self.current_page_entry = customtkinter.CTkEntry(left_frame, width=35)
-        self.current_page_entry.grid(row=0, column=0, padx=(10,0), pady=10, sticky="nsew")
+        self.current_page_entry.grid(row=0, column=0, padx=(10, 0), pady=10, sticky="nsew")
         self.current_page_entry.insert(0, str(self.current_page))  # Set initial value
         self.current_page_entry.bind("<Return>", self.go_to_page)
 
@@ -223,7 +216,7 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
         right_frame = customtkinter.CTkFrame(page_navigation_frame)
         right_frame.grid(row=0, column=1, padx=(0, 10), pady=10, sticky="e")
 
-        button_width = 50 
+        button_width = 50
 
         self.prev_button = customtkinter.CTkButton(right_frame, width=button_width, text=" < ", command=self.go_to_previous_page)
         self.prev_button.grid(row=0, column=0, padx=20, pady=10, sticky="nsew")
@@ -237,26 +230,20 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
         right_frame.grid_columnconfigure(0, weight=0)  # Adjust weight for buttons
         right_frame.grid_columnconfigure(1, weight=0)
 
-
-
         self.grid_rowconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=10)
         self.grid_rowconfigure(2, weight=1)
         self.grid_columnconfigure(0, weight=10)
 
-   
-
-    
-    
     def go_to_previous_page(self):
         if self.current_page - 1 == 0:
             self.current_page_entry.delete(0, customtkinter.END)
             self.current_page_entry.insert(0, str(self.current_page))
-            return 
+            return
         self.prev_button.configure(state="disabled")
         self.next_button.configure(state="disabled")
         self.go_to_page(None, self.current_page - 1)
-        
+
     def go_to_next_page(self):
         if self.current_page + 1 > self.total_pages:
             self.current_page_entry.delete(0, customtkinter.END)
@@ -265,7 +252,7 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
         self.next_button.configure(state="disabled")
         self.prev_button.configure(state="disabled")
         self.go_to_page(None, self.current_page + 1)
-        
+
     def update_results(self):
         if self.update_in_progress:
             self.next_button.configure(state="normal")
@@ -276,13 +263,13 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
         end_index = (start_index + self.results_per_page) - 1
         for widget in self.result_frame.winfo_children():
             widget.grid_forget()
-            
+
         row_counter = 0
         if not self.searched_titles and not self.titles:
             # Create a label with text that depends on the value of self.emulator
             emulator_specific_text = " and you have launched them at least once" if self.emulator == "ryujinx" else ""
             text = f"It appears you have no games. Any games that are visible on {self.emulator.capitalize()} {emulator_specific_text} will show up here. If you have games on {self.emulator.capitalize()} that are not showing up here, please make sure that you have the correct user directory set in the settings."
-            
+
             no_games_label = customtkinter.CTkLabel(self.result_frame, text=textwrap.fill(text, 60), font=customtkinter.CTkFont("Arial", 16), anchor="center")
             no_games_label.grid(row=0, column=0, sticky="nsew")
         for i, game in enumerate(self.searched_titles):
@@ -311,7 +298,6 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
             game_desc_text.configure(state="disabled")  # Make the text box read-only
             game_desc_text.grid(row=1, column=1, padx=10, columnspan=2, pady=5, sticky="nsew")
 
-
             # Download mods button
             download_mods_button = customtkinter.CTkButton(game_frame, text="Download Mods", height=50, command=lambda game=game: self.download_mods(game), font=("Arial", 14))
             download_mods_button.grid(row=2, column=1, padx=10, pady=10, sticky="sw")
@@ -323,7 +309,7 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
 
             game.update_title_text(self.result_frame.winfo_width())
             row_counter += 1
-        
+
         self.current_page_entry.delete(0, customtkinter.END)
         self.current_page_entry.insert(0, str(self.current_page))
         self.next_button.configure(state="normal")
@@ -355,7 +341,7 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
             self.next_button.configure(state="normal")
             self.prev_button.configure(state="normal")
             return
-            
+
         try:
             page_number = int(self.current_page_entry.get()) if page_no is None else int(page_no)
             if page_number == self.current_page:
@@ -373,16 +359,14 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
             # Handle invalid input (non-integer)
             self.current_page_entry.delete(0, customtkinter.END)
             self.current_page_entry.insert(0, str(self.current_page))
-            
 
     def check_titles_db(self):
         if not os.path.exists(os.path.join(self.cache.cache_directory, "files", "titles.US.en.json")) or self.cache.get_cached_data("titlesDB [PATH]") is None:
             messagebox.showinfo("Missing TitleDB", "The TitleDB is missing. This is used to gather the required metadata for downloading saves and mods. It will now be downloaded.")
         else:
             data = self.cache.get_cached_data("titlesDB [PATH]")
-            import time 
-            if time.time() - data["time"] < 604800:  # 7 days 
-                return True 
+            if time.time() - data["time"] < 604800:  # 7 days
+                return True
         progress_window = ProgressWindow(master=self, title="Downloading TitleDB",)
         Thread(target=self.download_titles_db, args=(progress_window,)).start()
 
@@ -396,7 +380,7 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
         if not all(response_result):
             messagebox.showerror("Download Error", f"There was an error while attempting to download the TitleDB:\n\n {response_result[1]}")
             progress_window.destroy()
-            return 
+            return
         response = response_result[1]
         progress_frame.start_download("TitleDB", int(response.headers.get('content-length', 0)))
         progress_frame.cancel_download_button.configure(state="disabled")
@@ -407,30 +391,29 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
         progress_frame.grid_forget()
         progress_window.destroy()
         move_to_cache_result = self.cache.move_file_to_cache("titlesDB [PATH]", download_path)
-        
+
         with open(self.cache.get_cached_data("titlesDB [PATH]")["data"], "r", encoding="utf-8") as f:
             self.titles_db = json.load(f)
-        
+
         if not all(download_result):
             messagebox.showerror("Download Error", f"There was an error while attempting to download the TitleDB:\n\n {download_result[1]}")
             return
-        
+
         if not all(move_to_cache_result):
             messagebox.showerror("Download Error", f"There was an error while attempting to add the downloaded database to cache :\n\n {move_to_cache_result[1]}")
             return
-        
+
         messagebox.showinfo("Download Complete", "The TitleDB has been downloaded successfully.")
-        Thread(target=self.refresh_title_list).start()  
-            
+        Thread(target=self.refresh_title_list).start()
+
     def download_mods(self, game):
         messagebox.showinfo("Download Mods", "This feature is not yet implemented.")
-        
-    
+
     def download_saves(self, game, button):
         cache_save_lookup_result = self.cache.get_cached_data("switch_saves")
-        button.configure(state="disabled",text="Fetching...")
-        if cache_save_lookup_result is None or (time.time() - cache_save_lookup_result["time"]) > 86400: # 1 day 
-            
+        button.configure(state="disabled", text="Fetching...")
+        if cache_save_lookup_result is None or (time.time() - cache_save_lookup_result["time"]) > 86400:  # 1 day
+
             saves = get_file_links_from_page("https://new.mirror.lewd.wtf/archive/nintendo/switch/savegames/", ".zip", get_headers(self.settings.app.token))
             if not all(saves):
                 messagebox.showerror("Fetch Error", f"There was an error while attempting to fetch the saves:\n\n {saves[1]}")
@@ -447,7 +430,7 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
         for save in saves:
             if game.title_id in save:
                 title_saves.append(save)
-        
+
         if len(title_saves) == 0:
             messagebox.showerror("Fetch Error", "There are no saves available for this game.")
             button.configure(state="normal", text="Download Saves")
