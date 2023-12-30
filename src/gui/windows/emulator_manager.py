@@ -123,7 +123,7 @@ class EmulatorManager(customtkinter.CTk):
         self.settings_button.grid(row=2, column=0, sticky="ew")
 
         self.yuzu_frame = YuzuFrame(self, self.settings, self.metadata, self.cache)
-        self.dolphin_frame = DolphinFrame(self, self.settings, self.metadata)
+        self.dolphin_frame = DolphinFrame(self, self.settings, self.metadata, self.cache)
         self.ryujinx_frame = RyujinxFrame(self, self.settings, self.metadata, self.cache)
         self.settings_frame = SettingsFrame(self, self.settings)
 

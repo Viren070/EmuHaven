@@ -10,11 +10,11 @@ DEFAULT_HEADER = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Apple
 
 
 class Release:
-    def __init__(self) -> None:
-        self.name = None
-        self.download_url = None
-        self.size = None
-        self.version = None
+    def __init__(self, name=None, download_url=None, size=None, version=None) -> None:
+        self.name = name
+        self.download_url = download_url
+        self.size = size
+        self.version = version
 
 
 class File:

@@ -1,22 +1,32 @@
+import time
 from threading import Thread
 from tkinter import messagebox
 
 import customtkinter
 
 from gui.CTkScrollableDropdown import CTkScrollableDropdown
-from utils.requests_utils import fetch_firmware_keys_dict, get_headers
+from utils.requests_utils import fetch_firmware_keys_dict, get_headers, Release
 
 
 class FirmwareKeysFrame(customtkinter.CTkFrame):
     def __init__(self, master, gui):
         super().__init__(master)
         self.gui = gui
+        self.cache = gui.cache
         self.fetching_versions = False
         self.firmware_key_version_dict = {
             "firmware": {},
             "keys": {}
         }
         self.build_frame()
+        self.check_cache_for_versions()
+    def check_cache_for_versions(self):
+        cache_lookup_result = self.cache.get_cached_data("firmware_keys")
+        if cache_lookup_result and time.time() - cache_lookup_result["time"] < 604800:  # 7 days in seconds
+            self.firmware_key_version_dict = self.create_dict_from_cache(cache_lookup_result["data"])
+            self.create_scrollable_dropdown_with_dict(self.firmware_key_version_dict)
+            return True 
+        return False
 
     def build_frame(self):
 
@@ -94,6 +104,9 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
         self.key_option_menu.configure(values=key_versions)
 
     def fetch_firmware_and_key_versions(self, manual_fetch=False):
+        if self.check_cache_for_versions():
+            self.fetching_versions = False
+            return
         self.fetching_versions = True
         self.firmware_option_menu_variable.set("Fetching...")
         self.key_option_menu_variable.set("Fetching...")
@@ -108,5 +121,47 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
         firmware_key_version_dict = firmware_key_dict_result[1]
         # Extract firmware versions from the self.firmware_key_version_dict
         self.create_scrollable_dropdown_with_dict(firmware_key_version_dict)
+        self.cache.add_to_index("firmware_keys", self.create_cacheable_dict(firmware_key_version_dict))
         self.fetching_versions = False
         self.firmware_key_version_dict = firmware_key_version_dict
+        
+
+    def create_cacheable_dict(self, firmware_key_version_dict):
+        return {
+            "firmware": {
+                release.version: {
+                    "download_url": release.download_url,
+                    "name": release.name,
+                    "size": release.size,
+                    "version": release.version,
+                } for release in firmware_key_version_dict.get("firmware", {}).values()
+            },
+            "keys": {
+                release.version: {
+                    "download_url": release.download_url,
+                    "name": release.name,
+                    "size": release.size,
+                    "version": release.version,
+                } for release in firmware_key_version_dict.get("keys", {}).values()
+            }
+        }
+        
+    def create_dict_from_cache(self, cache_dict):
+        return {
+            "firmware": {
+                version: Release(
+                    download_url=release_dict["download_url"],
+                    name=release_dict["name"],
+                    size=release_dict["size"],
+                    version=release_dict["version"],
+                ) for version, release_dict in cache_dict.get("firmware", {}).items()
+            },
+            "keys": {
+                version: Release(
+                    download_url=release_dict["download_url"],
+                    name=release_dict["name"],
+                    size=release_dict["size"],
+                    version=release_dict["version"],
+                ) for version, release_dict in cache_dict.get("keys", {}).items()
+            }
+        }
