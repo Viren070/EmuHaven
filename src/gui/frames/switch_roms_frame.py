@@ -330,7 +330,7 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
         else:
             self.searched_titles = []
             for title in self.titles:
-                if query.lower() in title.name.lower():
+                if query.lower() in title.name.get().lower():
                     self.searched_titles.append(title)
         self.total_pages = (len(self.searched_titles) + self.results_per_page - 1) // self.results_per_page
         self.total_pages_label.configure(text=f"/ {self.total_pages}")
