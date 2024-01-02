@@ -42,8 +42,10 @@ class SwitchTitle:
             image = cache_image_lookup_result["data"]
         self.cover = customtkinter.CTkImage(Image.open(image), size=(224, 224))
         if self.title_data is not None:
-            self.name.set(self.title_data["name"])
-            self.description = self.title_data["description"]
+            if self.title_data["name"] is not None:
+                self.name.set(self.title_data["name"])
+            if self.title_data["description"] is not None:
+                self.description = self.title_data["description"]
 
     def gather_metadata(self):
         if self.titles_db is None:
@@ -296,7 +298,7 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
 
             # Game description text box
             game_desc_text = customtkinter.CTkTextbox(game_frame, height=130, border_width=0, fg_color="transparent")
-            game_desc_text.insert("1.0", game.description)
+            game_desc_text.insert(customtkinter.END, game.description)
             game_desc_text.configure(state="disabled")  # Make the text box read-only
             game_desc_text.grid(row=1, column=1, padx=10, columnspan=2, pady=5, sticky="nsew")
 
