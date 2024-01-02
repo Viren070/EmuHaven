@@ -99,8 +99,8 @@ class SwitchTitle:
                 messagebox.showerror("Download Error", f"There was an error while attempting to add the downloaded cover image to cache:\n\n {move_to_cache_result[1]}")
             self.downloading_cover = False
             return
+        self.cover = customtkinter.CTkImage(Image.open(self.cache.get_cached_data(f"{self.title_id}-Icon [PATH]")["data"]), size=(224, 224))
         if self.button is not None:
-            self.cover = customtkinter.CTkImage(Image.open(self.cache.get_cached_data(f"{self.title_id}-Icon [PATH]")["data"]), size=(224, 224))
             self.button.configure(image=self.cover)
         if not skip_prompt:
             messagebox.showinfo("Download Complete", "The cover image has been downloaded successfully.")
