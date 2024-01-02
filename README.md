@@ -215,7 +215,7 @@ The other settings controls whether the app will check for an update upon starti
 - [Myrient](https://myrient.erista.me/) - Video Game collection
 - Ecchibitionist - For the saves.
 - [RyuSAK](https://github.com/Ecks1337/RyuSAK) 
-- [Kewl](https://www.steamgriddb.com/profile/76561199389486997), [supernova](https://www.steamgriddb.com/profile/76561198042356275), [Crazy](https://www.steamgriddb.com/profile/76561198041637425), [TalkyPup](https://www.steamgriddb.com/profile/76561198025210011) - Banners for emulators. 
+- [Kewl](https://www.steamgriddb.com/profile/76561199389486997), [supernova](https://www.steamgriddb.com/profile/76561198042356275), [Crazy](https://www.steamgriddb.com/profile/76561198041637425), [StaticMachina](https://www.steamgriddb.com/profile/76561198129822760), [TalkyPup](https://www.steamgriddb.com/profile/76561198025210011) - Banners for emulators. 
 
 
 
