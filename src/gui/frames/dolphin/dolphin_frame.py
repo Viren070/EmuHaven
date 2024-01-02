@@ -109,9 +109,10 @@ class DolphinFrame(EmulatorFrame):
         self.dolphin.data_progress_frame = ProgressFrame(self.dolphin_data_log)
 
         self.manage_roms_frame = customtkinter.CTkFrame(self, corner_radius=0, bg_color="transparent")
-
+        self.manage_roms_frame.grid_columnconfigure(0, weight=1)
+        self.manage_roms_frame.grid_rowconfigure(0, weight=1)
         self.rom_frame = DolphinROMFrame(self.manage_roms_frame, self.dolphin, self.settings, self.cache)
-        self.rom_frame.grid(row=0, column=0,  padx=20, pady=20, sticky="nsew")
+        self.rom_frame.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
 
     def switch_channel(self, *args):
         value = self.selected_channel.get()

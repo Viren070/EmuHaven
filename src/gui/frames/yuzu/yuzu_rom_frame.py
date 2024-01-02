@@ -7,7 +7,7 @@ from gui.frames.switch_roms_frame import SwitchROMSFrame
 
 class YuzuROMFrame(customtkinter.CTkTabview):
     def __init__(self, master, settings, cache):
-        super().__init__(master, height=500, width=700)
+        super().__init__(master)
         self.master = master
         self.roms = None
         self.settings = settings

@@ -84,7 +84,7 @@ class ROMSearchFrame(customtkinter.CTkFrame):
         self.current_page = 1
 
         page_navigation_frame = customtkinter.CTkFrame(self)
-        page_navigation_frame.grid(row=2, column=0, columnspan=3, padx=10, pady=10, sticky="ew")
+        page_navigation_frame.grid(row=2, column=0, padx=10, pady=10, sticky="ew")
 
         left_frame = customtkinter.CTkFrame(page_navigation_frame)
         left_frame.grid(row=0, column=0, padx=(10, 0), pady=10, sticky="w")
@@ -115,11 +115,9 @@ class ROMSearchFrame(customtkinter.CTkFrame):
         right_frame.grid_columnconfigure(1, weight=0)
 
         self.grid_rowconfigure(0, weight=1)
-        self.grid_rowconfigure(1, weight=1)
+        self.grid_rowconfigure(1, weight=10)
         self.grid_rowconfigure(2, weight=1)
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_columnconfigure(1, weight=3)
-        self.grid_columnconfigure(2, weight=1)
+        self.grid_columnconfigure(0, weight=10)
 
     def go_to_previous_page(self):
         if self.current_page - 1 == 0:
