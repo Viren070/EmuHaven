@@ -166,7 +166,7 @@ class ROMSearchFrame(customtkinter.CTkFrame):
             entry.grid(row=row_counter, column=0, padx=10, pady=5, sticky="w")
             button = customtkinter.CTkButton(self.result_frame, text="Download")
             button.configure(command=lambda button=button, rom=rom: self.root.download_rom_event(rom, button))
-            button.bind("<Shift-Button-1>", lambda event: webbrowser.open(rom.url))
+            button.bind("<Shift-Button-1>", lambda event, rom=rom: webbrowser.open(rom.url))
             button.grid(row=row_counter, column=1, padx=10, pady=5, sticky="e")
             row_counter += 2
         self.current_page_entry.delete(0, customtkinter.END)
