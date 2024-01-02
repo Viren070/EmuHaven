@@ -37,6 +37,8 @@ class DolphinROMFrame(customtkinter.CTkTabview):
         self.tab("Wii ROMs").grid_rowconfigure(0, weight=1)
         self.tab("GameCube ROMs").grid_columnconfigure(0, weight=1)
         self.tab("GameCube ROMs").grid_rowconfigure(0, weight=1)
+        self.tab("Downloads").grid_columnconfigure(0, weight=1)
+        self.tab("Downloads").grid_rowconfigure(0, weight=1)
 
         self.current_roms_frame = CurrentROMSFrame(self.tab("My ROMs"), self, self.settings.dolphin,  (".wbfs", ".iso", ".rvz", ".gcm", ".gcz", ".ciso"))
         self.current_roms_frame.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
