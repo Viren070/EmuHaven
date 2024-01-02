@@ -192,8 +192,8 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
 
         self.search_entry = customtkinter.CTkEntry(search_frame, placeholder_text="Search")
         self.search_entry.grid(row=0, column=0, padx=10, pady=10, sticky="e")
-        self.search_entry.bind("<Return>", self.perform_search)
-        self.search_button = customtkinter.CTkButton(search_frame, text="Go", width=60, command=self.perform_search)
+        self.search_entry.bind("<Return>", command=lambda event: Thread(target=self.perform_search).start())
+        self.search_button = customtkinter.CTkButton(search_frame, text="Go", width=60, command=lambda: Thread(target=self.perform_search).start())
         self.search_button.grid(row=0, column=1, padx=10, sticky="e", pady=10)
 
         self.result_frame = customtkinter.CTkScrollableFrame(self)
