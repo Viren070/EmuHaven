@@ -185,25 +185,40 @@ The other settings controls whether the app will check for an update upon starti
    - Replace the path to customtkinter as necessary
    
 ## Images
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/0ea2e7d0-43f5-4ad0-a523-5959ca8a841a)
 
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/1a86bc03-555e-414e-a063-f3ec9e02af14)
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/be259b14-4908-4c4f-964d-d1cda35e6497)
 
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/f31767b9-689d-4de6-a468-266525b6eb5a)
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/0efa4183-e7ee-4ec5-b928-e70a894cae66)
 
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/8e098494-a1a1-481c-a73c-46d2b5a1f040)
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/a9320702-ac36-4b40-b053-45280528ccfe)
 
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/1ed421bd-cd16-4820-90e1-9fdefbb2847e)
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/69e34f4b-9765-4210-bbcc-3818b0ac6517)
 
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/01491588-c2ab-41d7-b9e7-d7b2ffd983d4)
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/d6ba8ddf-3949-4834-9ae4-6007154b43aa)
 
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/b9626aaa-e959-41d5-a203-7eee1d1c02eb)
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/59db024a-5e4e-4556-881d-77809b970619)
 
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/dc8cbc5b-2cab-434e-bf05-5ab131b11d7f)
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/965600d7-1e60-458e-b70d-4d87e192dd4b)
 
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/a57140aa-9262-489e-9fde-e2c363a1521e)
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/45c3581c-4f74-4581-888c-5269a1919138)
 
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/771e601e-a0f7-4828-95cd-ad5fb3d0b85a)
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/81955397-d1e0-4ed8-be74-83fce021dcd2)
+
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/6c0b73b9-fe19-42dd-b46d-eaafcf097eef)
+
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/fd970ca6-ebbb-405f-9ad5-2942565a3dab)
+
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/f3dcd629-5b4d-46d1-9fe0-1cd1114c60e9)
+
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/22b9f520-adc8-4f6c-a1d5-a9ba3b0b251d)
+
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/e5b6ae5c-7534-4af4-963e-5abc63e2c8e0)
+
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/3fcde0f3-e919-4e2e-84e9-cd258dfffd28)
+
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/dea33238-314e-413a-a198-ce81b6f95fb5)
+
+![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/9ee23034-0a70-4807-bad5-655f0ed5e964)
 
 
 ## Aknowledgements
