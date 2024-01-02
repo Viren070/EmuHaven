@@ -141,6 +141,17 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
         self.searching = False
         self.build_frame()
         title_ids = self.get_title_ids()
+        self.define_titles_db()
+
+        self.titles = [SwitchTitle(self, title_id, settings, cache) for title_id in title_ids]  # Create game objects
+        self.searched_titles = self.titles
+        self.total_pages = (len(self.searched_titles) + self.results_per_page - 1) // self.results_per_page
+        self.total_pages_label.configure(text=f"/ {self.total_pages}")
+        self.update_results()
+        self.bind("<Configure>", lambda event: [game.update_title_text(self.result_frame.winfo_width()) for game in self.get_current_page_titles()])
+
+    def define_titles_db(self):
+        title_ids = self.get_title_ids()
         cache_lookup_result = self.cache.get_cached_data("titlesDB [PATH]")  # Check if titles.US.en is cached
         missing_title = False
         self.titles_db = None
@@ -152,13 +163,6 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
             if missing_title:
                 with open(cache_lookup_result["data"], "r", encoding="utf-8") as f:
                     self.titles_db = json.load(f)
-
-        self.titles = [SwitchTitle(self, title_id, settings, cache) for title_id in title_ids]  # Create game objects
-        self.searched_titles = self.titles
-        self.total_pages = (len(self.searched_titles) + self.results_per_page - 1) // self.results_per_page
-        self.total_pages_label.configure(text=f"/ {self.total_pages}")
-        self.update_results()
-        self.bind("<Configure>", lambda event: [game.update_title_text(self.result_frame.winfo_width()) for game in self.get_current_page_titles()])
 
     def get_current_page_titles(self):
         start_index = (int(self.current_page_entry.get()) - 1) * self.results_per_page
@@ -172,6 +176,7 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
             return
         self.refresh_button.configure(state="disabled", text="Refreshing...")
         self.refreshing = True
+        self.define_titles_db()
         self.titles = [SwitchTitle(self, title_id, self.settings, self.cache) for title_id in self.get_title_ids()]  # Create game objects
         self.total_pages = (len(self.searched_titles) + self.results_per_page - 1) // self.results_per_page
         self.total_pages_label.configure(text=f"/ {self.total_pages}")
