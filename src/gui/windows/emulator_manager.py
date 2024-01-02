@@ -232,5 +232,4 @@ class EmulatorManager(customtkinter.CTk):
             except PermissionError:
                 pass
         delete_token_file()
-        self.destroy()
         sysexit()
