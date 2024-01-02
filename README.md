@@ -11,7 +11,7 @@ A program that will help manage your emulators, currently supports:
 
 Only tested on Windows 10 and 11, not sure if it will work on anything else
 
-[Images](https://github.com/Viren070/Emulator-Manager#images)
+[Images](https://github.com/Viren070/Emulator-Manager?tab=readme-ov-file#images)
 
 ## Download 
 
