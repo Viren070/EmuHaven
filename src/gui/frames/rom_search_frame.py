@@ -41,6 +41,8 @@ class ROMSearchFrame(customtkinter.CTkFrame):
 
     def define_roms(self, roms=None):
         if not roms:
+            if "Microsoft%20-%20Xbox%20360%20%28Digital%29/" in self.rom_link:
+                messagebox.showwarning("Warning", "This may take a while. Please be patient.")
             roms = get_file_links_from_page(self.rom_link, ".zip", get_headers())
             if not all(roms):
                 self.refresh_button.configure(state="normal", text="Fetch ROMs")
