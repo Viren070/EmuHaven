@@ -155,8 +155,10 @@ class XeniaFrame(EmulatorFrame):
         if not os.path.exists(os.path.join(self.settings.xenia.install_directory, self.selected_channel.get(), "xenia.exe" if self.selected_channel.get() == "Master" else "xenia_canary.exe")):
             messagebox.showerror("Error", f"Could not find a Xenia {self.selected_channel.get()} installation at {os.path.join(self.settings.xenia.install_directory, self.selected_channel.get())}.")
             return
+        skip_update = True if event.state & 1 else False
+            
         self.configure_action_buttons("disabled")
-        thread = Thread(target=self.xenia.launch_xenia_handler, args=(self.selected_channel.get(),))
+        thread = Thread(target=self.xenia.launch_xenia_handler, args=(self.selected_channel.get(), skip_update))
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["action"],)).start()
         
