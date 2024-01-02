@@ -13,7 +13,7 @@ from gui.frames.xenia.xenia_rom_frame import XeniaROMFrame
 from gui.windows.path_dialog import PathDialog
 from gui.windows.folder_selector import FolderSelector
 
-FOLDERS = []
+FOLDERS = ["cache", "content", "xenia.config.toml"]
 
 
 class XeniaFrame(EmulatorFrame):
@@ -89,9 +89,9 @@ class XeniaFrame(EmulatorFrame):
         self.data_actions_frame.grid(row=0, column=0, padx=20, columnspan=3, pady=20, sticky="ew")
         self.data_actions_frame.grid_columnconfigure(1, weight=1)
 
-        self.import_data_optionmenu = customtkinter.CTkOptionMenu(self.data_actions_frame, width=300, values=["All Data", "Save Data", "Custom..."])
-        self.export_data_optionmenu = customtkinter.CTkOptionMenu(self.data_actions_frame, width=300, values=["All Data", "Save Data", "Custom..."])
-        self.delete_data_optionmenu = customtkinter.CTkOptionMenu(self.data_actions_frame, width=300, values=["All Data", "Save Data", "Custom..."])
+        self.import_data_optionmenu = customtkinter.CTkOptionMenu(self.data_actions_frame, width=300, values=["All Data", "Custom"])
+        self.export_data_optionmenu = customtkinter.CTkOptionMenu(self.data_actions_frame, width=300, values=["All Data", "Custom"])
+        self.delete_data_optionmenu = customtkinter.CTkOptionMenu(self.data_actions_frame, width=300, values=["All Data", "Custom"])
 
         self.import_data_button = customtkinter.CTkButton(self.data_actions_frame, text="Import", command=self.import_data_button_event)
         self.export_data_button = customtkinter.CTkButton(self.data_actions_frame, text="Export", command=self.export_data_button_event)
@@ -194,10 +194,11 @@ class XeniaFrame(EmulatorFrame):
         folders = None
         import_option = self.import_data_optionmenu.get()
 
-        if import_option == "Custom...":
+        if import_option == "Custom":
             directory, folders = FolderSelector(
                 title="Choose directory and folders to import",
-                allowed_folders=FOLDERS
+                allowed_folders=FOLDERS,
+                show_files=True,
             ).get_input()
         else:
             directory = PathDialog(title="Import Directory", text="Enter directory to import from: ", directory=True).get_input()
@@ -225,11 +226,11 @@ class XeniaFrame(EmulatorFrame):
                 return
             return
         directory = directory[1]
-        if self.export_data_optionmenu.get() == "Custom...":
-            user_directory, folders = FolderSelector(title="Choose folders to export", predefined_directory=self.settings.xenia.user_directory, allowed_folders=FOLDERS).get_input()
+        if self.export_data_optionmenu.get() == "Custom":
+            user_directory, folders = FolderSelector(title="Choose folders to export", predefined_directory=self.settings.xenia.user_directory, allowed_folders=FOLDERS, show_files=True).get_input()
             if user_directory is None or folders is None:
                 return
-            args = ("Custom...", directory, folders,)
+            args = ("Custom", directory, folders,)
         else:
             args = (self.export_data_optionmenu.get(), directory,)
         
@@ -239,11 +240,11 @@ class XeniaFrame(EmulatorFrame):
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["data"],)).start()
 
     def delete_data_button_event(self):
-        if self.delete_xenia_optionmenu.get() == "Custom...":
-            directory, folders = FolderSelector(title="Delete Directory", predefined_directory=self.settings.xenia.user_directory, allowed_folders=FOLDERS).get_input()
+        if self.delete_xenia_optionmenu.get() == "Custom":
+            directory, folders = FolderSelector(title="Delete Directory", predefined_directory=self.settings.xenia.user_directory, allowed_folders=FOLDERS, show_files=True).get_input()
             if directory is None or folders is None:
                 return
-            thread = Thread(target=self.xenia.delete_xenia_data, args=("Custom...", folders,))
+            thread = Thread(target=self.xenia.delete_xenia_data, args=("Custom", folders,))
         else:
             thread = Thread(target=self.xenia.delete_xenia_data, args=(self.delete_data_optionmenu.get(),))
         if not messagebox.askyesno("Confirmation", "This will delete the data from Yuzu's directory. This action cannot be undone, are you sure you wish to continue?"):

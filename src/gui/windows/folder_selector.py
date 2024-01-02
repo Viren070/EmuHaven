@@ -3,12 +3,13 @@ from tkinter import filedialog, messagebox
 from customtkinter import CTkToplevel, CTkEntry, CTkButton, CTkCheckBox, CTkScrollableFrame, CTkFrame
 
 class FolderSelector(CTkToplevel):
-    def __init__(self, *args, title, predefined_directory=None, allowed_folders=None, **kwargs):
+    def __init__(self, *args, title, predefined_directory=None, allowed_folders=None, show_files=False, **kwargs):
         super().__init__(*args, **kwargs)
         self.populating = False
         self.directory = None
         self.predefined_directory = predefined_directory
         self.allowed_folders = allowed_folders
+        self.show_files = show_files
         # Central frame
         self.title(title)
         self.geometry("700x500")
@@ -76,7 +77,8 @@ class FolderSelector(CTkToplevel):
 
         # Add new checkbuttons
         for name in os.listdir(directory):
-            if os.path.isdir(os.path.join(directory, name)):
+            full_path = os.path.join(directory, name)
+            if os.path.isdir(full_path) or (self.show_files and os.path.isfile(full_path)):
                 cb = CTkCheckBox(self.scroll_frame, text=name)
                 cb.pack(side='top', fill='x', pady=5)
                 # Disable checkbox if allowed_folders is not None and name is not in allowed_folders
