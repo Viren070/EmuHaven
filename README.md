@@ -13,11 +13,9 @@ Only tested on Windows 10 and 11, not sure if it will work on anything else
 
 ## Download 
 
-Download the latest release from [here](https://github.com/Viren070/Emulator-Manager/releases/latest) by scrolling to the bottom and downloading the .zip* from the assets. 
-
-*I would recommend downloading the .zip. the .exe is created from pyinstallers --onefile mode and the exe created from this will attempt to use a folder in %tmp% to unpack the internal contents. These internal contents are sometimes left behind and can consume storage space. Furthermore, portable mode will not really be portable with the .exe created through --onefile.
-
-The .zip file will still have an exe inside it.
+1. Go to the [latest release](https://github.com/Viren070/Emulator-Manager/releases/latest)
+2. Scroll down to the assets and download `Emulator.Manager.v0.x.x.zip`
+3. Extract the downloaded zip file and inside the extracted folder launch Emulator Manager.exe 
 
 Note: Windows Defender will detect the file as a virus since the file is unsigned. This is a false positive and can be ignored. If you don't want to run the exe, you can [run the source code](https://github.com/Viren070/Emulator-Manager/tree/main#building-yourself)
 
