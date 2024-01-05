@@ -9,7 +9,7 @@ A program that will help manage your emulators, currently supports:
  - Ryujinx
  - Xenia (as of 0.13.0)
 
-Only tested on Windows 10 and 11, not sure if it will work on anything else
+Currently only works for Windows and will not run on other operating systems. This can be fixed though. 
 
 [Images](https://github.com/Viren070/Emulator-Manager?tab=readme-ov-file#images)
 
