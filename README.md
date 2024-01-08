@@ -168,7 +168,7 @@ The other settings controls whether the app will check for an update upon starti
 ## Building yourself 
 
 ### Requirements:
- - Latest version of python
+ - Python 3.12
 
 1. Clone the repository or click the download ZIP button. 
 2. Run
