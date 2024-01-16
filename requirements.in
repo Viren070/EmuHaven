@@ -1,7 +1,7 @@
 beautifulsoup4==4.12.2
 CTkToolTip==0.8
 CTkToolTip==0.8
-customtkinter==5.2.1
+customtkinter==5.2.2
 packaging==23.2
 Pillow==10.2.0
 py7zr==0.20.8
