@@ -14,7 +14,8 @@ class CTkScrollableDropdown(customtkinter.CTkToplevel):
                  fg_color=None, button_height: int = 20, justify="center", scrollbar_button_color=None,
                  scrollbar=True, scrollbar_button_hover_color=None, frame_border_width=2, values=[],
                  command=None, image_values=[], alpha: float = 0.97, frame_corner_radius=20, double_click=False,
-                 resize=True, frame_border_color=None, text_color=None, autocomplete=False, **button_kwargs):
+                 resize=True, frame_border_color=None, text_color=None, autocomplete=False, 
+                 hover_color=None, **button_kwargs):
         
         super().__init__(takefocus=1)
         
@@ -58,6 +59,8 @@ class CTkScrollableDropdown(customtkinter.CTkToplevel):
         self.frame_border_color = customtkinter.ThemeManager.theme["CTkFrame"]["border_color"] if frame_border_color is None else frame_border_color
         self.button_color = customtkinter.ThemeManager.theme["CTkFrame"]["top_fg_color"] if button_color is None else button_color
         self.text_color = customtkinter.ThemeManager.theme["CTkLabel"]["text_color"] if text_color is None else text_color
+        self.hover_color = customtkinter.ThemeManager.theme["CTkButton"]["hover_color"] if hover_color is None else hover_color
+        
         
         if scrollbar is False:
             self.scroll_button_color = self.fg_color
@@ -183,7 +186,7 @@ class CTkScrollableDropdown(customtkinter.CTkToplevel):
                                                           height=self.button_height,
                                                           fg_color=self.button_color,
                                                           text_color=self.text_color,
-                                                          image=self.image_values[i] if self.image_values is not None else None,
+                                                          image=self.image_values[self.i] if self.image_values is not None else None,
                                                           anchor=self.justify,
                                                           command=lambda k=row: self._attach_key_press(k), **button_kwargs)
             self.widgets[self.i].pack(fill="x", pady=2, padx=(self.padding, 0))
@@ -332,6 +335,9 @@ class CTkScrollableDropdown(customtkinter.CTkToplevel):
         if "button_color" in kwargs:
             for key in self.widgets.keys():
                 self.widgets[key].configure(fg_color=kwargs.pop("button_color"))
-                
+        
+        if "hover_color" not in kwargs:
+            kwargs["hover_color"] = self.hover_color
+        
         for key in self.widgets.keys():
             self.widgets[key].configure(**kwargs)
