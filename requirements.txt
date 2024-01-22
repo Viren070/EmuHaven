@@ -4,7 +4,7 @@
 #
 #    pip-compile requirements.in
 #
-beautifulsoup4==4.12.2
+beautifulsoup4==4.12.3
     # via -r requirements.in
 brotli==1.1.0
     # via py7zr
