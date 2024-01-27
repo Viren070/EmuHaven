@@ -35,12 +35,12 @@ class Ryujinx:
             return False
 
     def get_latest_release(self):
-        response = create_get_connection('https://api.github.com/repos/Ryujinx/release-channel-master/releases', headers=get_headers(self.settings.app.token))
+        response = create_get_connection('https://api.github.com/repos/Ryujinx/release-channel-master/releases/latest', headers=get_headers(self.settings.app.token))
         if not all(response):
             return (False, response[1])
         response = response[1]
         try:
-            release_info = json.loads(response.text)[0]
+            release_info = json.loads(response.text)
             latest_version = release_info["tag_name"]
             assets = release_info['assets']
         except KeyError:

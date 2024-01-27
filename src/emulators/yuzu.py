@@ -45,12 +45,12 @@ class Yuzu:
             return (False, error_msg)
 
     def get_latest_release(self, release_type):
-        response = create_get_connection('https://api.github.com/repos/pineappleEA/pineapple-src/releases' if release_type == "early_access" else "https://api.github.com/repos/yuzu-emu/yuzu-mainline/releases", headers=get_headers(self.settings.app.token))
+        response = create_get_connection('https://api.github.com/repos/pineappleEA/pineapple-src/releases/latest' if release_type == "early_access" else "https://api.github.com/repos/yuzu-emu/yuzu-mainline/releases/latest", headers=get_headers(self.settings.app.token))
         if not all(response):
             return (False, response[1])
         response = response[1]
         try:
-            release_info = json.loads(response.text)[0]
+            release_info = json.loads(response.text)
             latest_version = release_info["tag_name"].split("-")[-1]
             assets = release_info['assets']
         except KeyError:

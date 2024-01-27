@@ -75,13 +75,13 @@ class Xenia:
             messagebox.showinfo("Install Xenia", f"Xenia was successfully installed to {self.settings.xenia.install_directory}")
 
     def get_xenia_release(self, release_channel):
-        repo_url = "https://api.github.com/repos/xenia-project/release-builds-windows/releases" if release_channel == "Master" else "https://api.github.com/repos/xenia-canary/xenia-canary/releases"
+        repo_url = "https://api.github.com/repos/xenia-project/release-builds-windows/releases/latest" if release_channel == "Master" else "https://api.github.com/repos/xenia-canary/xenia-canary/releases/latest"
         response = create_get_connection(repo_url, headers=get_headers(self.settings.app.token), timeout=30)
         if not all(response):
             return response
         response = response[1]
         try:
-            release_info = response.json()[0]
+            release_info = response.json()
             latest_version = release_info["tag_name"] if release_channel == "Master" else release_info["target_commitish"][:7]
             assets = release_info["assets"]
         except KeyError:
