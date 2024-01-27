@@ -1,17 +1,15 @@
 # Emulator Manager
 
-
-
 A program that will help manage your emulators, currently supports: 
 
  - Dolphin
  - Yuzu
  - Ryujinx
- - Xenia (as of 0.13.0)
+ - Xenia
 
 Currently only works for Windows and will not run on other operating systems. This can be fixed though. 
 
-[Images](https://github.com/Viren070/Emulator-Manager?tab=readme-ov-file#images)
+[View images here](https://github.com/Viren070/Emulator-Manager?tab=readme-ov-file#images)
 
 ## Download 
 
@@ -19,7 +17,7 @@ Currently only works for Windows and will not run on other operating systems. Th
 2. Scroll down to the assets and download `Emulator.Manager.v0.x.x.zip`
 3. Extract the downloaded zip file and inside the extracted folder launch Emulator Manager.exe 
 
-Note: Windows Defender will detect the file as a virus since the file is unsigned. This is a false positive and can be ignored. If you don't want to run the exe, you can [run the source code](https://github.com/Viren070/Emulator-Manager/tree/main#building-yourself)
+Note: Windows Defender will detect the file as a virus since the file is unsigned. This is a false positive and can be ignored. If you don't want to run the exe, you can [run the source code](https://github.com/Viren070/Emulator-Manager?tab=readme-ov-file#building-yourself)
 
 ## Features
 
@@ -52,6 +50,14 @@ An all in one launcher for yuzu. Allows you to switch between mainline and early
 - You can switch between different versions of firmware and keys.
 - Manage your user data, you can choose to specifically delete/import/export certain folders.
 - Manage your games and install mods and saves for specific games.*
+
+### Xenia 
+
+- Install, delete, or launch xenia
+- Can switch between canary and master builds.
+- Download any game from within the app.
+- Download digital content.
+- Manage your user data - export/import/delete.
 
 ### App
 
@@ -109,7 +115,18 @@ However, if the age of the cached data becomes more than 7 days old, it will not
 
 ### `Manage Data` Menu 
 
-...
+3 option menus on the left with a button to the right for each. 
+option menus are used to determine what part to carry out the action on. 
+The button is used to perform the action 
+
+All emulators have the choice of either All Data or Custom. 
+
+Choosing custom will open a menu where you can select specific folders to carry out the action on (You can only choose root folders).
+Choosing All Data does as described - it will simply carry out the action on every folder and file within the user directory or directory you select. 
+
+#### Yuzu & Ryujinx 
+
+These 2 emulators have the extra choice of 'Save Data'. This will export/import/delete ALL save data for every profile within the emulator. 
 
 ### `Manage ROMs` Menu
 
@@ -119,6 +136,9 @@ This menu contains a Tabview frame which as it suggests, allows you to display s
 
 Dokphin's Manage ROMs menu has 4 tabs. One called `My ROMs` which will show you the roms you currently have downloaded (provided that the correct path is provided in the settings). And it will display the size that it takes and a delete button next to it. 
 The next 2 tabs allow you to download ROMs from Myrient. One tab for Wii ROMs and one for GameCube ROMS. 
+
+Shift clicking the download button will open the download link in your browser.
+
 If it is your first time launching the app, there will be a `Fetch ROMs` button in the top left corner of the tab. Upon clicking this, a request will be sent to the Myrient website and a list of all the links for ROMs will be collected. It will be added to the cache so next time you launch the app it will already be loaded. 
 The age of the cached data is not considered currently, but I will add a check to see if the data is more than 14 days old. 
 
@@ -178,11 +198,12 @@ The other settings controls whether the app will check for an update upon starti
 3. You should be able to run main.py
 4. To build the executable run:
    ```
-   pyinstaller --noconfirm --onefile --windowed --name "Emulator Manager" --clean --add-data "%localappdata%/Programs/Python/Python312/Lib/site-packages/customtkinter;customtkinter/" --add-data src/assets;assets/  src/main.py
+   pyinstaller --noconfirm --onefile --console --name "Emulator Manager" --clean --add-data "%localappdata%/Programs/Python/Python312/Lib/site-packages/customtkinter;customtkinter/" --add-data src/assets;assets/  src/main.py
    ```
    - If you don't have pyinstaller, you can install it with `pip install pyinstaller`
    - You can replace `--onefile` with `--onedir`.
    - Replace the path to customtkinter as necessary
+   - This should be run inside the root directory 
    
 ## Images
 
