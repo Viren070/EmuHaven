@@ -218,6 +218,7 @@ class CTkScrollableDropdown(customtkinter.CTkToplevel):
         self.attach.focus()
 
     def _iconify(self):
+        if self.attach.cget("state")=="disabled": return
         if self.disable: return
         if self.hide:
             self.event_generate("<<Opened>>")
