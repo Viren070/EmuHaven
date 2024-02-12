@@ -95,7 +95,7 @@ def get_file_links_from_page(url, file_ext, headers=None):
     soup = BeautifulSoup(response.text, 'html.parser')
     links = soup.find_all('a')
     for link in links:
-        href = link.get('href')
+        href = link.get('href').replace('"', '').strip("\\")
         if (file_ext is None) or (href.endswith(file_ext) and href not in [file.url for file in files]):
             filename = unquote(link['href']).split('/')[-1].split(file_ext)[-2]
             result = urlparse(href)
