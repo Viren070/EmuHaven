@@ -423,7 +423,7 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
         button.configure(state="disabled", text="Fetching...")
         if cache_save_lookup_result is None or (time.time() - cache_save_lookup_result["time"]) > 86400:  # 1 day
 
-            saves = get_file_links_from_page("https://new.mirror.lewd.wtf/archive/nintendo/switch/savegames/", ".zip", get_headers(self.settings.app.token))
+            saves = get_file_links_from_page("https://github.com/Viren070/NX_Saves/blob/main/index.md", ".zip", get_headers(self.settings.app.token))
             if not all(saves):
                 messagebox.showerror("Fetch Error", f"There was an error while attempting to fetch the saves:\n\n {saves[1]}")
                 button.configure(state="normal", text="Download Saves")
