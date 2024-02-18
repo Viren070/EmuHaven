@@ -382,7 +382,6 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
     def download_titles_db(self, progress_window):
         progress_frame = progress_window.progress_frame
         progress_frame.start_download("TitleDB", 0)
-        progress_frame.cancel_download_button.configure(state="disabled")
         from utils.downloader import download_through_stream
         from utils.requests_utils import create_get_connection
         response_result = create_get_connection("https://github.com/arch-box/titledb/releases/download/latest/titles.US.en.json", stream=True, headers=get_headers(self.settings.app.token), timeout=30)
@@ -392,7 +391,6 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
             return
         response = response_result[1]
         progress_frame.start_download("TitleDB", int(response.headers.get('content-length', 0)))
-        progress_frame.cancel_download_button.configure(state="disabled")
         progress_frame.grid(row=0, column=0, sticky="ew")
         download_path = os.path.normpath(os.path.join(os.getcwd(), "titles.US.en.json"))
         download_result = download_through_stream(response, download_path, progress_frame, 1024*128)
