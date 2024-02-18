@@ -397,19 +397,20 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
         progress_frame.complete_download()
         progress_frame.grid_forget()
         progress_window.destroy()
-        move_to_cache_result = self.cache.move_file_to_cache("titlesDB [PATH]", download_path)
-
-        with open(self.cache.get_cached_data("titlesDB [PATH]")["data"], "r", encoding="utf-8") as f:
-            self.titles_db = json.load(f)
 
         if not all(download_result):
             messagebox.showerror("Download Error", f"There was an error while attempting to download the TitleDB:\n\n {download_result[1]}")
             return
-
+        
+        move_to_cache_result = self.cache.move_file_to_cache("titlesDB [PATH]", download_path)
+            
         if not all(move_to_cache_result):
             messagebox.showerror("Download Error", f"There was an error while attempting to add the downloaded database to cache :\n\n {move_to_cache_result[1]}")
             return
-
+        
+        with open(self.cache.get_cached_data("titlesDB [PATH]")["data"], "r", encoding="utf-8") as f:
+            self.titles_db = json.load(f)
+            
         messagebox.showinfo("Download Complete", "The TitleDB has been downloaded successfully.")
         Thread(target=self.refresh_title_list).start()
 
