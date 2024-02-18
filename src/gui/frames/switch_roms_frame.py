@@ -371,7 +371,7 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
 
     def check_titles_db(self):
         if not os.path.exists(os.path.join(self.cache.cache_directory, "files", "titles.US.en.json")) or self.cache.get_cached_data("titlesDB [PATH]") is None:
-            messagebox.showinfo("Missing TitleDB", "The TitleDB is missing. This is used to gather the required metadata for downloading saves and mods. It will now be downloaded.")
+            messagebox.showinfo("Missing or Outdated TitleDB", "The TitleDB is missing or outdated. This is used to gather the required metadata for downloading saves and mods. It will now be downloaded.")
         else:
             data = self.cache.get_cached_data("titlesDB [PATH]")
             if time.time() - data["time"] < 604800:  # 7 days
