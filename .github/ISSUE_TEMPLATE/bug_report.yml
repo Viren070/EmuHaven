@@ -50,7 +50,7 @@ body:
   - type: input
     id: emulator-manager-version
     attributes:
-      label: Emukator Manager version
+      label: Emulator Manager version
       description: You can find your Emulator Manager version in the top left of the screen
       placeholder: |
         Example: "0.13.2"
