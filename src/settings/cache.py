@@ -1,6 +1,8 @@
-import os 
-import json 
+import json
+import os
+import shutil
 import time
+
 
 class Cache:
     def __init__(self, master, settings, metadata):
@@ -81,7 +83,7 @@ class Cache:
         try:
             if os.path.exists(new_path):
                 os.remove(new_path)
-            os.rename(image_path, new_path)
+            shutil.move(image_path, new_path)
         except PermissionError as e:
             return (False, f"Error deleting existing cached image: {e}")
         except OSError as e:
@@ -99,7 +101,7 @@ class Cache:
         try:
             if os.path.exists(new_path):
                 os.remove(new_path)
-            os.rename(file_path, new_path)
+            shutil.move(file_path, new_path)
         except PermissionError as e:
             return (False, f"Error deleting existing cached file: {e}")
         except OSError as e:
