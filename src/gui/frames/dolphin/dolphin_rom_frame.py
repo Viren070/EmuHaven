@@ -62,7 +62,8 @@ class DolphinROMFrame(customtkinter.CTkTabview):
             if download_result[1] != "Cancelled":
                 messagebox.showerror("Error", f"An error occurred while attempting to download this ROM\n\n{download_result[1]}")
             else:
-                os.remove(download_result[2])
+                if os.path.exists(download_result[2]):
+                    os.remove(download_result[2])
             self.downloads_in_progress -= 1
             button.configure(state="normal", text="Download")
             return
@@ -79,6 +80,11 @@ class DolphinROMFrame(customtkinter.CTkTabview):
 
     def download_rom(self, rom):
         download_folder = self.settings.dolphin.rom_directory
+        if download_folder == "":
+            if messagebox.askyesno("No ROM Directory", "No ROM directory has been set in the settings. Would you like to download to the current directory?"):
+                download_folder = os.getcwd()
+            else:
+                return (False, "Cancelled", "")
         os.makedirs(download_folder, exist_ok=True)
         download_path = os.path.join(download_folder, rom.filename)
         response = create_get_connection(rom.url, stream=True, headers=get_headers(), timeout=30)
