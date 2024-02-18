@@ -78,13 +78,15 @@ class Cache:
 
         new_path = os.path.join(self.cache_directory, "images", os.path.basename(image_path))
         os.makedirs(os.path.dirname(new_path), exist_ok=True)
-        if os.path.exists(new_path):
-            os.remove(new_path)
         try:
+            if os.path.exists(new_path):
+                os.remove(new_path)
             os.rename(image_path, new_path)
+        except PermissionError as e:
+            return (False, f"Error deleting existing cached image: {e}")
         except OSError as e:
             return (False, f"Error moving file: {e}")
-
+        
         self.add_to_index(name, new_path)
         return (True, )
     def move_file_to_cache(self, name, file_path):
@@ -93,10 +95,13 @@ class Cache:
 
         new_path = os.path.join(self.cache_directory, "files", os.path.basename(file_path))
         os.makedirs(os.path.dirname(new_path), exist_ok=True)
-        if os.path.exists(new_path):
-            os.remove(new_path)
+        
         try:
+            if os.path.exists(new_path):
+                os.remove(new_path)
             os.rename(file_path, new_path)
+        except PermissionError as e:
+            return (False, f"Error deleting existing cached file: {e}")
         except OSError as e:
             return (False, f"Error moving file: {e}")
 
