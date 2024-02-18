@@ -1,0 +1,88 @@
+name: 🐞 Bug report
+description: Report a bug in Emulator Manager
+labels: [Bug]
+body:
+
+  - type: textarea
+    id: reproduce-steps
+    attributes:
+      label: Steps to reproduce
+      description: Provide an example of the issue.
+      placeholder: |
+        Example:
+          1. First step
+          2. Second step
+          3. Issue here
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected behavior
+      description: Explain what you should expect to happen.
+      placeholder: |
+        Example:
+          "This should happen..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: Actual behavior
+      description: Explain what actually happens.
+      placeholder: |
+        Example:
+          "This happened instead..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: exceptions
+    attributes:
+      label: Errors
+      description: |
+        If you're seeing an exception raised in the console, share the error here.
+      placeholder: |
+        You can paste the error output in the console
+
+  - type: input
+    id: emulator-manager-version
+    attributes:
+      label: Emukator Manager version
+      description: You can find your Emulator Manager version in the top left of the screen
+      placeholder: |
+        Example: "0.13.2"
+    validations:
+      required: true
+
+  - type: input
+    id: operating-system
+    attributes:
+      label: Operating System
+      description: List your Operating System
+      placeholder: |
+        Example: "Windows"
+    validations:
+      required: true
+
+  - type: textarea
+    id: other-details
+    attributes:
+      label: Other details
+      placeholder: |
+        Additional details and attachments.
+
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Acknowledgements
+      description: Read this carefully, we will close and ignore your issue if you skimmed through this.
+      options:
+        - label: I have searched the existing issues and this is a new ticket, **NOT** a duplicate or related to another open or closed issue.
+          required: true
+        - label: I have written a short but informative title.
+          required: true
+        - label: I have updated the app to version **[0.13.2](https://github.com/Viren070/Emulator-Manager/releases/latest)**.
+          required: true
