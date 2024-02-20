@@ -249,7 +249,7 @@ The other settings controls whether the app will check for an update upon starti
 - [Ryujinx Team](https://ryujinx.org/) - Nintendo Switch Emulator Developers
 - [Xenia Team](https://xenia.jp/) - Xbox 360 Emulator Developers
 - [Myrient](https://myrient.erista.me/) - Video Game collection
-- Ecchibitionist - For the saves. (that they once provided)
+- Ecchibitionist - For the saves they used to provide on their archive.
 - [THZoria](https://github.com/THZoria) - For providing the firmware on their [repository](https://github.com/THZoria/NX_Firmware)
 - [RyuSAK](https://github.com/Ecks1337/RyuSAK) - For providing inspiration for some features and how to code them.
 - [Kewl](https://www.steamgriddb.com/profile/76561199389486997), [supernova](https://www.steamgriddb.com/profile/76561198042356275), [Crazy](https://www.steamgriddb.com/profile/76561198041637425), [StaticMachina](https://www.steamgriddb.com/profile/76561198129822760), [TalkyPup](https://www.steamgriddb.com/profile/76561198025210011) - Banners for emulators. 
