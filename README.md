@@ -64,7 +64,7 @@ An all in one launcher for yuzu. Allows you to switch between mainline and early
 - Through the settings page, you can customise the app to your liking with the several themes to choose from. These were taken from:
   - [avalaon60/ctk_theme_builder](https://github.com/avalon60/ctk_theme_builder/tree/develop/user_themes)
   - [a13xe/CTkThemesPack](https://github.com/a13xe/CTkThemesPack)
-
+- Portable mode can be enabled by creating a PORTABLE.txt file within the current working directory. Note that it is only truly portable if you are using the .zip installation. Since the single .exe file uses a temporary directory to unload contents of the app.
 *Only downloading saves are currently supported. Downloading mods will be added soon. 
 
 ## Details 
