@@ -11,13 +11,38 @@ Currently only works for Windows and will not run on other operating systems. Th
 
 [View images here](https://github.com/Viren070/Emulator-Manager?tab=readme-ov-file#images)
 
-## Download 
+## Installation
+
+### Windows Executable Installation
+
+If you prefer using an EXE file to run the app:
 
 1. Go to the [latest release](https://github.com/Viren070/Emulator-Manager/releases/latest)
 2. Scroll down to the assets and download `Emulator.Manager.v0.x.x.zip`
 3. Extract the downloaded zip file and inside the extracted folder launch Emulator Manager.exe 
 
-Note: Windows Defender will detect the file as a virus since the file is unsigned. This is a false positive and can be ignored. If you don't want to run the exe, you can [run the source code](https://github.com/Viren070/Emulator-Manager?tab=readme-ov-file#building-yourself)
+Note: Windows Defender will detect the file as a virus since the file is unsigned. This is a false positive and can be ignored. To avoid the warning, follow the steps below.
+
+### Running from Source
+
+If you want to run Emulator Manager from the source code:
+
+1. Clone the repository with the command below or click Code > Download ZIP
+   ```
+   git clone https://github.com/Viren070/Emulator-Manager
+   ```
+2. Install the dependencies with this command inside the cloned repository
+   ```
+   pip install -r requirements.txt
+   ```
+3. Simply run main.py and you should see the app open.
+4. To build an executable file, use this command:
+   ```
+   pyinstaller --noconfirm --onedir --console --name "Emulator Manager" --clean --add-data "%localappdata%/Programs/Python/Python312/Lib/site-packages/customtkinter;customtkinter/" --add-data src/assets;assets/  src/main.py
+   ```
+   - If you don't have pyinstaller, you can install it with `pip install pyinstaller`
+   - You can replace `--onedir` with `--onefile`.
+   - Replace the path to customtkinter as necessary
 
 ## Features
 
@@ -65,6 +90,7 @@ An all in one launcher for yuzu. Allows you to switch between mainline and early
   - [avalaon60/ctk_theme_builder](https://github.com/avalon60/ctk_theme_builder/tree/develop/user_themes)
   - [a13xe/CTkThemesPack](https://github.com/a13xe/CTkThemesPack)
 - Portable mode can be enabled by creating a PORTABLE.txt file within the current working directory. Note that it is only truly portable if you are using the .zip installation. Since the single .exe file uses a temporary directory to unload contents of the app.
+
 *Only downloading saves are currently supported. Downloading mods will be added soon. 
 
 ## Details 
@@ -185,25 +211,7 @@ The next two settings are toggleable checkboxes. One is to control whether files
 The other settings controls whether the app will check for an update upon starting the app. 
 
 
-## Building yourself 
 
-### Requirements:
- - Python 3.12
-
-1. Clone the repository or click the download ZIP button. 
-2. Run
-   ```
-   pip install -r requirements.txt
-   ```
-3. You should be able to run main.py
-4. To build the executable run:
-   ```
-   pyinstaller --noconfirm --onefile --console --name "Emulator Manager" --clean --add-data "%localappdata%/Programs/Python/Python312/Lib/site-packages/customtkinter;customtkinter/" --add-data src/assets;assets/  src/main.py
-   ```
-   - If you don't have pyinstaller, you can install it with `pip install pyinstaller`
-   - You can replace `--onefile` with `--onedir`.
-   - Replace the path to customtkinter as necessary
-   - This should be run inside the root directory 
    
 ## Images
 
