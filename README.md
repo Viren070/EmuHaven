@@ -46,54 +46,55 @@ If you want to run Emulator Manager from the source code:
    - You can replace `--onedir` with `--onefile`.
    - Replace the path to customtkinter as necessary
 
+
 ## Features
 
-### Dolphin 
+### Dolphin
 
-- Download the latest beta or development build of dolphin and keep it updated through the manager.
-- Download any game you want for the GameCube or Wii directly from the manager. It is easy to use and you can browse or search for whatever game you want. 
-- Manage your user data and export it to any directory
+- **Installation Options**: Install, delete, or launch Dolphin with customisable installation location.
+- **Channel Switching**: Easily switch between beta and development builds through a dropdown menu.
+- **Automatic Updates:** Dolphin updates automatically on launch. (Can be skipped by holding shift)
+- **Game Library**: Download GameCube or Wii games directly from the manager with easy browsing and searching.
+- **User Data Management**: Efficiently manage your user data with support for importing or exporting
+- 
+### Yuzu
+- **Installation**: Install, delete, or launch yuzu with a customisable installation locatiion
+- **Channel Switching:** Easily switch between mainline and early access channels through a dropdown menu. Can keep both installed at the samet time
+- **Automatic Updates:** Yuzu updates automatically on launch, detecting and installing missing firmware and keys. (Can be skipped by holding shift)
+- **Firmware and Keys:** Detect missing installation of firmware and keys and provide automatic installations with customisable versions.
+- **User Data Management**: Customise user data with options for deletion, import, and export.
+- **Game Management:** Manage games, install mods, and download save games within the app.
 
-### Yuzu 
 
-An all in one launcher for yuzu. Allows you to switch between mainline and early access and keeps both versions updated. It can download multiple versions of firmware and keys from the internet. 
 
-- Allows you to install, delete and launch yuzu
-- Can install yuzu in any directory, can be changed in the settings.
-- Can switch channels between mainline and early access through a dropdown menu in the corner
-- Will automatically update yuzu when you launch it
-- Will detect any missing firmware or keys and then automaticaly install them for you.
-- Can switch between different versions for firmware and keys.
-- Manage your user data, you can choose to specifically delete/import/export certain folders.
-- Can choose to still use the Yuzu installer (liftinstall) when launching or installing yuzu.
-- Manage your games and install mods and saves for specific games.*
+### Ryujinx
+
+- **Installation:** Install, delete, or launch Ryujinx with customiable installation location.
+- **Automatic Updates:** Ryujinx updates automatically on launch. (Can be skipped by holding shift)
+- **Firmware and Keys Management**: Detect missing installation of firmware and keys and provide automatic installations with customisable versions.
+- **User Data Management:** Customise user data with options for deletion, import, and export.
+- **Game Management:** Manage games, install mods, and download save games within the app.
+
+>  [!NOTE]
+> For yuzu and ryujinx: The ability to download mods for games is planned for future updates.
+
+### Xenia
+
+- **Installation and Updates:** Install, delete, or launch Xenia
+- **Build Switching**: Easily switch between master and canary builds. Can keep both installed at the same time
+- **Automatic Updates**: Update Xenia automatically on launch (Can be skipped by holding shfit)
+- **Game Downloads:** Download games and digital content directly from within the app.
+- **User Data Management:** Manage user data with options for export, import, and deletion.
+
+### Other
+
+- **Customisation:** Personalise the app through a variety of themes sourced from [avalon60/ctk_theme_builder/](https://github.com/avalon60/ctk_theme_builder) and [a13xe/CTkThemesPack](https://github.com/a13xe/CTkThemesPack)
+- **Portable Mode:** Enable portable mode by creating a PORTABLE.txt file.
   
-### Ryujinx 
+> [!NOTE]
+> If you are using an executable, you must be using the ZIP asset for it to be portable. Otherwise, it will attempt to use the %TMP% path which is located in %localappdata%
 
-- You can install, delete, or launch Ryujinx.
-- You can change the installation location in the settings.
-- When you launch Ryujinx, it will automatically attempt to update Ryujinx. This can be skipped by holding shift while clicking launch.
-- Will detect firmware and keys and prompt you to install them for you if they are missing.
-- You can switch between different versions of firmware and keys.
-- Manage your user data, you can choose to specifically delete/import/export certain folders.
-- Manage your games and install mods and saves for specific games.*
 
-### Xenia 
-
-- Install, delete, or launch xenia
-- Can switch between canary and master builds.
-- Download any game from within the app.
-- Download digital content.
-- Manage your user data - export/import/delete.
-
-### App
-
-- Through the settings page, you can customise the app to your liking with the several themes to choose from. These were taken from:
-  - [avalaon60/ctk_theme_builder](https://github.com/avalon60/ctk_theme_builder/tree/develop/user_themes)
-  - [a13xe/CTkThemesPack](https://github.com/a13xe/CTkThemesPack)
-- Portable mode can be enabled by creating a PORTABLE.txt file within the current working directory. Note that it is only truly portable if you are using the .zip installation. Since the single .exe file uses a temporary directory to unload contents of the app.
-
-*Only downloading saves are currently supported. Downloading mods will be added soon. 
 
 ## Details 
 
