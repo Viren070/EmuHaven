@@ -41,6 +41,10 @@ If you want to run Emulator Manager from the source code:
    - Make sure you have Python 3.12 installed
     
 3. Simply run main.py and you should see the app open.
+   ```
+   python src/main.py
+   ```
+   - python must be added to PATH (this can be done with the installer)
 4. To build an executable file, use this command:
    ```
    pyinstaller --noconfirm --onedir --console --name "Emulator Manager" --clean --add-data "%localappdata%/Programs/Python/Python312/Lib/site-packages/customtkinter;customtkinter/" --add-data src/assets;assets/  src/main.py
