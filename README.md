@@ -21,7 +21,8 @@ If you prefer using an EXE file to run the app:
 2. Scroll down to the assets and download `Emulator.Manager.v0.x.x.zip`
 3. Extract the downloaded zip file and inside the extracted folder launch Emulator Manager.exe 
 
-Note: Windows Defender will detect the file as a virus since the file is unsigned. This is a false positive and can be ignored. To avoid the warning, follow the steps below.
+> [!WARNING] 
+> Windows Defender will detect the file as a virus since the file is unsigned. This is a false positive and can be ignored. To avoid the warning, follow the steps below.
 
 Please consider giving a ⭐ if you find this project helpful. Your support is appreciated!
 
