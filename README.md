@@ -35,6 +35,8 @@ If you want to run Emulator Manager from the source code:
    ```
    pip install -r requirements.txt
    ```
+   - Make sure you have Python 3.12 installed
+    
 3. Simply run main.py and you should see the app open.
 4. To build an executable file, use this command:
    ```
