@@ -49,6 +49,9 @@ If you want to run Emulator Manager from the source code:
 
 ## Features
 
+You can find detailed information on all the available features in the [wiki](https://github.com/Viren070/Emulator-Manager/wiki). It is currently unfinished.
+If you have any questions, you may ask them in the [Discussions page](https://github.com/Viren070/Emulator-Manager/discussions)
+
 ### Dolphin
 
 - **Installation Options**: Install, delete, or launch Dolphin with customisable installation location.
@@ -94,7 +97,6 @@ If you want to run Emulator Manager from the source code:
 > [!NOTE]
 > If you are using an executable, you must be using the ZIP asset for it to be portable. Otherwise, it will attempt to use the %TMP% path which is located in %localappdata%
 
-You can find detailed information on all the available features in the [wiki](https://github.com/Viren070/Emulator-Manager/wiki). It is currently unfinished.
 
    
 ## Images
