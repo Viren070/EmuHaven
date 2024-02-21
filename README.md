@@ -22,7 +22,7 @@ If you prefer using an EXE file to run the app:
 3. Extract the downloaded zip file and inside the extracted folder launch Emulator Manager.exe 
 
 > [!WARNING] 
-> Windows Defender will detect the file as a virus since the file is unsigned. This is a false positive and can be ignored. To avoid the warning, follow the steps below.
+> Windows Defender will detect the file as a virus since the file is unsigned. This is a false positive and can be ignored. You can follow the steps below and run the source code instead if you don't want to run an EXE.
 
 Please consider giving a ⭐ if you find this project helpful. Your support is appreciated!
 
