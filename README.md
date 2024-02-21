@@ -80,7 +80,7 @@ If you want to run Emulator Manager from the source code:
 
 ### Xenia
 
-- **Installation and Updates:** Install, delete, or launch Xenia
+- **Installation and Updates:** Install, delete, or launch Xenia with customisable installation location
 - **Build Switching**: Easily switch between master and canary builds. Can keep both installed at the same time
 - **Automatic Updates**: Update Xenia automatically on launch (Can be skipped by holding shfit)
 - **Game Downloads:** Download games and digital content directly from within the app.
