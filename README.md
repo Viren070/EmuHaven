@@ -50,6 +50,7 @@ If you want to run Emulator Manager from the source code:
 ## Features
 
 You can find detailed information on all the available features in the [wiki](https://github.com/Viren070/Emulator-Manager/wiki). It is currently unfinished.
+
 If you have any questions, you may ask them in the [Discussions page](https://github.com/Viren070/Emulator-Manager/discussions)
 
 ### Dolphin
