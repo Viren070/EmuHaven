@@ -56,7 +56,7 @@ If you want to run Emulator Manager from the source code:
 - **Automatic Updates:** Dolphin updates automatically on launch. (Can be skipped by holding shift)
 - **Game Library**: Download GameCube or Wii games directly from the manager with easy browsing and searching.
 - **User Data Management**: Efficiently manage your user data with support for importing or exporting
-- 
+  
 ### Yuzu
 - **Installation**: Install, delete, or launch yuzu with a customisable installation locatiion
 - **Channel Switching:** Easily switch between mainline and early access channels through a dropdown menu. Can keep both installed at the samet time
