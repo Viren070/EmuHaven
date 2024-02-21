@@ -145,6 +145,20 @@ If you want to run Emulator Manager from the source code:
 - [RyuSAK](https://github.com/Ecks1337/RyuSAK) - For providing inspiration for some features and how to code them.
 - [Kewl](https://www.steamgriddb.com/profile/76561199389486997), [supernova](https://www.steamgriddb.com/profile/76561198042356275), [Crazy](https://www.steamgriddb.com/profile/76561198041637425), [StaticMachina](https://www.steamgriddb.com/profile/76561198129822760), [TalkyPup](https://www.steamgriddb.com/profile/76561198025210011) - Banners for emulators. 
 
+## Legal Disclaimer
+
+Emulator Manager is a software application that facilitates the management of various game emulators, including but not limited to yuzu, Dolphin, Ryujinx, and Xenia. The purpose of this app is to provide users with a platform to organise and utilise these emulators.
+
+**Ownership Disclaimer:**
+Emulator Manager and its developer(s) are not affiliated with, endorsed by, or connected to the companies that created the gaming consoles (e.g., Nintendo, Microsoft) or the development teams behind the emulators. The app is an independent project developed for the convenience of users who wish to manage and use gaming emulators.
+
+**Trademark Notice:**
+Any trademarks, service marks, product names, or logos appearing in the app are the property of their respective owners. The use of these trademarks is for identification purposes only and does not imply endorsement, sponsorship, or affiliation with Emulator Manager.
+
+**Emulator Usage:**
+It is important to note that using emulators to play games may require the user to comply with the respective console manufacturers' terms of service and copyright policies. Users are responsible for ensuring that their use of this app and associated emulators is in accordance with applicable laws and regulations.
+
+By using Emulator Manager, you acknowledge and agree to the terms outlined in this legal disclaimer. The developer(s) of Emulator Manager disclaim any liability for the misuse or violation of any third-party intellectual property rights or terms of service by users.
 
 
 ## [Early Access Source](https://github.com/pineappleEA/pineapple-src) | [Firmware & Keys](https://github.com/Viren070/Emulator-Manager-Resources) | [Nintendo Switch Savegames](https://github.com/Viren070/NX_Saves/) | [Dolphin ROMs](https://myrient.erista.me/)
