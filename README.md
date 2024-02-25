@@ -9,7 +9,14 @@ A program that will help manage your emulators, currently supports:
 
 Currently only works for Windows and will not run on other operating systems. This can be fixed though. 
 
-[View images here](https://github.com/Viren070/Emulator-Manager?tab=readme-ov-file#images)
+For a short list of features, scroll down to the [features](https://github.com/Viren070/Emulator-Manager?tab=readme-ov-file#features) section. Find detailed information at the [wiki](https://github.com/Viren070/Emulator-Manager/wiki).
+
+For a preview of the app, scroll down to the [images](https://github.com/Viren070/Emulator-Manager?tab=readme-ov-file#images).
+
+
+If you have any questions, you may ask them in the [Discussions page](https://github.com/Viren070/Emulator-Manager/discussions)
+
+Please consider giving a ⭐ if you find this project helpful. Your support is appreciated!
 
 ## Installation
 
@@ -18,13 +25,13 @@ Currently only works for Windows and will not run on other operating systems. Th
 If you prefer using an EXE file to run the app:
 
 1. Go to the [latest release](https://github.com/Viren070/Emulator-Manager/releases/latest)
+
 2. Scroll down to the assets and download `Emulator.Manager.v0.x.x.zip`
 3. Extract the downloaded zip file and inside the extracted folder launch Emulator Manager.exe 
 
 > [!WARNING] 
 > Windows Defender will detect the file as a virus since the file is unsigned. This is a false positive and can be ignored. You can follow the steps below and run the source code instead if you don't want to run an EXE.
 
-Please consider giving a ⭐ if you find this project helpful. Your support is appreciated!
 
 ### Running from Source
 
@@ -56,9 +63,6 @@ If you want to run Emulator Manager from the source code:
 
 ## Features
 
-You can find detailed information on all the available features in the [wiki](https://github.com/Viren070/Emulator-Manager/wiki). It is currently unfinished.
-
-If you have any questions, you may ask them in the [Discussions page](https://github.com/Viren070/Emulator-Manager/discussions)
 
 ### Dolphin
 
