@@ -6,7 +6,7 @@ from tkinter import messagebox
 
 import customtkinter
 
-from utils.auth_token_manager import request_device_code, request_token
+from utils.auth_token_manager import request_device_code, request_token, is_token_valid
 
 
 class GitHubLoginWindow(customtkinter.CTkToplevel):
@@ -14,11 +14,11 @@ class GitHubLoginWindow(customtkinter.CTkToplevel):
         super().__init__(master)
         self.title("GitHub Login")
         self.settings = master.settings
-        self.geometry("500x150")
+        self.geometry("500x250")
         self.resizable(False, False)
         self.poll_token = True
         self.master = master
-        self.token_response = 0
+        self.token_response = None
         self.wm_protocol("WM_DELETE_WINDOW", self.on_closing)
         self.create_widgets()
         self.token_path = os.path.join(os.getenv("APPDATA"), "Emulator Manager", ".token")
@@ -30,13 +30,53 @@ class GitHubLoginWindow(customtkinter.CTkToplevel):
         self.destroy()
 
     def create_widgets(self):
-        self.label = customtkinter.CTkLabel(self, text="Click the 'Authorise' button to start the authentication process.")
-        self.label.pack(pady=20)
+        # Label for token entry
+        self.token_label = customtkinter.CTkLabel(self, text="Enter your token:")
+        self.token_label.pack(pady=10)
+
+        # Frame for token entry and button
+        self.token_frame = customtkinter.CTkFrame(self)
+        self.token_frame.pack(pady=10)
+
+        # Entry widget for token
+        self.token_entry = customtkinter.CTkEntry(self.token_frame, width=300)
+        self.token_entry.pack(side='left', padx=10)
+
+        # Button for token submission
+        self.token_button = customtkinter.CTkButton(self.token_frame, text="Submit", command=self.submit_token_event, width=10)
+        self.token_button.pack(side='left')
+
+        # Label for authorization button
+        self.auth_label = customtkinter.CTkLabel(self, text="Or click 'Authorise' to start the authentication process:")
+        self.auth_label.pack(pady=10)
+
+        # Authorization button
         self.login_button = customtkinter.CTkButton(self, text="Authorise", command=self.start_authentication)
-        self.login_button.pack()
+        self.login_button.pack(pady=10)
+
+
+    def submit_token_event(self):
+        self.token_button.configure(state="disabled")
+        Thread(target=self.submit_token).start()
+        
+    def submit_token(self):
+        token = self.token_entry.get()
+        if is_token_valid(token):
+            self.settings.app.token = token
+            self.master.token_gen = None
+            self.master.start_update_requests_left()
+            messagebox.showinfo("GitHub Authorisation", "Successfully authenticated!")
+            self.grab_release()
+            self.bring_window_to_top(self.master.parent_frame.parent_frame)
+            self.destroy()
+            return 
+        
+        messagebox.showerror("Invalid Token", "The token you entered is invalid. Please try again.")
+        self.token_button.configure(state="normal")
 
     def start_authentication(self):
         self.login_button.configure(state="disabled", text="Getting Code...")
+        self.token_button.configure(state="disabled")
         device_code_thread = Thread(target=self.get_device_code_and_token)
         device_code_thread.start()
 
@@ -44,6 +84,9 @@ class GitHubLoginWindow(customtkinter.CTkToplevel):
         device_code_response = request_device_code()
         if not all(device_code_response):
             messagebox.showerror("Requests Error", device_code_response[1])
+            self.login_button.configure(state="normal", text="Authorise")
+            self.auth_label.configure(text="Click the 'Authorise' button to start the authentication process.")
+            self.token_button.configure(state="normal")
             return
         device_code_response = device_code_response[1]
         verification_uri = device_code_response["verification_uri"]
@@ -51,13 +94,13 @@ class GitHubLoginWindow(customtkinter.CTkToplevel):
         device_code = device_code_response["device_code"]
         interval = device_code_response["interval"]
         self.login_button.configure(state="disabled", text="Authorising...")
-        self.countdown_on_widget(5, self.label, f"You will be redirected in {{}} seconds to {verification_uri}\nPlease enter the code: {user_code}. It has been copied to your clipboard", f"You are being redirected to {verification_uri}...\nPlease enter the code: {user_code}. It has been copied to your clipboard")
+        self.countdown_on_widget(5, self.auth_label, f"You will be redirected in {{}} seconds to {verification_uri}\nPlease enter the code: {user_code}. It has been copied to your clipboard", f"You are being redirected to {verification_uri}...\nPlease enter the code: {user_code}. It has been copied to your clipboard")
         if not self.poll_token:
             return
         self.clipboard_clear()
         self.clipboard_append(user_code)
         webbrowser.open(verification_uri, new=0)
-        self.label.configure(text=f"Please enter the code at {user_code} at\n{verification_uri} \nIt has been copied to your clipboard.")
+        self.auth_label.configure(text=f"Please enter the code at {user_code} at\n{verification_uri} \nIt has been copied to your clipboard.")
         self.login_button.configure(state="disabled", text="Authorising...")
         # Poll for the access token
         token_poll_thread = Thread(target=self.poll_for_token, args=(device_code, interval, ))
@@ -117,7 +160,7 @@ class GitHubLoginWindow(customtkinter.CTkToplevel):
         # Polling thread has finished, handle the result
         if self.token_response == "EXIT":
             return
-        elif self.token_response != 0:
+        elif self.token_response is not None:
             # Authentication successful
             self.grab_release()
             self.bring_window_to_top(self.master.parent_frame.parent_frame)
@@ -132,7 +175,7 @@ class GitHubLoginWindow(customtkinter.CTkToplevel):
             self.bring_window_to_top(self)
             messagebox.showerror("Authentication Error", "Failed to authorise")
             self.login_button.configure(state="normal", text="Authorise")
-            self.label.configure(text="Click the 'Authorise' button to start the authentication process.")
+            self.auth_label.configure(text="Click the 'Authorise' button to start the authentication process.")
 
     def bring_window_to_top(self, window):
         window.deiconify()  # Restore the window if minimized

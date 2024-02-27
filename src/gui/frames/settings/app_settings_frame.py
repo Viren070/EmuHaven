@@ -71,15 +71,15 @@ class AppSettingsFrame(customtkinter.CTkFrame):
         self.requests_left_label.bind("<Button-1>", command=self.start_update_requests_left)
         CTkToolTip(self.requests_left_label, message="GitHub API Usage:\n"
                    "This shows the number of requests you can make using the GitHub REST API.\n"
-                   "These requests are used to download Dolphin and Yuzu.\n"
+                   "These requests are used to fetch release information.\n"
                    "Rate Limits: 60/hr (anonymous) or 5000/hr (with a token).\n"
                    "Click to refresh this information."
                    )
         self.start_update_requests_left(show_error=False)
         self.requests_left_label.grid(row=8, column=0, padx=10, pady=10, sticky="w")
-        button = customtkinter.CTkButton(self.actions_frame, text="Login with GitHub", command=self.open_token_window)
+        button = customtkinter.CTkButton(self.actions_frame, text="Authorise with GitHub", command=self.open_token_window)
         button.grid(row=8, column=1, padx=10, pady=10, sticky="e")
-        CTkToolTip(button, message="Optional feature to increase API request limit to 5000/hr for 8 hours. No data is stored.\nYou will have to log in again the next time you open the app")
+        CTkToolTip(button, message="Provide a GitHub token or authorise the application through the OAuth.\nGenerated tokens last for 8 hours.\nNo data is stored, will need to be provided again if app is restarted.")
 
     def start_update_requests_left(self, event=None, show_error=True):
         if self.update_status and not self.update_requests_thread.is_alive():

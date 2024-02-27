@@ -16,6 +16,26 @@ def delete_token_file():
         return (False, error)
 
 
+def is_token_valid(token):
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+        "Authorization": f"BEARER {token}"
+    }
+    if not token:
+        return False
+    
+    try:
+        response = requests.get("https://api.github.com/user", headers=headers)
+        response.raise_for_status()
+    except requests.exceptions.RequestException:
+        return False
+    if response.status_code == 200:
+        return True
+    else:
+        return False
+
+
 def get_rate_limit_status(token):
     url = "https://api.github.com/rate_limit"
     headers = {
