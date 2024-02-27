@@ -62,7 +62,7 @@ class XeniaFrame(EmulatorFrame):
         self.launch_button = customtkinter.CTkButton(self.actions_frame, height=40, width=200, image=self.play_image, text="Launch Xenia  ", command=self.launch_button_event, font=customtkinter.CTkFont(size=15, weight="bold"))
         self.launch_button.grid(row=0, column=2, padx=30, pady=15, sticky="n")
         self.launch_button.bind("<Button-1>", command=self.launch_button_event)
-        CTkToolTip(self.launch_button, message="Click me to launch Xenia.\nShift-click me to launch without checking for updates.")
+        CTkToolTip(self.launch_button, message="Click me to launch Xenia.\nHold shift to toggle the update behaviour.\nIf automatic updates are disabled, shift-clicking will update the emulator\nand otherwise it will skip the update.")
         
         self.install_button = customtkinter.CTkButton(self.actions_frame, text="Install Xenia", command=self.install_button_event)
         self.install_button.grid(row=0, column=1, padx=10, pady=5, sticky="ew")

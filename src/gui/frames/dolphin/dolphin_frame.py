@@ -61,7 +61,7 @@ class DolphinFrame(EmulatorFrame):
         self.launch_dolphin_button = customtkinter.CTkButton(self.dolphin_actions_frame, width=250, height=40, text="Launch Dolphin  ", image=self.play_image, font=customtkinter.CTkFont(size=15, weight="bold"), command=self.launch_dolphin_button_event)
         self.launch_dolphin_button.grid(row=0, column=1, padx=30, pady=15, sticky="nsew")
         self.launch_dolphin_button.bind("<Button-1>", command=self.launch_dolphin_button_event)
-        CTkToolTip(self.launch_dolphin_button, message="Click me to launch Dolphin.\nShift-Click me to launch Dolphin without checking for updates.")
+        CTkToolTip(self.launch_dolphin_button, message="Click me to launch Dolphin.\nHold shift to toggle the update behaviour.\nIf automatic updates are disabled, shift-clicking will update the emulator\nand otherwise it will skip the update.")
 
         self.install_dolphin_button = customtkinter.CTkButton(self.dolphin_actions_frame, text="Install Dolphin", command=self.install_dolphin_button_event)
         self.install_dolphin_button.grid(row=0, column=0, padx=10, pady=5, sticky="ew")

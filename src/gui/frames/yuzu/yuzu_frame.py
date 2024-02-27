@@ -90,7 +90,7 @@ class YuzuFrame(EmulatorFrame):
         self.launch_early_access_button = customtkinter.CTkButton(self.early_access_actions_frame, height=40, width=200, image=self.play_image, text="Launch Yuzu EA  ", command=self.launch_early_access_button_event, font=customtkinter.CTkFont(size=15, weight="bold"))
         self.launch_early_access_button.grid(row=0, column=2, padx=30, pady=15, sticky="n")
         self.launch_early_access_button.bind("<Button-1>", command=self.launch_early_access_button_event)
-        CTkToolTip(self.launch_early_access_button, message="Click me to launch yuzu early access.\nShift-Click me to launch without checking for updates.")
+        CTkToolTip(self.launch_early_access_button, message="Click me to launch yuzu early access.\nHold shift to toggle the update behaviour.\nIf automatic updates are disabled, shift-clicking will update the emulator\nand otherwise it will skip the update.")
         self.delete_early_access_button = customtkinter.CTkButton(self.early_access_actions_frame, text="Delete Yuzu EA", fg_color="red", hover_color="darkred", command=self.delete_early_access_button_event)
         self.delete_early_access_button.grid(row=0, column=3, padx=10, pady=5, sticky="ew")
         CTkToolTip(self.delete_early_access_button, message="Click me to delete the installation of yuzu early access at the directory specified in settings.")
