@@ -137,6 +137,7 @@ class DolphinFrame(EmulatorFrame):
             return
         self.configure_buttons("disabled", text="Launching...")
         shift_clicked = True if event.state & 1 else False
+        shift_clicked = not shift_clicked if self.settings.app.disable_automatic_updates == "True" else shift_clicked
         thread = Thread(target=self.dolphin.launch_dolphin_handler, args=(self.selected_channel.get().lower(), shift_clicked,))
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["main"])).start()

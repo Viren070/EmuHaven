@@ -156,7 +156,7 @@ class XeniaFrame(EmulatorFrame):
             messagebox.showerror("Error", f"Could not find a Xenia {self.selected_channel.get()} installation at {os.path.join(self.settings.xenia.install_directory, self.selected_channel.get())}.")
             return
         skip_update = True if event.state & 1 else False
-            
+        skip_update = not skip_update if self.settings.app.disable_automatic_updates == "True" else skip_update
         self.configure_action_buttons("disabled")
         thread = Thread(target=self.xenia.launch_xenia_handler, args=(self.selected_channel.get(), skip_update))
         thread.start()

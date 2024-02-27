@@ -145,6 +145,7 @@ class RyujinxFrame(EmulatorFrame):
         self.configure_action_buttons("disabled")
         self.firmware_keys_frame.configure_firmware_key_buttons("disabled")
         shift_clicked = True if event.state & 1 else False
+        shift_clicked = not shift_clicked if self.settings.app.disable_automatic_updates == "True" else shift_clicked
         thread = Thread(target=self.ryujinx.launch_ryujinx_handler, args=(shift_clicked, ))
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["action", "firmware_keys"],)).start()
