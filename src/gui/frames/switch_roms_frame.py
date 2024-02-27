@@ -427,7 +427,7 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
         button.configure(state="disabled", text="Fetching...")
         if cache_save_lookup_result is None or (time.time() - cache_save_lookup_result["time"]) > 86400:  # 1 day
 
-            saves = get_file_links_from_page("https://github.com/Viren070/NX_Saves/blob/main/index.md", ".zip", get_headers(self.settings.app.token))
+            saves = get_file_links_from_page("https://github.com/Viren070/NX_Saves/blob/main/index.md", ".zip", get_headers())
             if not all(saves):
                 if saves[0]:
                     messagebox.showerror("Fetch Error", "An unknown error has occured and no saves were found at the moment. Please try again later.")
