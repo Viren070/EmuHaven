@@ -44,7 +44,8 @@ class CurrentROMSFrame(ROMSearchFrame):
             widget.grid_forget()
 
         if len(self.searched_roms) == 0:
-            customtkinter.CTkLabel(self.result_frame, text=f"Nothing to see here. Download some more ROMs and they will show up here.\n\nROM Directory: '{self.rom_directory}'").grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
+            rom_directory_text = "ROM Directory: " + self.rom_directory if self.rom_directory else "WARNING: No ROM directory has been set. Please set one in the settings."
+            customtkinter.CTkLabel(self.result_frame, text=f"Nothing to see here. Download some more ROMs and they will show up here.\n\n{rom_directory_text}").grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
         for i, rom in enumerate(self.searched_roms):
             if i > end_index:
                 break
