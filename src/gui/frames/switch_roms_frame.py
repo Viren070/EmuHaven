@@ -429,7 +429,10 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
 
             saves = get_file_links_from_page("https://github.com/Viren070/NX_Saves/blob/main/index.md", ".zip", get_headers(self.settings.app.token))
             if not all(saves):
-                messagebox.showerror("Fetch Error", f"There was an error while attempting to fetch the saves:\n\n {saves[1]}")
+                if saves[0]:
+                    messagebox.showerror("Fetch Error", "An unknown error has occured and no saves were found at the moment. Please try again later.")
+                else:
+                    messagebox.showerror("Fetch Error", f"There was an error while attempting to fetch the saves:\n\n {saves[1]}")
                 button.configure(state="normal", text="Download Saves")
                 return
             links = []
