@@ -47,6 +47,7 @@
 
 - [x] Add custom option for import/exports. remove 'exclude nand and keys'
 - [x] add option `check for update at start-up` that will control whether or not the app will check for an update at start-up
+- [ ] Refactor cache implementation to reduce memory usage for ROM menus.
 
 ## other 
 
