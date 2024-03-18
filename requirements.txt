@@ -24,7 +24,7 @@ inflate64==1.0.0
     # via py7zr
 multivolumefile==0.2.3
     # via py7zr
-packaging==23.2
+packaging==24.0
     # via
     #   -r requirements.in
     #   customtkinter
