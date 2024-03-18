@@ -53,7 +53,7 @@ class EmulatorManager(customtkinter.CTk):
         self.ryujinx_frame.fetch_versions()
         self.dolphin_frame.fetch_versions()
         self.xenia_frame.fetch_versions()
-        if not open_app_settings and self.settings.app.check_for_updates == "True":
+        if not open_app_settings and self.settings.app.check_for_app_updates == "True":
             Thread(target=self.check_for_update).start()
         self.mainloop()
 
