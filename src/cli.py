@@ -3,7 +3,7 @@ import os
 import threading
 
 
-VERSION = "0.13.0"
+VERSION = "0.13.5"
 
 def display_help():
     print("Available commands:")
