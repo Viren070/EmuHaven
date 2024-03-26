@@ -254,7 +254,7 @@ class Ryujinx(SwitchEmulator):
             version = release.version
 
         elif not self.verify_key_archive(path_or_release):
-            messagebox.showerror("Error", "The key archive or file you have provided is invalid")
+            messagebox.showerror("Error", "The key archive or file you have provided is invalid. \nPlease ensure that it is a .zip file containing the 'prod.keys' or 'title.keys' in the root directory\nor a 'prod.keys' or 'title.keys' file.")
             return
         else:
             key_path = path_or_release
