@@ -103,6 +103,8 @@ class Dolphin:
                 dev_build = file
                 dev_build.version = re.search(r'(\d+\.\d+-\d+)', dev_build.filename).group(1)
                 return (True, dev_build)
+        if dev_build is None and release_channel == "development":
+            dev_build = beta_build
 
     def download_release(self, release):
         download_folder = os.getcwd()
