@@ -105,6 +105,7 @@ class Dolphin:
                 return (True, dev_build)
         if dev_build is None and release_channel == "development":
             dev_build = beta_build
+        return (False, "Unable to fetch the latest Dolphin release.")
 
     def download_release(self, release):
         download_folder = os.getcwd()
