@@ -216,6 +216,9 @@ class YuzuFrame(EmulatorFrame):
                     messagebox.showerror("Error", "The path you have provided is invalid")
                 return
             path_to_archive = path_to_archive[1]
+        else:
+            messagebox.showerror("Error", "Unfortunately, yuzu has been discontinued due to a lawsuit. \nYou can still install yuzu using a custom archive by holding shift and clicking the button.\nAlternatively, you could try installing the early access version of yuzu as it could still be available.")
+            return
         self.configure_mainline_buttons("disabled")
         self.configure_early_access_buttons("disabled")
         self.firmware_keys_frame.configure_firmware_key_buttons("disabled")
