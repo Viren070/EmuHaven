@@ -3,6 +3,6 @@ CTkToolTip==0.8
 CTkToolTip==0.8
 customtkinter==5.2.2
 packaging==24.0
-Pillow==10.2.0
+Pillow==10.3.0
 py7zr==0.21.0
 Requests==2.31.0
