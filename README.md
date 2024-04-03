@@ -14,7 +14,7 @@ For a short list of features, scroll down to the [features](https://github.com/V
 For a preview of the app, scroll down to the [images](https://github.com/Viren070/Emulator-Manager?tab=readme-ov-file#images).
 
 
-If you have any questions, you may ask them in the [Discussions page](https://github.com/Viren070/Emulator-Manager/discussions)
+If you have any questions or require support, you may ask them in the [Discord server](https://discord.com/invite/upW87rwz2F) or the [Discussions page](https://github.com/Viren070/Emulator-Manager/discussions) 
 
 Please consider giving a ⭐ if you find this project helpful. Your support is appreciated!
 
