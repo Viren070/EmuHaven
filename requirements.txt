@@ -28,7 +28,7 @@ packaging==24.0
     # via
     #   -r requirements.in
     #   customtkinter
-pillow==10.2.0
+pillow==10.3.0
     # via -r requirements.in
 psutil==5.9.7
     # via py7zr
