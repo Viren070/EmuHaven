@@ -15,7 +15,7 @@ class ROMFile:
 
 class CurrentROMSFrame(ROMSearchFrame):
     def __init__(self, master, root, emulator_settings, allowed_extensions, scan_subdirectories=False):
-        super().__init__(master, root, "")
+        super().__init__(master, root, "", "")
         self.scan_subdirectories = scan_subdirectories
         self.total_pages = None
         self.emulator_settings = emulator_settings

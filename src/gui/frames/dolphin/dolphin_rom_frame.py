@@ -42,9 +42,9 @@ class DolphinROMFrame(customtkinter.CTkTabview):
 
         self.current_roms_frame = CurrentROMSFrame(self.tab("My ROMs"), self, self.settings.dolphin,  (".wbfs", ".iso", ".rvz", ".gcm", ".gcz", ".ciso"))
         self.current_roms_frame.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
-        self.wii_roms_frame = ROMSearchFrame(self.tab("Wii ROMs"), self, "https://myrient.erista.me/files/Redump/Nintendo%20-%20Wii%20-%20NKit%20RVZ%20[zstd-19-128k]/",)
+        self.wii_roms_frame = ROMSearchFrame(self.tab("Wii ROMs"), root=self, rom_name="nintendo_wii", rom_link="https://myrient.erista.me/files/Redump/Nintendo%20-%20Wii%20-%20NKit%20RVZ%20[zstd-19-128k]/",)
         self.wii_roms_frame.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
-        self.gamecube_roms_frame = ROMSearchFrame(self.tab("GameCube ROMs"), self, "https://myrient.erista.me/files/Redump/Nintendo%20-%20GameCube%20-%20NKit%20RVZ%20[zstd-19-128k]/")
+        self.gamecube_roms_frame = ROMSearchFrame(self.tab("GameCube ROMs"), root=self, rom_name="nintendo_gamecube", rom_link="https://myrient.erista.me/files/Redump/Nintendo%20-%20GameCube%20-%20NKit%20RVZ%20[zstd-19-128k]/")
         self.gamecube_roms_frame.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
         self.downloads_frame = customtkinter.CTkScrollableFrame(self.tab("Downloads"))
         self.downloads_frame.grid_columnconfigure(0, weight=1)

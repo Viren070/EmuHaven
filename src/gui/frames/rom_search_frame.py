@@ -13,8 +13,9 @@ class File:
         self.filename = filename
 
 class ROMSearchFrame(customtkinter.CTkFrame):
-    def __init__(self, master, root, rom_link):
+    def __init__(self, master, root, rom_link, rom_name):
         super().__init__(master, height=700)
+        self.rom_name = rom_name
         self.results_per_page = 10
         self.cache = root.cache
         self.rom_link = rom_link
@@ -26,13 +27,14 @@ class ROMSearchFrame(customtkinter.CTkFrame):
         self.root = root
         self.update_in_progress = False
         self.build_frame()
-        cache_lookup_result = self.cache.get_cached_data(self.rom_link)
+        cache_lookup_result = self.cache.get_json_data_from_cache(self.rom_name)
         if cache_lookup_result:
             self.define_roms(self.create_roms_from_cache(cache_lookup_result["data"]))
 
     def create_roms_from_cache(self, cache_lookup_result):
         roms = []
-        for url, filename in cache_lookup_result.items():
+        for filename, encoded_filename in cache_lookup_result.items():
+            url = self.rom_link + encoded_filename
             roms.append(File(url, filename))
         return roms
     
@@ -42,6 +44,7 @@ class ROMSearchFrame(customtkinter.CTkFrame):
         get_roms_thread.start()
 
     def define_roms(self, roms=None):
+        self.roms = []
         if not roms:
             if "Microsoft%20-%20Xbox%20360%20%28Digital%29/" in self.rom_link:
                 messagebox.showwarning("Warning", "This may take a while. Please be patient.")
@@ -53,8 +56,8 @@ class ROMSearchFrame(customtkinter.CTkFrame):
             roms = roms[1]
             cacheable_roms = {} 
             for rom in roms:
-                cacheable_roms[rom.url] = rom.filename
-            self.cache.add_to_index(self.rom_link, cacheable_roms)
+                cacheable_roms[rom.filename] = rom.url.replace(self.rom_link, "")
+            self.cache.add_json_data_to_cache(self.rom_name, cacheable_roms)
         self.roms = roms
         for widget in (self.refresh_button, self.search_button, self.search_entry, self.prev_button, self.next_button, self.current_page_entry):
             widget.configure(state="normal")

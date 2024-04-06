@@ -40,9 +40,9 @@ class XeniaROMFrame(customtkinter.CTkTabview):
 
         self.current_roms_frame = CurrentROMSFrame(self.tab("My ROMs"), self, self.settings.xenia,  (".wbfs", ".iso", ".rvz", ".gcm", ".gcz", ".ciso"))
         self.current_roms_frame.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
-        self.xbox_roms_frame = ROMSearchFrame(self.tab("Xbox 360 ROMs"), self, "https://myrient.erista.me/files/Redump/Microsoft%20-%20Xbox%20360/",)
+        self.xbox_roms_frame = ROMSearchFrame(self.tab("Xbox 360 ROMs"), self, rom_link="https://myrient.erista.me/files/Redump/Microsoft%20-%20Xbox%20360/", rom_name="microsoft_xbox_360")
         self.xbox_roms_frame.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
-        self.gamecube_roms_frame = ROMSearchFrame(self.tab("Xbox 360 Digital"), self, "https://myrient.erista.me/files/No-Intro/Microsoft%20-%20Xbox%20360%20%28Digital%29/")
+        self.gamecube_roms_frame = ROMSearchFrame(self.tab("Xbox 360 Digital"), self, rom_link="https://myrient.erista.me/files/No-Intro/Microsoft%20-%20Xbox%20360%20%28Digital%29/", rom_name="microsoft_xbox_360_digital")
         self.gamecube_roms_frame.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
         self.downloads_frame = customtkinter.CTkScrollableFrame(self.tab("Downloads"), width=650, height=420)
         self.downloads_frame.grid_columnconfigure(0, weight=1)

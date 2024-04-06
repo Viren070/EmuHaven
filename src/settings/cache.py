@@ -9,6 +9,7 @@ class Cache:
         self.master = master
         self.settings = settings
         self.metadata = metadata
+        self.current_cache_version = 2
         if os.path.exists(os.path.join(os.getcwd(), "PORTABLE.txt")):
             self.cache_directory = os.path.join(os.getcwd(), "portable", "cache")
         else:
@@ -25,7 +26,10 @@ class Cache:
             return False
         with open(self.index_file, "r", encoding="utf-8") as file:
             try:
-                json.load(file)
+                contents = json.load(file)
+                if contents.get("cache_version") != self.current_cache_version:
+                    return False
+                
             except json.JSONDecodeError:
                 return False
         return True
@@ -33,39 +37,7 @@ class Cache:
     def create_index_file(self):
         os.makedirs(os.path.dirname(self.index_file), exist_ok=True)
         with open(self.index_file, "w", encoding="utf-8") as file:
-            json.dump({}, file)
-
-    def add_custom_file_to_cache(self, key, file_path): 
-        if not self.is_index_file_valid():
-            self.create_index_file()
-        # declare variable to store the path of the new file
-        path = os.path.join(self.cache_directory, os.path.basename(file_path))
-        shutil.move(file_path, path)
-        # add this path to the index file with given key
-        self.add_to_index(key, path)
-
-    def add_json_data_to_cache(self, key, data):
-        if not self.is_index_file_valid():
-            self.create_index_file()
-        # create a new file with the data
-        path = os.path.join(self.cache_directory, f"{key}.json")
-        # write the data to the file
-        with open(path, "w", encoding="utf-8") as file:
-            json.dump(data, file)
-        # add the path to the index file
-        self.add_to_index(key, path)
-
-    def get_json_data_from_cache(self, key):
-        if not self.is_index_file_valid():
-            self.create_index_file()
-            return None
-        # get the path from the index file
-        data = self.get_data_from_cache(key)
-        if data is None:
-            return None
-        # read the data from the file
-        with open(data["data"], "r", encoding="utf-8") as file:
-            return {"data": json.load(file), "time": data["time"]}
+            json.dump({"cache_version": 2}, file)
 
     def get_data_from_cache(self, key):
         if not self.is_index_file_valid():
@@ -102,3 +74,37 @@ class Cache:
             del index[key]
         with open(self.index_file, "w", encoding="utf-8") as file:
             json.dump(index, file)
+
+    def add_json_data_to_cache(self, key, data):
+        if not self.is_index_file_valid():
+            self.create_index_file()
+        # create a new file with the data
+        path = os.path.join(self.cache_directory, "files", f"{key}.json")
+        # write the data to the file
+        with open(path, "w", encoding="utf-8") as file:
+            json.dump(data, file)
+        # add the path to the index file
+        self.add_to_index(key, path)
+
+    def get_json_data_from_cache(self, key):
+        if not self.is_index_file_valid():
+            self.create_index_file()
+            return None
+        # get the path from the index file
+        data = self.get_data_from_cache(key)
+        if data is None:
+            return None
+        # read the data from the file
+        with open(data["data"], "r", encoding="utf-8") as file:
+            return {"data": json.load(file), "time": data["time"]}
+        
+    def add_custom_file_to_cache(self, key, file_path): 
+        if not self.is_index_file_valid():
+            self.create_index_file()
+        # declare variable to store the path of the new file
+        path = os.path.join(self.cache_directory, os.path.basename(file_path))
+        shutil.move(file_path, path)
+        # add this path to the index file with given key
+        self.add_to_index(key, path)
+
+   
