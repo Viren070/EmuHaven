@@ -18,13 +18,14 @@ class RyujinxROMFrame(customtkinter.CTkTabview):
         self.build_frame()
 
     def get_title_ids(self):
+        blacklist_list = ["0100000000001009", ""]
         user_directory = self.settings.ryujinx.user_directory
         title_id_dir = os.path.join(user_directory, "games")
         if not os.path.exists(title_id_dir) or not os.listdir(title_id_dir):
             return []
         title_ids = []
         for title_id in os.listdir(title_id_dir):
-            if os.path.isdir(os.path.join(title_id_dir, title_id)): 
+            if os.path.isdir(os.path.join(title_id_dir, title_id)) and title_id not in blacklist_list:
                 title_ids.append(title_id.upper())
         return title_ids
         

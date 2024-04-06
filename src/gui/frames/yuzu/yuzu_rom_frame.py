@@ -18,15 +18,17 @@ class YuzuROMFrame(customtkinter.CTkTabview):
         self.build_frame()
         
     def get_game_ids(self):
+        blacklist_list = ["0100000000001009", ""]
         user_directory = self.settings.yuzu.user_directory
         game_list_dir = os.path.join(user_directory, "cache", "game_list")
         if not os.path.exists(game_list_dir) or not os.listdir(game_list_dir):
             return []
-        game_ids = [] 
-        for game_id in os.listdir(game_list_dir):
-            if game_id.endswith(".pv.txt"):
-                game_ids.append(game_id.replace(".pv.txt", ""))
-        return game_ids
+        title_ids = [] 
+        for title_id in os.listdir(game_list_dir):
+            title_id = title_id.replace(".pv.txt", "")
+            if title_id.endswith(".pv.txt") and title_id not in blacklist_list:
+                title_ids.append(title_id)
+        return title_ids
     
     def build_frame(self):
 
