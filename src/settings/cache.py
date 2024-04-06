@@ -48,9 +48,14 @@ class Cache:
         data = index.get(key)
         if data is None:
             return None
+        if not os.path.isfile(data["data"]):
+            self.remove_from_index(key)
+            return None
         return data
 
     def add_to_index(self, key, data):
+        if not self.is_index_file_valid():
+            self.create_index_file()
 
         with open(self.index_file, "r", encoding="utf-8") as file:
             index = json.load(file)
@@ -59,8 +64,12 @@ class Cache:
             "data": data,
             "time": time.time()
         }
-        with open(self.index_file, "w", encoding="utf-8") as file:
-            json.dump(index, file)
+        try:
+            with open(self.index_file, "w", encoding="utf-8") as file:
+                json.dump(index, file)
+        except Exception as error:
+            return (False, error)
+        return (True, data)
 
     def remove_from_index(self, key, delete_data=True):
         if not self.is_index_file_valid():
@@ -80,6 +89,7 @@ class Cache:
             self.create_index_file()
         # create a new file with the data
         path = os.path.join(self.cache_directory, "files", f"{key}.json")
+        os.makedirs(os.path.dirname(path), exist_ok=True)
         # write the data to the file
         with open(path, "w", encoding="utf-8") as file:
             json.dump(data, file)
@@ -102,9 +112,14 @@ class Cache:
         if not self.is_index_file_valid():
             self.create_index_file()
         # declare variable to store the path of the new file
-        path = os.path.join(self.cache_directory, os.path.basename(file_path))
-        shutil.move(file_path, path)
+        new_dir = os.path.join(self.cache_directory, "files")
+        os.makedirs(new_dir, exist_ok=True)
+        path = os.path.join(new_dir, os.path.basename(file_path))
+        try:
+            shutil.move(file_path, path)
+        except OSError as error:
+            return (False, error)
         # add this path to the index file with given key
-        self.add_to_index(key, path)
+        return self.add_to_index(key, path)
 
    
