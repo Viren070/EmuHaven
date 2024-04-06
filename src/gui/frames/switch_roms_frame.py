@@ -386,7 +386,8 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
         from utils.requests_utils import create_get_connection
         response_result = create_get_connection("https://github.com/AdamK2003/titledb/releases/download/latest/titles.US.en.json", stream=True, headers=get_headers(self.settings.app.token), timeout=30)
         if not all(response_result):
-            messagebox.showerror("Download Error", f"There was an error while attempting to download the TitleDB:\n\n {response_result[1]}")
+            if not response_result[1] == "Cancelled":
+                messagebox.showerror("Download Error", f"There was an error while attempting to download the TitleDB:\n\n {response_result[1]}")
             progress_window.destroy()
             return
         response = response_result[1]
