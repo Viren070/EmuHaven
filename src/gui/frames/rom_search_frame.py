@@ -27,7 +27,7 @@ class ROMSearchFrame(customtkinter.CTkFrame):
         self.root = root
         self.update_in_progress = False
         self.build_frame()
-        cache_lookup_result = self.cache.get_json_data_from_cache(self.rom_name)
+        cache_lookup_result = self.cache.get_json_data_from_cache(f"{self.rom_name}_roms")
         if cache_lookup_result:
             self.define_roms(self.create_roms_from_cache(cache_lookup_result["data"]))
 
@@ -57,7 +57,7 @@ class ROMSearchFrame(customtkinter.CTkFrame):
             cacheable_roms = {} 
             for rom in roms:
                 cacheable_roms[rom.filename] = rom.url.replace(self.rom_link, "")
-            self.cache.add_json_data_to_cache(self.rom_name, cacheable_roms)
+            self.cache.add_json_data_to_cache(f"{self.rom_name}_roms", cacheable_roms)
         self.roms = roms
         for widget in (self.refresh_button, self.search_button, self.search_entry, self.prev_button, self.next_button, self.current_page_entry):
             widget.configure(state="normal")
