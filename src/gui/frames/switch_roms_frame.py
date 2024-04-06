@@ -142,7 +142,7 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
         self.build_frame()
         title_ids = self.get_title_ids()
         self.define_titles_db()
-
+        self.attempted_update = False
         self.titles = [SwitchTitle(self, title_id, settings, cache) for title_id in title_ids]  # Create game objects
         self.searched_titles = self.titles
         self.total_pages = (len(self.searched_titles) + self.results_per_page - 1) // self.results_per_page
@@ -370,15 +370,27 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
             self.current_page_entry.insert(0, str(self.current_page))
 
     def check_titles_db(self):
-        if not os.path.exists(os.path.join(self.cache.cache_directory, "files", "titles.US.en.json")) or self.cache.get_cached_data("titlesDB [PATH]") is None:
-            messagebox.showinfo("Missing or Outdated TitleDB", "The TitleDB is missing or outdated. This is used to gather the required metadata for downloading saves and mods. It will now be downloaded.")
-        else:
-            data = self.cache.get_cached_data("titlesDB [PATH]")
-            if time.time() - data["time"] < 604800:  # 7 days
+        data = self.cache.get_cached_data("titlesDB [PATH]")
+        if data is None and os.path.exists(os.path.join(self.cache.cache_directory, "files", "titles.US.en.json")):
+            self.cache.add_to_index("titlesDB [PATH]", os.path.join(self.cache.cache_directory, "files", "titles.US.en.json"))
+            return True 
+        
+        if data:
+            if time.time() - data["time"] < 604800:
                 return True
+            
+            if self.attempted_update:
+                return True
+            
+            messagebox.showinfo("Outdated TitleDB", "The TitleDB is outdated. It will now be updated. This happens every week.")
+            self.attempted_update = True
+        else:
+            messagebox.showinfo("Missing TitleDB", "The TitleDB is missing. This is used to gather the required metadata for downloading saves and mods. It will now be downloaded.")
+            
+        
         progress_window = ProgressWindow(master=self, title="Downloading TitleDB",)
         Thread(target=self.download_titles_db, args=(progress_window,)).start()
-
+            
     def download_titles_db(self, progress_window):
         progress_frame = progress_window.progress_frame
         progress_frame.start_download("TitleDB", 0)
