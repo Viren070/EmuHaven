@@ -29,16 +29,19 @@ class SwitchTitle:
         self.frame = None  # The frame that contains the title
         self.settings = settings
         self.cache = cache
-        cache_metadata_lookup_result = self.cache.get_cached_data(self.title_id)
-        cache_image_lookup_result = self.cache.get_cached_data(f"{self.title_id}-Icon [PATH]")
-        if not cache_metadata_lookup_result:
+        metadata_lookup_result = self.cache.get_json_data_from_cache(f"{self.title_id}_metadata")
+        cache_image_lookup_result = self.cache.get_data_from_cache(f"{self.title_id}_icon")
+        if metadata_lookup_result is None or not metadata_lookup_result:
             self.title_data = self.gather_metadata()
         else:
-            self.title_data = cache_metadata_lookup_result["data"]
+            self.title_data = metadata_lookup_result["data"]
+
         if not cache_image_lookup_result:
+            # if image was not found in cache, set placeholder image and start download in a new thread
             image = settings.get_image_path("placeholder_icon")
             Thread(target=self.download_cover, args=(True,)).start()
         else:
+            # if image was found in cache, set the image
             image = cache_image_lookup_result["data"]
         self.cover = customtkinter.CTkImage(Image.open(image), size=(224, 224))
         if self.title_data is not None:
@@ -53,7 +56,7 @@ class SwitchTitle:
         title_data = self.titles_db.get(self.title_id)
         if title_data is None:
             return None
-        self.cache.add_to_index(self.title_id, title_data)
+        self.cache.add_json_data_to_cache(f"{self.title_id}_metadata", title_data)
         return title_data
 
     def download_cover(self, skip_prompt=True):
@@ -68,12 +71,12 @@ class SwitchTitle:
             if not skip_prompt:
                 messagebox.showerror("Download Error", "This game does not have a cover image available.")
             return
-        if self.cache.get_cached_data(f"{self.title_id}-Icon [PATH]"):
+        if self.cache.get_data_from_cache(f"{self.title_id}_icon"):
             if not skip_prompt:
                 user_confirmation = messagebox.askyesno("Download Cover", "A cover image already exists for this game. Are you sure you want to download a new one?")
                 if not user_confirmation:
                     return
-                self.cache.remove_from_index(self.title_id)
+                self.cache.remove_from_index(f"{self.title_id}_icon")
             else:
                 return
         self.downloading_cover = True
@@ -93,13 +96,13 @@ class SwitchTitle:
             self.downloading_cover = False
             return
 
-        move_to_cache_result = self.cache.move_image_to_cache(f"{self.title_id}-Icon [PATH]", download_path)
+        move_to_cache_result = self.cache.add_custom_file_to_cache(f"{self.title_id}_icon", download_path)
         if not all(move_to_cache_result):
             if not skip_prompt:
                 messagebox.showerror("Download Error", f"There was an error while attempting to add the downloaded cover image to cache:\n\n {move_to_cache_result[1]}")
             self.downloading_cover = False
             return
-        self.cover = customtkinter.CTkImage(Image.open(self.cache.get_cached_data(f"{self.title_id}-Icon [PATH]")["data"]), size=(224, 224))
+        self.cover = customtkinter.CTkImage(Image.open(self.cache.get_data_from_cache(f"{self.title_id}_icon")["data"]), size=(224, 224))
         if self.button is not None:
             self.button.configure(image=self.cover)
         if not skip_prompt:
@@ -152,16 +155,17 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
 
     def define_titles_db(self):
         title_ids = self.get_title_ids()
-        cache_lookup_result = self.cache.get_cached_data("titlesDB [PATH]")  # Check if titles.US.en is cached
+        titledb_lookup_result = self.cache.get_data_from_cache("titleDB")  # Check if titles.US.en is cached
         missing_title = False
         self.titles_db = None
-        if cache_lookup_result is not None and os.path.exists(cache_lookup_result["data"]):
+        if titledb_lookup_result is not None and os.path.exists(titledb_lookup_result["data"]):
             for title_id in title_ids:
-                if not self.cache.get_cached_data(f"{title_id}"):
+                if not self.cache.get_data_from_cache(f"{title_id}_metadata"):
                     missing_title = True
                     break
             if missing_title:
-                with open(cache_lookup_result["data"], "r", encoding="utf-8") as f:
+                # if a title is missing, load the titleDB as it is a large file and we don't want to load it if we don't need to
+                with open(titledb_lookup_result["data"], "r", encoding="utf-8") as f:
                     self.titles_db = json.load(f)
 
     def get_current_page_titles(self):
@@ -370,24 +374,29 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
             self.current_page_entry.insert(0, str(self.current_page))
 
     def check_titles_db(self):
-        data = self.cache.get_cached_data("titlesDB [PATH]")
+        data = self.cache.get_data_from_cache("titleDB")
         if data is None and os.path.exists(os.path.join(self.cache.cache_directory, "files", "titles.US.en.json")):
-            self.cache.add_to_index("titlesDB [PATH]", os.path.join(self.cache.cache_directory, "files", "titles.US.en.json"))
-            return True 
-        
+            self.cache.add_custom_file_to_cache("titleDB", os.path.join(self.cache.cache_directory, "files", "titles.US.en.json"))
+            return True
+
         if data:
             if time.time() - data["time"] < 604800:
                 return True
-            
+
             if self.attempted_update:
-                return True
-            
+                self.attempted_update = False
+                if messagebox.askyesno("Outdated TitleDB", "The titleDB is outdated. It previously failed to update. Would you like to try again?"):
+                    return self.check_titles_db()
+                else:
+                    self.attempted_update = True
+                    return True
+
             messagebox.showinfo("Outdated TitleDB", "The TitleDB is outdated. It will now be updated. This happens every week.")
             self.attempted_update = True
         else:
             messagebox.showinfo("Missing TitleDB", "The TitleDB is missing. This is used to gather the required metadata for downloading saves and mods. It will now be downloaded.")
-            
-        
+
+
         progress_window = ProgressWindow(master=self, title="Downloading TitleDB",)
         Thread(target=self.download_titles_db, args=(progress_window,)).start()
             
@@ -415,12 +424,12 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
             messagebox.showerror("Download Error", f"There was an error while attempting to download the TitleDB:\n\n {download_result[1]}")
             return
 
-        move_to_cache_result = self.cache.move_file_to_cache("titlesDB [PATH]", download_path)
+        move_to_cache_result = self.cache.add_custom_file_to_cache("titleDB", download_path)
         if not all(move_to_cache_result):
             messagebox.showerror("Download Error", f"There was an error while attempting to add the downloaded database to cache :\n\n {move_to_cache_result[1]}")
             return
 
-        cache_lookup_result = self.cache.get_cached_data("titlesDB [PATH]")
+        cache_lookup_result = self.cache.get_data_from_cache("titleDB")
         if not cache_lookup_result:
             messagebox.showerror("Download Error", "The TitleDB could not be retrieved from the cache.")
             return
@@ -439,13 +448,14 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
         response_result = create_get_connection("https://api.github.com/repos/Viren070/NX_Saves/contents/nintendo/switch/savegames", headers=get_headers(self.settings.app.token))
         if not all(response_result):
             return response_result
+        base_download_url = "https://raw.githubusercontent.com/Viren070/NX_Saves/main/nintendo/switch/savegames/"
         response = response_result[1]
         saves = json.loads(response.text)
-        saves = [save["download_url"] for save in saves]
+        saves = [save["download_url"].replace(base_download_url,"") for save in saves]
         return (True, saves)
         
     def download_saves(self, game, button):
-        cache_save_lookup_result = self.cache.get_cached_data("switch_saves")
+        cache_save_lookup_result = self.cache.get_json_data_from_cache("switch_savegames")
         button.configure(state="disabled", text="Fetching...")
         if cache_save_lookup_result is None or (time.time() - cache_save_lookup_result["time"]) > 86400:  # 1 day
             saves = self.get_all_saves()
@@ -457,7 +467,7 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
                 button.configure(state="normal", text="Download Saves")
                 return
             saves = saves[1]
-            self.cache.add_to_index("switch_saves", saves)
+            self.cache.add_json_data_to_cache("switch_saves", saves)
         else:
             saves = cache_save_lookup_result["data"]
         title_saves = []

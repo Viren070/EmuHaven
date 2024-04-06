@@ -20,8 +20,9 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
         }
         self.build_frame()
         self.check_cache_for_versions()
+
     def check_cache_for_versions(self):
-        cache_lookup_result = self.cache.get_cached_data("firmware_keys")
+        cache_lookup_result = self.cache.get_json_data_from_cache("firmware_keys")
         if cache_lookup_result and time.time() - cache_lookup_result["time"] < 604800:  # 7 days in seconds
             self.firmware_key_version_dict = self.create_dict_from_cache(cache_lookup_result["data"])
             self.create_scrollable_dropdown_with_dict(self.firmware_key_version_dict)
@@ -121,7 +122,7 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
         firmware_key_version_dict = firmware_key_dict_result[1]
         # Extract firmware versions from the self.firmware_key_version_dict
         self.create_scrollable_dropdown_with_dict(firmware_key_version_dict)
-        self.cache.add_to_index("firmware_keys", self.create_cacheable_dict(firmware_key_version_dict))
+        self.cache.add_json_data_to_cache("firmware_keys", self.create_cacheable_dict(firmware_key_version_dict))
         self.fetching_versions = False
         self.firmware_key_version_dict = firmware_key_version_dict
         

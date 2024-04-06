@@ -61,7 +61,9 @@ class SavesBrowser(customtkinter.CTkToplevel):
         progress_frame = progress_window.progress_frame
         progress_frame.start_download("Save File", 0)
         progress_frame.update_status_label("Fetching save file...")
-        response_result = create_get_connection(save, headers=get_headers(), stream=True)
+        base_url = "https://raw.githubusercontent.com/Viren070/NX_Saves/main/nintendo/switch/savegames/"
+        save_download_url = base_url + save
+        response_result = create_get_connection(save_download_url, headers=get_headers(), stream=True)
         if not all(response_result):
             messagebox.showerror("Download Error", "An error occurred while downloading the save file.")
             progress_window.destroy()
