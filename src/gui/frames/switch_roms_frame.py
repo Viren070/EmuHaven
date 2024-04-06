@@ -384,7 +384,7 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
         progress_frame.start_download("TitleDB", 0)
         from utils.downloader import download_through_stream
         from utils.requests_utils import create_get_connection
-        response_result = create_get_connection("https://github.com/arch-box/titledb/releases/download/latest/titles.US.en.json", stream=True, headers=get_headers(self.settings.app.token), timeout=30)
+        response_result = create_get_connection("https://github.com/AdamK2003/titledb/releases/download/latest/titles.US.en.json", stream=True, headers=get_headers(self.settings.app.token), timeout=30)
         if not all(response_result):
             messagebox.showerror("Download Error", f"There was an error while attempting to download the TitleDB:\n\n {response_result[1]}")
             progress_window.destroy()
