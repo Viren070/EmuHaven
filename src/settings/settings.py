@@ -77,7 +77,8 @@ class Settings:
                     "play_light": "",
                     "settings_dark": "",
                     "settings_light": "",
-                    "placeholder_icon": ""
+                    "placeholder_icon": "",
+                    "discord_icon": ""
                 },
                 "appearance_mode": "",
                 "colour_theme": "",
@@ -97,7 +98,7 @@ class Settings:
         with open(self.settings_file, "r", encoding="utf-8") as f:
             settings = json.load(f)
         image_paths = settings["app_settings"]["image_paths"]
-        if len(image_paths) != 18:
+        if len(image_paths) != 19:
             settings["app_settings"]["image_paths"] = {
                 "dolphin_logo": '',
                 "dolphin_banner_dark": '',
@@ -116,7 +117,8 @@ class Settings:
                 "play_light": "",
                 "settings_dark": "",
                 "settings_light": "",
-                "placeholder_icon": ""
+                "placeholder_icon": "",
+                "discord_icon": ""
             }
         for name, path in settings["app_settings"]["image_paths"].items():
             path = os.path.join(image_path, f"{name}.png")

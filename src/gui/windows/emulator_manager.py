@@ -72,6 +72,7 @@ class EmulatorManager(customtkinter.CTk):
                                                      dark_image=Image.open(self.settings.get_image_path("settings_dark")), size=(20, 20))
         self.lock_image = customtkinter.CTkImage(light_image=Image.open(self.settings.get_image_path("padlock_light")),
                                                  dark_image=Image.open(self.settings.get_image_path("padlock_dark")), size=(20, 20))
+        self.discord_icon = customtkinter.CTkImage(Image.open(self.settings.get_image_path("discord_icon")), size=(22, 22))
 
     def build_gui(self):
         self.resizable(True, True)  # disable resizing of window
@@ -123,11 +124,13 @@ class EmulatorManager(customtkinter.CTk):
         # Set column weights of scrollable_frame to make buttons expand
         scrollable_frame.grid_columnconfigure(0, weight=1)
 
+        discord_button = customtkinter.CTkButton(self.navigation_frame, height=25, width=100, corner_radius=20, text="Join Discord", image=self.discord_icon, border_spacing=10, command=self.show_discord_invite)
+        discord_button.grid(row=2, column=0, pady=10)
         # Create settings button at the bottom
         self.settings_button = customtkinter.CTkButton(self.navigation_frame, corner_radius=0, height=40, image=self.settings_image, border_spacing=10, text="Settings",
                                                        fg_color="transparent", text_color=text_color,
                                                        anchor="w", command=self.settings_button_event)
-        self.settings_button.grid(row=2, column=0, sticky="ew")
+        self.settings_button.grid(row=3, column=0, sticky="ew")
 
         self.yuzu_frame = YuzuFrame(self, self.settings, self.metadata, self.cache)
         self.dolphin_frame = DolphinFrame(self, self.settings, self.metadata, self.cache)
@@ -135,6 +138,9 @@ class EmulatorManager(customtkinter.CTk):
         self.xenia_frame = XeniaFrame(self, self.settings, self.metadata, self.cache)
         self.settings_frame = SettingsFrame(self, self.settings)
 
+    def show_discord_invite(self):
+        if messagebox.askyesno("Discord Invite", "Would you like to join the Emulator Manager Discord server?\n\nBy joining, you can get help with any issues you may have, as well as get notified of any updates or new features.\n\nIf you click yes, your default web browser will open the invite link."):
+            webbrowser.open("https://discord.gg/9Dn9mSxW6t")
     def dolphin_button_event(self):
         self.select_frame_by_name("dolphin")
 
