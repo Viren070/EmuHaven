@@ -3,12 +3,12 @@ import os
 import threading
 
 
-VERSION = "0.13.5"
+VERSION = "0.1"
 
 def display_help():
     print("Available commands:")
     print("help - Display available commands and their functions")
-    print("version - Display the Emulator Manager version")
+    print("version - Display the Emulator Manager CLI version")
     print("launch - Launch an emulator")
     print(f"    Usage: {os.path.realpath(__file__)} --launch <emulator_name> [-update]")
     print("    emulator_name: yuzu, ryujinx, dolphin")
