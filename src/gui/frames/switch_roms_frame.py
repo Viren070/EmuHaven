@@ -435,12 +435,20 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
     def download_mods(self, game):
         messagebox.showinfo("Download Mods", "This feature is not yet implemented.")
 
+    def get_all_saves(self):
+        response_result = create_get_connection("https://api.github.com/repos/Viren070/NX_Saves/contents/nintendo/switch/savegames", headers=get_headers(self.settings.app.token))
+        if not all(response_result):
+            return response_result
+        response = response_result[1]
+        saves = json.loads(response.text)
+        saves = [save["download_url"] for save in saves]
+        return (True, saves)
+        
     def download_saves(self, game, button):
         cache_save_lookup_result = self.cache.get_cached_data("switch_saves")
         button.configure(state="disabled", text="Fetching...")
         if cache_save_lookup_result is None or (time.time() - cache_save_lookup_result["time"]) > 86400:  # 1 day
-
-            saves = get_file_links_from_page("https://github.com/Viren070/NX_Saves/blob/main/index.md", ".zip", get_headers())
+            saves = self.get_all_saves()
             if not all(saves):
                 if saves[0]:
                     messagebox.showerror("Fetch Error", "An unknown error has occured and no saves were found at the moment. Please try again later.")
@@ -448,11 +456,8 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
                     messagebox.showerror("Fetch Error", f"There was an error while attempting to fetch the saves:\n\n {saves[1]}")
                 button.configure(state="normal", text="Download Saves")
                 return
-            links = []
-            for save in saves[1]:
-                links.append(save.url)
-            self.cache.add_to_index("switch_saves", links)
-            saves = links
+            saves = saves[1]
+            self.cache.add_to_index("switch_saves", saves)
         else:
             saves = cache_save_lookup_result["data"]
         title_saves = []
