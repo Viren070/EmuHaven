@@ -374,9 +374,9 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
             self.current_page_entry.insert(0, str(self.current_page))
 
     def check_titles_db(self):
-        data = self.cache.get_cached_data("titlesDB")
+        data = self.cache.get_data_from_cache("titleDB")
         if data is None and os.path.exists(os.path.join(self.cache.cache_directory, "files", "titles.US.en.json")):
-            self.cache.add_to_index("titlesDB", os.path.join(self.cache.cache_directory, "files", "titles.US.en.json"))
+            self.cache.add_custom_file_to_cache("titleDB", os.path.join(self.cache.cache_directory, "files", "titles.US.en.json"))
             return True
 
         if data:
@@ -424,12 +424,12 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
             messagebox.showerror("Download Error", f"There was an error while attempting to download the TitleDB:\n\n {download_result[1]}")
             return
 
-        move_to_cache_result = self.cache.add_custom_file_to_cache("titlesDB", download_path)
+        move_to_cache_result = self.cache.add_custom_file_to_cache("titleDB", download_path)
         if not all(move_to_cache_result):
             messagebox.showerror("Download Error", f"There was an error while attempting to add the downloaded database to cache :\n\n {move_to_cache_result[1]}")
             return
 
-        cache_lookup_result = self.cache.get_cached_data("titlesDB")
+        cache_lookup_result = self.cache.get_data_from_cache("titleDB")
         if not cache_lookup_result:
             messagebox.showerror("Download Error", "The TitleDB could not be retrieved from the cache.")
             return
