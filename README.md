@@ -19,6 +19,7 @@ If you have any questions or need help, you may ask them in the [Discord server]
 Please consider giving a ⭐ if you find this project helpful. Your support is appreciated!
 
 ## Installation
+I would suggest [running from source](https://github.com/Viren070/Emulator-Manager?tab=readme-ov-file#running-from-source) as it allows you to have the most up-to-date version of Emulator Manager but if you think it's too complex then follow the instructions below. 
 
 ### Windows Executable Installation
 
@@ -52,7 +53,12 @@ If you want to run Emulator Manager from the source code:
    python src/main.py
    ```
    - python must be added to PATH (this can be done with the installer)
-4. To build an executable file, use this command:
+4. When you want to update emulator Manager run this command:
+   ```
+   git pull origin main
+   ```
+   
+If you want to build an executable file, you can use [pyinstaller](https://pyinstaller.org/en/stable/) with this command:
    ```
    pyinstaller --noconfirm --onedir --console --name "Emulator Manager" --clean --add-data "%localappdata%/Programs/Python/Python312/Lib/site-packages/customtkinter;customtkinter/" --add-data src/assets;assets/  src/main.py
    ```
