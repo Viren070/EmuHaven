@@ -1,0 +1,45 @@
+name: Build windows app
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: Viren070/Emulator-Manager
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5 
+        with:
+          python-version: 3.12.2
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Build distributables
+        run: |
+          pyinstaller --noconfirm --onefile --console --name "Emulator.Manager.${{ github.ref_name }}" --clean --add-data "src/assets;assets/"  src/main.py
+          pyinstaller --noconfirm --onedir --console --name "Emulator.Manager.${{ github.ref_name }}" --clean --add-data "src/assets;assets/"  src/main.py
+
+      - name: Compress onedir
+        run: |
+          Compress-Archive -Path "dist/Emulator.Manager.${{ github.ref_name }}/*" -DestinationPath "dist/Emulator.Manager.${{ github.ref_name }}.zip"
+
+      - uses: "softprops/action-gh-release@v2"
+        with:
+          prerelease: ${{ contains(github.ref, 'alpha') || contains(github.ref, 'beta') }}
+          tag_name: ${{ github.ref_name }}
+          files: |
+            dist/Emulator.Manager.*.exe
+            dist/Emulator.Manager.*.zip
