@@ -455,7 +455,7 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
         return (True, saves)
         
     def download_saves(self, game, button):
-        cache_save_lookup_result = self.cache.get_json_data_from_cache("switch_savegames")
+        cache_save_lookup_result = self.cache.get_json_data_from_cache("switch_saves")
         button.configure(state="disabled", text="Fetching...")
         if cache_save_lookup_result is None or (time.time() - cache_save_lookup_result["time"]) > 86400:  # 1 day
             saves = self.get_all_saves()
