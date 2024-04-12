@@ -5,6 +5,10 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to upload assets to'
+        required: true
 
 jobs:
   build:
@@ -29,17 +33,19 @@ jobs:
 
       - name: Build distributables
         run: |
-          pyinstaller --noconfirm --onefile --console --name "Emulator.Manager.${{ github.ref_name }}" --clean --add-data "src/assets;assets/"  src/main.py
-          pyinstaller --noconfirm --onedir --console --name "Emulator.Manager.${{ github.ref_name }}" --clean --add-data "src/assets;assets/"  src/main.py
-
+            pyinstaller --noconfirm --onefile --console --name "Emulator.Manager.${{ github.event_name == 'push' && github.ref_name || github.event.inputs.tag }}" --clean --add-data "${{ env.Python_ROOT_DIR }}/Lib/site-packages/customtkinter;customtkinter/" --add-data "src/assets;assets/"  src/main.py
+            pyinstaller --noconfirm --onedir --console --name "Emulator.Manager.${{ github.event_name == 'push' && github.ref_name || github.event.inputs.tag }}" --clean --add-data "${{ env.Python_ROOT_DIR }}/Lib/site-packages/customtkinter;customtkinter/" --add-data "src/assets;assets/"  src/main.py
+    
       - name: Compress onedir
         run: |
-          Compress-Archive -Path "dist/Emulator.Manager.${{ github.ref_name }}/*" -DestinationPath "dist/Emulator.Manager.${{ github.ref_name }}.zip"
+          Compress-Archive -Path "dist/Emulator.Manager.${{ github.event_name == 'push' && github.ref_name || github.event.inputs.tag }}/*" -DestinationPath "dist/Emulator.Manager.${{ github.event_name == 'push' && github.ref_name || github.event.inputs.tag }}.zip"
 
       - uses: "softprops/action-gh-release@v2"
+        env:
+            TAG: ${{ github.event_name == 'push' && github.ref_name || github.event.inputs.tag }}
         with:
-          prerelease: ${{ contains(github.ref, 'alpha') || contains(github.ref, 'beta') }}
-          tag_name: ${{ github.ref_name }}
+          prerelease: ${{ contains(env.TAG, 'alpha') || contains(env.TAG, 'beta') }}
+          tag_name: ${{ env.TAG }}
           files: |
             dist/Emulator.Manager.*.exe
             dist/Emulator.Manager.*.zip
