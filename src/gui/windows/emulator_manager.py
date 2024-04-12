@@ -55,7 +55,6 @@ class EmulatorManager(customtkinter.CTk):
         self.xenia_frame.fetch_versions()
         if not open_app_settings and self.settings.app.check_for_app_updates == "True":
             Thread(target=self.check_for_update).start()
-        self.mainloop()
 
     def define_images(self):
         self.dolphin_logo = customtkinter.CTkImage(Image.open(self.settings.get_image_path("dolphin_logo")), size=(26, 26))
