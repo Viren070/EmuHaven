@@ -18,7 +18,7 @@ customtkinter==5.2.2
     # via -r requirements.in
 darkdetect==0.8.0
     # via customtkinter
-idna==3.6
+idna==3.7
     # via requests
 inflate64==1.0.0
     # via py7zr
