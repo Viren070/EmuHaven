@@ -10,11 +10,6 @@ if __name__ == "__main__":
         from cli import handle_cli_args
         handle_cli_args(sys.argv[1:])
     else:
-        if getattr(sys, "frozen", False):
-            import pyi_splash 
-            pyi_splash.update_text("Buiilding GUI, please wait...")
         load_customtkinter_themes(os.path.join(os.path.dirname(os.path.realpath(__file__)), "assets", "themes"))
         App = EmulatorManager(os.path.dirname(os.path.realpath(__file__)))
-        if getattr(sys, "frozen", False):
-            pyi_splash.close()
         App.mainloop()
