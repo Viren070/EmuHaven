@@ -163,8 +163,7 @@ cython_debug/
 #.idea/
 
 # VS Code
-.vscode/
-
+.vscode*/
 # App specific folders 
 User Data/
 
