@@ -109,7 +109,7 @@ class Settings:
                 "ryujinx_logo": "",
                 "ryujinx_banner": "",
                 "xenia_logo": "",
-                "xenia_banner": "", 
+                "xenia_banner": "",
                 "xenia_canary_banner": "",
                 "padlock_dark": "",
                 "padlock_light": "",
@@ -164,7 +164,7 @@ class Settings:
                         continue
                 try:
                     setattr(section_obj, setting_name, value)
-                except:
+                except Exception:
                     pass
 
     def update_file(self):

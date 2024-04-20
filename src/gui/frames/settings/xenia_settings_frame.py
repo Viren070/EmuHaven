@@ -1,4 +1,3 @@
-import os
 from tkinter import filedialog, messagebox, ttk
 
 import customtkinter
@@ -56,14 +55,14 @@ class XeniaSettingsFrame(customtkinter.CTkFrame):
             entry_widget.insert(0, getattr(self.settings.xenia, setting_name))
 
     def update_with_explorer(self, entry_widget,):
-        
+
         new_directory = filedialog.askdirectory(initialdir=entry_widget.get())
         if new_directory is None or new_directory == "":
             return
         entry_widget.delete(0, 'end')
         entry_widget.insert(0, new_directory)
         return
-        
+
     def apply(self):
         errors = ""
         for setting_name, entry_widget in self.matching_dict.items():

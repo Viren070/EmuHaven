@@ -1,9 +1,9 @@
-import os 
+import os
 
 import customtkinter
 
-from gui.frames.current_roms_frame import CurrentROMSFrame
 from gui.frames.switch_roms_frame import SwitchROMSFrame
+
 
 class RyujinxROMFrame(customtkinter.CTkTabview):
     def __init__(self, master, settings, cache):
@@ -28,7 +28,7 @@ class RyujinxROMFrame(customtkinter.CTkTabview):
             if os.path.isdir(os.path.join(title_id_dir, title_id)) and title_id not in blacklist_list:
                 title_ids.append(title_id.upper())
         return title_ids
-        
+
     def build_frame(self):
 
         self.grid(row=0, column=0, sticky="nsew")

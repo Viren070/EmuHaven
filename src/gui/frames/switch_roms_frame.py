@@ -1,8 +1,8 @@
 import json
 import os
 import shutil
-import time
 import textwrap
+import time
 from threading import Thread
 from tkinter import filedialog, messagebox
 
@@ -12,8 +12,7 @@ from PIL import Image
 from gui.windows.progress_window import ProgressWindow
 from gui.windows.saves_browser import SavesBrowser
 from utils.downloader import download_file
-from utils.requests_utils import (create_get_connection,
-                                  get_file_links_from_page, get_headers)
+from utils.requests_utils import create_get_connection, get_headers
 
 
 class SwitchTitle:
@@ -121,7 +120,7 @@ class SwitchTitle:
             shutil.copy2(new_cover, cache_path)
 
     def update_title_text(self, width):
-        char_width = 11  # mode of all alphabetical charters and 3 unicode characters (2014, 2019, 2122) in Arial 16 
+        char_width = 11  # mode of all alphabetical charters and 3 unicode characters (2014, 2019, 2122) in Arial 16
         available_width = width - 244  # 224 for the cover image and 40 for padding
         max_length = available_width // char_width
         if max_length < 0:
@@ -396,10 +395,9 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
         else:
             messagebox.showinfo("Missing TitleDB", "The TitleDB is missing. This is used to gather the required metadata for downloading saves and mods. It will now be downloaded.")
 
-
         progress_window = ProgressWindow(master=self, title="Downloading TitleDB",)
         Thread(target=self.download_titles_db, args=(progress_window,)).start()
-            
+
     def download_titles_db(self, progress_window):
         progress_frame = progress_window.progress_frame
         progress_frame.start_download("TitleDB", 0)
@@ -451,9 +449,9 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
         base_download_url = "https://raw.githubusercontent.com/Viren070/NX_Saves/main/nintendo/switch/savegames/"
         response = response_result[1]
         saves = json.loads(response.text)
-        saves = [save["download_url"].replace(base_download_url,"") for save in saves]
+        saves = [save["download_url"].replace(base_download_url, "") for save in saves]
         return (True, saves)
-        
+
     def download_saves(self, game, button):
         cache_save_lookup_result = self.cache.get_json_data_from_cache("switch_saves")
         button.configure(state="disabled", text="Fetching...")

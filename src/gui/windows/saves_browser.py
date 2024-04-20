@@ -16,7 +16,7 @@ class SavesBrowser(customtkinter.CTkToplevel):
         super().__init__(*args, **kwargs)
         self.title(title)
         self.saves = saves
-        
+
         self.lift()  # lift window on top
         self.attributes("-topmost", True)  # stay on top
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
@@ -45,12 +45,12 @@ class SavesBrowser(customtkinter.CTkToplevel):
             # Create a button for the save
             save_button_text = textwrap.fill(filename, width=42)  # Insert newlines into the filename
             save_button = customtkinter.CTkButton(scrollable_frame, text=save_button_text, font=customtkinter.CTkFont("Arial", 20), anchor="w", command=lambda save=save: Thread(target=self.download_save, args=(save, )).start())
-            save_button.grid(row=i, column=0, padx=(2,10), pady=5, sticky="ew")
-            
+            save_button.grid(row=i, column=0, padx=(2, 10), pady=5, sticky="ew")
+
         # Configure the grid to allocate all extra space to the scrollable frame
         self.grid_rowconfigure(2, weight=1)
         self.grid_columnconfigure(0, weight=1)
-        
+
     def download_save(self, save):
         progress_window = ProgressWindow(title="Downloading Save")
         self.attributes("-topmost", False)
@@ -67,7 +67,7 @@ class SavesBrowser(customtkinter.CTkToplevel):
         if not all(response_result):
             messagebox.showerror("Download Error", "An error occurred while downloading the save file.")
             progress_window.destroy()
-            return 
+            return
         response = response_result[1]
         filename = unquote(save).split('/')[-1].split(".zip")[-2]
         download_path = os.path.join(os.path.expanduser("~"), "Desktop", f"{filename}.zip")
@@ -78,12 +78,12 @@ class SavesBrowser(customtkinter.CTkToplevel):
         progress_window.destroy()
         if not all(download_result):
             messagebox.showerror("Download Error", "An error occurred while downloading the save file.")
-            return 
+            return
         messagebox.showinfo("Download Complete", "The save file has been downloaded to your desktop.")
         self.lift()
         self.attributes("-topmost", True)
         self.grab_set()
-        
+
     def on_closing(self):
         self.grab_release()
         self.destroy()  # destroy window

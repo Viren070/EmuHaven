@@ -12,6 +12,7 @@ class File:
         self.url = url
         self.filename = filename
 
+
 class ROMSearchFrame(customtkinter.CTkFrame):
     def __init__(self, master, root, rom_link, rom_name):
         super().__init__(master, height=700)
@@ -37,7 +38,7 @@ class ROMSearchFrame(customtkinter.CTkFrame):
             url = self.rom_link + encoded_filename
             roms.append(File(url, filename))
         return roms
-    
+
     def get_roms(self):
         self.refresh_button.configure(state="disabled", text="Fetching...")
         get_roms_thread = Thread(target=self.define_roms)
@@ -54,7 +55,7 @@ class ROMSearchFrame(customtkinter.CTkFrame):
                 messagebox.showerror("Error", roms[1])
                 return
             roms = roms[1]
-            cacheable_roms = {} 
+            cacheable_roms = {}
             for rom in roms:
                 cacheable_roms[rom.filename] = rom.url.replace(self.rom_link, "")
             self.cache.add_json_data_to_cache(f"{self.rom_name}_roms", cacheable_roms)

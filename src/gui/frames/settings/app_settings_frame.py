@@ -40,7 +40,7 @@ class AppSettingsFrame(customtkinter.CTkFrame):
         self.delete_files_variable.set(self.settings.app.delete_files)
         self.check_for_app_update_variable.set(self.settings.app.check_for_app_updates)
         self.disable_automatic_updates_variable.set(self.settings.app.disable_automatic_updates)
-        
+
         colour_themes = get_colour_themes(os.path.join(self.parent_frame.parent_frame.root_dir, "assets", "themes"))
         colour_themes = [theme.replace("-", " ").title() for theme in colour_themes]
         colour_themes.append("Choose custom theme...")
@@ -55,7 +55,7 @@ class AppSettingsFrame(customtkinter.CTkFrame):
         customtkinter.CTkLabel(self, text="Delete Files after installing").grid(row=8, column=0, padx=10, pady=10, sticky="w")
         customtkinter.CTkCheckBox(self, text="", variable=self.delete_files_variable, onvalue="True", offvalue="False", command=self.change_delete_files_option).grid(row=8, column=2, padx=(50, 0), pady=10, sticky="ew")
         ttk.Separator(self, orient="horizontal").grid(row=9, columnspan=4, sticky="ew")
-        
+
         customtkinter.CTkLabel(self, text="Check for app updates on startup").grid(row=10, column=0, padx=10, pady=10, sticky="w")
         customtkinter.CTkCheckBox(self, text="", variable=self.check_for_app_update_variable, onvalue="True", offvalue="False", command=self.change_app_update_option).grid(row=10, column=2, padx=(50, 0), pady=10, sticky="ew")
         ttk.Separator(self, orient="horizontal").grid(row=11, columnspan=4, sticky="ew")
@@ -63,7 +63,7 @@ class AppSettingsFrame(customtkinter.CTkFrame):
         customtkinter.CTkLabel(self, text="Disable automatic emulator updates").grid(row=12, column=0, padx=10, pady=10, sticky="w")
         customtkinter.CTkCheckBox(self, text="", variable=self.disable_automatic_updates_variable, onvalue="True", offvalue="False", command=self.change_emulator_update_option).grid(row=12, column=2, padx=(50, 0), pady=10, sticky="ew")
         ttk.Separator(self, orient="horizontal").grid(row=13, columnspan=4, sticky="ew")
-        
+
         self.actions_frame = customtkinter.CTkFrame(self, fg_color="transparent")
         self.actions_frame.grid_columnconfigure(0, weight=1)
         self.actions_frame.grid(row=14, sticky="ew", columnspan=5, padx=10, pady=10)
@@ -131,10 +131,11 @@ class AppSettingsFrame(customtkinter.CTkFrame):
     def change_app_update_option(self):
         self.settings.app.check_for_app_updates = self.check_for_app_update_variable.get()
         self.update_settings()
-    
+
     def change_emulator_update_option(self):
         self.settings.app.disable_automatic_updates = self.disable_automatic_updates_variable.get()
         self.update_settings()
+
     def open_token_window(self):
         if self.token_gen is None:
             self.token_gen = GitHubLoginWindow(self)

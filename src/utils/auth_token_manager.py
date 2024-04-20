@@ -24,7 +24,7 @@ def is_token_valid(token):
     }
     if not token:
         return False
-    
+
     try:
         response = requests.get("https://api.github.com/user", headers=headers)
         response.raise_for_status()

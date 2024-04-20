@@ -1,5 +1,4 @@
 import os
-import re
 import shutil
 import subprocess
 import time
@@ -8,8 +7,8 @@ from zipfile import ZipFile
 
 from utils.downloader import download_through_stream
 from utils.file_utils import copy_directory_with_progress
-from utils.requests_utils import (create_get_connection,
-                                  get_release_from_assets, get_headers)
+from utils.requests_utils import (create_get_connection, get_headers,
+                                  get_release_from_assets)
 
 
 class Xenia:

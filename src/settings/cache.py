@@ -17,7 +17,7 @@ class Cache:
         if not os.path.exists(self.cache_directory):
             os.makedirs(self.cache_directory)
         self.index_file = os.path.join(self.cache_directory, "index.json")
-        
+
         if not self.is_index_file_valid():
             self.create_index_file()
 
@@ -29,7 +29,6 @@ class Cache:
                 contents = json.load(file)
                 if contents.get("cache_version") != self.current_cache_version:
                     return False
-                
             except json.JSONDecodeError:
                 return False
         return True
@@ -107,8 +106,8 @@ class Cache:
         # read the data from the file
         with open(data["data"], "r", encoding="utf-8") as file:
             return {"data": json.load(file), "time": data["time"]}
-        
-    def add_custom_file_to_cache(self, key, file_path): 
+
+    def add_custom_file_to_cache(self, key, file_path):
         if not self.is_index_file_valid():
             self.create_index_file()
         # declare variable to store the path of the new file
@@ -121,5 +120,3 @@ class Cache:
             return (False, error)
         # add this path to the index file with given key
         return self.add_to_index(key, path)
-
-   

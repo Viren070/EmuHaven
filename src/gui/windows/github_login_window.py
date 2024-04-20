@@ -54,11 +54,10 @@ class GitHubLoginWindow(customtkinter.CTkToplevel):
         self.login_button = customtkinter.CTkButton(self, text="Authorise", command=self.start_authentication)
         self.login_button.pack(pady=10)
 
-
     def submit_token_event(self):
         self.token_button.configure(state="disabled")
         Thread(target=self.submit_token).start()
-        
+
     def submit_token(self):
         token = self.token_entry.get()
         if is_token_valid(token):
@@ -69,8 +68,8 @@ class GitHubLoginWindow(customtkinter.CTkToplevel):
             self.grab_release()
             self.bring_window_to_top(self.master.parent_frame.parent_frame)
             self.destroy()
-            return 
-        
+            return
+
         messagebox.showerror("Invalid Token", "The token you entered is invalid. Please try again.")
         self.token_button.configure(state="normal")
 

@@ -202,7 +202,6 @@ class Dolphin:
             messagebox.showerror("Error", f"There was an error while attempting to delete Dolphin: \n\\n{e}")
             return
 
-
     def launch_dolphin_handler(self, release_channel, skip_update=False, wait_for_exit=True):
         if not skip_update:
             self.gui.configure_buttons("disabled", text="Fetching Updates...  ", width=170)
@@ -232,8 +231,6 @@ class Dolphin:
                 messagebox.showerror("Missing Folder", "No folders were selected to export")
                 return
             copy_directory_with_progress(user_directory, directory_to_export_to, "Exporting All Dolphin Data", self.data_progress_frame, include=folders_to_export)
-            
-            
 
     def import_dolphin_data(self, mode, directory_to_import_from, folders_to_import=None):
         user_directory = self.settings.dolphin.user_directory

@@ -154,7 +154,7 @@ class YuzuFrame(EmulatorFrame):
     def manage_roms_button_event(self):
         self.rom_frame.current_roms_frame.check_titles_db()
         self.select_frame_by_name("roms")
-        
+
     def configure_data_buttons(self, **kwargs):
         self.yuzu_delete_button.configure(**kwargs)
         self.yuzu_import_button.configure(**kwargs)
@@ -367,7 +367,7 @@ class YuzuFrame(EmulatorFrame):
         thread = Thread(target=self.yuzu.import_yuzu_data, args=thread_args)
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["data"],)).start()
-    
+
     def export_data_button_event(self):
         directory = PathDialog(title="Export Directory", text="Enter directory to export to: ", directory=True)
         directory = directory.get_input()
@@ -384,7 +384,7 @@ class YuzuFrame(EmulatorFrame):
             args = ("Custom...", directory, folders,)
         else:
             args = (self.yuzu_export_optionmenu.get(), directory,)
-        
+
         self.configure_data_buttons(state="disabled")
         thread = Thread(target=self.yuzu.export_yuzu_data, args=args)
         thread.start()

@@ -45,9 +45,9 @@ class AppSettings:
     delete_files = property(lambda self: self._get_property('delete_files'),
                             lambda self, value: self._set_property('delete_files', value))
     check_for_app_updates = property(lambda self: self._get_property('check_for_app_updates'),
-                                 lambda self, value: self._set_property('check_for_app_updates', value))
+                                     lambda self, value: self._set_property('check_for_app_updates', value))
     disable_automatic_updates = property(lambda self: self._get_property('disable_automatic_updates'),
-                                 lambda self, value: self._set_property('disable_automatic_updates', value))
+                                         lambda self, value: self._set_property('disable_automatic_updates', value))
     ask_firmware = property(lambda self: self._get_property('ask_firmware'),
                             lambda self, value: self._set_property('ask_firmware', value))
     token = property(lambda self: self._get_property('token'),

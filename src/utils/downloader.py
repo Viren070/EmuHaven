@@ -7,7 +7,7 @@ def download_through_stream(response, download_path, progress_frame, chunk_size)
     try:
         with open(download_path, 'wb') as f:
             downloaded_bytes = 0
-            
+
             for chunk in response.iter_content(chunk_size=chunk_size):
                 if progress_frame.cancel_download_raised:
                     progress_frame.grid_forget()
@@ -24,6 +24,7 @@ def download_through_stream(response, download_path, progress_frame, chunk_size)
         return (False, error)
     return (True, download_path)
 
+
 def download_file(response, download_path):
     try:
         response.raise_for_status()
@@ -33,4 +34,3 @@ def download_file(response, download_path):
     except RequestException as error:
         os.remove(download_path)
         return (False, error)
-    

@@ -1,9 +1,9 @@
-import os 
+import os
 
 import customtkinter
 
-from gui.frames.current_roms_frame import CurrentROMSFrame
 from gui.frames.switch_roms_frame import SwitchROMSFrame
+
 
 class YuzuROMFrame(customtkinter.CTkTabview):
     def __init__(self, master, settings, cache):
@@ -16,20 +16,20 @@ class YuzuROMFrame(customtkinter.CTkTabview):
         self.update_in_progress = False
         self.downloads_in_progress = 0
         self.build_frame()
-        
+
     def get_game_ids(self):
         blacklist_list = ["0100000000001009", ""]
         user_directory = self.settings.yuzu.user_directory
         game_list_dir = os.path.join(user_directory, "cache", "game_list")
         if not os.path.exists(game_list_dir) or not os.listdir(game_list_dir):
             return []
-        title_ids = [] 
+        title_ids = []
         for title_id in os.listdir(game_list_dir):
             title_id = title_id.replace(".pv.txt", "")
             if title_id.endswith(".pv.txt") and title_id not in blacklist_list:
                 title_ids.append(title_id)
         return title_ids
-    
+
     def build_frame(self):
 
         self.grid(row=0, column=0, sticky="nsew")

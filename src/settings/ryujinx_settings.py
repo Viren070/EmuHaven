@@ -41,4 +41,3 @@ class RyujinxSettings:
 
     install_directory = property(lambda self: self._get_property('install_directory'),
                                  lambda self, value: self._set_directory_property('install_directory', value))
-

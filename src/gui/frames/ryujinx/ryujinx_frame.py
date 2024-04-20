@@ -15,6 +15,8 @@ from gui.windows.path_dialog import PathDialog
 from gui.windows.folder_selector import FolderSelector
 
 FOLDERS = ["bis", "games", "mods", "profiles", "sdcard", "system"]
+
+
 class RyujinxFrame(EmulatorFrame):
     def __init__(self, parent_frame, settings, metadata, cache):
         super().__init__(parent_frame, settings, metadata)
@@ -115,7 +117,7 @@ class RyujinxFrame(EmulatorFrame):
         self.manage_roms_frame.grid_rowconfigure(0, weight=1)
         self.rom_frame = RyujinxROMFrame(self.manage_roms_frame, self.settings, self.cache)
         self.rom_frame.grid(row=0, column=0,  padx=20, pady=20, sticky="nsew")
-        
+
     def manage_roms_button_event(self):
         self.rom_frame.current_roms_frame.check_titles_db()
         self.select_frame_by_name("roms")
@@ -234,10 +236,10 @@ class RyujinxFrame(EmulatorFrame):
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["action"],)).start()
 
     def import_data_button_event(self):
-        directory = None 
-        folders = None 
+        directory = None
+        folders = None
         import_option = self.import_optionmenu.get()
-        
+
         if import_option == "Custom...":
             directory, folders = FolderSelector(
                 title="Choose directory and folders to import",
@@ -268,9 +270,9 @@ class RyujinxFrame(EmulatorFrame):
             return
         directory = directory[1]
         if self.export_optionmenu.get() == "Custom...":
-            user_directory, folders = FolderSelector(title="Choose folders to export", predefined_directory=self.settings.ryujinx.user_directory, allowed_folders=FOLDERS).get_input() 
+            user_directory, folders = FolderSelector(title="Choose folders to export", predefined_directory=self.settings.ryujinx.user_directory, allowed_folders=FOLDERS).get_input()
             if user_directory is None or folders is None:
-                return 
+                return
             args = ("Custom...", directory, folders)
         else:
             args = (self.export_optionmenu.get(), directory,)
@@ -283,9 +285,9 @@ class RyujinxFrame(EmulatorFrame):
         if self.delete_optionmenu.get() == "Custom...":
             directory, folders = FolderSelector(title="Delete Directory", predefined_directory=self.settings.ryujinx.user_directory, allowed_folders=FOLDERS).get_input()
             if directory is None or folders is None:
-                return 
+                return
             args = ("Custom...", folders)
-        else:   
+        else:
             args = (self.delete_optionmenu.get(), )
         if not messagebox.askyesno("Confirmation", "This will delete the data from Ryujinx's directory. This action cannot be undone, are you sure you wish to continue?"):
             return

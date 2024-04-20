@@ -15,14 +15,12 @@ from gui.frames.ryujinx.ryujinx_frame import RyujinxFrame
 from gui.frames.settings.settings_frame import SettingsFrame
 from gui.frames.yuzu.yuzu_frame import YuzuFrame
 from gui.frames.xenia.xenia_frame import XeniaFrame
-from gui.windows.progress_window import ProgressWindow
 from settings.app_settings import load_customtkinter_themes
 from settings.cache import Cache
 from settings.metadata import Metadata
 from settings.settings import Settings
 from utils.auth_token_manager import delete_token_file
-from utils.requests_utils import (fetch_firmware_keys_dict, get_all_releases,
-                                  get_headers)
+from utils.requests_utils import (get_all_releases, get_headers)
 
 
 class EmulatorManager(customtkinter.CTk):
@@ -115,7 +113,7 @@ class EmulatorManager(customtkinter.CTk):
                                                       fg_color="transparent", text_color=text_color,
                                                       anchor="w", command=self.ryujinx_button_event)
         self.ryujinx_button.grid(row=2, column=0, sticky="ew")
-        
+
         self.xenia_button = customtkinter.CTkButton(scrollable_frame, corner_radius=0, height=40, image=self.xenia_logo, border_spacing=10, text="Xenia",
                                                     fg_color="transparent", text_color=text_color,
                                                     anchor="w", command=lambda: self.select_frame_by_name("xenia"))
@@ -140,6 +138,7 @@ class EmulatorManager(customtkinter.CTk):
     def show_discord_invite(self):
         if messagebox.askyesno("Discord Invite", "Would you like to join the Emulator Manager Discord server?\n\nBy joining, you can get help with any issues you may have, as well as get notified of any updates or new features.\n\nIf you click yes, your default web browser will open the invite link."):
             webbrowser.open("https://viren070.github.io/Emulator_Manager/discord/")
+
     def dolphin_button_event(self):
         self.select_frame_by_name("dolphin")
 

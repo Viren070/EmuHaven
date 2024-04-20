@@ -43,7 +43,7 @@ class XeniaFrame(EmulatorFrame):
         self.center_frame.grid_rowconfigure(1, weight=1)
         self.center_frame.grid_rowconfigure(2, weight=1)
         self.center_frame.grid_rowconfigure(3, weight=2)
-        
+
         self.selected_channel = customtkinter.StringVar()
         self.version_optionmenu = customtkinter.CTkOptionMenu(self.center_frame, variable=self.selected_channel, command=self.switch_channel, values=["Master", "Canary"])
         self.version_optionmenu.grid(row=0, column=0, padx=10, pady=20, sticky="ne")
@@ -63,7 +63,7 @@ class XeniaFrame(EmulatorFrame):
         self.launch_button.grid(row=0, column=2, padx=30, pady=15, sticky="n")
         self.launch_button.bind("<Button-1>", command=self.launch_button_event)
         CTkToolTip(self.launch_button, message="Click me to launch Xenia.\nHold shift to toggle the update behaviour.\nIf automatic updates are disabled, shift-clicking will update the emulator\nand otherwise it will skip the update.")
-        
+
         self.install_button = customtkinter.CTkButton(self.actions_frame, text="Install Xenia", command=self.install_button_event)
         self.install_button.grid(row=0, column=1, padx=10, pady=5, sticky="ew")
         self.install_button.bind("<Button-1>", command=self.install_button_event)
@@ -122,7 +122,7 @@ class XeniaFrame(EmulatorFrame):
 
     def manage_roms_button_event(self):
         self.select_frame_by_name("roms")
-        
+
     def configure_data_buttons(self, **kwargs):
         self.delete_data_button.configure(**kwargs)
         self.import_data_button.configure(**kwargs)
@@ -132,7 +132,7 @@ class XeniaFrame(EmulatorFrame):
         self.launch_button.configure(state=state, **kwargs)
         self.install_button.configure(state=state)
         self.delete_button.configure(state=state)
-        
+
     def switch_channel(self, value=None):
         value = self.selected_channel.get()
         self.settings.xenia.current_xenia_channel = value
@@ -151,7 +151,7 @@ class XeniaFrame(EmulatorFrame):
 
     def launch_button_event(self, event=None):
         if event is None or self.launch_button.cget("state") == "disabled":
-            return 
+            return
         if not os.path.exists(os.path.join(self.settings.xenia.install_directory, self.selected_channel.get(), "xenia.exe" if self.selected_channel.get() == "Master" else "xenia_canary.exe")):
             messagebox.showerror("Error", f"Could not find a Xenia {self.selected_channel.get()} installation at {os.path.join(self.settings.xenia.install_directory, self.selected_channel.get())}.")
             return
@@ -161,7 +161,7 @@ class XeniaFrame(EmulatorFrame):
         thread = Thread(target=self.xenia.launch_xenia_handler, args=(self.selected_channel.get(), skip_update))
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["action"],)).start()
-        
+
     def install_button_event(self, event=None):
         if event is None or self.install_button.cget("state") == "disabled":
             return
@@ -179,7 +179,7 @@ class XeniaFrame(EmulatorFrame):
         thread = Thread(target=self.xenia.install_xenia_handler, args=(self.selected_channel.get(), path_to_archive))
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["action"],)).start()
-        
+
     def delete_button_event(self, event=None):
         if not os.path.exists(os.path.join(self.settings.xenia.install_directory, self.selected_channel.get())):
             messagebox.showerror("Error", f"Could not find a Xenia {self.selected_channel.get()} installation at {os.path.join(self.settings.xenia.install_directory, self.selected_channel.get())}.")
@@ -218,7 +218,7 @@ class XeniaFrame(EmulatorFrame):
         thread = Thread(target=self.xenia.import_xenia_data, args=thread_args)
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["data"],)).start()
-    
+
     def export_data_button_event(self):
         directory = PathDialog(title="Export Directory", text="Enter directory to export to: ", directory=True)
         directory = directory.get_input()
@@ -235,7 +235,7 @@ class XeniaFrame(EmulatorFrame):
             args = ("Custom", directory, folders,)
         else:
             args = (self.export_data_optionmenu.get(), directory,)
-        
+
         self.configure_data_buttons(state="disabled")
         thread = Thread(target=self.xenia.export_xenia_data, args=args)
         thread.start()

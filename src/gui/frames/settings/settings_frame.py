@@ -8,6 +8,7 @@ from gui.frames.settings.yuzu_settings_frame import YuzuSettingsFrame
 from gui.frames.settings.ryujinx_settings_frame import RyujinxSettingsFrame
 from gui.frames.settings.xenia_settings_frame import XeniaSettingsFrame
 
+
 class SettingsFrame(customtkinter.CTkFrame):
     def __init__(self, parent_frame, settings):
         super().__init__(parent_frame, corner_radius=0, bg_color="transparent", width=20)
@@ -48,8 +49,8 @@ class SettingsFrame(customtkinter.CTkFrame):
         self.ryujinx_settings_button.grid(row=4, column=0, padx=2, sticky="ew")
 
         self.xenia_settings_button = customtkinter.CTkButton(self.settings_navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Xenia",
-                                                                fg_color="transparent", text_color=text_color,
-                                                                anchor="w", command=self.xenia_settings_button_event)
+                                                             fg_color="transparent", text_color=text_color,
+                                                             anchor="w", command=self.xenia_settings_button_event)
         self.xenia_settings_button.grid(row=5, column=0, padx=2, sticky="ew")
 
         self.dolphin_settings_frame = DolphinSettingsFrame(self, self.settings)

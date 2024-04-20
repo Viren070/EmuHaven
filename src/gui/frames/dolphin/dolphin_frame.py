@@ -14,6 +14,8 @@ from gui.frames.progress_frame import ProgressFrame
 from gui.frames.emulator_frame import EmulatorFrame
 
 DOLPHIN_FOLDERS = ["Backup", "Cache", "Config", "Dump", "GameSettings", "GBA", "GC", "Load", "Logs", "Maps", "ResourcePacks", "SavedAssembly", "ScreenShots", "Shaders", "StateSaves", "Styles", "Themes", "Wii"]
+
+
 class DolphinFrame(EmulatorFrame):
     def __init__(self, parent_frame, settings, metadata, cache):
         super().__init__(parent_frame, settings, metadata)
@@ -176,10 +178,10 @@ class DolphinFrame(EmulatorFrame):
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["main"], )).start()
 
     def import_data_button_event(self):
-        directory = None 
-        folders = None 
+        directory = None
+        folders = None
         import_option = self.dolphin_import_optionmenu.get()
-        
+
         if import_option == "Custom":
             directory, folders = FolderSelector(
                 title="Choose directory and folders to import",

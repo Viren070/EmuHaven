@@ -26,7 +26,7 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
         if cache_lookup_result and time.time() - cache_lookup_result["time"] < 604800:  # 7 days in seconds
             self.firmware_key_version_dict = self.create_dict_from_cache(cache_lookup_result["data"])
             self.create_scrollable_dropdown_with_dict(self.firmware_key_version_dict)
-            return True 
+            return True
         return False
 
     def build_frame(self):
@@ -47,7 +47,7 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
         self.firmware_option_menu.grid(row=0, column=2, padx=10, pady=5, sticky="w")
         self.scrollable_firmware_option_menu = CTkScrollableDropdown(self.firmware_option_menu, width=300, height=200, resize=False, button_height=30)
         self.firmware_option_menu.bind("<Button-1>", command=self.attempt_fetch)
-        
+
         self.install_firmware_button = customtkinter.CTkButton(self, text="Install", width=100, command=self.gui.install_firmware_button_event)
         self.install_firmware_button.bind("<Button-1>", command=self.gui.install_firmware_button_event)
         self.install_firmware_button.grid(row=0, column=3, padx=10, pady=5, sticky="w")
@@ -125,7 +125,6 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
         self.cache.add_json_data_to_cache("firmware_keys", self.create_cacheable_dict(firmware_key_version_dict))
         self.fetching_versions = False
         self.firmware_key_version_dict = firmware_key_version_dict
-        
 
     def create_cacheable_dict(self, firmware_key_version_dict):
         return {
@@ -146,7 +145,7 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
                 } for release in firmware_key_version_dict.get("keys", {}).values()
             }
         }
-        
+
     def create_dict_from_cache(self, cache_dict):
         return {
             "firmware": {

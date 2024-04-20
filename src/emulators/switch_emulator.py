@@ -3,6 +3,7 @@ import shutil
 
 from zipfile import ZipFile
 
+
 class SwitchEmulator:
     def __init__(self, emulator, emulator_settings, firmware_path, key_path):
         """_summary_
@@ -17,7 +18,7 @@ class SwitchEmulator:
         self.emulator_settings = emulator_settings
         self.firmware_path = firmware_path
         self.key_path = key_path
-        
+
     def check_current_firmware(self):
         """Check if the current firmware is present in the firmware directory
         Returns:
@@ -27,7 +28,6 @@ class SwitchEmulator:
         if os.path.exists(firmware_directory) and os.listdir(firmware_directory):
             return True
         return False
-
 
     def check_current_keys(self):
         """Check if the current keys are present in the key directory
@@ -39,7 +39,6 @@ class SwitchEmulator:
         prod_key = os.path.join(key_directory, "prod.keys")
         title_key = os.path.join(key_directory, "title.keys")
         return (os.path.exists(prod_key), os.path.exists(title_key))
-
 
     def verify_firmware_archive(self, path_to_archive):
         """Verify if the given archive is a valid firmware archive
@@ -116,15 +115,12 @@ class SwitchEmulator:
                             f.write(archive.read(entry))
                     extracted_files.append(entry.filename)
                     progress_frame.update_extraction_progress(len(extracted_files)/total)
-                    
-                       
 
         except Exception as error:
             progress_frame.grid_forget()
             return (False, error)
         progress_frame.grid_forget()
         return (True, excluded)
-
 
     def install_keys_from_file(self, key_path):
         target_key_folder = os.path.join(self.emulator_settings.user_directory, self.key_path)
@@ -133,7 +129,6 @@ class SwitchEmulator:
         target_key_location = os.path.join(target_key_folder, os.path.basename(key_path))
         shutil.copy(key_path, target_key_location)
         return target_key_location
-
 
     def install_keys_from_archive(self, key_archive, progress_frame):
         extracted_files = []

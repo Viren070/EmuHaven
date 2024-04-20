@@ -1,6 +1,7 @@
 import os
-from tkinter import filedialog, messagebox
+from tkinter import filedialog
 from customtkinter import CTkToplevel, CTkEntry, CTkButton, CTkCheckBox, CTkScrollableFrame, CTkFrame
+
 
 class FolderSelector(CTkToplevel):
     def __init__(self, *args, title, predefined_directory=None, allowed_folders=None, show_files=False, **kwargs):
@@ -25,19 +26,17 @@ class FolderSelector(CTkToplevel):
 
         # Checkbuttons
         self.checkbuttons = []
-        
+
         # Entry and Browse button
         self.entry = CTkEntry(self.central_frame)
-        self.entry.grid(row=0, column=0, sticky='ew', padx=(20,10), pady=10)  # Increase padx and pady
+        self.entry.grid(row=0, column=0, sticky='ew', padx=(20, 10), pady=10)  # Increase padx and pady
         self.entry.bind('<Return>', lambda e: self.populate_checkbuttons(self.entry.get()))
         self.browse_button = CTkButton(self.central_frame, text="Browse", command=self.browse)
         self.browse_button.grid(row=0, column=1, padx=10, pady=10)  # Increase padx and pady
 
-
         # Scrollable frame for Checkbuttons
         self.scroll_frame = CTkScrollableFrame(self.central_frame)
         self.scroll_frame.grid(row=1, column=0, columnspan=2, sticky='nsew', padx=10, pady=10)  # Increase padx and pady
-
 
         # Frame for OK and Cancel buttons
         self.button_frame = CTkFrame(self.central_frame)
@@ -87,8 +86,7 @@ class FolderSelector(CTkToplevel):
                 self.checkbuttons.append(cb)
         self.directory = directory
         self.populating = False
-        
-        
+
     def ok(self):
         self.result = (self.directory, [cb.cget('text') for cb in self.checkbuttons if cb.get()])
         self.grab_release()
@@ -98,7 +96,7 @@ class FolderSelector(CTkToplevel):
         self.result = (None, None)
         self.grab_release()
         self.destroy()
-        
+
     def get_input(self):
         self.master.wait_window(self)
         return self.result
