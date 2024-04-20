@@ -139,7 +139,7 @@ class EmulatorManager(customtkinter.CTk):
 
     def show_discord_invite(self):
         if messagebox.askyesno("Discord Invite", "Would you like to join the Emulator Manager Discord server?\n\nBy joining, you can get help with any issues you may have, as well as get notified of any updates or new features.\n\nIf you click yes, your default web browser will open the invite link."):
-            webbrowser.open("https://discord.gg/9Dn9mSxW6t")
+            webbrowser.open("https://viren070.github.io/Emulator_Manager/discord/")
     def dolphin_button_event(self):
         self.select_frame_by_name("dolphin")
 
