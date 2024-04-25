@@ -91,7 +91,7 @@ class Settings:
         if not os.path.exists(os.path.dirname(os.path.abspath(self.settings_file))):
             os.makedirs(os.path.dirname(os.path.abspath(self.settings_file)))
         with open(self.settings_file, "w", encoding="utf-8") as f:
-            json.dump(settings_template, f)
+            json.dump(settings_template, f, indent=4)
 
     def define_image_paths(self, image_path):
         self.image_path = image_path
@@ -124,7 +124,7 @@ class Settings:
             path = os.path.join(image_path, f"{name}.png")
             settings["app_settings"]["image_paths"][name] = path
         with open(self.settings_file, "w", encoding="utf-8") as f:
-            json.dump(settings, f)
+            json.dump(settings, f, indent=4)
 
     def get_image_path(self, image_name):
         with open(self.settings_file, "r", encoding="utf-8") as f:
@@ -208,7 +208,7 @@ class Settings:
             }
         }
         with open(self.settings_file, "w", encoding="utf-8") as f:
-            json.dump(settings, f)
+            json.dump(settings, f, indent=4)
 
     def settings_file_valid(self):
         if not os.path.exists(self.settings_file):
