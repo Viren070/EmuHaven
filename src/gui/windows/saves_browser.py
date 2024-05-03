@@ -46,7 +46,7 @@ class SavesBrowser(customtkinter.CTkToplevel):
             filename = unquote(save).split('/')[-1].split(".zip")[-2]
 
             # Create a button for the save
-            save_button_text = textwrap.fill(filename, width=42)  # Insert newlines into the filename
+            save_button_text = textwrap.fill(filename, width=38)  # Insert newlines into the filename
             save_button = customtkinter.CTkButton(scrollable_frame, text=save_button_text, font=customtkinter.CTkFont("Arial", 20), anchor="w", command=lambda save=save: Thread(target=self.download_save, args=(save, )).start())
             save_button.grid(row=i, column=0, padx=(2, 10), pady=5, sticky="ew")
 
