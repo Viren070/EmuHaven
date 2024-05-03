@@ -48,8 +48,8 @@ class SavesBrowser(customtkinter.CTkToplevel):
             # Create a button for the save
             save_button_text = textwrap.fill(filename, width=38)  # Insert newlines into the filename
             save_button = customtkinter.CTkButton(scrollable_frame, text=save_button_text, font=customtkinter.CTkFont("Arial", 20), command=lambda save=save: Thread(target=self.download_save, args=(save, )).start())
-            save_button.grid(row=i, column=0, padx=(2, 10), pady=5, sticky="ew")
-
+            save_button.grid(row=i, column=0, padx=(2, 2), pady=5, sticky="ew")
+            save_button.update_idletasks()
         # Configure the grid to allocate all extra space to the scrollable frame
         self.grid_rowconfigure(2, weight=1)
         self.grid_columnconfigure(0, weight=1)
