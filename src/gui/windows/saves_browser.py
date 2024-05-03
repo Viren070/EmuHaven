@@ -39,6 +39,9 @@ class SavesBrowser(customtkinter.CTkToplevel):
         scrollable_frame = customtkinter.CTkScrollableFrame(self)
         scrollable_frame.grid(row=2, column=0, sticky="nsew")
 
+        # make buttons expand to fill the entire width of the frame
+        scrollable_frame.grid_columnconfigure(0, weight=1)
+
         for i, save in enumerate(self.saves):
             filename = unquote(save).split('/')[-1].split(".zip")[-2]
 
