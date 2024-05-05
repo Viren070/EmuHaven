@@ -160,6 +160,7 @@ class Yuzu(SwitchEmulator):
             return (False, error)
 
     def launch_yuzu_handler(self, release_type, skip_update=False, wait_for_exit=True):
+        skip_update = True  # skip updates as yuzu is discontinued
         if not skip_update and self.settings.yuzu.use_yuzu_installer != "True":
             func = self.gui.configure_mainline_buttons if release_type == "mainline" else self.gui.configure_early_access_buttons
             func("disabled", text="Fetching Updates...  ")
