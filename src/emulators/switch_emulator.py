@@ -33,12 +33,12 @@ class SwitchEmulator:
         """Check if the current keys are present in the key directory
 
         Returns:
-            tuple: A tuple containing two boolean values, the first one indicates if the prod.keys file is present, the second one indicates if the title.keys file is present
+            dict: A dictionary containing the status of the prod.keys and title.keys files 
         """
         key_directory = os.path.join(self.emulator_settings.user_directory, self.key_path)
         prod_key = os.path.join(key_directory, "prod.keys")
         title_key = os.path.join(key_directory, "title.keys")
-        return (os.path.exists(prod_key), os.path.exists(title_key))
+        return {"prod.keys": os.path.exists(prod_key), "title.keys": os.path.exists(title_key)}
 
     def verify_firmware_archive(self, path_to_archive):
         """Verify if the given archive is a valid firmware archive

@@ -3,8 +3,11 @@ import os
 import re
 import shutil
 import subprocess
+import time
 from tkinter import messagebox
 from zipfile import ZipFile
+
+from packaging import version
 
 from emulators.switch_emulator import SwitchEmulator
 from utils.downloader import download_through_stream
@@ -171,7 +174,7 @@ class Yuzu(SwitchEmulator):
         elif release_type == "early_access":
             self.gui.configure_early_access_buttons("disabled", text="Launching...  ")
             yuzu_folder = "yuzu-windows-msvc-early-access"
-        self.verify_and_install_firmware_keys()
+        self.check_and_prompt_firmware_keys_install()
         func_to_call = self.gui.configure_mainline_buttons if release_type == "mainline" else self.gui.configure_early_access_buttons
         func_to_call("disabled", text="Launched!  ")
         yuzu_exe = os.path.join(self.settings.yuzu.install_directory, yuzu_folder, "yuzu.exe")
@@ -190,36 +193,104 @@ class Yuzu(SwitchEmulator):
         else:
             subprocess.Popen(args)
         self.running = False
+    
+    def check_and_prompt_firmware_keys_install(self):
+        # Helper function to get version
+        def get_version(key):
+            version_str = self.metadata.get_installed_version(key)
+            return version.parse(version_str.split(" ")[0]) if version_str not in ["", None] else None
 
-    def verify_and_install_firmware_keys(self):
-        installed_firmware_version = re.compile(r'(\d+\.\d+\.\d+)').findall(self.metadata.get_installed_version("yuzu_firmware"))
-        if not installed_firmware_version:
-            installed_firmware_version = ""
+        # Helper function to ask and set task
+        def ask_and_set_task(task_key, version, message):
+            if messagebox.askyesno("Missing Keys", message):
+                install_tasks[task_key] = version
+
+        # Setup a dict containing tasks to be done
+        install_tasks = {"keys": None, "firmware": None}
+        latest_supported_yuzu_version = version.parse("18.0.0")
+
+        # Get installed version of firmware and keys
+        installed_firmware_version = get_version("yuzu_firmware")
+        installed_keys_version = get_version("yuzu_keys")
+
+        # Check if any installed version is higher than the 18.0.0
+        if any(installed_version is not None and installed_version > latest_supported_yuzu_version for installed_version in [installed_firmware_version, installed_keys_version]):
+            if messagebox.askyesno("Unsupported Firmware", "Yuzu's development stopped at firmware version 18.0.0, you have a version higher than this installed. This may cause issues.\nIt is recommended that you downgrade to 18.0.0 or lower.\nWould you like to downgrade to 18.0.0 now?\n\nNote: Only keys will be installed. If firmware is currently installed, it will also be downgraded."):
+                install_tasks["firmware"] = "18.0.0" if installed_firmware_version is not None else None
+                install_tasks["keys"] = "18.0.0" if installed_keys_version is not None else None
+
+        # If keys is missing, prompt to install keys
+        if not self.check_current_keys()["prod.keys"]:
+            ask_and_set_task("keys", "18.0.0" if installed_firmware_version is None else str(installed_firmware_version), "It seems you are missing the switch decryption keys. These keys are required to emulate games. Would you like to install them right now?")
+
+        # If no firmware tasks yet, and no firmware is installed, and the user has not been asked to install firmware yet, prompt to install firmware
+        if install_tasks.get("firmware") is None and installed_firmware_version is None and self.settings.app.ask_firmware.lower() == "true":
+            ask_and_set_task("firmware", "18.0.0" if installed_keys_version is None else str(installed_keys_version), "It seems you are missing the switch firmware files. Without these files, some games may not run.\n\nWould you like to install the firmware now? If you select no, you will not be asked again")
         else:
-            installed_firmware_version = installed_firmware_version[0]
-        if installed_firmware_version != "" and self.metadata.get_installed_version("yuzu_keys") != "" and installed_firmware_version != self.metadata.get_installed_version("yuzu_keys"):
-            messagebox.showwarning("Version Mismatch", "It seems you have a different version for your keys and firmware. This may cause issues and it is recommended that you install the same version.")
-        if not self.check_current_keys()[0]:
-            if messagebox.askyesno("Missing Keys", "It seems you are missing the switch decryption keys. These keys are required to emulate games. Would you like to install them right now?"):
-                if self.gui.firmware_keys_frame.key_option_menu.cget("state") == "disabled":
-                    messagebox.showerror("Install Keys", "Unable to fetch latest prod.keys. Please try again later or restart the application.")
-                else:
-                    latest_key_release = self.gui.firmware_keys_frame.firmware_key_version_dict["keys"][self.gui.firmware_keys_frame.key_option_menu.cget("values")[0]]
-                    self.install_key_handler("release", latest_key_release)
-        if self.settings.app.ask_firmware != "False" and not self.check_current_firmware():
-            if messagebox.askyesno("Firmware Missing", "It seems you are missing the switch firmware files. Without these files, some games may not run.\n\nWould you like to install the firmware now? If you select no, you will not be asked again"):
-                if self.gui.firmware_keys_frame.firmware_option_menu.cget("state") == "disabled":
-                    messagebox.showerror("Install Firmware", "Unable to fetch latest Firmware. Please try again later or restart the application.")
-                else:
-                    latest_firmware_release = self.gui.firmware_keys_frame.firmware_key_version_dict["firmware"][self.gui.firmware_keys_frame.key_option_menu.cget("values")[0]]
-                    self.install_firmware_handler("release", latest_firmware_release)
-            else:
-                self.settings.app.ask_firmware = "False"
-                self.settings.update_file()
-        return True
+            # If user rejects, don't ask again
+            self.settings.app.ask_firmware = "False"
+            self.settings.update_file()
 
-    def install_firmware_handler(self, mode, path_or_release):
-        if self.check_current_firmware() and not messagebox.askyesno("Firmware Exists", "It seems that you already have firmware installed. Would you like to continue?"):
+        # If installed firmware version does not match installed keys version, prompt to install matching versions
+        if installed_firmware_version != installed_keys_version:
+            if messagebox.askyesno("Error", "It seems that the installed firmware and keys versions do not match. This may cause issues. \n\nWould you like to install the keys and firmware for the same version? The highest version currently installed will be used or 18.0.0 if that fails."):
+                max_version = max([installed_firmware_version, installed_keys_version], default=None)
+                install_tasks["keys"] = str(max_version) if max_version is not None else "18.0.0"
+                install_tasks["firmware"] = str(max_version) if max_version is not None else "18.0.0"
+
+        # If no tasks, return
+        if all(task is None for task in install_tasks.values()):
+            return
+
+        # If keys task is not None, install keys
+        if install_tasks.get("keys") is not None:
+            # Get key release
+            key_release = self.get_key_release(install_tasks["keys"])
+            # if key release is None and firmware is currently installed
+            if key_release is None and installed_firmware_version is not None:
+                if messagebox.askyesno("Error", "Failed to find the keys for the currently installed firmware version. Would you like to install the keys and firmware for 18.0.0 instead"):
+                    install_tasks["keys"] = "18.0.0"
+                    install_tasks["firmware"] = "18.0.0" if str(installed_firmware_version) != "18.0.0" else None
+                    key_release = self.get_key_release("18.0.0")
+                else:
+                    install_tasks["keys"] = None
+
+        # If firmware task is not None, install firmware
+        if install_tasks.get("firmware") is not None:
+            firmware_release = self.get_firmware_release(install_tasks["firmware"])
+            if firmware_release is None:
+                messagebox.showerror("Error", "An unexpected error occurred while trying to fetch the firmware release. Please try again later.")
+                install_tasks["firmware"] = None
+
+        # Install keys and firmware if tasks are set
+        if install_tasks.get("keys") is not None and install_tasks.get("keys") != str(installed_keys_version):
+            if key_release is None:
+                messagebox.showerror("Error", "An unexpected error occurred while trying to fetch the keys release. Please try again later.")
+            else:
+                self.install_key_handler("release", key_release, skip_prompt=True)
+
+        if install_tasks.get("firmware") is not None and install_tasks.get("firmware") != str(installed_firmware_version):
+            if firmware_release is None:
+                messagebox.showerror("Error", "An unexpected error occurred while trying to fetch the firmware release. Please try again later.")
+            else:
+                self.install_firmware_handler("release", firmware_release, skip_prompt=True)
+    
+    def get_key_release(self, version):
+        firmware_keys_frame = self.gui.firmware_keys_frame
+        if not firmware_keys_frame.versions_fetched():
+            firmware_keys_frame.fetch_firmware_and_key_versions()
+        keys_dict = firmware_keys_frame.firmware_key_version_dict.get("keys", {})
+        return keys_dict.get(version, None)
+            
+    def get_firmware_release(self, version):
+        firmware_keys_frame = self.gui.firmware_keys_frame
+        if not firmware_keys_frame.versions_fetched():
+            firmware_keys_frame.fetch_firmware_and_key_versions()
+        firmware_dict = firmware_keys_frame.firmware_key_version_dict.get("firmware", {})
+        return firmware_dict.get(version, None)
+
+    def install_firmware_handler(self, mode, path_or_release, skip_prompt=False):
+        if not skip_prompt and self.check_current_firmware() and not messagebox.askyesno("Firmware Exists", "It seems that you already have firmware installed. Would you like to continue?"):
             return
 
         if mode == "release":
@@ -278,8 +349,8 @@ class Yuzu(SwitchEmulator):
         self.main_progress_frame.complete_download()
         return download_result
 
-    def install_key_handler(self, mode, path_or_release):
-        if self.check_current_keys()[0] and not messagebox.askyesno("Keys Exist", "It seems you already have decryption keys. Would you like to continue?"):
+    def install_key_handler(self, mode, path_or_release, skip_prompt=False):
+        if not skip_prompt and self.check_current_keys()["prod.keys"] and not messagebox.askyesno("Keys Exist", "It seems you already have decryption keys. Would you like to continue?"):
             return
         if mode == "release":
             release = path_or_release

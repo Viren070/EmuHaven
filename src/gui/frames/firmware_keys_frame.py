@@ -1,6 +1,7 @@
 import time
 from threading import Thread
 from tkinter import messagebox
+from packaging import version
 
 import customtkinter
 
@@ -20,6 +21,20 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
         }
         self.build_frame()
         self.check_cache_for_versions()
+
+    def versions_fetched(self):
+        return not self.firmware_option_menu_variable.get() == "Click to fetch versions" and not self.key_option_menu_variable.get() == "Click to fetch versions"
+
+    def get_latest_common_version(self):
+        if not self.versions_fetched():
+            return []
+        common_versions = []
+        for fversion in self.firmware_key_version_dict["firmware"].keys():
+            for kversion in self.firmware_key_version_dict["keys"].keys():
+                if fversion == kversion:
+                    common_versions.append(version.parse(fversion.split(" ")[0]))
+        # remove duplicates
+        return max(list(set(common_versions)))
 
     def check_cache_for_versions(self):
         cache_lookup_result = self.cache.get_json_data_from_cache("firmware_keys")
