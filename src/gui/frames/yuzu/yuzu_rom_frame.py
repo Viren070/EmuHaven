@@ -24,9 +24,9 @@ class YuzuROMFrame(customtkinter.CTkTabview):
         if not os.path.exists(game_list_dir) or not os.listdir(game_list_dir):
             return []
         title_ids = []
-        for title_id in os.listdir(game_list_dir):
-            title_id = title_id.replace(".pv.txt", "")
-            if title_id.endswith(".pv.txt") and title_id not in blacklist_list:
+        for file in os.listdir(game_list_dir):
+            title_id = file.replace(".pv.txt", "")
+            if file.endswith(".pv.txt") and title_id not in blacklist_list:
                 title_ids.append(title_id)
         return title_ids
 
