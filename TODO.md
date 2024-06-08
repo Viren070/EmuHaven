@@ -49,6 +49,21 @@
 - [x] add option `check for update at start-up` that will control whether or not the app will check for an update at start-up
 - [ ] Refactor cache implementation to reduce memory usage for ROM menus.
 
+
+## For 0.14
+- [ ] Implement mod downloading
+- [ ] Implement game downloading for switch (searching websites, not providing direct download)
+- [ ] Auto select play menu when selecting an emulator
+      
+
+## Emulators to add 
+- [ ] Add Xemu support
+- [ ] Add Cemu support
+- [ ] Add Citra support (pablomk7)
+- [ ] Add Duckstation support
+- [ ] Add PCSX2
+- [ ] Add PPSSPP support
+
 ## other 
 
 - [x] consider removing export directory setting and instead ask user for each export 
