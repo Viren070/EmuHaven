@@ -24,7 +24,7 @@ inflate64==1.0.0
     # via py7zr
 multivolumefile==0.2.3
     # via py7zr
-packaging==24.0
+packaging==24.1
     # via
     #   -r requirements.in
     #   customtkinter
@@ -42,7 +42,7 @@ pyppmd==1.1.0
     # via py7zr
 pyzstd==0.15.9
     # via py7zr
-requests==2.31.0
+requests==2.32.3
     # via -r requirements.in
 soupsieve==2.5
     # via beautifulsoup4
