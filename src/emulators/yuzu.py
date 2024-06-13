@@ -252,15 +252,21 @@ class Yuzu(SwitchEmulator):
                     install_tasks["keys"] = "18.0.0"
                     install_tasks["firmware"] = "18.0.0" if str(installed_firmware_version) != "18.0.0" else None
                     key_release = self.get_key_release("18.0.0")
+                    firmware_release = self.get_firmware_release("18.0.0")
                 else:
                     install_tasks["keys"] = None
 
         # If firmware task is not None, install firmware
         if install_tasks.get("firmware") is not None:
             firmware_release = self.get_firmware_release(install_tasks["firmware"])
-            if firmware_release is None:
-                messagebox.showerror("Error", "An unexpected error occurred while trying to fetch the firmware release. Please try again later.")
-                install_tasks["firmware"] = None
+            if firmware_release is None and installed_keys_version is not None:
+                if messagebox.askyesno("Error", "Failed to find the firmware for the currently installed keys version. Would you like to install the firmware and keys for 18.0.0 instead"):
+                    install_tasks["firmware"] = "18.0.0"
+                    install_tasks["keys"] = "18.0.0" if str(installed_keys_version) != "18.0.0" else None
+                    firmware_release = self.get_firmware_release("18.0.0")
+                    key_release = self.get_key_release("18.0.0")
+                else:
+                    install_tasks["firmware"] = None
 
         # Install keys and firmware if tasks are set
         if install_tasks.get("keys") is not None and install_tasks.get("keys") != str(installed_keys_version):
