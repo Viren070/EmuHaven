@@ -242,7 +242,7 @@ class XeniaFrame(EmulatorFrame):
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["data"],)).start()
 
     def delete_data_button_event(self):
-        if self.delete_xenia_optionmenu.get() == "Custom":
+        if self.delete_data_optionmenu.get() == "Custom":
             directory, folders = FolderSelector(title="Delete Directory", predefined_directory=self.settings.xenia.user_directory, allowed_folders=FOLDERS, show_files=True).get_input()
             if directory is None or folders is None:
                 return
