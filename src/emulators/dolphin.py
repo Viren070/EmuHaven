@@ -79,33 +79,27 @@ class Dolphin:
             messagebox.showinfo("Install Dolphin", f"Dolphin was successfully installed to {self.settings.dolphin.install_directory}")
 
     def get_dolphin_release(self, release_channel):
-        files = get_file_links_from_page("https://dolphin-emu.org/download/", ".7z")
-        if not all(files):
-            return files
-        files = files[1]
-        beta_build = None
-        dev_build = None
-        beta_build_number = None
-
-        for file in files:
-            if "ARM64" in file.filename:
-                continue
-
-            build_number = int(file.filename.split("-")[-2])
-
-            if beta_build is None:
-                beta_build = file
-                beta_build_number = build_number
-                if release_channel == "beta":
-                    beta_build.version = re.search(r'(\d+\.\d+-\d+)', beta_build.filename).group(1)
-                    return (True, beta_build)
-            elif build_number > beta_build_number:
-                dev_build = file
-                dev_build.version = re.search(r'(\d+\.\d+-\d+)', dev_build.filename).group(1)
-                return (True, dev_build)
-        if dev_build is None and release_channel == "development" and beta_build is not None:
-            return (True, beta_build)
-        return (False, "Unable to fetch the latest Dolphin release.")
+        download_page = "https://dolphin-emu.org/download/list/{}/1/"
+        match release_channel:
+            case "release": 
+                download_page = download_page.format("releases")
+            case "development": 
+                download_page = download_page.format("master")
+            case _: 
+                raise ValueError("Invalid release channel")
+        
+        files_result = get_file_links_from_page(download_page, headers=get_headers(), file_ext=".7z")
+        if all(files_result):
+            files = files_result[1]
+            latest_release = files[0]
+            match = re.search(r"dolphin(?:-master)?-(\d+(?:-\d+)?)", latest_release.filename)
+            if match:
+                latest_release.version = match.group(1)
+            else:
+                latest_release.version = "Unknown"
+            return (True, latest_release)
+        else:
+            return files_result
 
     def download_release(self, release):
         download_folder = os.getcwd()
