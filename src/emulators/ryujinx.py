@@ -176,11 +176,11 @@ class Ryujinx(SwitchEmulator):
         latest_release = self.get_latest_common_firmware_keys_version()
         # If keys is missing, prompt to install keys
         if not self.check_current_keys()["prod.keys"]:
-            ask_and_set_task("keys", latest_release if installed_firmware_version is None else str(installed_firmware_version), "It seems you are missing the switch decryption keys. These keys are required to emulate games. Would you like to install them right now?")
+            ask_and_set_task("keys", str(latest_release) if installed_firmware_version is None else str(installed_firmware_version), "It seems you are missing the switch decryption keys. These keys are required to emulate games. Would you like to install them right now?")
 
         # If no firmware tasks yet, and no firmware is installed, and the user has not been asked to install firmware yet, prompt to install firmware
         if install_tasks.get("firmware") is None and installed_firmware_version is None and self.settings.app.ask_firmware.lower() == "true":
-            ask_and_set_task("firmware", latest_release if installed_keys_version is None else str(installed_keys_version), "It seems you are missing the switch firmware files. Without these files, some games may not run.\n\nWould you like to install the firmware now? If you select no, you will not be asked again")
+            ask_and_set_task("firmware", str(latest_release) if installed_keys_version is None else str(installed_keys_version), "It seems you are missing the switch firmware files. Without these files, some games may not run.\n\nWould you like to install the firmware now? If you select no, you will not be asked again")
         else:
             # If user rejects, don't ask again
             self.settings.app.ask_firmware = "False"
