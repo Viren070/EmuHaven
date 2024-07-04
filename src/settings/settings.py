@@ -11,7 +11,7 @@ from settings.xenia_settings import XeniaSettings
 class Settings:
     def __init__(self, master, root_dir):
         self.root_dir = root_dir
-        self.version = "3"
+        self.version = "4"
         if os.path.exists(os.path.join(os.getcwd(), "PORTABLE.txt")):
             self.settings_file = os.path.join(os.getcwd(), "portable", "config", "settings.json")
         else:
@@ -211,18 +211,31 @@ class Settings:
             json.dump(settings, f, indent=4)
 
     def settings_file_valid(self):
-        if not os.path.exists(self.settings_file):
-            return False
-        with open(self.settings_file, "r", encoding="utf-8") as file:
-            try:
-                settings = json.load(file)
-            except json.decoder.JSONDecodeError:
-                return False
         try:
-            if not settings["version"] == self.version:
-                return False
-            settings["app_settings"]["image_paths"]["yuzu_logo"]
-            return True
-
-        except KeyError:
+            with open(self.settings_file, "r", encoding="utf-8") as file:
+                settings = json.load(file)
+                if settings["version"] != self.version and not self.upgrade_if_possible(settings["version"]):
+                    return False
+                settings["app_settings"]["image_paths"]["yuzu_logo"]  # Check for specific setting existence
+        except (FileNotFoundError, json.JSONDecodeError, KeyError):
             return False
+        return True
+
+    def upgrade_if_possible(self, version):
+        return version == "3" and self.upgrade_settings("3", "4")
+
+    def upgrade_settings(self, old_version, new_version):
+        if old_version == "3" and new_version == "4":
+            try:
+                with open(self.settings_file, "r+", encoding="utf-8") as file:
+                    settings = json.load(file)
+                    channel = settings.get("dolphin_settings", {}).get("current_channel", "release")
+                    settings["dolphin_settings"]["current_channel"] = "release" if channel != "development" else "development"
+                    settings["version"] = new_version
+                    file.seek(0)
+                    file.truncate()
+                    json.dump(settings, file, indent=4)
+                return True
+            except json.JSONDecodeError:
+                pass
+        return False
