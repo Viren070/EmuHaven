@@ -55,7 +55,7 @@ class EmulatorManager(customtkinter.CTk):
             Thread(target=self.check_for_update).start()
 
     def define_images(self):
-        self.dolphin_logo = customtkinter.CTkImage(Image.open(self.settings.get_image_path("dolphin_logo")), size=(26, 26))
+        self.dolphin_logo = customtkinter.CTkImage(Image.open(self.settings.get_image_path("dolphin_logo")), size=(24, 13.5))
         self.dolphin_banner = customtkinter.CTkImage(light_image=Image.open(self.settings.get_image_path("dolphin_banner_light")),
                                                      dark_image=Image.open(self.settings.get_image_path("dolphin_banner_dark")), size=(276, 129))
         self.yuzu_logo = customtkinter.CTkImage(Image.open(self.settings.get_image_path("yuzu_logo")), size=(26, 26))
