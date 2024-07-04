@@ -11,7 +11,7 @@ class DolphinSettings:
             'user_directory': (os.path.join(os.getenv("APPDATA"), "Dolphin Emulator")),
             'install_directory': (os.path.join(os.getenv("LOCALAPPDATA"), "Dolphin Emulator")),
             'rom_directory': '',
-            'current_channel': "beta"
+            'current_channel': "release"
         }
         self._settings = self.default_settings.copy()
 

@@ -47,7 +47,7 @@ class DolphinFrame(EmulatorFrame):
 
         self.selected_channel = customtkinter.StringVar()
         self.selected_channel.set(self.settings.dolphin.current_channel.title())
-        self.channel_optionmenu = customtkinter.CTkOptionMenu(self.center_frame, variable=self.selected_channel, command=self.switch_channel, values=["Beta", "Development"])
+        self.channel_optionmenu = customtkinter.CTkOptionMenu(self.center_frame, variable=self.selected_channel, command=self.switch_channel, values=["Release", "Development"])
         self.channel_optionmenu.grid(row=0, column=0, padx=10, pady=20, sticky="ne")
 
         self.image_button = customtkinter.CTkButton(self.center_frame, text="", fg_color='transparent', hover=False, bg_color='transparent', border_width=0, image=self.dolphin_banner)
@@ -68,7 +68,7 @@ class DolphinFrame(EmulatorFrame):
         self.install_dolphin_button = customtkinter.CTkButton(self.dolphin_actions_frame, text="Install Dolphin", command=self.install_dolphin_button_event)
         self.install_dolphin_button.grid(row=0, column=0, padx=10, pady=5, sticky="ew")
         self.install_dolphin_button.bind("<Button-1>", command=self.install_dolphin_button_event)
-        CTkToolTip(self.install_dolphin_button, message="Click me to download and install the latest beta release of Dolphin\nShift-Click me to use a custom archive of Dolphin to install it.")
+        CTkToolTip(self.install_dolphin_button, message="Click me to download and install the latest release of Dolphin\nShift-Click me to use a custom archive of Dolphin to install it.")
 
         self.delete_dolphin_button = customtkinter.CTkButton(self.dolphin_actions_frame, text="Delete Dolphin", fg_color="red", hover_color="darkred", command=self.delete_dolphin_button_event)
         self.delete_dolphin_button.grid(row=0, column=2, padx=10, sticky="ew", pady=5)
