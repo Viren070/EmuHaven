@@ -167,27 +167,32 @@ class EmulatorManager(customtkinter.CTk):
         # show selected frame
         if name == "settings":
             self.settings_frame.grid(row=0, column=1, sticky="nsew")
+            self.settings_frame.select_settings_frame_by_name("app")
         else:
             self.settings_frame.grid_forget()
             self.settings_frame.select_settings_frame_by_name(None)
 
         if name == "dolphin":
             self.dolphin_frame.grid(row=0, column=1, sticky="nsew")
+            self.dolphin_frame.select_frame_by_name("start")
         else:
             self.dolphin_frame.grid_forget()
             self.dolphin_frame.select_frame_by_name(None)
         if name == "yuzu":
             self.yuzu_frame.grid(row=0, column=1, sticky="nsew")
+            self.yuzu_frame.select_frame_by_name("start")
         else:
             self.yuzu_frame.grid_forget()
             self.yuzu_frame.select_frame_by_name(None)
         if name == "ryujinx":
             self.ryujinx_frame.grid(row=0, column=1, sticky="nsew")
+            self.ryujinx_frame.select_frame_by_name("start")
         else:
             self.ryujinx_frame.grid_forget()
             self.ryujinx_frame.select_frame_by_name(None)
         if name == "xenia":
             self.xenia_frame.grid(row=0, column=1, sticky="nsew")
+            self.xenia_frame.select_frame_by_name("start")
         else:
             self.xenia_frame.grid_forget()
             self.xenia_frame.select_frame_by_name(None)
