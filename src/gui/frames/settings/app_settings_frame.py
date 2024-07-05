@@ -102,17 +102,19 @@ class AppSettingsFrame(customtkinter.CTkFrame):
         self.requests_left_label.configure(text=f"API Requests Left: {r_left}\nResets in: {calculate_relative_time(int(t_left))}")
 
     def change_colour_theme(self, theme):
-        if customtkinter.ThemeManager._currently_loaded_theme.replace("-", " ").title() == theme:  # if current theme is the same as the proposed theme, return
+        current_theme = os.path.basename(customtkinter.ThemeManager._currently_loaded_theme).replace(".json", "")
+        new_theme = theme.lower().replace(" ", "-")
+        if current_theme == new_theme:
             return
         if theme == "Choose custom theme...":
-            self.colour_theme_variable.set(os.path.basename(customtkinter.ThemeManager._currently_loaded_theme).replace("-", " ").replace(".json", "").title())
+            self.colour_theme_variable.set(os.path.basename(current_theme.replace("-", " ").title()))
             theme = filedialog.askopenfilename(title="Select a customtkinter theme", filetypes=[("customtkinter theme", "*json")])
             if not theme:
                 return
             self.settings.app.colour_theme = theme
         else:
 
-            self.settings.app.colour_theme = theme.lower().replace(" ", "-")
+            self.settings.app.colour_theme = new_theme
         self.update_settings()
         messagebox.showinfo("Theme Change", "Please restart the application to apply the new theme.")
 
