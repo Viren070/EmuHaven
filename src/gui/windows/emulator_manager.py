@@ -203,14 +203,6 @@ class EmulatorManager(customtkinter.CTk):
     def revert_settings(self):
         self.settings_frame.revert_settings()
 
-    def restart(self):
-        # for after_id in self.tk.eval('after info').split():
-        #     self.after_cancel(after_id)
-        pos = [self.winfo_x(), self.winfo_y()]
-        self.destroy()
-        load_customtkinter_themes(os.path.join(self.root_dir, "assets", "themes"))
-        EmulatorManager(self.root_dir, True, pos)
-
     def check_for_update(self):
         releases = get_all_releases("https://api.github.com/repos/Viren070/Emulator-Manager/releases?per_page=10", headers=get_headers(self.settings.app.token))
         if not all(releases):
