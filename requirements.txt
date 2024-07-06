@@ -48,5 +48,5 @@ soupsieve==2.5
     # via beautifulsoup4
 texttable==1.7.0
     # via py7zr
-urllib3==2.1.0
+urllib3==2.2.2
     # via requests
