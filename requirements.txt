@@ -8,7 +8,7 @@ beautifulsoup4==4.12.3
     # via -r requirements.in
 brotli==1.1.0
     # via py7zr
-certifi==2023.11.17
+certifi==2024.7.4
     # via requests
 charset-normalizer==3.3.2
     # via requests
