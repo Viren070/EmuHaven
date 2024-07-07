@@ -93,7 +93,7 @@ root.mainloop()
 | **autocomplete** | add live search options for ctkcombobox or ctkentry widget |
 | **alpha** | change the transparency of the whole dropdown widget (range: 0-1) |
 | justify | change the anchor of the option text |
-| corner | adjust roundness of the frame corners |
+| frame_corner_radius | adjust roundness of the frame corners |
 | double_click | bind double click for menu popup |
 | resize | resize the menu dynamically, default: True |
 | frame_border_width | change the border_width of the frame if required |

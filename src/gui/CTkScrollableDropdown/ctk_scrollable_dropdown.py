@@ -17,7 +17,7 @@ class CTkScrollableDropdown(customtkinter.CTkToplevel):
                  resize=True, frame_border_color=None, text_color=None, autocomplete=False, 
                  hover_color=None, **button_kwargs):
         
-        super().__init__(takefocus=1)
+        super().__init__(master=attach.winfo_toplevel(), takefocus=1)
         
         self.focus()
         self.lift()
@@ -49,7 +49,7 @@ class CTkScrollableDropdown(customtkinter.CTkToplevel):
         self.attach.bind('<Configure>', lambda e: self._withdraw() if not self.disable else None, add="+")
         self.attach.winfo_toplevel().bind('<Configure>', lambda e: self._withdraw() if not self.disable else None, add="+")
         self.attach.winfo_toplevel().bind("<ButtonPress>", lambda e: self._withdraw() if not self.disable else None, add="+")        
-   
+        self.bind("<Escape>", lambda e: self._withdraw() if not self.disable else None, add="+")
         
         self.attributes('-alpha', 0)
         self.disable = False
@@ -102,18 +102,18 @@ class CTkScrollableDropdown(customtkinter.CTkToplevel):
         self._init_buttons(**button_kwargs)
 
         # Add binding for different ctk widgets
-        if double_click or self.attach.winfo_name().startswith("!ctkentry") or self.attach.winfo_name().startswith("!ctkcombobox"):
+        if double_click or type(self.attach) is customtkinter.CTkEntry or type(self.attach) is customtkinter.CTkComboBox:
             self.attach.bind('<Double-Button-1>', lambda e: self._iconify(), add="+")
         else:
             self.attach.bind('<Button-1>', lambda e: self._iconify(), add="+")
 
-        if self.attach.winfo_name().startswith("!ctkcombobox"):
+        if type(self.attach) is customtkinter.CTkComboBox:
             self.attach._canvas.tag_bind("right_parts", "<Button-1>", lambda e: self._iconify())
             self.attach._canvas.tag_bind("dropdown_arrow", "<Button-1>", lambda e: self._iconify())
             if self.command is None:
                 self.command = self.attach.set
               
-        if self.attach.winfo_name().startswith("!ctkoptionmenu"):
+        if type(self.attach) is customtkinter.CTkOptionMenu:
             self.attach._canvas.bind("<Button-1>", lambda e: self._iconify())
             self.attach._text_label.bind("<Button-1>", lambda e: self._iconify())
             if self.command is None:
@@ -130,7 +130,7 @@ class CTkScrollableDropdown(customtkinter.CTkToplevel):
             
         self.deiconify()
         self.withdraw()
-        
+
         self.attributes("-alpha", self.alpha)
 
     def _destroy(self):
@@ -150,13 +150,13 @@ class CTkScrollableDropdown(customtkinter.CTkToplevel):
         def appear(x):
             self.appear = True
             
-        if self.attach.winfo_name().startswith("!ctkcombobox"):
+        if type(self.attach) is customtkinter.CTkComboBox:
             self.attach._entry.configure(textvariable=self.var_update)
             self.attach._entry.bind("<Key>", appear)
             self.attach.set(self.values[0])
             self.var_update.trace_add('write', self._update)
             
-        if self.attach.winfo_name().startswith("!ctkentry"):
+        if type(self.attach) is customtkinter.CTkEntry:
             self.attach.configure(textvariable=self.var_update)
             self.attach.bind("<Key>", appear)
             self.var_update.trace_add('write', self._update)
@@ -188,6 +188,7 @@ class CTkScrollableDropdown(customtkinter.CTkToplevel):
                                                           text_color=self.text_color,
                                                           image=self.image_values[self.i] if self.image_values is not None else None,
                                                           anchor=self.justify,
+                                                          hover_color=self.hover_color,
                                                           command=lambda k=row: self._attach_key_press(k), **button_kwargs)
             self.widgets[self.i].pack(fill="x", pady=2, padx=(self.padding, 0))
             self.i+=1
@@ -220,12 +221,14 @@ class CTkScrollableDropdown(customtkinter.CTkToplevel):
     def _iconify(self):
         if self.attach.cget("state")=="disabled": return
         if self.disable: return
+        if self.winfo_ismapped():
+            self.hide = False
         if self.hide:
-            self.event_generate("<<Opened>>")
-            self._deiconify()        
+            self.event_generate("<<Opened>>")      
             self.focus()
             self.hide = False
             self.place_dropdown()
+            self._deiconify()  
             if self.focus_something:
                 self.dummy_entry.pack()
                 self.dummy_entry.focus_set()
@@ -286,6 +289,7 @@ class CTkScrollableDropdown(customtkinter.CTkToplevel):
                                                        height=self.button_height,
                                                        fg_color=self.button_color,
                                                        text_color=self.text_color,
+                                                       hover_color=self.hover_color,
                                                        anchor=self.justify,
                                                        command=lambda k=value: self._attach_key_press(k), **kwargs)
         self.widgets[self.i].pack(fill="x", pady=2, padx=(self.padding, 0))
@@ -301,6 +305,9 @@ class CTkScrollableDropdown(customtkinter.CTkToplevel):
         self.y = y
         self.hide = True
         self._iconify()
+
+    def hide(self):
+        self._withdraw()
         
     def configure(self, **kwargs):
         if "height" in kwargs:
@@ -336,7 +343,11 @@ class CTkScrollableDropdown(customtkinter.CTkToplevel):
         if "button_color" in kwargs:
             for key in self.widgets.keys():
                 self.widgets[key].configure(fg_color=kwargs.pop("button_color"))
-        
+                
+        if "font" in kwargs:
+            for key in self.widgets.keys():
+                self.widgets[key].configure(font=kwargs.pop("font"))
+                
         if "hover_color" not in kwargs:
             kwargs["hover_color"] = self.hover_color
         

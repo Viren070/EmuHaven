@@ -25,6 +25,7 @@ class CTkScrollableDropdownFrame(customtkinter.CTkFrame):
         self.hide = True
         self.attach.bind('<Configure>', lambda e: self._withdraw() if not self.disable else None, add="+")
         self.attach.winfo_toplevel().bind("<ButtonPress>", lambda e: self._withdraw() if not self.disable else None, add="+")  
+        self.bind("<Escape>", lambda e: self._withdraw() if not self.disable else None, add="+")
         
         self.disable = False
         self.fg_color = customtkinter.ThemeManager.theme["CTkFrame"]["fg_color"] if fg_color is None else fg_color
@@ -274,7 +275,7 @@ class CTkScrollableDropdownFrame(customtkinter.CTkFrame):
             for key in self.widgets.keys():
                 self.widgets[key].destroy()
             self._init_buttons()
-            
+                
         if "image_values" in kwargs:
             self.image_values = kwargs.pop("image_values")
             self.image_values = None if len(self.image_values)!=len(self.values) else self.image_values
@@ -287,6 +288,10 @@ class CTkScrollableDropdownFrame(customtkinter.CTkFrame):
         if "button_color" in kwargs:
             for key in self.widgets.keys():
                 self.widgets[key].configure(fg_color=kwargs.pop("button_color"))
+
+        if "font" in kwargs:
+            for key in self.widgets.keys():
+                self.widgets[key].configure(font=kwargs.pop("font"))
                 
         for key in self.widgets.keys():
             self.widgets[key].configure(**kwargs)
