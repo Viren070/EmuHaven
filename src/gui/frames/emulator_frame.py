@@ -2,6 +2,7 @@ import customtkinter
 from customtkinter import ThemeManager
 from PIL import Image
 
+from core.paths import Paths
 
 class EmulatorFrame(customtkinter.CTkFrame):
     def __init__(self, parent_frame, settings, metadata):
@@ -9,11 +10,12 @@ class EmulatorFrame(customtkinter.CTkFrame):
         self.settings = settings
         self.metadata = metadata
         self.parent_frame = parent_frame
+        self.paths = Paths()
         self.build_frame()
 
     def build_frame(self):
-        self.play_image = customtkinter.CTkImage(light_image=Image.open(self.settings.get_image_path("play_light")),
-                                                 dark_image=Image.open(self.settings.get_image_path("play_dark")), size=(20, 20))
+        self.play_image = customtkinter.CTkImage(light_image=Image.open(self.paths.get_image_path("play_light")),
+                                                 dark_image=Image.open(self.paths.get_image_path("play_dark")), size=(20, 20))
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
         # create yuzu navigation frame

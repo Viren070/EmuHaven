@@ -6,13 +6,15 @@ import customtkinter
 from CTkToolTip import CTkToolTip
 from PIL import Image
 
-from emulators.yuzu import Yuzu
+from core.emulators.yuzu.runner import Yuzu
+from core.paths import Paths
 from gui.frames.emulator_frame import EmulatorFrame
 from gui.frames.firmware_keys_frame import FirmwareKeysFrame
 from gui.frames.progress_frame import ProgressFrame
 from gui.frames.yuzu.yuzu_rom_frame import YuzuROMFrame
 from gui.windows.path_dialog import PathDialog
 from gui.windows.folder_selector import FolderSelector
+
 
 FOLDERS = ["amiibo", "cache", "config", "crash_dumps", "dump", "icons", "keys", "load", "log", "nand", "play_time", "screenshots", "sdmc", "shader", "tas", "sysdata"]
 
@@ -22,6 +24,7 @@ class YuzuFrame(EmulatorFrame):
         super().__init__(parent_frame, settings, metadata)
         self.yuzu = Yuzu(self, settings, metadata)
         self.cache = cache
+        self.paths = Paths()
         self.mainline_version = None
         self.early_access_version = None
         self.installed_firmware_version = "Unknown"
@@ -31,10 +34,10 @@ class YuzuFrame(EmulatorFrame):
         self.add_to_frame()
 
     def add_to_frame(self):
-        self.play_image = customtkinter.CTkImage(light_image=Image.open(self.settings.get_image_path("play_light")),
-                                                 dark_image=Image.open(self.settings.get_image_path("play_dark")), size=(20, 20))
-        self.yuzu_mainline = customtkinter.CTkImage(Image.open(self.settings.get_image_path("yuzu_mainline")), size=(276, 129))
-        self.yuzu_early_access = customtkinter.CTkImage(Image.open(self.settings.get_image_path("yuzu_early_access")), size=(276, 129))
+        self.play_image = customtkinter.CTkImage(light_image=Image.open(self.paths.get_image_path("play_light")),
+                                                 dark_image=Image.open(self.paths.get_image_path("play_dark")), size=(20, 20))
+        self.yuzu_mainline = customtkinter.CTkImage(Image.open(self.paths.get_image_path("yuzu_mainline")), size=(276, 129))
+        self.yuzu_early_access = customtkinter.CTkImage(Image.open(self.paths.get_image_path("yuzu_early_access")), size=(276, 129))
 
         # create yuzu 'Play' frame and widgets
         self.start_frame = customtkinter.CTkFrame(self, corner_radius=0, border_width=0)
@@ -142,7 +145,7 @@ class YuzuFrame(EmulatorFrame):
 
         self.early_access_actions_frame.grid_propagate(False)
         self.mainline_actions_frame.grid_propagate(False)
-        self.selected_channel.set(self.settings.yuzu.current_yuzu_channel)
+        self.selected_channel.set(self.settings.yuzu.release_channel)
         self.switch_channel()
 
         self.manage_roms_frame = customtkinter.CTkFrame(self, corner_radius=0, bg_color="transparent")
@@ -173,7 +176,7 @@ class YuzuFrame(EmulatorFrame):
     def switch_channel(self, value=None):
         value = self.selected_channel.get()
         self.settings.yuzu.current_yuzu_channel = value
-        self.settings.update_file()
+        self.settings.save()
         if value == "Mainline":
             self.image_button.configure(image=self.mainline_image)
             self.mainline_actions_frame.grid(row=2, column=0, columnspan=3)

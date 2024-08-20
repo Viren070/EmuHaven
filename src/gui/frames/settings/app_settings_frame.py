@@ -6,10 +6,7 @@ import customtkinter
 from CTkToolTip import CTkToolTip
 
 from gui.windows.github_login_window import GitHubLoginWindow
-from settings.app_settings import get_colour_themes
-from utils.auth_token_manager import get_rate_limit_status
-from utils.time_utils import calculate_relative_time
-
+from core.utils.github import get_rate_limit_status
 
 class AppSettingsFrame(customtkinter.CTkFrame):
     def __init__(self, parent_frame, settings):

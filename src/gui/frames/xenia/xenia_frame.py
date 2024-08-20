@@ -6,7 +6,7 @@ import customtkinter
 from CTkToolTip import CTkToolTip
 from PIL import Image
 
-from emulators.xenia import Xenia
+from core.emulators.xenia.runner import Xenia
 from gui.frames.emulator_frame import EmulatorFrame
 from gui.frames.progress_frame import ProgressFrame
 from gui.frames.xenia.xenia_rom_frame import XeniaROMFrame

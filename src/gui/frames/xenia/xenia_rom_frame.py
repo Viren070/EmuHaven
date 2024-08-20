@@ -8,8 +8,7 @@ import customtkinter
 from gui.frames.current_roms_frame import CurrentROMSFrame
 from gui.frames.progress_frame import ProgressFrame
 from gui.frames.rom_search_frame import ROMSearchFrame
-from utils.downloader import download_through_stream
-from utils.requests_utils import create_get_connection, get_headers
+from core.utils.web import download_file_with_progress
 
 
 class XeniaROMFrame(customtkinter.CTkTabview):

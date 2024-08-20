@@ -11,8 +11,7 @@ from PIL import Image
 
 from gui.windows.progress_window import ProgressWindow
 from gui.windows.saves_browser import SavesBrowser
-from utils.downloader import download_file
-from utils.requests_utils import create_get_connection, get_headers
+from core.utils.web import download_file
 
 
 class SwitchTitle:

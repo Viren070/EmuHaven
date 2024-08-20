@@ -19,7 +19,7 @@ class CurrentROMSFrame(ROMSearchFrame):
         self.scan_subdirectories = scan_subdirectories
         self.total_pages = None
         self.emulator_settings = emulator_settings
-        self.rom_directory = getattr(emulator_settings, "rom_directory")
+        self.rom_directory = getattr(emulator_settings, "game_directory")
         self.allowed_extensions = allowed_extensions
         self.update_in_progress = False
         self.refresh_button.configure(text="Refresh", command=self.refresh_results)
@@ -77,7 +77,7 @@ class CurrentROMSFrame(ROMSearchFrame):
     def get_current_roms(self):
         roms = []
         allowed_extensions = self.allowed_extensions
-        self.rom_directory = getattr(self.emulator_settings, "rom_directory")
+        self.rom_directory = getattr(self.emulator_settings, "game_directory")
         if self.rom_directory == "" or not os.path.exists(self.rom_directory):
             return []
         if self.scan_subdirectories:
@@ -95,7 +95,7 @@ class CurrentROMSFrame(ROMSearchFrame):
     def get_current_roms_from_subdirectories(self):
         roms = []
         allowed_extensions = self.allowed_extensions
-        self.rom_directory = getattr(self.emulator_settings, "rom_directory")
+        self.rom_directory = getattr(self.emulator_settings, "game_directory")
 
         if self.rom_directory == "" or not os.path.exists(self.rom_directory):
             return []

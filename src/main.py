@@ -1,15 +1,16 @@
-import os
+import gui
+import cli
 import sys
+from utils.logger import Logger
 
-from gui.windows.emulator_manager import EmulatorManager
-from settings.app_settings import load_customtkinter_themes
-
+logger = Logger(__name__).get_logger()
 
 if __name__ == "__main__":
+    logger.info("Starting the application with arguments: %s", sys.argv[1:])
     if len(sys.argv) > 1:
-        from cli import handle_cli_args
-        handle_cli_args(sys.argv[1:])
+        logger.info("Starting the application in CLI mode")
+        cli.run()
     else:
-        load_customtkinter_themes(os.path.join(os.path.dirname(os.path.realpath(__file__)), "assets", "themes"))
-        App = EmulatorManager(os.path.dirname(os.path.realpath(__file__)))
-        App.mainloop()
+        logger.info("Starting the application in GUI mode")
+        from gui.emulator_manager import EmulatorManager
+        EmulatorManager()

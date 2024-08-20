@@ -6,30 +6,32 @@ import customtkinter
 from CTkToolTip import CTkToolTip
 from PIL import Image
 
-from emulators.dolphin import Dolphin
+from core.emulators.dolphin.runner import Dolphin
 from gui.frames.dolphin.dolphin_rom_frame import DolphinROMFrame
 from gui.windows.path_dialog import PathDialog
 from gui.windows.folder_selector import FolderSelector
 from gui.frames.progress_frame import ProgressFrame
 from gui.frames.emulator_frame import EmulatorFrame
+from core.paths import Paths
 
 DOLPHIN_FOLDERS = ["Backup", "Cache", "Config", "Dump", "GameSettings", "GBA", "GC", "Load", "Logs", "Maps", "ResourcePacks", "SavedAssembly", "ScreenShots", "Shaders", "StateSaves", "Styles", "Themes", "Wii"]
 
 
 class DolphinFrame(EmulatorFrame):
-    def __init__(self, parent_frame, settings, metadata, cache):
-        super().__init__(parent_frame, settings, metadata)
-        self.dolphin = Dolphin(self, settings, metadata)
+    def __init__(self, parent_frame, settings, versions, cache):
+        super().__init__(parent_frame, settings, versions)
+        self.dolphin = Dolphin(settings, versions)
+        self.paths = Paths()
         self.cache = cache
         self.dolphin_version = None
         self.installed_dolphin_version = None
         self.add_to_frame()
 
     def add_to_frame(self):
-        self.dolphin_banner = customtkinter.CTkImage(light_image=Image.open(self.settings.get_image_path("dolphin_banner_light")),
-                                                     dark_image=Image.open(self.settings.get_image_path("dolphin_banner_dark")), size=(276, 129))
-        self.play_image = customtkinter.CTkImage(light_image=Image.open(self.settings.get_image_path("play_light")),
-                                                 dark_image=Image.open(self.settings.get_image_path("play_dark")), size=(20, 20))
+        self.dolphin_banner = customtkinter.CTkImage(light_image=Image.open(self.paths.get_image_path("dolphin_banner_light")),
+                                                     dark_image=Image.open(self.paths.get_image_path("dolphin_banner_dark")), size=(276, 129))
+        self.play_image = customtkinter.CTkImage(light_image=Image.open(self.paths.get_image_path("play_light")),
+                                                 dark_image=Image.open(self.paths.get_image_path("play_dark")), size=(20, 20))
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
@@ -46,7 +48,7 @@ class DolphinFrame(EmulatorFrame):
         self.center_frame.grid_rowconfigure(3, weight=2)
 
         self.selected_channel = customtkinter.StringVar()
-        self.selected_channel.set(self.settings.dolphin.current_channel.title())
+        self.selected_channel.set(self.settings.dolphin.release_channel.title())
         self.channel_optionmenu = customtkinter.CTkOptionMenu(self.center_frame, variable=self.selected_channel, command=self.switch_channel, values=["Release", "Development"])
         self.channel_optionmenu.grid(row=0, column=0, padx=10, pady=20, sticky="ne")
 

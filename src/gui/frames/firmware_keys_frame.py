@@ -5,8 +5,7 @@ from packaging import version
 
 import customtkinter
 
-from gui.CTkScrollableDropdown import CTkScrollableDropdown
-from utils.requests_utils import fetch_firmware_keys_dict, get_headers, Release
+from gui.libs.CTkScrollableDropdown import CTkScrollableDropdown
 
 
 class FirmwareKeysFrame(customtkinter.CTkFrame):

@@ -6,7 +6,7 @@ import customtkinter
 from CTkToolTip import CTkToolTip
 from PIL import Image
 
-from emulators.ryujinx import Ryujinx
+from core.emulators.ryujinx.runner import Ryujinx
 from gui.frames.emulator_frame import EmulatorFrame
 from gui.frames.firmware_keys_frame import FirmwareKeysFrame
 from gui.frames.progress_frame import ProgressFrame

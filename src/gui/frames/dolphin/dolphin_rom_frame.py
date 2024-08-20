@@ -8,8 +8,7 @@ import customtkinter
 from gui.frames.current_roms_frame import CurrentROMSFrame
 from gui.frames.progress_frame import ProgressFrame
 from gui.frames.rom_search_frame import ROMSearchFrame
-from utils.downloader import download_through_stream
-from utils.requests_utils import create_get_connection, get_headers
+from core.utils.web import download_file_with_progress
 
 
 class DolphinROMFrame(customtkinter.CTkTabview):
@@ -42,9 +41,9 @@ class DolphinROMFrame(customtkinter.CTkTabview):
 
         self.current_roms_frame = CurrentROMSFrame(self.tab("My ROMs"), self, self.settings.dolphin,  (".wbfs", ".iso", ".rvz", ".gcm", ".gcz", ".ciso"))
         self.current_roms_frame.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
-        self.wii_roms_frame = ROMSearchFrame(self.tab("Wii ROMs"), root=self, rom_name="nintendo_wii", rom_link="https://myrient.erista.me/files/Redump/Nintendo%20-%20Wii%20-%20NKit%20RVZ%20[zstd-19-128k]/",)
+        self.wii_roms_frame = ROMSearchFrame(self.tab("Wii ROMs"), root=self, console_name="nintendo_wii", rom_link="https://myrient.erista.me/files/Redump/Nintendo%20-%20Wii%20-%20NKit%20RVZ%20[zstd-19-128k]/",)
         self.wii_roms_frame.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
-        self.gamecube_roms_frame = ROMSearchFrame(self.tab("GameCube ROMs"), root=self, rom_name="nintendo_gamecube", rom_link="https://myrient.erista.me/files/Redump/Nintendo%20-%20GameCube%20-%20NKit%20RVZ%20[zstd-19-128k]/")
+        self.gamecube_roms_frame = ROMSearchFrame(self.tab("GameCube ROMs"), root=self, console_name="nintendo_gamecube", rom_link="https://myrient.erista.me/files/Redump/Nintendo%20-%20GameCube%20-%20NKit%20RVZ%20[zstd-19-128k]/")
         self.gamecube_roms_frame.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
         self.downloads_frame = customtkinter.CTkScrollableFrame(self.tab("Downloads"))
         self.downloads_frame.grid_columnconfigure(0, weight=1)
@@ -85,18 +84,12 @@ class DolphinROMFrame(customtkinter.CTkTabview):
                 download_folder = os.getcwd()
             else:
                 return (False, "Cancelled", "")
-        os.makedirs(download_folder, exist_ok=True)
-        download_path = os.path.join(download_folder, rom.filename)
-        response = create_get_connection(rom.url, stream=True, headers=get_headers(), timeout=30)
-        if not all(response):
-            return response
-        response = response[1]
-        progress_frame = ProgressFrame(self.downloads_frame)
-        progress_frame.start_download(rom.filename, int(response.headers.get("content-length", 0)))
-        progress_frame.grid(row=self.downloads_in_progress, column=0, padx=10, pady=10, sticky="ew")
-        download_result = download_through_stream(response, download_path, progress_frame, 1024*203)
-        progress_frame.destroy()
-        return download_result
+        download_file_with_progress(
+            download_url=rom["url"],
+            download_path=download_folder / rom["name"],
+            progress_handler=None,
+            chunk_size=1024,
+        )
 
     def extract_rom(self, path_to_rom_archive):
         try:

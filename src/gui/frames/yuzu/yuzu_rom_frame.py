@@ -19,7 +19,8 @@ class YuzuROMFrame(customtkinter.CTkTabview):
 
     def get_game_ids(self):
         blacklist_list = ["0100000000001009", ""]
-        user_directory = self.settings.yuzu.user_directory
+        user_directory = ""
+        return []
         game_list_dir = os.path.join(user_directory, "cache", "game_list")
         if not os.path.exists(game_list_dir) or not os.listdir(game_list_dir):
             return []
