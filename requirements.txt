@@ -32,7 +32,7 @@ pillow==10.4.0
     # via -r requirements.in
 psutil==5.9.7
     # via py7zr
-py7zr==0.21.1
+py7zr==0.22.0
     # via -r requirements.in
 pybcj==1.0.2
     # via py7zr
