@@ -5,42 +5,24 @@ from core.settings import Settings
 from core.versions import EmulatorVersions
 from core.cache import Cache
 
-from core.emulators.dolphin.runner import Dolphin
+from gui.libs import messagebox
+import customtkinter 
 
-class TempProgressHandler:
-    def __init__(self):
-        self.value = 0
+def test_messageboxes():
+    print(messagebox.show_success("Success", "success"))
+    print(messagebox.show_info("Title", "title"))
+    print(messagebox.show_error("Error", "error"))
+    print(messagebox.show_warning("warning", "warning"))
+    print(messagebox.ask_okcancel("ok", "cancel"))
+    print(messagebox.ask_retrycancel("retry", "cancel"))
+    print(messagebox.ask_yesno("yes", "no"))
+    print(messagebox.ask_yesnocancel("yesno", "cancel"))
+    print(messagebox.show_messagebox("title", "somethig went  wrong", "cancel"))
 
-    def report_progress(self, value):
-        print(value)
-        
-    def report_success(self):
-        print("Success")
-        
-    def report_error(self, error):
-        print(error)
-        
-    def should_cancel(self):
-        return False
-    
-    def cancel(self):
-        pass
-    
-
-a = Paths()
-print(a.app_dir)
-print(a.cache_dir)
-print(a.versions_file)
-print(a.settings_file)
-print(a.asset_path)
-print(a.get_image_path("yuzu_logo"))
-
-settings = Settings()
-versions = EmulatorVersions()
-
-d = Dolphin(settings, versions)
-release = d.get_dolphin_release()
-print(d.download_release(release["release"], progress_handler=TempProgressHandler()))
+a = customtkinter.CTk()
+b = customtkinter.CTkButton(a, text="Test", command=test_messageboxes)
+b.pack()
+a.mainloop()
 
 """
 FOR FRONTEND 
