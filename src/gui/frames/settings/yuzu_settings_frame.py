@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
 import customtkinter
@@ -36,19 +36,6 @@ class YuzuSettingsFrame(customtkinter.CTkFrame):
             "install_directory": self.install_directory_entry,
         }
 
-    def refresh_checkbox(self):
-        self.use_yuzu_installer_variable.set(self.settings.yuzu.use_yuzu_installer)
-        self.settings.update_file()
-
-    def change_yuzu_installer_option(self):
-        value = self.use_yuzu_installer_variable.get()
-        if value == "True" and not os.path.exists(self.settings.yuzu.installer_path):
-            self.use_yuzu_installer_variable.set("False")
-            messagebox.showerror("Yuzu Installer", "Please ensure you have set the path to the yuzu installer in the settings before attempting to enable this option")
-            return
-        self.settings.yuzu.use_yuzu_installer = self.use_yuzu_installer_variable.get()
-        self.settings.update_file()
-
     def update_entry_widgets(self):
         for setting_name, entry_widget in self.matching_dict.items():
             entry_widget.delete(0, 'end')
@@ -56,7 +43,7 @@ class YuzuSettingsFrame(customtkinter.CTkFrame):
 
     def settings_changed(self):
         for setting_name, entry_widget in self.matching_dict.items():
-            if entry_widget.get() != getattr(self.settings.yuzu, setting_name):
+            if Path(entry_widget.get()).resolve() != getattr(self.settings.yuzu, setting_name).resolve():
                 return True
         return False
 
@@ -68,7 +55,7 @@ class YuzuSettingsFrame(customtkinter.CTkFrame):
             entry_widget.delete(0, 'end')
             entry_widget.insert(0, new_directory)
             return
-        initialdir = os.path.dirname(entry_widget.get())
+        initialdir = Path(entry_widget.get()).parent
         if dialogtype == "installer":
             new_path = filedialog.askopenfilename(initialdir=initialdir, title="Select Yuzu Installer", filetypes=[("yuzu_install.exe", "*exe")])
         else:

@@ -133,6 +133,7 @@ def request_device_code():
     headers = {"Accept": "application/json"}
     return web.post(GitHubOAuth.DEVICE_CODE_REQUEST_URL.value, data=data, headers=headers)
 
+
 def is_token_valid(token):
     if not token:
         return False

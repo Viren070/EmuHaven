@@ -1,14 +1,28 @@
-import os
-import json
+import platform
+from pathlib import Path
+
+from core.utils.logger import Logger
+
 
 class RyujinxSettings:
     def __init__(self):
+        self.logger = Logger(__name__).get_logger()
         self.config = {
-            "install_directory": "",
+            "install_directory": self.get_default_install_directory(),
             "portable": False,
             "release_channel": "master",
-            "game_directory": "",
+            "game_directory": Path(),
         }
+
+    def get_default_install_directory(self):
+        
+        system = platform.system().lower()
+        if system == "windows":
+            # ~/AppData/Roaming/Ryujinx
+            self.logger.debug("Setting default install directory for Windows")
+            return Path.home() / "AppData" / "Local" / "Ryujinx"
+
+        return None
 
     def _set_property(self, property_name, value):
         self.config[property_name] = value

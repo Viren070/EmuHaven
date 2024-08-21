@@ -1,3 +1,4 @@
+from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
 import customtkinter
@@ -13,19 +14,13 @@ class XeniaSettingsFrame(customtkinter.CTkFrame):
     def build_frame(self):
         self.grid_columnconfigure(0, weight=1)
 
-        customtkinter.CTkLabel(self, text="User Directory: ").grid(row=0, column=0, padx=10, pady=10, sticky="w")
-        self.user_directory_entry = customtkinter.CTkEntry(self,  width=300)
-        self.user_directory_entry.grid(row=0, column=2, padx=10, pady=10, sticky="e")
-        customtkinter.CTkButton(self, text="Browse", width=50, command=lambda entry_widget=self.user_directory_entry: self.update_with_explorer(entry_widget)).grid(row=0, column=3, padx=5, pady=10, sticky="e")
-        ttk.Separator(self, orient='horizontal').grid(row=1, columnspan=4, sticky="ew")
-
         customtkinter.CTkLabel(self, text="Xenia Install Directory: ").grid(row=2, column=0, padx=10, pady=10, sticky="w")
         self.install_directory_entry = customtkinter.CTkEntry(self, width=300)
         self.install_directory_entry.grid(row=2, column=2, padx=10, pady=10, sticky="e")
         customtkinter.CTkButton(self, text="Browse", width=50, command=lambda entry_widget=self.install_directory_entry: self.update_with_explorer(entry_widget)).grid(row=2, column=3, padx=5, pady=5, sticky="E")
         ttk.Separator(self, orient='horizontal').grid(row=3, columnspan=4, sticky="ew")
 
-        customtkinter.CTkLabel(self, text="ROM Directory").grid(row=8, column=0, padx=10, pady=10, sticky="w")
+        customtkinter.CTkLabel(self, text="Game Directory").grid(row=8, column=0, padx=10, pady=10, sticky="w")
         self.rom_directory_entry = customtkinter.CTkEntry(self, width=300)
         self.rom_directory_entry.grid(row=8, column=2, padx=10, pady=10, sticky="E")
         customtkinter.CTkButton(self, text="Browse", width=50, command=lambda entry_widget=self.rom_directory_entry: self.update_with_explorer(entry_widget)).grid(row=8, column=3, padx=5, sticky="E")
@@ -44,7 +39,7 @@ class XeniaSettingsFrame(customtkinter.CTkFrame):
 
     def settings_changed(self):
         for setting_name, entry_widget in self.matching_dict.items():
-            if entry_widget.get() != getattr(self.settings.xenia, setting_name):
+            if Path(entry_widget.get()).resolve() != getattr(self.settings.xenia, setting_name).resolve():
                 return True
         return False
 

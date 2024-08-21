@@ -1,5 +1,6 @@
 import os
 from tkinter import messagebox
+from pathlib import Path
 
 import customtkinter
 
@@ -44,7 +45,7 @@ class CurrentROMSFrame(ROMSearchFrame):
             widget.grid_forget()
 
         if len(self.searched_roms) == 0:
-            rom_directory_text = "ROM Directory: " + self.rom_directory if self.rom_directory else "WARNING: No ROM directory has been set. Please set one in the settings."
+            rom_directory_text = "ROM Directory: " + str(self.rom_directory) if self.rom_directory != Path.cwd() else "Tip: You can set your ROM directory in the settings tab."
             customtkinter.CTkLabel(self.result_frame, text=f"Nothing to see here. Download some more ROMs and they will show up here.\n\n{rom_directory_text}").grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
         for i, rom in enumerate(self.searched_roms):
             if i > end_index:

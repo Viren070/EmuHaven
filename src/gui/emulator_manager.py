@@ -3,7 +3,6 @@ import shutil
 import webbrowser
 from sys import exit as sysexit
 from threading import Thread
-from tkinter import messagebox
 from packaging import version
 
 import customtkinter
@@ -15,12 +14,13 @@ from gui.frames.ryujinx.ryujinx_frame import RyujinxFrame
 from gui.frames.settings.settings_frame import SettingsFrame
 from gui.frames.yuzu.yuzu_frame import YuzuFrame
 from gui.frames.xenia.xenia_frame import XeniaFrame
+from gui.libs import messagebox
 
 from core.settings import Settings
 from core.versions import EmulatorVersions
 from core.cache import Cache
 from core.paths import Paths
-from core.constants import App
+from core import constants
 
 
 class EmulatorManager(customtkinter.CTk):
@@ -31,7 +31,7 @@ class EmulatorManager(customtkinter.CTk):
         self.settings = Settings()
         self.versions = EmulatorVersions()
         self.cache = Cache()
-        self.version = version.parse(App.VERSION.value)
+        self.version = version.parse(constants.App.VERSION.value)
         try:
             self.define_images()
         except FileNotFoundError:
@@ -62,7 +62,7 @@ class EmulatorManager(customtkinter.CTk):
 
     def build_gui(self):
         self.resizable(True, True)  # disable resizing of window
-        self.title("Emulator Manager")  # set title of window
+        self.title()  # set title of window
 
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
@@ -76,7 +76,7 @@ class EmulatorManager(customtkinter.CTk):
         self.navigation_frame.grid_rowconfigure(1, weight=1)
 
         # Create navigation frame title.
-        self.navigation_frame_label = customtkinter.CTkLabel(self.navigation_frame, text=f"Emulator Manager {self.version}",
+        self.navigation_frame_label = customtkinter.CTkLabel(self.navigation_frame, text=f"{constants.App.NAME.value} {self.version}",
                                                              compound="left", padx=5, font=customtkinter.CTkFont(size=12, weight="bold"))
         self.navigation_frame_label.grid(row=0, column=0, padx=20, pady=20)
         self.navigation_frame_label.bind('<Double-Button-1>', command=lambda event: messagebox.showinfo("About", f"Emulator Manager {self.version}, made by Viren070 on GitHub."))
@@ -125,8 +125,13 @@ class EmulatorManager(customtkinter.CTk):
         self.settings_frame = SettingsFrame(self, self.settings)
 
     def show_discord_invite(self):
-        if messagebox.askyesno("Discord Invite", "Would you like to join the Emulator Manager Discord server?\n\nBy joining, you can get help with any issues you may have, as well as get notified of any updates or new features.\n\nIf you click yes, your default web browser will open the invite link."):
-            webbrowser.open("https://viren070.github.io/Emulator_Manager/discord/")
+        msg = messagebox.askyesno("Discord Invite", f"Would you like to join the {constants.App.NAME.value} Discord server?\n\nBy joining the discord server, you can get help with any issues you may have, as well as get notified of new releases and features")
+        if msg == "yes":
+            webbrowser.open(constants.App.DISCORD.value)
+        
+    def show_kofi_page(self):
+        if messagebox.askyesno("Support", f"Would you like to support the development of {constants.App.NAME.value} by donating on Ko-fi?\n\nIf you click yes, your default web browser will open the Ko-fi page."):
+            webbrowser.open(constants.App.KOFI.value)
 
     def dolphin_button_event(self):
         self.select_frame_by_name("dolphin")

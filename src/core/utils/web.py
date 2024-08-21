@@ -27,7 +27,7 @@ def get(url, timeout=30, headers=constants.Requests.DEFAULT_HEADERS.value, **kwa
         response.raise_for_status()
     except requests.exceptions.RequestException as error:
         logger.error("GET request failed: %s", error)
-        return {"status": False, "message": error, "response": response}
+        return {"status": False, "message": error}
     return {"status": True, "message": "Request successful", "response": response}
 
 

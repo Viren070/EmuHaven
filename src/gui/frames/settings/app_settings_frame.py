@@ -1,13 +1,17 @@
 import os
+from pathlib import Path
 from threading import Thread
-from tkinter import filedialog, messagebox, ttk
+from tkinter import filedialog, ttk
 
 import customtkinter
 from CTkToolTip import CTkToolTip
 
-from gui.windows.github_login_window import GitHubLoginWindow
+from core import constants
 from core.paths import Paths
 from core.utils.github import get_rate_limit_status
+from gui.libs import messagebox
+from gui.windows.github_login_window import GitHubLoginWindow
+
 
 class AppSettingsFrame(customtkinter.CTkFrame):
     def __init__(self, parent_frame, settings):
@@ -26,21 +30,19 @@ class AppSettingsFrame(customtkinter.CTkFrame):
 
         # create appearance and themes widgets for settings menu 'Appearance'
         self.grid_columnconfigure(0, weight=1)
-
+        
         self.appearance_mode_variable = customtkinter.StringVar()
         self.colour_theme_variable = customtkinter.StringVar()
-        self.use_yuzu_installer_variable = customtkinter.StringVar()
-        self.check_for_app_update_variable = customtkinter.StringVar()
-        self.disable_automatic_updates_variable = customtkinter.StringVar()
-        self.appearance_mode_variable.set(self._get_appearance_mode().title())
-        self.colour_theme_variable.set(os.path.basename(customtkinter.ThemeManager._currently_loaded_theme).replace("-", " ").replace(".json", "").title())
-        self.delete_files_variable = customtkinter.StringVar()
-        self.delete_files_variable.set(self.settings.delete_files_after_installing)
-        self.check_for_app_update_variable.set(self.settings.auto_app_updates)
-        self.disable_automatic_updates_variable.set(self.settings.auto_emulator_updates)
+        self.auto_app_updates_variable = customtkinter.BooleanVar()
+        self.auto_emulator_updates_variable = customtkinter.BooleanVar()
+        self.appearance_mode_variable.set(customtkinter.get_appearance_mode().title())
+        self.colour_theme_variable.set(str(Path(customtkinter.ThemeManager._currently_loaded_theme).stem).replace("-", " ").title())
+        self.delete_files_after_installing_variable = customtkinter.BooleanVar()
+        self.delete_files_after_installing_variable.set(self.settings.delete_files_after_installing)
+        self.auto_app_updates_variable.set(self.settings.auto_app_updates)
+        self.auto_emulator_updates_variable.set(self.settings.auto_emulator_updates)
 
-        colour_themes = self.paths.get_list_of_themes()
-        colour_themes = [str(theme.name).replace("-", " ").title() for theme in colour_themes]
+        colour_themes = [str(theme.name).replace("-", " ").replace(".json", "").title() for theme in self.paths.get_list_of_themes()]
         colour_themes.append("Choose custom theme...")
         customtkinter.CTkLabel(self, text="Appearance Mode: ").grid(row=0, column=0, padx=10, pady=10, sticky="w")
         customtkinter.CTkOptionMenu(self, variable=self.appearance_mode_variable, values=["Dark", "Light"], command=self.change_appearance_mode).grid(row=0, column=2, padx=10, pady=10, sticky="e")
@@ -51,15 +53,15 @@ class AppSettingsFrame(customtkinter.CTkFrame):
         ttk.Separator(self, orient='horizontal').grid(row=3, columnspan=4, sticky="ew")
 
         customtkinter.CTkLabel(self, text="Delete Files after installing").grid(row=8, column=0, padx=10, pady=10, sticky="w")
-        customtkinter.CTkCheckBox(self, text="", variable=self.delete_files_variable, onvalue="True", offvalue="False", command=self.change_delete_files_option).grid(row=8, column=2, padx=(50, 0), pady=10, sticky="ew")
+        customtkinter.CTkCheckBox(self, text="", variable=self.delete_files_after_installing_variable, onvalue=True, offvalue=False, command=self.change_delete_files_option).grid(row=8, column=2, padx=(50, 0), pady=10, sticky="ew")
         ttk.Separator(self, orient="horizontal").grid(row=9, columnspan=4, sticky="ew")
 
-        customtkinter.CTkLabel(self, text="Check for app updates on startup").grid(row=10, column=0, padx=10, pady=10, sticky="w")
-        customtkinter.CTkCheckBox(self, text="", variable=self.check_for_app_update_variable, onvalue="True", offvalue="False", command=self.change_app_update_option).grid(row=10, column=2, padx=(50, 0), pady=10, sticky="ew")
+        customtkinter.CTkLabel(self, text="Auto App Updates").grid(row=10, column=0, padx=10, pady=10, sticky="w")
+        customtkinter.CTkCheckBox(self, text="", variable=self.auto_app_updates_variable, onvalue=True, offvalue=False, command=self.change_app_update_option).grid(row=10, column=2, padx=(50, 0), pady=10, sticky="ew")
         ttk.Separator(self, orient="horizontal").grid(row=11, columnspan=4, sticky="ew")
 
-        customtkinter.CTkLabel(self, text="Disable automatic emulator updates").grid(row=12, column=0, padx=10, pady=10, sticky="w")
-        customtkinter.CTkCheckBox(self, text="", variable=self.disable_automatic_updates_variable, onvalue="True", offvalue="False", command=self.change_emulator_update_option).grid(row=12, column=2, padx=(50, 0), pady=10, sticky="ew")
+        customtkinter.CTkLabel(self, text="Auto Emulator Updates").grid(row=12, column=0, padx=10, pady=10, sticky="w")
+        customtkinter.CTkCheckBox(self, text="", variable=self.auto_emulator_updates_variable, onvalue=True, offvalue=False, command=self.change_emulator_update_option).grid(row=12, column=2, padx=(50, 0), pady=10, sticky="ew")
         ttk.Separator(self, orient="horizontal").grid(row=13, columnspan=4, sticky="ew")
 
         self.actions_frame = customtkinter.CTkFrame(self, fg_color="transparent")
@@ -73,7 +75,6 @@ class AppSettingsFrame(customtkinter.CTkFrame):
                    "Rate Limits: 60/hr (anonymous) or 5000/hr (with a token).\n"
                    "Click to refresh this information."
                    )
-        #self.start_update_requests_left(show_error=False)
         self.requests_left_label.grid(row=8, column=0, padx=10, pady=10, sticky="w")
         button = customtkinter.CTkButton(self.actions_frame, text="Authorise with GitHub", command=self.open_token_window)
         button.grid(row=8, column=1, padx=10, pady=10, sticky="e")
@@ -99,38 +100,38 @@ class AppSettingsFrame(customtkinter.CTkFrame):
         self.requests_left_label.configure(text=f"API Requests Left: {r_left}\nResets in: {(int(t_left))}")
 
     def change_colour_theme(self, theme):
-        current_theme = os.path.basename(customtkinter.ThemeManager._currently_loaded_theme).replace(".json", "")
+        current_theme = Path(customtkinter.ThemeManager._currently_loaded_theme.replace(".json", "")).stem
         new_theme = theme.lower().replace(" ", "-")
+                
         if current_theme == new_theme:
             return
         if theme == "Choose custom theme...":
-            self.colour_theme_variable.set(os.path.basename(current_theme.replace("-", " ").title()))
-            theme = filedialog.askopenfilename(title="Select a customtkinter theme", filetypes=[("customtkinter theme", "*json")])
+            self.colour_theme_variable.set(str(current_theme.stem).replace("-", " ").title())
+            custom_theme = filedialog.askopenfilename(title="Select a customtkinter theme", filetypes=[("customtkinter theme", "*json")])
             if not theme:
                 return
-            self.settings.app.colour_theme = theme
+            self.settings.colour_theme_path = Path(custom_theme)
         else:
-
-            self.settings.app.colour_theme = new_theme
-        self.update_settings()
+            self.settings.colour_theme_path = self.paths.get_theme_path(new_theme)
+        self.settings.save()
         messagebox.showinfo("Theme Change", "Please restart the application to apply the new theme.")
 
     def change_appearance_mode(self, mode):
         customtkinter.set_appearance_mode(mode.lower())  # change appearance mode using customtkinters function
-        self.settings.app.appearance_mode = mode.lower()
-        self.update_settings()   # update settings.json if change was through settings menu
+        self.settings.appearance_mode = mode.lower()
+        self.settings.save()   # update settings.json if change was through settings menu
 
     def change_delete_files_option(self):
-        self.settings.app.delete_files = self.delete_files_variable.get()
-        self.update_settings()
+        self.settings.delete_files_after_installing = self.delete_files_after_installing_variable.get()
+        self.settings.save()
 
     def change_app_update_option(self):
-        self.settings.app.check_for_app_updates = self.check_for_app_update_variable.get()
-        self.update_settings()
+        self.settings.auto_app_updates = self.auto_app_updates_variable.get()
+        self.settings.save()
 
     def change_emulator_update_option(self):
-        self.settings.app.disable_automatic_updates = self.disable_automatic_updates_variable.get()
-        self.update_settings()
+        self.settings.auto_emulator_updates = self.auto_emulator_updates_variable.get()
+        self.settings.save()
 
     def open_token_window(self):
         if self.token_gen is None:
@@ -138,6 +139,3 @@ class AppSettingsFrame(customtkinter.CTkFrame):
             self.token_gen.grab_set()
         else:
             self.token_gen.focus()
-
-    def update_settings(self):
-        self.settings.update_file()

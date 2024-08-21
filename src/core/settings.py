@@ -6,12 +6,15 @@ from core.emulators.yuzu.settings import YuzuSettings
 from core.emulators.xenia.settings import XeniaSettings
 from core.paths import Paths
 from core.constants import App
+from core.utils.logger import Logger
+from pathlib import Path
 
 class Settings:
     def __init__(self):
+        self.logger = Logger(__name__).get_logger()
         self.default_settings = {
-            "appearance_mode": "auto",
-            "colour_theme": "light",
+            "appearance_mode": "dark",
+            "colour_theme_path": Path("blue"),
             "delete_files_after_installing": True,
             "auto_app_updates": True,
             "auto_emulator_updates": True,
@@ -29,6 +32,25 @@ class Settings:
         self.yuzu = YuzuSettings()
         self.xenia = XeniaSettings()
         self.version = "5"
+        if self.settings_file_valid():
+            self.load()
+        else:
+            self.create_settings_file()
+            self.load()
+            
+    def settings_file_valid(self):
+        if not self.settings_file.exists():
+            return False
+        try:
+            with open(self.settings_file, "r", encoding="utf-8") as file:
+                settings = json.load(file)
+                if settings["version"] != self.version:  # and not self.upgrade_if_possible(settings["version"]):
+                    return False
+        except (FileNotFoundError, json.JSONDecodeError, KeyError):
+            return False
+                
+        return True
+        
 
     def create_settings_file(self):
         settings_template = {
@@ -36,36 +58,34 @@ class Settings:
 
             "dolphin_settings": {
                 "install_directory": "",
-                "portable_mode": False,
-                "rom_directory": "",
-                "current_channel": ""
+                "portable_mode": "",
+                "game_directory": "",
+                "release_channel": ""
 
             },
             "yuzu_settings": {
-                "user_directory": "",
+                "portable_mode": "",
                 "install_directory": "",
-                "installer_path": "",
-                "use_yuzu_installer": "",
-                "current_yuzu_channel": ""
+                "release_channel": ""
 
             },
             "ryujinx_settings": {
-                "user_directory": "",
+                "portable_mode": "",
                 "install_directory": ""
             },
             "xenia_settings": {
-                "user_directory": "",
+                "portable_mode": "",
                 "install_directory": "",
-                "rom_directory": "",
-                "current_xenia_channel": "",
+                "game_directory": "",
+                "release_channel": "",
             },
             "app_settings": {
                 "appearance_mode": "",
-                "colour_theme": "",
-                "delete_files": "",
-                "check_for_app_updates": "",
-                "disable_automatic_updates": "",
-                "ask_firmware": ""
+                "colour_theme_path": "",
+                "delete_files_after_installing": "",
+                "auto_app_updates": "",
+                "auto_emulator_updates": "",
+                "firmware_denied": ""
             }
         }
 
@@ -92,50 +112,49 @@ class Settings:
             section_settings = settings[section_name]
             for setting_name, value in section_settings.items():
                 if value == "":
-                    if section_obj.default_settings[setting_name].exists():
-                        # Reset to default if the path is blank
-                        setattr(section_obj, setting_name,
-                                section_obj.default_settings[setting_name])
-                        continue
+                    continue
+                if "path" in setting_name or "directory" in setting_name and value:
+                    value = Path(value)
                 try:
                     # Set the value from the settings file
                     setattr(section_obj, setting_name, value)
-                except Exception:
+                except Exception as error:
                     # If the value is invalid, simply ignore it as
                     # we are in the initialisation stage and cannot
                     # display error messages
                     pass
 
     def save(self):
+        # when saving the settings, we need to convert Path objects to strings
         settings = {
 
             "version": self.version,
 
             "dolphin_settings": {
-                "install_directory": self.dolphin.install_directory,
-                "portable": self.dolphin.portable_mode,
-                "game_directory": self.dolphin.game_directory,
+                "install_directory": str(self.dolphin.install_directory.resolve()),
+                "portable_mode": self.dolphin.portable_mode,
+                "game_directory": str(self.dolphin.game_directory.resolve()),
                 "current_channel": self.dolphin.release_channel
 
             },
             "yuzu_settings": {
-                "install_directory": self.yuzu.install_directory,
+                "install_directory": str(self.yuzu.install_directory.resolve()),
                 "release_channel": self.yuzu.release_channel,
                 "portable_mode": self.yuzu.portable_mode
 
             },
             "ryujinx_settings": {
-                "install_directory": self.ryujinx.install_directory,
+                "install_directory": str(self.ryujinx.install_directory.resolve()),
                 "portable_mode": self.ryujinx.portable_mode
             },
             "xenia_settings": {
-                "install_directory": self.xenia.install_directory,
+                "install_directory": str(self.xenia.install_directory.resolve()),
                 "release_channel": self.xenia.release_channel,
-                "game_directory": self.xenia.game_directory
+                "game_directory": str(self.xenia.game_directory.resolve())
             },
             "app_settings": {
                 "appearance_mode": self.appearance_mode,
-                "colour_theme": self.colour_theme,
+                "colour_theme_path": str(self.colour_theme_path.resolve()),
                 "delete_files_after_installing": self.delete_files_after_installing,
                 "auto_app_updates": self.auto_app_updates,
                 "auto_emulator_updates": self.auto_emulator_updates,
@@ -145,33 +164,22 @@ class Settings:
         with open(self.settings_file, "w", encoding="utf-8") as f:
             json.dump(settings, f, indent=4)
 
-    def settings_file_valid(self):
-        try:
-            with open(self.settings_file, "r", encoding="utf-8") as file:
-                settings = json.load(file)
-                if settings["version"] != self.version and not self.upgrade_if_possible(settings["version"]):
-                    return False
-                settings["app_settings"]["image_paths"]["yuzu_logo"]  # Check for specific setting existence
-        except (FileNotFoundError, json.JSONDecodeError, KeyError):
-            return False
-        return True
-
     def _set_property(self, property_name, value):
-        if property_name == "colour_theme":
-            if value.exists() and value.suffix == ".json" and self.paths.is_theme_valid(value):
+        if property_name == "colour_theme_path":
+            if self.paths.is_theme_valid(value):
                 pass
-            elif not value.lower().replace(" ", "-") in self.paths.get_list_of_themes() + App.VALID_COLOUR_THEMES:
-                value = "dark-blue"
-        elif property_name == "appearance_mode" and not value.lower().replace(" ", "-") in App.VALID_APPEARANCE_MODES:
+            else:
+                value = self.default_settings[property_name]
+        elif property_name == "appearance_mode" and not value.lower().replace(" ", "-") in App.VALID_APPEARANCE_MODES.value:
             value = "dark"
         self._settings[property_name] = value
 
     def _get_property(self, property_name):
         return self._settings[property_name]
 
-    colour_theme = property(
-        lambda self: self._get_property("colour_theme"),
-        lambda self, value: self._set_property("colour_theme", value),
+    colour_theme_path = property(
+        lambda self: self._get_property("colour_theme_path"),
+        lambda self, value: self._set_property("colour_theme_path", value),
     )
 
     appearance_mode = property(

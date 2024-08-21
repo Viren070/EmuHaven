@@ -1,14 +1,28 @@
-import os
-import json
+from pathlib import Path
+import platform
+
+from core.utils.logger import Logger
+
 
 class DolphinSettings:
     def __init__(self):
+        self.logger = Logger(__name__).get_logger()
         self.config = {
             "release_channel": "release",
             "portable": False,
-            "install_directory": "",
-            "game_directory": "",
+            "install_directory": self.get_default_install_directory(),
+            "game_directory": Path().resolve(),
         }
+
+    def get_default_install_directory(self):
+        
+        system = platform.system().lower()
+        if system == "windows":
+            # ~/AppData/Roaming/Dolphin Emulator
+            self.logger.debug("Setting default install directory for Windows")
+            return Path.home() / "AppData" / "Local" / "Dolphin Emulator"
+
+        return Path()
 
     def _set_property(self, property_name, value):
         self.config[property_name] = value

@@ -1,17 +1,24 @@
-import os
-import json
-
+from pathlib import Path
+import platform
 
 class XeniaSettings:
     def __init__(self):
         self.config = {
-            "install_directory": "",
+            "install_directory": self.get_default_install_directory(),
             "portable": False,
             "release_channel": "master",
-            "game_directory": "",
+            "game_directory": Path(),
         }
 
    
+    def get_default_install_directory(self):
+        system = platform.system().lower()
+        
+        if system == "windows":
+            return Path.home() / "AppData" / "Local" / "Xenia"
+        
+        return Path()
+
     def _set_property(self, property_name, value):
         self.config[property_name] = value
 

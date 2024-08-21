@@ -81,13 +81,13 @@ class GitHubLoginWindow(customtkinter.CTkToplevel):
 
     def get_device_code_and_token(self):
         device_code_response = request_device_code()
-        if not all(device_code_response):
+        if not device_code_response["status"]:
             messagebox.showerror("Requests Error", device_code_response[1])
             self.login_button.configure(state="normal", text="Authorise")
             self.auth_label.configure(text="Click the 'Authorise' button to start the authentication process.")
             self.token_button.configure(state="normal")
             return
-        device_code_response = device_code_response[1]
+        device_code_response = device_code_response["response"]
         verification_uri = device_code_response["verification_uri"]
         user_code = device_code_response["user_code"]
         device_code = device_code_response["device_code"]

@@ -10,39 +10,41 @@ def show_messagebox(title, message, icon, option_1="OK", option_2=None, option_3
         option_2=option_2,
         option_3=option_3,
         fade_in_duration=150,
+        width=450,
         justify="center",
-        sound=True
+        sound=True,
+        wraplength=350,
     ).get()
     return output if output is None else output.lower()
 
 
-def show_info(title, message, option_1="OK"):
+def showinfo(title, message, option_1="OK"):
     return show_messagebox(title=title, message=message, icon="info", option_1=option_1)
 
 
-def show_success(title, message):
+def showsuccess(title, message):
     return show_messagebox(title, message, "check", "OK")
 
 
-def show_warning(title, message):
+def showwarning(title, message):
     return show_messagebox(title, message, "warning", "OK")
 
 
-def show_error(title, message):
+def showerror(title, message):
     return show_messagebox(title, message, "cancel", "OK")
 
 
-def ask_yesno(title, message):
+def askyesno(title, message):
     return show_messagebox(title, message, "question", "Yes", "No")
 
 
-def ask_okcancel(title, message, icon="question"):
+def askokcancel(title, message, icon="question"):
     return show_messagebox(title, message, icon=icon, option_1="OK", option_2="Cancel")
 
 
-def ask_retrycancel(title, message, icon="question"):
+def askretrycancel(title, message, icon="question"):
     return show_messagebox(title, message, icon=icon, option_1="Retry", option_2="Cancel")
 
 
-def ask_yesnocancel(title, message):
+def askyesnocancel(title, message):
     return show_messagebox(title, message, "question", "Yes", "No", "Cancel")

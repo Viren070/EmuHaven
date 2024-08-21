@@ -400,8 +400,6 @@ class SwitchROMSFrame(customtkinter.CTkFrame):
     def download_titles_db(self, progress_window):
         progress_frame = progress_window.progress_frame
         progress_frame.start_download("TitleDB", 0)
-        from utils.downloader import download_through_stream
-        from utils.requests_utils import create_get_connection
         response_result = create_get_connection("https://github.com/Viren070/titledb/releases/download/latest/titles.US.en.json", stream=True, headers=get_headers(self.settings.app.token), timeout=30)
         if not all(response_result):
             if not response_result[1] == "Cancelled":
