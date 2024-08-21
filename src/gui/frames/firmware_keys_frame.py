@@ -5,7 +5,7 @@ from packaging import version
 
 import customtkinter
 
-from gui.libs.CTkScrollableDropdown import CTkScrollableDropdown
+from gui.libs.ext.CTkScrollableDropdown import CTkScrollableDropdown
 
 
 class FirmwareKeysFrame(customtkinter.CTkFrame):

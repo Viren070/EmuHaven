@@ -3,7 +3,7 @@ import os
 import customtkinter
 
 from gui.frames.switch_roms_frame import SwitchROMSFrame
-
+from pathlib import Path
 
 class RyujinxROMFrame(customtkinter.CTkTabview):
     def __init__(self, master, settings, cache):
@@ -19,7 +19,10 @@ class RyujinxROMFrame(customtkinter.CTkTabview):
 
     def get_title_ids(self):
         blacklist_list = ["0100000000001009", ""]
-        user_directory = self.settings.ryujinx.user_directory
+        if self.settings.ryujinx.portable_mode:
+            user_directory = self.settings.ryujinx.install_directory / "portable"
+        else:
+            user_directory = Path(os.getenv("APPDATA")) / "ryujinx"
         title_id_dir = os.path.join(user_directory, "games")
         if not os.path.exists(title_id_dir) or not os.listdir(title_id_dir):
             return []

@@ -1,7 +1,7 @@
 import os
 import shutil
 from zipfile import ZipFile
-from utils.progress_handler import ProgressHandler
+from core.utils.progress_handler import ProgressHandler
 
 
 def copy_directory_with_progress(source_dir, target_dir, progress_handler=ProgressHandler(), exclude=None, include=None):

@@ -7,6 +7,7 @@ from CTkToolTip import CTkToolTip
 from PIL import Image
 
 from core.emulators.xenia.runner import Xenia
+from core.paths import Paths
 from gui.frames.emulator_frame import EmulatorFrame
 from gui.frames.progress_frame import ProgressFrame
 from gui.frames.xenia.xenia_rom_frame import XeniaROMFrame
@@ -20,15 +21,16 @@ class XeniaFrame(EmulatorFrame):
     def __init__(self, parent_frame, settings, metadata, cache):
         super().__init__(parent_frame, settings, metadata)
         self.xenia = Xenia(self, settings, metadata)
+        self.paths = Paths()
         self.cache = cache
 
         self.add_to_frame()
 
     def add_to_frame(self):
-        self.play_image = customtkinter.CTkImage(light_image=Image.open(self.settings.get_image_path("play_light")),
-                                                 dark_image=Image.open(self.settings.get_image_path("play_dark")), size=(20, 20))
-        self.xenia_banner = customtkinter.CTkImage(Image.open(self.settings.get_image_path("xenia_banner")), size=(276, 129))
-        self.xenia_canary_banner = customtkinter.CTkImage(Image.open(self.settings.get_image_path("xenia_canary_banner")), size=(276, 129))
+        self.play_image = customtkinter.CTkImage(light_image=Image.open(self.paths.get_image_path("play_light")),
+                                                 dark_image=Image.open(self.paths.get_image_path("play_dark")), size=(20, 20))
+        self.xenia_banner = customtkinter.CTkImage(Image.open(self.paths.get_image_path("xenia_banner")), size=(276, 129))
+        self.xenia_canary_banner = customtkinter.CTkImage(Image.open(self.paths.get_image_path("xenia_canary_banner")), size=(276, 129))
 
         # create yuzu 'Play' frame and widgets
         self.start_frame = customtkinter.CTkFrame(self, corner_radius=0, border_width=0)
@@ -111,7 +113,7 @@ class XeniaFrame(EmulatorFrame):
         self.xenia.data_progress_frame = ProgressFrame(self.data_log)
         # create yuzu downloader button, frame and widgets
         self.actions_frame.grid_propagate(False)
-        self.selected_channel.set(self.settings.xenia.current_xenia_channel)
+        self.selected_channel.set(self.settings.xenia.release_channel)
         self.switch_channel()
 
         self.manage_roms_frame = customtkinter.CTkFrame(self, corner_radius=0, bg_color="transparent")
@@ -135,8 +137,8 @@ class XeniaFrame(EmulatorFrame):
 
     def switch_channel(self, value=None):
         value = self.selected_channel.get()
-        self.settings.xenia.current_xenia_channel = value
-        self.settings.update_file()
+        self.settings.xenia.release_channel = value
+        self.settings.save()
         if value == "Master":
             self.image_button.configure(image=self.xenia_banner)
             self.launch_button.configure(text="Launch Xenia ")
@@ -265,8 +267,8 @@ class XeniaFrame(EmulatorFrame):
         self.fetch_versions()
 
     def fetch_versions(self, installed_only=True):
-        self.installed_xenia_version = self.metadata.get_installed_version("xenia_master")
-        self.installed_xenia_canary_version = self.metadata.get_installed_version("xenia_canary")
+        self.installed_xenia_version = self.metadata.get_version("xenia")
+        self.installed_xenia_canary_version = self.metadata.get_version("xenia_canary")
         self.update_version_text()
 
     def update_version_text(self):

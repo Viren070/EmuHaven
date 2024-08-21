@@ -1,13 +1,13 @@
 from core.constants import GitHub, Requests, GitHubOAuth
 from core.utils import web
-from utils.logger import Logger
+from core.utils.logger import Logger
 
 logger = Logger(__name__).get_logger()
 
 
 def get_headers(token=None):
     logger.debug("Getting headers with token: %s", token)
-    headers = Requests.GH_HEADERS.value
+    headers = Requests.GH_HEADERS.value.copy()
     if token:
         headers["Authorization"] = headers["Authorization"].format(GH_TOKEN=token)
     else:
@@ -104,7 +104,7 @@ def get_rate_limit_status(token):
     headers = get_headers(token)
     response = web.get(GitHub.API_RATE_LIMIT.value, headers=headers)
     if response["status"]:
-        data = response["message"].json()
+        data = response["response"].json()
         return {
             "status": True,
             "message": "Rate limit status retrieved",

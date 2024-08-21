@@ -6,6 +6,7 @@ import customtkinter
 from CTkToolTip import CTkToolTip
 
 from gui.windows.github_login_window import GitHubLoginWindow
+from core.paths import Paths
 from core.utils.github import get_rate_limit_status
 
 class AppSettingsFrame(customtkinter.CTkFrame):
@@ -14,7 +15,8 @@ class AppSettingsFrame(customtkinter.CTkFrame):
         self.settings = settings
         self.parent_frame = parent_frame
         self.update_status = True
-        self.update_requests_thread = Thread(target=self.update_requests_left, args=(self.settings.app.token,))
+        self.update_requests_thread = Thread(target=self.update_requests_left, args=(self.settings.token,))
+        self.paths = Paths()
         self.token_gen = None
         self.build_frame()
 
@@ -30,16 +32,15 @@ class AppSettingsFrame(customtkinter.CTkFrame):
         self.use_yuzu_installer_variable = customtkinter.StringVar()
         self.check_for_app_update_variable = customtkinter.StringVar()
         self.disable_automatic_updates_variable = customtkinter.StringVar()
-        self.use_yuzu_installer_variable.set(self.settings.yuzu.use_yuzu_installer)
         self.appearance_mode_variable.set(self._get_appearance_mode().title())
         self.colour_theme_variable.set(os.path.basename(customtkinter.ThemeManager._currently_loaded_theme).replace("-", " ").replace(".json", "").title())
         self.delete_files_variable = customtkinter.StringVar()
-        self.delete_files_variable.set(self.settings.app.delete_files)
-        self.check_for_app_update_variable.set(self.settings.app.check_for_app_updates)
-        self.disable_automatic_updates_variable.set(self.settings.app.disable_automatic_updates)
+        self.delete_files_variable.set(self.settings.delete_files_after_installing)
+        self.check_for_app_update_variable.set(self.settings.auto_app_updates)
+        self.disable_automatic_updates_variable.set(self.settings.auto_emulator_updates)
 
-        colour_themes = get_colour_themes(os.path.join(self.parent_frame.parent_frame.root_dir, "assets", "themes"))
-        colour_themes = [theme.replace("-", " ").title() for theme in colour_themes]
+        colour_themes = self.paths.get_list_of_themes()
+        colour_themes = [str(theme.name).replace("-", " ").title() for theme in colour_themes]
         colour_themes.append("Choose custom theme...")
         customtkinter.CTkLabel(self, text="Appearance Mode: ").grid(row=0, column=0, padx=10, pady=10, sticky="w")
         customtkinter.CTkOptionMenu(self, variable=self.appearance_mode_variable, values=["Dark", "Light"], command=self.change_appearance_mode).grid(row=0, column=2, padx=10, pady=10, sticky="e")
@@ -72,7 +73,7 @@ class AppSettingsFrame(customtkinter.CTkFrame):
                    "Rate Limits: 60/hr (anonymous) or 5000/hr (with a token).\n"
                    "Click to refresh this information."
                    )
-        self.start_update_requests_left(show_error=False)
+        #self.start_update_requests_left(show_error=False)
         self.requests_left_label.grid(row=8, column=0, padx=10, pady=10, sticky="w")
         button = customtkinter.CTkButton(self.actions_frame, text="Authorise with GitHub", command=self.open_token_window)
         button.grid(row=8, column=1, padx=10, pady=10, sticky="e")
@@ -81,7 +82,7 @@ class AppSettingsFrame(customtkinter.CTkFrame):
     def start_update_requests_left(self, event=None, show_error=True):
         if self.update_status and not self.update_requests_thread.is_alive():
             self.requests_left_label.configure(text="API Requests Left: Fetching...\nResets in: Fetching...", anchor="w")
-            self.update_requests_thread = Thread(target=self.update_requests_left, args=(self.settings.app.token, show_error))
+            self.update_requests_thread = Thread(target=self.update_requests_left, args=(self.settings.token, show_error))
             self.update_requests_thread.start()
         else:
             messagebox.showerror("API Rate Limit Status", "Please wait, there is currently a fetch in progress. Or it has been disabled.")
@@ -93,10 +94,9 @@ class AppSettingsFrame(customtkinter.CTkFrame):
             if show_error:
                 messagebox.showerror("Requests Error", rate_limit_status[1])
             return
-        rate_limit_status = rate_limit_status[1]
-        r_left = rate_limit_status["remaining"]
-        t_left = rate_limit_status["reset"]
-        self.requests_left_label.configure(text=f"API Requests Left: {r_left}\nResets in: {calculate_relative_time(int(t_left))}")
+        r_left = rate_limit_status["requests_remaining"]
+        t_left = rate_limit_status["reset_time"]
+        self.requests_left_label.configure(text=f"API Requests Left: {r_left}\nResets in: {(int(t_left))}")
 
     def change_colour_theme(self, theme):
         current_theme = os.path.basename(customtkinter.ThemeManager._currently_loaded_theme).replace(".json", "")

@@ -3,8 +3,8 @@ from bs4 import BeautifulSoup
 from requests import RequestException
 from urllib.parse import urlparse, urljoin, unquote
 
-from utils.logger import Logger
-from utils.progress_handler import ProgressHandler
+from core.utils.logger import Logger
+from core.utils.progress_handler import ProgressHandler
 from core import constants 
 
 logger = Logger(__name__).get_logger()

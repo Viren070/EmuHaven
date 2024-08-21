@@ -30,7 +30,7 @@ class ROMSearchFrame(customtkinter.CTkFrame):
         self.build_frame()
         cache_lookup_result = self.cache.get_json_data_from_cache(f"{self.console_name}_games")
         if cache_lookup_result:
-            self.define_roms(self.create_roms_from_cache(cache_lookup_result["data"]))
+            self.define_roms(cache_lookup_result["data"])
 
 
     def get_roms(self):

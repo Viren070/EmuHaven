@@ -2,6 +2,7 @@ import customtkinter
 from customtkinter import ThemeManager
 from PIL import Image
 
+from core.paths import Paths
 from gui.frames.settings.app_settings_frame import AppSettingsFrame
 from gui.frames.settings.dolphin_settings_frame import DolphinSettingsFrame
 from gui.frames.settings.yuzu_settings_frame import YuzuSettingsFrame
@@ -13,12 +14,13 @@ class SettingsFrame(customtkinter.CTkFrame):
     def __init__(self, parent_frame, settings):
         super().__init__(parent_frame, corner_radius=0, bg_color="transparent", width=20)
         self.settings = settings
+        self.paths = Paths()
         self.parent_frame = parent_frame
         self.build_gui()
 
     def build_gui(self):
-        self.lock_image = customtkinter.CTkImage(light_image=Image.open(self.settings.get_image_path("padlock_light")),
-                                                 dark_image=Image.open(self.settings.get_image_path("padlock_dark")), size=(20, 20))
+        self.lock_image = customtkinter.CTkImage(light_image=Image.open(self.paths.get_image_path("padlock_light")),
+                                                 dark_image=Image.open(self.paths.get_image_path("padlock_dark")), size=(20, 20))
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
         # create settings navigation frame

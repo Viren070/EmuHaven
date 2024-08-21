@@ -26,7 +26,7 @@ class Paths:
         return self.asset_dir / "images" / f"{image_name}.png"
 
     def get_list_of_themes(self):
-        return [Path(theme) for theme in (self.asset_dir / "themes").iterdir() if theme.endswith(".json")]
+        return [Path(theme) for theme in (self.asset_dir / "themes").iterdir() if theme.suffix == ".json"]
 
     def is_theme_valid(self, theme):
         if not theme.exists():

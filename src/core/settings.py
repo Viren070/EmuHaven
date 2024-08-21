@@ -16,7 +16,8 @@ class Settings:
             "auto_app_updates": True,
             "auto_emulator_updates": True,
             "announcements_read": [],
-            "firmware_denied": False
+            "firmware_denied": False,
+            "token": ""
 
         }
         self.paths = Paths()

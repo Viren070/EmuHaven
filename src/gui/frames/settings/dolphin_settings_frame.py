@@ -39,9 +39,8 @@ class DolphinSettingsFrame(customtkinter.CTkFrame):
         customtkinter.CTkButton(self.actions_frame, text="Restore Defaults", command=self.restore_defaults).grid(row=10, column=0, padx=10, pady=10, sticky="w")
 
         self.matching_dict = {
-            "user_directory": self.user_directory_entry,
             "install_directory":  self.install_directory_entry,
-            "rom_directory": self.rom_directory_entry
+            "game_directory": self.rom_directory_entry
         }
 
     def settings_changed(self):

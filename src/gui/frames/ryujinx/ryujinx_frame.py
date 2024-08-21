@@ -7,6 +7,7 @@ from CTkToolTip import CTkToolTip
 from PIL import Image
 
 from core.emulators.ryujinx.runner import Ryujinx
+from core.paths import Paths
 from gui.frames.emulator_frame import EmulatorFrame
 from gui.frames.firmware_keys_frame import FirmwareKeysFrame
 from gui.frames.progress_frame import ProgressFrame
@@ -23,15 +24,16 @@ class RyujinxFrame(EmulatorFrame):
         self.ryujinx = Ryujinx(self, settings, metadata)
         self.cache = cache
         self.ryujinx_version = None
+        self.paths = Paths()
         self.installed_firmware_version = "Unknown"
         self.installed_key_version = "Unknown"
         self.installed_ryujinx_version = ""
         self.add_to_frame()
 
     def add_to_frame(self):
-        self.play_image = customtkinter.CTkImage(light_image=Image.open(self.settings.get_image_path("play_light")),
-                                                 dark_image=Image.open(self.settings.get_image_path("play_dark")), size=(20, 20))
-        self.ryujinx_banner = customtkinter.CTkImage(Image.open(self.settings.get_image_path("ryujinx_banner")), size=(276, 129))
+        self.play_image = customtkinter.CTkImage(light_image=Image.open(self.paths.get_image_path("play_light")),
+                                                 dark_image=Image.open(self.paths.get_image_path("play_dark")), size=(20, 20))
+        self.ryujinx_banner = customtkinter.CTkImage(Image.open(self.paths.get_image_path("ryujinx_banner")), size=(276, 129))
         # create ryujinx 'Play' frame and widgets
         self.start_frame = customtkinter.CTkFrame(self, corner_radius=0, border_width=0)
         self.start_frame.grid_columnconfigure(0, weight=1)
