@@ -2,16 +2,16 @@ from enum import Enum
 
 
 class App(Enum):
-    NAME = "EmuVault"
+    NAME = "EmuHaven"
     AUTHOR = "Viren070"
-    VERSION = "0.14.0"
+    VERSION = "0.14.0-alpha.1"
     SETTINGS_VERSION = 5
     CACHE_VERSION = 2
     GH_OWNER = "Viren070"
     GH_REPO = "Emulator-Manager"
     DISCORD = "https://discord.viren070.me"
     KOFI = "https://ko-fi.com/viren070"
-    VALID_COLOUR_THEMES = ["blue", "dark-blue", "green"]
+    DEFAULT_COLOUR_THEMES = ["blue", "dark-blue", "green"]
     VALID_APPEARANCE_MODES = ["dark", "light"]
 
 

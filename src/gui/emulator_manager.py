@@ -32,6 +32,7 @@ class EmulatorManager(customtkinter.CTk):
         self.versions = EmulatorVersions()
         self.cache = Cache()
         self.version = version.parse(constants.App.VERSION.value)
+        
         try:
             self.define_images()
         except FileNotFoundError:
@@ -58,11 +59,14 @@ class EmulatorManager(customtkinter.CTk):
                                                      dark_image=Image.open(self.paths.get_image_path("settings_dark")), size=(20, 20))
         self.lock_image = customtkinter.CTkImage(light_image=Image.open(self.paths.get_image_path("padlock_light")),
                                                  dark_image=Image.open(self.paths.get_image_path("padlock_dark")), size=(20, 20))
-        self.discord_icon = customtkinter.CTkImage(Image.open(self.paths.get_image_path("discord_icon")), size=(22, 22))
+        self.discord_icon = customtkinter.CTkImage(Image.open(self.paths.get_image_path("discord_icon")), size=(45, 45))
+        self.kofi_icon = customtkinter.CTkImage(Image.open(self.paths.get_image_path("kofi_icon")), size=(45, 45))
+        self.github_icon = customtkinter.CTkImage(light_image=Image.open(self.paths.get_image_path("github-mark")),
+                                                  dark_image=Image.open(self.paths.get_image_path("github-mark-white")), size=(45, 45))
 
     def build_gui(self):
         self.resizable(True, True)  # disable resizing of window
-        self.title()  # set title of window
+        self.title(constants.App.NAME.value)  # set title of window
 
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
@@ -74,9 +78,10 @@ class EmulatorManager(customtkinter.CTk):
         self.navigation_frame = customtkinter.CTkFrame(self, corner_radius=0)
         self.navigation_frame.grid(row=0, column=0, sticky="nsew")
         self.navigation_frame.grid_rowconfigure(1, weight=1)
-
+        self.navigation_frame.grid_columnconfigure(0, weight=1)
+        
         # Create navigation frame title.
-        self.navigation_frame_label = customtkinter.CTkLabel(self.navigation_frame, text=f"{constants.App.NAME.value} {self.version}",
+        self.navigation_frame_label = customtkinter.CTkLabel(self.navigation_frame, text=f"{constants.App.NAME.value} {self.version.public}",
                                                              compound="left", padx=5, font=customtkinter.CTkFont(size=12, weight="bold"))
         self.navigation_frame_label.grid(row=0, column=0, padx=20, pady=20)
         self.navigation_frame_label.bind('<Double-Button-1>', command=lambda event: messagebox.showinfo("About", f"Emulator Manager {self.version}, made by Viren070 on GitHub."))
@@ -84,11 +89,10 @@ class EmulatorManager(customtkinter.CTk):
         # Create scrollable frame in the middle
         scrollable_frame = customtkinter.CTkScrollableFrame(self.navigation_frame, fg_color="transparent")
         scrollable_frame.grid(row=1, column=0, sticky="nsew")
-        self.navigation_frame.grid_rowconfigure(1, weight=1)
 
         # Create navigation menu buttons
         text_color = ThemeManager.theme["CTkLabel"]["text_color"]
-        self.dolphin_button = customtkinter.CTkButton(scrollable_frame, corner_radius=0, height=40, width=100, image=self.dolphin_logo, border_spacing=10, text="Dolphin",
+        self.dolphin_button = customtkinter.CTkButton(scrollable_frame, corner_radius=0, height=40, width=50, image=self.dolphin_logo, border_spacing=10, text="Dolphin",
                                                       fg_color="transparent", text_color=text_color,
                                                       anchor="w", command=self.dolphin_button_event)
         self.dolphin_button.grid(row=0, column=0, sticky="ew")
@@ -110,8 +114,22 @@ class EmulatorManager(customtkinter.CTk):
         # Set column weights of scrollable_frame to make buttons expand
         scrollable_frame.grid_columnconfigure(0, weight=1)
 
-        discord_button = customtkinter.CTkButton(self.navigation_frame, height=25, width=100, corner_radius=20, text="Join Discord", image=self.discord_icon, border_spacing=10, command=self.show_discord_invite)
-        discord_button.grid(row=2, column=0, pady=10)
+        socials_frame = customtkinter.CTkFrame(self.navigation_frame, corner_radius=0, fg_color="transparent")
+        socials_frame.grid(row=2, column=0, padx=(1, 0))
+        socials_frame.grid_columnconfigure(0, weight=1)
+    
+        github_button = customtkinter.CTkLabel(socials_frame, height=0, width=0, text="", image=self.github_icon)
+        github_button.grid(row=0, column=0, padx=4, pady=20)
+        github_button.bind("<Button-1>", lambda event: self.show_github())
+
+        discord_button = customtkinter.CTkLabel(socials_frame, height=0, width=0, text="", image=self.discord_icon)
+        discord_button.grid(row=0, column=1, padx=4, pady=20)
+        discord_button.bind("<Button-1>", lambda event: self.show_discord_invite())
+        
+        kofi_button = customtkinter.CTkLabel(socials_frame, height=0, width=0, text="", image=self.kofi_icon)
+        kofi_button.grid(row=0, column=2, padx=4, pady=20)
+        kofi_button.bind("<Button-1>", lambda event: self.show_kofi_page())
+        
         # Create settings button at the bottom
         self.settings_button = customtkinter.CTkButton(self.navigation_frame, corner_radius=0, height=40, image=self.settings_image, border_spacing=10, text="Settings",
                                                        fg_color="transparent", text_color=text_color,
@@ -124,13 +142,16 @@ class EmulatorManager(customtkinter.CTk):
         self.xenia_frame = XeniaFrame(self, self.settings, self.versions, self.cache)
         self.settings_frame = SettingsFrame(self, self.settings)
 
+    def show_github(self):
+        if messagebox.askyesno("GitHub", f"Would you like to visit the {constants.App.NAME.value} GitHub repository?\n\nBy visiting the GitHub repository, you can get the latest updates and features.\nYou can also leave a star to support me") == "yes":
+            webbrowser.open(f"https://github.com/{constants.App.GH_OWNER.value}/{constants.App.GH_REPO.value}")
+    
     def show_discord_invite(self):
-        msg = messagebox.askyesno("Discord Invite", f"Would you like to join the {constants.App.NAME.value} Discord server?\n\nBy joining the discord server, you can get help with any issues you may have, as well as get notified of new releases and features")
-        if msg == "yes":
+        if messagebox.askyesno("Discord Invite", f"Would you like to join the {constants.App.NAME.value} Discord server?\n\nBy joining the discord server, you can get help with any issues you may have, as well as get notified of new releases and features") == "yes":
             webbrowser.open(constants.App.DISCORD.value)
         
     def show_kofi_page(self):
-        if messagebox.askyesno("Support", f"Would you like to support the development of {constants.App.NAME.value} by donating on Ko-fi?\n\nIf you click yes, your default web browser will open the Ko-fi page."):
+        if messagebox.askyesno("Support", f"Would you like to support the development of {constants.App.NAME.value} by donating on Ko-fi?\n\nIf you click yes, your default web browser will open the Ko-fi page.") == "yes":
             webbrowser.open(constants.App.KOFI.value)
 
     def dolphin_button_event(self):
