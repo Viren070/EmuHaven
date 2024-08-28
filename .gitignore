@@ -170,3 +170,5 @@ User Data/
 # Other 
 update-requirements.bat
 old_src/
+testing.py
+src/testing.py
