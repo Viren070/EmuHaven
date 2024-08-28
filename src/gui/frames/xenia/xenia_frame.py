@@ -18,19 +18,15 @@ FOLDERS = ["cache", "content", "xenia.config.toml"]
 
 
 class XeniaFrame(EmulatorFrame):
-    def __init__(self, parent_frame, settings, metadata, cache):
-        super().__init__(parent_frame, settings, metadata)
-        self.xenia = Xenia(self, settings, metadata)
-        self.paths = Paths()
+    def __init__(self, parent_frame, paths, settings, versions, assets, cache, event_manager):
+        super().__init__(parent_frame=parent_frame, paths=paths, settings=settings, versions=versions, assets=assets)
+        self.xenia = Xenia(self, settings, versions)
+        self.paths = paths
         self.cache = cache
-
+        self.event_manager = event_manager
         self.add_to_frame()
 
     def add_to_frame(self):
-        self.play_image = customtkinter.CTkImage(light_image=Image.open(self.paths.get_image_path("play_light")),
-                                                 dark_image=Image.open(self.paths.get_image_path("play_dark")), size=(20, 20))
-        self.xenia_banner = customtkinter.CTkImage(Image.open(self.paths.get_image_path("xenia_banner")), size=(276, 129))
-        self.xenia_canary_banner = customtkinter.CTkImage(Image.open(self.paths.get_image_path("xenia_canary_banner")), size=(276, 129))
 
         # create yuzu 'Play' frame and widgets
         self.start_frame = customtkinter.CTkFrame(self, corner_radius=0, border_width=0)
@@ -51,7 +47,7 @@ class XeniaFrame(EmulatorFrame):
         self.version_optionmenu.grid(row=0, column=0, padx=10, pady=20, sticky="ne")
 
         # Image button
-        self.image_button = customtkinter.CTkButton(self.center_frame, text="", fg_color='transparent', hover=False, bg_color='transparent', border_width=0, image=self.xenia_banner)
+        self.image_button = customtkinter.CTkButton(self.center_frame, text="", fg_color='transparent', hover=False, bg_color='transparent', border_width=0, image=self.assets.xenia_banner)
         self.image_button.grid(row=0, column=0, columnspan=3, sticky="n", padx=10, pady=20)
 
         self.actions_frame = customtkinter.CTkFrame(self.center_frame)
@@ -61,7 +57,7 @@ class XeniaFrame(EmulatorFrame):
         self.actions_frame.grid_columnconfigure(1, weight=1)  # Stretch horizontally
         self.actions_frame.grid_columnconfigure(2, weight=1)  # Stretch horizontally
 
-        self.launch_button = customtkinter.CTkButton(self.actions_frame, height=40, width=200, image=self.play_image, text="Launch Xenia  ", command=self.launch_button_event, font=customtkinter.CTkFont(size=15, weight="bold"))
+        self.launch_button = customtkinter.CTkButton(self.actions_frame, height=40, width=200, image=self.assets.play_image, text="Launch Xenia  ", command=self.launch_button_event, font=customtkinter.CTkFont(size=15, weight="bold"))
         self.launch_button.grid(row=0, column=2, padx=30, pady=15, sticky="n")
         self.launch_button.bind("<Button-1>", command=self.launch_button_event)
         CTkToolTip(self.launch_button, message="Click me to launch Xenia.\nHold shift to toggle the update behaviour.\nIf automatic updates are disabled, shift-clicking will update the emulator\nand otherwise it will skip the update.")
@@ -140,12 +136,12 @@ class XeniaFrame(EmulatorFrame):
         self.settings.xenia.release_channel = value
         self.settings.save()
         if value == "Master":
-            self.image_button.configure(image=self.xenia_banner)
+            self.image_button.configure(image=self.assets.xenia_banner)
             self.launch_button.configure(text="Launch Xenia ")
             self.install_button.configure(text="Install Xenia")
             self.delete_button.configure(text="Delete Xenia")
         elif value == "Canary":
-            self.image_button.configure(image=self.xenia_canary_banner)
+            self.image_button.configure(image=self.assets.xenia_canary_banner)
             self.launch_button.configure(text="Launch Xenia Canary")
             self.install_button.configure(text="Install Xenia Canary")
             self.delete_button.configure(text="Delete Xenia Canary")

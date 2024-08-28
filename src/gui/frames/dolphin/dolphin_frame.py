@@ -1,10 +1,8 @@
 import os
 from threading import Thread
-from tkinter import messagebox
 
 import customtkinter
 from CTkToolTip import CTkToolTip
-from PIL import Image
 
 from core.emulators.dolphin.runner import Dolphin
 from gui.frames.dolphin.dolphin_rom_frame import DolphinROMFrame
@@ -12,26 +10,25 @@ from gui.windows.path_dialog import PathDialog
 from gui.windows.folder_selector import FolderSelector
 from gui.frames.progress_frame import ProgressFrame
 from gui.frames.emulator_frame import EmulatorFrame
+from gui.libs import messagebox
 from core.paths import Paths
 
 DOLPHIN_FOLDERS = ["Backup", "Cache", "Config", "Dump", "GameSettings", "GBA", "GC", "Load", "Logs", "Maps", "ResourcePacks", "SavedAssembly", "ScreenShots", "Shaders", "StateSaves", "Styles", "Themes", "Wii"]
 
 
 class DolphinFrame(EmulatorFrame):
-    def __init__(self, parent_frame, settings, versions, cache):
-        super().__init__(parent_frame, settings, versions)
+    def __init__(self, root, paths, settings, versions, assets, cache, event_manager):
+        super().__init__(parent_frame=root, paths=paths, settings=settings, versions=versions, assets=assets)
+        self.root = root
         self.dolphin = Dolphin(settings, versions)
-        self.paths = Paths()
+        self.paths = paths
+        self.event_manager = event_manager
         self.cache = cache
         self.dolphin_version = None
         self.installed_dolphin_version = None
         self.add_to_frame()
 
     def add_to_frame(self):
-        self.dolphin_banner = customtkinter.CTkImage(light_image=Image.open(self.paths.get_image_path("dolphin_banner_light")),
-                                                     dark_image=Image.open(self.paths.get_image_path("dolphin_banner_dark")), size=(276, 129))
-        self.play_image = customtkinter.CTkImage(light_image=Image.open(self.paths.get_image_path("play_light")),
-                                                 dark_image=Image.open(self.paths.get_image_path("play_dark")), size=(20, 20))
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
@@ -52,7 +49,7 @@ class DolphinFrame(EmulatorFrame):
         self.channel_optionmenu = customtkinter.CTkOptionMenu(self.center_frame, variable=self.selected_channel, command=self.switch_channel, values=["Release", "Development"])
         self.channel_optionmenu.grid(row=0, column=0, padx=10, pady=20, sticky="ne")
 
-        self.image_button = customtkinter.CTkButton(self.center_frame, text="", fg_color='transparent', hover=False, bg_color='transparent', border_width=0, image=self.dolphin_banner)
+        self.image_button = customtkinter.CTkButton(self.center_frame, text="", fg_color='transparent', hover=False, bg_color='transparent', border_width=0, image=self.assets.dolphin_banner)
         self.image_button.grid(row=0, column=0, columnspan=3, sticky="n", padx=10, pady=20)
 
         self.dolphin_actions_frame = customtkinter.CTkFrame(self.center_frame)
@@ -62,7 +59,7 @@ class DolphinFrame(EmulatorFrame):
         self.dolphin_actions_frame.grid_columnconfigure(1, weight=1)  # Stretch horizontally
         self.dolphin_actions_frame.grid_columnconfigure(2, weight=1)  # Stretch horizontally
 
-        self.launch_dolphin_button = customtkinter.CTkButton(self.dolphin_actions_frame, width=250, height=40, text="Launch Dolphin  ", image=self.play_image, font=customtkinter.CTkFont(size=15, weight="bold"), command=self.launch_dolphin_button_event)
+        self.launch_dolphin_button = customtkinter.CTkButton(self.dolphin_actions_frame, width=250, height=40, text="Launch Dolphin  ", image=self.assets.play_image, font=customtkinter.CTkFont(size=15, weight="bold"), command=self.launch_dolphin_button_event)
         self.launch_dolphin_button.grid(row=0, column=1, padx=30, pady=15, sticky="nsew")
         self.launch_dolphin_button.bind("<Button-1>", command=self.launch_dolphin_button_event)
         CTkToolTip(self.launch_dolphin_button, message="Click me to launch Dolphin.\nHold shift to toggle the update behaviour.\nIf automatic updates are disabled, shift-clicking will update the emulator\nand otherwise it will skip the update.")
@@ -80,7 +77,6 @@ class DolphinFrame(EmulatorFrame):
         self.dolphin_log_frame.grid(row=3, column=0, padx=80, sticky="ew")
         self.dolphin_log_frame.grid_propagate(False)
         self.dolphin_log_frame.grid_columnconfigure(0, weight=3)
-        self.dolphin.main_progress_frame = ProgressFrame(self.dolphin_log_frame)
 
         self.manage_data_frame = customtkinter.CTkFrame(self, corner_radius=0, bg_color="transparent")
         self.manage_data_frame.grid_columnconfigure(0, weight=1)
@@ -120,8 +116,8 @@ class DolphinFrame(EmulatorFrame):
 
     def switch_channel(self, *args):
         value = self.selected_channel.get()
-        self.settings.dolphin.current_channel = value.lower()
-        self.settings.update_file()
+        self.settings.dolphin.release_channel = value.lower()
+        self.settings.save()
 
     def configure_data_buttons(self, **kwargs):
         self.dolphin_delete_button.configure(**kwargs)
@@ -136,43 +132,110 @@ class DolphinFrame(EmulatorFrame):
     def launch_dolphin_button_event(self, event=None):
         if event is None or self.launch_dolphin_button.cget("state") == "disabled":
             return
-        if not os.path.exists(os.path.join(self.settings.dolphin.install_directory, "Dolphin.exe")):
-            messagebox.showerror("Dolphin", f"Installation of Dolphin not found at {os.path.join(self.settings.dolphin.install_directory, 'Dolphin.exe')}")
+        if not (self.settings.dolphin.install_directory / "Dolphin.exe").exists():
+            messagebox.showerror(self, "Dolphin", f"'Dolphin.exe' not found at {os.path.join(self.settings.dolphin.install_directory, 'Dolphin.exe')}")
             return
         self.configure_buttons("disabled", text="Launching...")
         shift_clicked = True if event.state & 1 else False
-        shift_clicked = not shift_clicked if self.settings.app.disable_automatic_updates == "True" else shift_clicked
-        thread = Thread(target=self.dolphin.launch_dolphin_handler, args=(self.selected_channel.get().lower(), shift_clicked,))
-        thread.start()
-        Thread(target=self.enable_buttons_after_thread, args=(thread, ["main"])).start()
+        auto_update = self.settings.auto_emulator_updates if not shift_clicked else not self.settings.auto_emulator_updates
+        
+        
+        self.event_manager.add_event("launch_dolphin", self.launch_dolphin_handler, kwargs={"auto_update": auto_update}, completion_functions=[lambda: self.enable_buttons_after_thread(["main"])])
+        
+    def launch_dolphin_handler(self, auto_update):
+        if auto_update:
+            self.install_dolphin_handler(update_mode=True)
+        
+        self.configure_buttons("disabled", text="Launched!")
+        status = self.dolphin.launch_dolphin()
+        
+        if not status["run_status"]:
+            return {
+                "message_func": messagebox.showerror,
+                "message_args": (self.root, "Error", f"Failed to launch Dolphin: {status['message']}"),
+            }
+
+        if status["error_encountered"]:
+            return {
+                "message_func": messagebox.showerror,
+                "message_args": (self.root, "Error", f"An error was encountered while launching/running Dolphin: {status['message']}"),
+            }
+
+        
+        return {}
 
     def install_dolphin_button_event(self, event=None):
         if event is None or self.install_dolphin_button.cget("state") == "disabled":
             return
-        if os.path.exists(self.settings.dolphin.install_directory) and not messagebox.askyesno("Directory Exists", "The directory already exists. Are you sure you want to overwrite the contents inside?"):
-            return
+        
+        if self.settings.dolphin.install_directory.exists() and self.settings.dolphin.install_directory.iterdir():
+            if not messagebox.askyesno(self.root, "Directory Exists", "The directory already exists. Are you sure you want to overwrite the contents inside?") == "yes":
+                return
+            # Delete the contents of the directory
+            delete_result = self.dolphin.delete_dolphin()
+            if not delete_result["status"]:
+                messagebox.showerror(self.root, "Error", f"Failed to delete the contents of the directory: {delete_result['message']}")
+                return
 
+        path_to_archive = None
         if event.state & 1:
             path_to_archive = PathDialog(filetypes=(".zip", ".7z", ), title="Custom Dolphin Archive", text="Type path to Dolphin Archive: ")
             path_to_archive = path_to_archive.get_input()
             if not all(path_to_archive):
                 if path_to_archive[1] is not None:
-                    messagebox.showerror("Error", "The path you have provided is invalid")
+                    messagebox.showerror(self.root, "Error", "The path you have provided is invalid")
                 return
             path_to_archive = path_to_archive[1]
-            args = (None, path_to_archive, )
-        else:
-            args = (self.selected_channel.get().lower(), None)
+
         self.configure_buttons("disabled")
-        thread = Thread(target=self.dolphin.install_dolphin_handler, args=args)
-        thread.start()
-        Thread(target=self.enable_buttons_after_thread, args=(thread, ["main"], )).start()
+        
+        self.event_manager.add_event("install_dolphin", self.install_dolphin_handler, kwargs={"archive_path": path_to_archive}, completion_functions=[lambda: self.enable_buttons_after_thread(["main"])])
+        
+        
+    def install_dolphin_handler(self, archive_path=None, update_mode=False):
+        
+        custom_install = archive_path is not None
+        
+        if archive_path is None:
+            release_fetch_result = self.dolphin.get_dolphin_release()
+            if not release_fetch_result["status"]:
+                return {
+                    "message_func": messagebox.showerror,
+                    "message_args": (self.root, "Dolphin", f"Failed to fetch the latest release of Dolphin: {release_fetch_result['message']}")
+                }
+            
+            if update_mode:
+                if release_fetch_result["release"]["version"] == self.versions.get_version("dolphin"):
+                    return
+            
+            download_result = self.dolphin.download_release(release_fetch_result["release"]) 
+            if not download_result["status"]:
+                return ({
+                    "message_func": messagebox.showerror,
+                    "message_args": (self.root, "Dolphin", f"Failed to download the latest release of Dolphin: {download_result['message']}")
+                })
+                
+            archive_path = download_result["download_path"]
+
+        extract_result = self.dolphin.extract_release(archive_path)
+        if not extract_result["status"]:
+            return ({
+                "message_func": messagebox.showerror,
+                "message_args": (self.root, "Dolphin", f"Failed to extract the latest release of Dolphin: {extract_result['message']}")
+            })
+
+        self.metadata.set_version("dolphin", release_fetch_result["release"]["version"] if not custom_install else "")
+        return ({
+            "message_func": messagebox.showsuccess,
+            "message_args": (self.root, "Dolphin", f"Successfully installed Dolphin to {self.settings.dolphin.install_directory}")
+        })
+        
 
     def delete_dolphin_button_event(self):
-        if not os.path.exists(self.settings.dolphin.install_directory):
-            messagebox.showinfo("Delete Dolphin", f"The dolphin installation directory does not exist:\n {self.settings.dolphin.install_directory}")
+        if not self.settings.dolphin.install_directory.exists():
+            messagebox.showinfo(self.root, "Delete Dolphin", f"The dolphin installation directory does not exist:\n {self.settings.dolphin.install_directory}")
             return
-        if not messagebox.askyesno("Confirmation", f"Are you sure you want to delete the contents of `{self.settings.dolphin.install_directory}`"):
+        if not messagebox.askyesno(self.root, "Confirmation", f"Are you sure you want to delete the contents of `{self.settings.dolphin.install_directory}`"):
             return
         self.configure_buttons("disabled")
         thread = Thread(target=self.dolphin.delete_dolphin)
@@ -238,10 +301,9 @@ class DolphinFrame(EmulatorFrame):
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["data"],)).start()
 
-    def enable_buttons_after_thread(self, thread, buttons):
+    def enable_buttons_after_thread(self, buttons):
         if not isinstance(buttons, list):
             raise TypeError("Expected list of button types")
-        thread.join()
         for button in buttons:
             if button == "main":
                 self.configure_buttons("normal", text="Launch Dolphin  ", width=230)
@@ -252,7 +314,7 @@ class DolphinFrame(EmulatorFrame):
     def fetch_versions(self, installed_only=True):
         if not installed_only:
             pass
-        self.installed_dolphin_version = self.metadata.get_installed_version("dolphin")
+        self.installed_dolphin_version = self.versions.get_version("dolphin")
         self.update_version_text()
 
     def update_version_text(self):
@@ -264,3 +326,15 @@ class DolphinFrame(EmulatorFrame):
                 self.launch_dolphin_button.configure(text=f"Launch Dolphin {self.installed_dolphin_version}  ")
         else:
             self.launch_dolphin_button.configure(text="Launch Dolphin  ")
+
+
+    def start_queue_check(self):
+        self.after(100, self.check_queue)
+        
+    def check_queue(self):
+        if not self.result_queue.is_empty():
+            result = self.result_queue.dequeue()
+            self.show_message_after_thread(result["message_func"], result["message_args"])
+        else:
+            self.start_queue_check()
+

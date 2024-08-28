@@ -10,7 +10,8 @@ import py7zr
 
 from core import constants
 from core.utils.web import download_file_with_progress, get_all_files_from_page
-from core.utils.files import copy_directory_with_progress
+from core.utils.files import copy_directory_with_progress, extract_zip_archive_with_progress
+from core.utils.progress_handler import ProgressHandler
 
 
 class Dolphin:
@@ -77,8 +78,15 @@ class Dolphin:
         # determine file regex
         release_regex = self._determine_release_regex()
         # find the release
-        for release in releases: 
-            if re.match(release_regex, release["filename"]):
+        for release in releases:
+            filename = release.split("/")[-1]
+            if re.match(release_regex, filename):
+                version = re.search(r"\d+(-\d+)?", filename).group()
+                release = {
+                    "download_url": release,
+                    "filename": filename,
+                    "version": version
+                }
                 return {
                     "status": True,
                     "message": "Release found",
@@ -86,22 +94,28 @@ class Dolphin:
                 }
         return {"status": False, "message": "Unable to find a release for your system"}
 
-    def download_release(self, release, progress_handler):
+    def download_release(self, release, progress_handler=ProgressHandler()):
         download_path = Path(release["filename"]).resolve()
         return download_file_with_progress(
-            download_url=release["url"],
+            download_url=release["download_url"],
             download_path=download_path,
             progress_handler=progress_handler,
             chunk_size=1024
         )
         
-    def extract_release(self, release, progress_handler):
-        if release.endswith(".zip"):
-            return self._extract_zip_archive(release, progress_handler)
-        elif release.endswith(".7z"):
-            return self._extract_7z_archive(release, progress_handler)
-        else:
-            raise ValueError("Unsupported archive type")
+    def extract_release(self, release: Path, progress_handler=ProgressHandler()):
+        match release.suffix:
+            case ".zip":
+                return self._extract_zip_archive(release, progress_handler)
+            case ".7z":
+                return self._extract_7z_archive(release, progress_handler)
+            case _:
+                return {
+                    "status": False,
+                    "message": "Unsupported archive type",
+                    "extracted_files": []
+                }
+
 
     def _extract_7z_archive(self, release_archive, progress_handler):
 
@@ -145,38 +159,7 @@ class Dolphin:
             }
 
     def _extract_zip_archive(self, release_archive, progress_handler):
-        extracted = True
-        try:
-            with ZipFile(release_archive, 'r') as archive:
-                total_files = len(archive.namelist())
-                extracted_files = []
-                for file in archive.namelist():
-                    if progress_handler.should_cancel():
-                        extracted = False
-                        progress_handler.cancel()
-                        break
-                    archive.extract(file, self.settings.dolphin.install_directory)
-                    extracted_files.append(file)
-                    # Calculate and display progress
-                    progress_handler.report_progress(len(extracted_files))
-            if extracted:
-                return {
-                    "status": True,
-                    "message": "Extraction successful",
-                    "extracted_files": extracted_files
-                }
-            else:
-                return {
-                    "status": False,
-                    "message": "The extraction was cancelled by the user",
-                    "extracted_files": []
-                }
-        except Exception as error:
-            return {
-                "status": False,
-                "message": error,
-                "extracted_files": []
-            }
+        return extract_zip_archive_with_progress(release_archive, self.settings.dolphin.install_directory, progress_handler)
 
     def delete_dolphin(self):
         try:
@@ -204,7 +187,7 @@ class Dolphin:
         run = subprocess.run(args, check=False, capture_output=True)
         self.running = False
         if run.returncode != 0:
-            return {
+            return {    
                 "run_status": True,
                 "error_encountered": True,
                 "message": run.stderr.decode("utf-8")

@@ -20,11 +20,12 @@ FOLDERS = ["amiibo", "cache", "config", "crash_dumps", "dump", "icons", "keys", 
 
 
 class YuzuFrame(EmulatorFrame):
-    def __init__(self, parent_frame, settings, metadata, cache):
-        super().__init__(parent_frame, settings, metadata)
-        self.yuzu = Yuzu(self, settings, metadata)
+    def __init__(self, parent_frame, paths, settings, versions, assets, cache, event_manager):
+        super().__init__(parent_frame=parent_frame, paths=paths, settings=settings, versions=versions, assets=assets)
+        self.yuzu = Yuzu(self, settings, versions)
         self.cache = cache
-        self.paths = Paths()
+        self.paths = paths
+        self.event_manager = event_manager
         self.mainline_version = None
         self.early_access_version = None
         self.installed_firmware_version = "Unknown"
@@ -34,10 +35,6 @@ class YuzuFrame(EmulatorFrame):
         self.add_to_frame()
 
     def add_to_frame(self):
-        self.play_image = customtkinter.CTkImage(light_image=Image.open(self.paths.get_image_path("play_light")),
-                                                 dark_image=Image.open(self.paths.get_image_path("play_dark")), size=(20, 20))
-        self.yuzu_mainline = customtkinter.CTkImage(Image.open(self.paths.get_image_path("yuzu_mainline")), size=(276, 129))
-        self.yuzu_early_access = customtkinter.CTkImage(Image.open(self.paths.get_image_path("yuzu_early_access")), size=(276, 129))
 
         # create yuzu 'Play' frame and widgets
         self.start_frame = customtkinter.CTkFrame(self, corner_radius=0, border_width=0)
@@ -53,14 +50,14 @@ class YuzuFrame(EmulatorFrame):
         self.center_frame.grid_rowconfigure(2, weight=1)
         self.center_frame.grid_rowconfigure(3, weight=2)
 
-        self.mainline_image = self.yuzu_mainline
-        self.early_access_image = self.yuzu_early_access
+        self.mainline_image = self.assets.yuzu_mainline
+        self.early_access_image = self.assets.yuzu_early_access
         self.selected_channel = customtkinter.StringVar()
         self.version_optionmenu = customtkinter.CTkOptionMenu(self.center_frame, variable=self.selected_channel, command=self.switch_channel, values=["Mainline", "Early Access"])
         self.version_optionmenu.grid(row=0, column=0, padx=10, pady=20, sticky="ne")
 
         # Image button
-        self.image_button = customtkinter.CTkButton(self.center_frame, text="", fg_color='transparent', hover=False, bg_color='transparent', border_width=0, image=self.mainline_image)
+        self.image_button = customtkinter.CTkButton(self.center_frame, text="", fg_color='transparent', hover=False, bg_color='transparent', border_width=0, image=self.assets.yuzu_mainline)
         self.image_button.grid(row=0, column=0, columnspan=3, sticky="n", padx=10, pady=20)
 
         self.mainline_actions_frame = customtkinter.CTkFrame(self.center_frame)
@@ -70,7 +67,7 @@ class YuzuFrame(EmulatorFrame):
         self.mainline_actions_frame.grid_columnconfigure(1, weight=1)  # Stretch horizontally
         self.mainline_actions_frame.grid_columnconfigure(2, weight=1)  # Stretch horizontally
 
-        self.launch_mainline_button = customtkinter.CTkButton(self.mainline_actions_frame, height=40, width=200, image=self.play_image, text="Launch Yuzu  ", command=self.launch_mainline_button_event, font=customtkinter.CTkFont(size=15, weight="bold"))
+        self.launch_mainline_button = customtkinter.CTkButton(self.mainline_actions_frame, height=40, width=200, image=self.assets.play_image, text="Launch Yuzu  ", command=self.launch_mainline_button_event, font=customtkinter.CTkFont(size=15, weight="bold"))
         self.launch_mainline_button.grid(row=0, column=2, padx=30, pady=15, sticky="n")
         self.launch_mainline_button.bind("<Button-1>", command=self.launch_mainline_button_event)
         CTkToolTip(self.launch_mainline_button, message="Click me to launch mainline yuzu.\nShift-click me to launch without checking for updates.")
@@ -90,7 +87,7 @@ class YuzuFrame(EmulatorFrame):
         self.early_access_actions_frame.grid_columnconfigure(1, weight=1)  # Stretch horizontally
         self.early_access_actions_frame.grid_columnconfigure(2, weight=1)  # Stretch horizontally
 
-        self.launch_early_access_button = customtkinter.CTkButton(self.early_access_actions_frame, height=40, width=200, image=self.play_image, text="Launch Yuzu EA  ", command=self.launch_early_access_button_event, font=customtkinter.CTkFont(size=15, weight="bold"))
+        self.launch_early_access_button = customtkinter.CTkButton(self.early_access_actions_frame, height=40, width=200, image=self.assets.play_image, text="Launch Yuzu EA  ", command=self.launch_early_access_button_event, font=customtkinter.CTkFont(size=15, weight="bold"))
         self.launch_early_access_button.grid(row=0, column=2, padx=30, pady=15, sticky="n")
         self.launch_early_access_button.bind("<Button-1>", command=self.launch_early_access_button_event)
         CTkToolTip(self.launch_early_access_button, message="Click me to launch yuzu early access.\nHold shift to toggle the update behaviour.\nIf automatic updates are disabled, shift-clicking will update the emulator\nand otherwise it will skip the update.")
@@ -178,12 +175,12 @@ class YuzuFrame(EmulatorFrame):
         self.settings.yuzu.current_yuzu_channel = value
         self.settings.save()
         if value == "Mainline":
-            self.image_button.configure(image=self.mainline_image)
+            self.image_button.configure(image=self.assets.yuzu_mainline)
             self.mainline_actions_frame.grid(row=2, column=0, columnspan=3)
         else:
             self.mainline_actions_frame.grid_forget()
         if value == "Early Access":
-            self.image_button.configure(image=self.early_access_image)
+            self.image_button.configure(image=self.assets.yuzu_early_access)
             self.early_access_actions_frame.grid(row=2, column=0, columnspan=3)
         else:
             self.early_access_actions_frame.grid_forget()

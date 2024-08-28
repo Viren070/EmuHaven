@@ -10,7 +10,7 @@ from core.utils.logger import Logger
 from pathlib import Path
 
 class Settings:
-    def __init__(self):
+    def __init__(self, paths: Paths):
         self.logger = Logger(__name__).get_logger()
         self.default_settings = {
             "appearance_mode": "dark",
@@ -23,7 +23,7 @@ class Settings:
             "token": ""
 
         }
-        self.paths = Paths()
+        self.paths = paths
         self.settings_file = self.paths.settings_file
 
         self._settings = self.default_settings.copy()
@@ -166,7 +166,8 @@ class Settings:
 
     def _set_property(self, property_name, value):
         if property_name == "colour_theme_path":
-            if self.paths.is_theme_valid(value):
+            from core.assets import Assets
+            if Assets.is_theme_valid(theme=value):
                 pass
             else:
                 value = self.default_settings[property_name]

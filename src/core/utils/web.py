@@ -74,7 +74,7 @@ def get_all_files_from_page(url, file_ext=None, **kwargs):
     links = soup.find_all('a')
     for link in links:
         href = link.get('href').replace('"', '').strip("\\")
-        if (file_ext is None) or (href.endswith(file_ext) and href not in [file["url"] for file in files]):
+        if (file_ext is None) or (href.endswith(file_ext) and href not in files):
             result = urlparse(href)
             if all([result.scheme, result.netloc]):
                 file_url = href

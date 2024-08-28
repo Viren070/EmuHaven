@@ -11,16 +11,17 @@ from gui.frames.settings.xenia_settings_frame import XeniaSettingsFrame
 
 
 class SettingsFrame(customtkinter.CTkFrame):
-    def __init__(self, parent_frame, settings):
+    def __init__(self, parent_frame, settings, paths, assets, event_manager):
         super().__init__(parent_frame, corner_radius=0, bg_color="transparent", width=20)
+        self.root_window = parent_frame
+        self.event_manager = event_manager
         self.settings = settings
-        self.paths = Paths()
+        self.paths = paths
+        self.assets = assets
         self.parent_frame = parent_frame
         self.build_gui()
 
     def build_gui(self):
-        self.lock_image = customtkinter.CTkImage(light_image=Image.open(self.paths.get_image_path("padlock_light")),
-                                                 dark_image=Image.open(self.paths.get_image_path("padlock_dark")), size=(20, 20))
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
         # create settings navigation frame
@@ -58,7 +59,7 @@ class SettingsFrame(customtkinter.CTkFrame):
         self.dolphin_settings_frame = DolphinSettingsFrame(self, self.settings)
         self.yuzu_settings_frame = YuzuSettingsFrame(self, self.settings)
         self.ryujinx_settings_frame = RyujinxSettingsFrame(self, self.settings)
-        self.app_settings_frame = AppSettingsFrame(self, self.settings)
+        self.app_settings_frame = AppSettingsFrame(self, settings=self.settings, paths=self.paths, assets=self.assets, event_manager=self.event_manager)
         self.xenia_settings_frame = XeniaSettingsFrame(self, self.settings)
 
     def dolphin_settings_button_event(self):
@@ -103,6 +104,7 @@ class SettingsFrame(customtkinter.CTkFrame):
             self.xenia_settings_frame.grid_forget()
         if name == "app":
             self.app_settings_frame.grid(row=0, column=1, sticky="nsew")
+            self.app_settings_frame.start_update_requests_left()
         else:
             self.app_settings_frame.grid_forget()
 

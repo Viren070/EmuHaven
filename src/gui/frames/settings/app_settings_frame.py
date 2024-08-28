@@ -7,6 +7,7 @@ import customtkinter
 from CTkToolTip import CTkToolTip
 
 from core import constants
+from core.assets import Assets
 from core.paths import Paths
 from core.utils.github import get_rate_limit_status
 from gui.libs import messagebox
@@ -14,13 +15,16 @@ from gui.windows.github_login_window import GitHubLoginWindow
 
 
 class AppSettingsFrame(customtkinter.CTkFrame):
-    def __init__(self, parent_frame, settings):
+    def __init__(self, parent_frame, settings, paths, assets, event_manager):
         super().__init__(parent_frame, corner_radius=0, fg_color="transparent")
+        self.root_window = parent_frame.root_window
+        self.event_manager = event_manager
         self.settings = settings
         self.parent_frame = parent_frame
         self.update_status = True
         self.update_requests_thread = Thread(target=self.update_requests_left, args=(self.settings.token,))
-        self.paths = Paths()
+        self.paths = paths
+        self.assets = assets
         self.token_gen = None
         self.build_frame()
 
@@ -42,7 +46,7 @@ class AppSettingsFrame(customtkinter.CTkFrame):
         self.auto_app_updates_variable.set(self.settings.auto_app_updates)
         self.auto_emulator_updates_variable.set(self.settings.auto_emulator_updates)
 
-        colour_themes = [str(theme.name).replace("-", " ").replace(".json", "").title() for theme in self.paths.get_list_of_themes()]
+        colour_themes = [str(theme.name).replace("-", " ").replace(".json", "").title() for theme in self.assets.get_list_of_themes()]
         colour_themes.append("Choose custom theme...")
         customtkinter.CTkLabel(self, text="Appearance Mode: ").grid(row=0, column=0, padx=10, pady=10, sticky="w")
         customtkinter.CTkOptionMenu(self, variable=self.appearance_mode_variable, values=["Dark", "Light"], command=self.change_appearance_mode).grid(row=0, column=2, padx=10, pady=10, sticky="e")
@@ -86,14 +90,14 @@ class AppSettingsFrame(customtkinter.CTkFrame):
             self.update_requests_thread = Thread(target=self.update_requests_left, args=(self.settings.token, show_error))
             self.update_requests_thread.start()
         else:
-            messagebox.showerror("API Rate Limit Status", "Please wait, there is currently a fetch in progress. Or it has been disabled.")
+            messagebox.showerror(self.root_window, "API Rate Limit Status", "Please wait, there is currently a fetch in progress. Or it has been disabled.")
 
     def update_requests_left(self, token, show_error=True):
         rate_limit_status = get_rate_limit_status(token)
-        if not all(rate_limit_status):
+        if not rate_limit_status["status"]:
             self.requests_left_label.configure(text="API Requests Left: Unknown\nResets in: Unknown")
             if show_error:
-                messagebox.showerror("Requests Error", rate_limit_status[1])
+                messagebox.showerror(self.root_window, "Requests Error", rate_limit_status["message"])
             return
         r_left = rate_limit_status["requests_remaining"]
         t_left = rate_limit_status["reset_time"]
@@ -112,9 +116,9 @@ class AppSettingsFrame(customtkinter.CTkFrame):
                 return
             self.settings.colour_theme_path = Path(custom_theme)
         else:
-            self.settings.colour_theme_path = self.paths.get_theme_path(new_theme)
+            self.settings.colour_theme_path = self.assets.get_theme_path(new_theme)
         self.settings.save()
-        messagebox.showinfo("Theme Change", "Please restart the application to apply the new theme.")
+        messagebox.showinfo(self.root_window, "Theme Change", "Please restart the application to apply the new theme.")
 
     def change_appearance_mode(self, mode):
         customtkinter.set_appearance_mode(mode.lower())  # change appearance mode using customtkinters function

@@ -114,7 +114,7 @@ def get_rate_limit_status(token):
     else:
         return {
             "status": False,
-            "message": f"Failed to get rate limit status: {response.status_code} - {response.text}",
+            "message": f"Failed to get rate limit status: {response["message"]}",
         }
 
 

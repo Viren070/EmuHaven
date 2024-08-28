@@ -1,8 +1,9 @@
 from CTkMessagebox import CTkMessagebox
 
 
-def show_messagebox(title, message, icon, option_1="OK", option_2=None, option_3=None):
+def show_messagebox(master, title, message, icon, option_1="OK", option_2=None, option_3=None):
     output = CTkMessagebox(
+        master=master,
         title=title,
         message=message,
         icon=icon,
@@ -18,33 +19,33 @@ def show_messagebox(title, message, icon, option_1="OK", option_2=None, option_3
     return output if output is None else output.lower()
 
 
-def showinfo(title, message, option_1="OK"):
-    return show_messagebox(title=title, message=message, icon="info", option_1=option_1)
+def showinfo(master, title, message, option_1="OK"):
+    return show_messagebox(master=master, title=title, message=message, icon="info", option_1=option_1)
 
 
-def showsuccess(title, message):
-    return show_messagebox(title, message, "check", "OK")
+def showsuccess(master, title, message):
+    return show_messagebox(master=master, title=title, message=message, icon="check", option_1="OK")
 
 
-def showwarning(title, message):
-    return show_messagebox(title, message, "warning", "OK")
+def showwarning(master, title, message):
+    return show_messagebox(master=master, title=title, message=message, icon="warning", option_1="OK")
 
 
-def showerror(title, message):
-    return show_messagebox(title, message, "cancel", "OK")
+def showerror(master, title, message):
+    return show_messagebox(master=master, title=title, message=message, icon="cancel", option_1="OK")
 
 
-def askyesno(title, message):
-    return show_messagebox(title, message, "question", "Yes", "No")
+def askyesno(master, title, message):
+    return show_messagebox(master=master, title=title, message=message, icon="question", option_1="Yes", option_2="No")
 
 
-def askokcancel(title, message, icon="question"):
-    return show_messagebox(title, message, icon=icon, option_1="OK", option_2="Cancel")
+def askokcancel(master, title, message, icon="question"):
+    return show_messagebox(master=master, title=title, message=message, icon=icon, option_1="OK", option_2="Cancel")
 
 
-def askretrycancel(title, message, icon="question"):
-    return show_messagebox(title, message, icon=icon, option_1="Retry", option_2="Cancel")
+def askretrycancel(master, title, message, icon="question"):
+    return show_messagebox(master=master, title=title, message=message, icon=icon, option_1="Retry", option_2="Cancel")
 
 
-def askyesnocancel(title, message):
-    return show_messagebox(title, message, "question", "Yes", "No", "Cancel")
+def askyesnocancel(master, title, message):
+    return show_messagebox(master=master, title=title, message=message, icon="question", option_1="Yes", option_2="No", option_3="Cancel")

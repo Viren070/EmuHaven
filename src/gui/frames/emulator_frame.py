@@ -1,21 +1,21 @@
 import customtkinter
 from customtkinter import ThemeManager
-from PIL import Image
+
 
 from core.paths import Paths
+from core.assets import Assets
 
 class EmulatorFrame(customtkinter.CTkFrame):
-    def __init__(self, parent_frame, settings, metadata):
+    def __init__(self, parent_frame, paths: Paths, settings, versions, assets: Assets):
         super().__init__(parent_frame,  corner_radius=0, bg_color="transparent")
         self.settings = settings
-        self.metadata = metadata
+        self.metadata = self.versions = versions
+        self.paths = paths
+        self.assets = assets
         self.parent_frame = parent_frame
-        self.paths = Paths()
         self.build_frame()
 
     def build_frame(self):
-        self.play_image = customtkinter.CTkImage(light_image=Image.open(self.paths.get_image_path("play_light")),
-                                                 dark_image=Image.open(self.paths.get_image_path("play_dark")), size=(20, 20))
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
         # create yuzu navigation frame
@@ -24,7 +24,7 @@ class EmulatorFrame(customtkinter.CTkFrame):
         self.navigation_frame.grid_rowconfigure(5, weight=1)
         # create yuzu menu buttons
         text_color = ThemeManager.theme["CTkLabel"]["text_color"]
-        self.start_button = customtkinter.CTkButton(self.navigation_frame, corner_radius=0, width=100, height=25, image=self.play_image, border_spacing=10, text="Play",
+        self.start_button = customtkinter.CTkButton(self.navigation_frame, corner_radius=0, width=100, height=25, image=self.assets.play_image, border_spacing=10, text="Play",
                                                     fg_color="transparent", text_color=text_color,
                                                     anchor="w", command=self.start_button_event)
         self.start_button.grid(row=1, column=0, sticky="ew", padx=2, pady=(2, 0))

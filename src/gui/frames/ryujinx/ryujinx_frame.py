@@ -19,21 +19,19 @@ FOLDERS = ["bis", "games", "mods", "profiles", "sdcard", "system"]
 
 
 class RyujinxFrame(EmulatorFrame):
-    def __init__(self, parent_frame, settings, metadata, cache):
-        super().__init__(parent_frame, settings, metadata)
-        self.ryujinx = Ryujinx(self, settings, metadata)
+    def __init__(self, parent_frame, paths, settings, versions, assets, cache, event_manager):
+        super().__init__(parent_frame=parent_frame, paths=paths, settings=settings, versions=versions, assets=assets)
+        self.ryujinx = Ryujinx(self, settings, versions)
         self.cache = cache
         self.ryujinx_version = None
-        self.paths = Paths()
+        self.paths = paths
+        self.event_manager = event_manager
         self.installed_firmware_version = "Unknown"
         self.installed_key_version = "Unknown"
         self.installed_ryujinx_version = ""
         self.add_to_frame()
 
     def add_to_frame(self):
-        self.play_image = customtkinter.CTkImage(light_image=Image.open(self.paths.get_image_path("play_light")),
-                                                 dark_image=Image.open(self.paths.get_image_path("play_dark")), size=(20, 20))
-        self.ryujinx_banner = customtkinter.CTkImage(Image.open(self.paths.get_image_path("ryujinx_banner")), size=(276, 129))
         # create ryujinx 'Play' frame and widgets
         self.start_frame = customtkinter.CTkFrame(self, corner_radius=0, border_width=0)
         self.start_frame.grid_columnconfigure(0, weight=1)
@@ -49,7 +47,7 @@ class RyujinxFrame(EmulatorFrame):
         self.center_frame.grid_rowconfigure(3, weight=2)
 
         # Image button
-        self.image_button = customtkinter.CTkButton(self.center_frame, text="", fg_color='transparent', hover=False, bg_color='transparent', border_width=0, image=self.ryujinx_banner)
+        self.image_button = customtkinter.CTkButton(self.center_frame, text="", fg_color='transparent', hover=False, bg_color='transparent', border_width=0, image=self.assets.ryujinx_banner)
         self.image_button.grid(row=0, column=0, columnspan=3, sticky="n", padx=10, pady=20)
 
         self.actions_frame = customtkinter.CTkFrame(self.center_frame)
@@ -59,7 +57,7 @@ class RyujinxFrame(EmulatorFrame):
         self.actions_frame.grid_columnconfigure(1, weight=1)  # Stretch horizontally
         self.actions_frame.grid_columnconfigure(2, weight=1)  # Stretch horizontally
 
-        self.launch_button = customtkinter.CTkButton(self.actions_frame, height=40, width=225, image=self.play_image, text="Launch Ryujinx  ", command=self.launch_button_event, font=customtkinter.CTkFont(size=15, weight="bold"))
+        self.launch_button = customtkinter.CTkButton(self.actions_frame, height=40, width=225, image=self.assets.play_image, text="Launch Ryujinx  ", command=self.launch_button_event, font=customtkinter.CTkFont(size=15, weight="bold"))
         self.launch_button.grid(row=0, column=2, padx=30, pady=15, sticky="n")
         self.launch_button.bind("<Button-1>", command=self.launch_button_event)
         CTkToolTip(self.launch_button, message="Click me to launch Ryujinx.\nHold shift to toggle the update behaviour.\nIf automatic updates are disabled, shift-clicking will update the emulator\nand otherwise it will skip the update.")

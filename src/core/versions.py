@@ -3,9 +3,9 @@ import json
 from core.paths import Paths
 
 
-class EmulatorVersions:
-    def __init__(self):
-        self.paths = Paths()
+class Versions:
+    def __init__(self, paths: Paths):
+        self.paths = paths
         self.versions_dict = {}
         self.versions_file = self.paths.versions_file
         self.load_versions_from_file()

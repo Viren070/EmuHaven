@@ -8,8 +8,8 @@ from core.paths import Paths
 
 
 class Cache:
-    def __init__(self):
-        self.paths = Paths()
+    def __init__(self, paths: Paths):
+        self.paths = paths
         self.current_cache_version = 2
         self.cache_directory = self.paths.cache_dir
         self.cache_directory.mkdir(parents=True, exist_ok=True)
