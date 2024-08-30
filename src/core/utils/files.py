@@ -4,9 +4,11 @@ from zipfile import ZipFile
 from core.utils.progress_handler import ProgressHandler
 
 
-def copy_directory_with_progress(source_dir, target_dir, progress_handler=ProgressHandler(), exclude=None, include=None):
+def copy_directory_with_progress(source_dir, target_dir, progress_handler, exclude=None, include=None):
     if not os.path.exists(source_dir):
         return {"status": False, "message": f"Path does not exist: {source_dir}"}
+    if progress_handler is None:
+        progress_handler = ProgressHandler()
     # Get a list of all files and folders in the source directory
     all_files = []
     for root, dirs, files in os.walk(source_dir):
@@ -56,9 +58,10 @@ def copy_directory_with_progress(source_dir, target_dir, progress_handler=Progre
         "message": "Files copied successfully",
     }
 
-def extract_zip_archive_with_progress(zip_path, extract_directory, progress_handler=ProgressHandler()):
+def extract_zip_archive_with_progress(zip_path, extract_directory, progress_handler):
     extracted_files = []
-
+    if progress_handler is None:
+        progress_handler = ProgressHandler()
     if extract_directory.exists() and extract_directory.iterdir():
         shutil.rmtree(extract_directory)
     try:
@@ -75,5 +78,5 @@ def extract_zip_archive_with_progress(zip_path, extract_directory, progress_hand
     except Exception as error:
         progress_handler.report_error(error)
         return {"status": False, "message": error}
-    progress_handler.complete_operation()
+    progress_handler.report_success()
     return {"status": True, "message": "Extraction successful", "extracted_files": extracted_files}

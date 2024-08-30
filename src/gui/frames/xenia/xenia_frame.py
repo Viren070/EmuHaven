@@ -1,6 +1,5 @@
 import os
 from threading import Thread
-from tkinter import messagebox
 
 import customtkinter
 from CTkToolTip import CTkToolTip
@@ -8,6 +7,8 @@ from PIL import Image
 
 from core.emulators.xenia.runner import Xenia
 from core.paths import Paths
+from gui.libs import messagebox
+from core.utils.thread_event_manager import ThreadEventManager
 from gui.frames.emulator_frame import EmulatorFrame
 from gui.frames.progress_frame import ProgressFrame
 from gui.frames.xenia.xenia_rom_frame import XeniaROMFrame
@@ -18,9 +19,10 @@ FOLDERS = ["cache", "content", "xenia.config.toml"]
 
 
 class XeniaFrame(EmulatorFrame):
-    def __init__(self, parent_frame, paths, settings, versions, assets, cache, event_manager):
-        super().__init__(parent_frame=parent_frame, paths=paths, settings=settings, versions=versions, assets=assets)
+    def __init__(self, master, paths, settings, versions, assets, cache, event_manager: ThreadEventManager):
+        super().__init__(parent_frame=master, paths=paths, settings=settings, versions=versions, assets=assets)
         self.xenia = Xenia(self, settings, versions)
+        self.root = master
         self.paths = paths
         self.cache = cache
         self.event_manager = event_manager
@@ -76,7 +78,6 @@ class XeniaFrame(EmulatorFrame):
         self.log_frame.grid(row=4, column=0, padx=80, sticky="ew")
         self.log_frame.grid_propagate(False)
         self.log_frame.grid_columnconfigure(0, weight=3)
-        self.xenia.main_progress_frame = ProgressFrame(self.log_frame)
         # create yuzu 'Manage Data' frame and widgets
         self.manage_data_frame = customtkinter.CTkFrame(self, corner_radius=0, bg_color="transparent")
         self.manage_data_frame.grid_columnconfigure(0, weight=1)
@@ -109,7 +110,7 @@ class XeniaFrame(EmulatorFrame):
         self.xenia.data_progress_frame = ProgressFrame(self.data_log)
         # create yuzu downloader button, frame and widgets
         self.actions_frame.grid_propagate(False)
-        self.selected_channel.set(self.settings.xenia.release_channel)
+        self.selected_channel.set(self.settings.xenia.release_channel.title())
         self.switch_channel()
 
         self.manage_roms_frame = customtkinter.CTkFrame(self, corner_radius=0, bg_color="transparent")
@@ -133,7 +134,7 @@ class XeniaFrame(EmulatorFrame):
 
     def switch_channel(self, value=None):
         value = self.selected_channel.get()
-        self.settings.xenia.release_channel = value
+        self.settings.xenia.release_channel = value.lower()
         self.settings.save()
         if value == "Master":
             self.image_button.configure(image=self.assets.xenia_banner)
@@ -150,45 +151,133 @@ class XeniaFrame(EmulatorFrame):
     def launch_button_event(self, event=None):
         if event is None or self.launch_button.cget("state") == "disabled":
             return
-        if not os.path.exists(os.path.join(self.settings.xenia.install_directory, self.selected_channel.get(), "xenia.exe" if self.selected_channel.get() == "Master" else "xenia_canary.exe")):
-            messagebox.showerror("Error", f"Could not find a Xenia {self.selected_channel.get()} installation at {os.path.join(self.settings.xenia.install_directory, self.selected_channel.get())}.")
-            return
-        skip_update = True if event.state & 1 else False
-        skip_update = not skip_update if self.settings.app.disable_automatic_updates == "True" else skip_update
+        auto_update = self.settings.auto_emulator_updates if not event.state & 1 else not self.settings.auto_emulator_updates
         self.configure_action_buttons("disabled")
-        thread = Thread(target=self.xenia.launch_xenia_handler, args=(self.selected_channel.get(), skip_update))
-        thread.start()
-        Thread(target=self.enable_buttons_after_thread, args=(thread, ["action"],)).start()
+        self.event_manager.add_event(
+            event_id="launch_xenia",
+            func=self.launch_xenia_handler,
+            kwargs={"auto_update": auto_update},
+            completion_functions=[lambda: self.enable_buttons(["action"])],
+        )
 
+        
+    def launch_xenia_handler(self, auto_update):
+        if auto_update:
+            update = self.install_xenia_handler(update_mode=True)
+            if not update.get("status", False):
+                return update
+        
+        launch_result = self.xenia.launch_xenia()
+        
+        if not launch_result["run_status"]:
+            return {
+                "message_func": messagebox.showerror,
+                "message_args": (self.root, "Error", launch_result["message"]),
+            }
+        if launch_result["error_encountered"]:
+            return {
+                "message_func": messagebox.showerror,
+                "message_args": (self.root, "Error", launch_result["message"]),
+            }
+        
+        return {}
+    
     def install_button_event(self, event=None):
         if event is None or self.install_button.cget("state") == "disabled":
             return
-        if os.path.exists(os.path.join(self.settings.xenia.install_directory, self.selected_channel.get())) and not messagebox.askyesno("Directory Exists", f"The directory {os.path.join(self.settings.xenia.install_directory, self.selected_channel.get())} already exists, do you wish to continue?"):
+        if (
+            (self.settings.xenia.install_directory / self.selected_channel.get()).is_dir() and (
+                any((self.settings.xenia.install_directory / self.selected_channel.get()).iterdir()) and (
+                    messagebox.askyesno(
+                        self.root,
+                        "Confirmation", f"An installation of Xenia {self.selected_channel.get()} already exists. Do you want to overwrite it?"
+                    ) != "yes"
+                )
+            )
+        ):
             return
         path_to_archive = None
         if event.state & 1:
             path_to_archive = PathDialog(filetypes=(".zip",), title="Custom Xenia Archive", text=f"Enter path to Xenia {self.selected_channel.get()} archive: ").get_input()
             if not all(path_to_archive):
                 if path_to_archive[1] is not None:
-                    messagebox.showerror("Error", "The path you have provided is invalid")
+                    messagebox.showerror(self.root, "Error", "The path you have provided is invalid")
                 return
             path_to_archive = path_to_archive[1]
         self.configure_action_buttons("disabled")
-        thread = Thread(target=self.xenia.install_xenia_handler, args=(self.selected_channel.get(), path_to_archive))
-        thread.start()
-        Thread(target=self.enable_buttons_after_thread, args=(thread, ["action"],)).start()
+        self.event_manager.add_event(
+            event_id="install_xenia",
+            func=self.install_xenia_handler,
+            kwargs={"archive_path": path_to_archive},
+            completion_functions=[lambda: self.enable_buttons(["action"])],
+            allow_no_output=False,
+            event_error_function=lambda: messagebox.showerror(self.root, "Error", "An unexpected error occured while installing Xenia. Please check the logs for more information.")
+        )
+        
+    def install_xenia_handler(self, update_mode=False, archive_path=None):
+        custom_install = archive_path is not None
+        
+        if archive_path is None:
+            release_fetch_result = self.xenia.get_xenia_release()
+            if not release_fetch_result["status"]:
+                return {
+                    "message_func": messagebox.showerror,
+                    "message_args": (self.root, "Xenia", f"Failed to fetch the {self.settings.xenia.release_channel} latest release of Xenia: {release_fetch_result['message']}")
+                }
+            
+            if update_mode and release_fetch_result["release"]["version"] == self.versions.get_version(f"xenia_{self.settings.xenia.release_channel}"):
+                return {
+                    "status": True
+                }
+            
+            download_result = self.xenia.download_xenia_release(release_fetch_result["release"]) 
+            if not download_result["status"]:
+                return ({
+                    "message_func": messagebox.showerror,
+                    "message_args": (self.root, "Xenia", f"Failed to download the latest {self.settings.xenia.release_channel} release of Xenia: {download_result['message']}")
+                })
+                
+            archive_path = download_result["download_path"]
+
+        extract_result = self.xenia.extract_xenia_release(archive_path)
+        if not extract_result["status"]:
+            return ({
+                "message_func": messagebox.showerror,
+                "message_args": (self.root, "xenia", f"Failed to extract the latest release of xenia: {extract_result['message']}")
+            })
+
+        self.metadata.set_version(f"xenia_{self.settings.xenia.release_channel}", release_fetch_result["release"]["version"] if not custom_install else "")
+        return ({
+            "message_func": messagebox.showsuccess,
+            "message_args": (self.root, "xenia", f"Successfully installed xenia to {self.settings.xenia.install_directory}"),
+            "status": True
+        })
 
     def delete_button_event(self, event=None):
-        if not os.path.exists(os.path.join(self.settings.xenia.install_directory, self.selected_channel.get())):
-            messagebox.showerror("Error", f"Could not find a Xenia {self.selected_channel.get()} installation at {os.path.join(self.settings.xenia.install_directory, self.selected_channel.get())}.")
+        if not (self.settings.xenia.install_directory / self.selected_channel.get()).is_dir() or not any((self.settings.xenia.install_directory / self.selected_channel.get()).iterdir()):
+            messagebox.showerror(self.root, "Error", f"Could not find a Xenia {self.selected_channel.get()} installation at {self.settings.xenia.install_directory}")
             return
-        if not messagebox.askyesno("Confirmation", "This will delete the Xenia installation. This action cannot be undone, are you sure you wish to continue?"):
+        if messagebox.askyesno(self.root, "Confirmation", "This will delete the Xenia installation. This action cannot be undone, are you sure you wish to continue?", icon="warning") != "yes":
             return
         self.configure_action_buttons("disabled")
-        thread = Thread(target=self.xenia.delete_xenia, args=(self.selected_channel.get(),))
-        thread.start()
-        Thread(target=self.enable_buttons_after_thread, args=(thread, ["action"],)).start()
-
+        self.event_manager.add_event(
+            event_id="delete_xenia",
+            func=self.delete_xenia_handler,
+            allow_no_output=False,
+            event_error_function=lambda: messagebox.showerror(self.root, "Error", "An unexpected error occured while deleting Xenia. Please check the logs for more information."),
+            completion_functions=[lambda: self.enable_buttons(["action"])],
+        )
+    def delete_xenia_handler(self):
+        delete_result = self.xenia.delete_xenia()
+        if not delete_result["status"]:
+            return {
+                "message_func": messagebox.showerror,
+                "message_args": (self.root, "Error", delete_result["message"]),
+            }
+        return {
+            "message_func": messagebox.showsuccess,
+            "message_args": (self.root, "Success", delete_result["message"]),
+        }
     def import_data_button_event(self):
         directory = None
         folders = None
@@ -253,8 +342,7 @@ class XeniaFrame(EmulatorFrame):
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["data"],)).start()
 
-    def enable_buttons_after_thread(self, thread, buttons):
-        thread.join()
+    def enable_buttons(self, buttons):
         for button in buttons:
             if button == "action":
                 self.configure_action_buttons("normal", text="Launch Xenia  ", width=200)

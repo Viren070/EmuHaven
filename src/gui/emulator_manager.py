@@ -88,7 +88,7 @@ class EmulatorManager(customtkinter.CTk):
         # Set column weights of scrollable_frame to make buttons expand
         scrollable_frame.grid_columnconfigure(0, weight=1)
 
-        socials_frame = customtkinter.CTkFrame(self.navigation_frame, corner_radius=0, fg_color="transparent")
+        socials_frame = customtkinter.CTkFrame(self.navigation_frame, corner_radius=0, border_width=0, fg_color="transparent")
         socials_frame.grid(row=2, column=0, padx=(1, 0))
         socials_frame.grid_columnconfigure(0, weight=1)
     
@@ -118,7 +118,7 @@ class EmulatorManager(customtkinter.CTk):
 
     def show_github(self):
         if messagebox.askyesno(self, "GitHub", f"Would you like to visit the {constants.App.NAME.value} GitHub repository?\n\nBy visiting the GitHub repository, you can get the latest updates and features.\nYou can also leave a star to support me") == "yes":
-            webbrowser.open(f"https://github.com/{constants.App.GH_OWNER.value}/{constants.App.GH_REPO.value}")
+            webbrowser.open(constants.App.GITHUB.value)
     
     def show_discord_invite(self):
         if messagebox.askyesno(self, "Discord Invite", f"Would you like to join the {constants.App.NAME.value} Discord server?\n\nBy joining the discord server, you can get help with any issues you may have, as well as get notified of new releases and features") == "yes":

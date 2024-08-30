@@ -22,11 +22,11 @@ def get(url, timeout=30, headers=constants.Requests.DEFAULT_HEADERS.value, **kwa
         dict: A dictionary with fields: status (bool) and message (str or requests.Response)
     """ 
     try:
-        logger.debug("GET request to %s with the following kwargs: %s", url, kwargs)
+        logger.debug("GET %s  %s", url, kwargs)
         response = requests.get(url, timeout=timeout, headers=headers, **kwargs)
         response.raise_for_status()
     except requests.exceptions.RequestException as error:
-        logger.error("GET request failed: %s", error)
+        logger.error("GET Error: %s", error)
         return {"status": False, "message": error}
     return {"status": True, "message": "Request successful", "response": response}
 
@@ -45,11 +45,11 @@ def post(url, data=None, json=None, timeout=30, headers=constants.Requests.DEFAU
         dict: A dictionary with fields: status (bool) and message (str or requests.Response)
     """
     try:
-        logger.debug("POST request to %s with the following kwargs: %s", url, kwargs)
+        logger.debug("POST %s %s", url, kwargs)
         response = requests.post(url, data=data, json=json, timeout=timeout, headers=headers, **kwargs)
         response.raise_for_status()
     except requests.exceptions.RequestException as error:
-        logger.error("POST request failed: %s", error)
+        logger.error("POST Error: %s", error)
         return {"status": False, "message": error, "response": response}
     return {"status": True, "message": "Request successful", "response": response}
 
@@ -87,7 +87,7 @@ def get_all_files_from_page(url, file_ext=None, **kwargs):
     return {"status": True, "message": "Files retrieved successfully", "files": files}
 
 
-def download_file_with_progress(download_url, download_path, chunk_size=1024, progress_handler=ProgressHandler(), **kwargs):
+def download_file_with_progress(download_url, download_path, progress_handler, chunk_size=1024, **kwargs):
     """Download a file from the given URL using a stream with a progress handler.
 
     Args:
@@ -108,7 +108,9 @@ def download_file_with_progress(download_url, download_path, chunk_size=1024, pr
     return download_through_stream(response, download_path, chunk_size, progress_handler)
 
 
-def download_through_stream(response, download_path, chunk_size, progress_handler=ProgressHandler()):
+def download_through_stream(response, download_path, chunk_size, progress_handler):
+    if progress_handler is None:
+        progress_handler = ProgressHandler()
     try:
         with open(download_path, 'wb') as f:
             downloaded_bytes = 0

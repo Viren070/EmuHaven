@@ -183,9 +183,7 @@ class Dolphin:
             }
         
         args = [dolphin_exe]
-        self.running = True
         run = subprocess.run(args, check=False, capture_output=True)
-        self.running = False
         if run.returncode != 0:
             return {    
                 "run_status": True,

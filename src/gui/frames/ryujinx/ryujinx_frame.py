@@ -107,7 +107,6 @@ class RyujinxFrame(EmulatorFrame):
         self.data_log.grid(row=1, column=0, padx=20, pady=20, columnspan=3, sticky="new")
         self.data_log.grid_columnconfigure(0, weight=1)
         self.data_log.grid_rowconfigure(1, weight=1)
-        self.ryujinx.data_progress_frame = ProgressFrame(self.data_log)
         # create ryujinx downloader button, frame and widgets
 
         self.actions_frame.grid_propagate(False)
@@ -151,6 +150,7 @@ class RyujinxFrame(EmulatorFrame):
         thread = Thread(target=self.ryujinx.launch_ryujinx_handler, args=(shift_clicked, ))
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["action", "firmware_keys"],)).start()
+        
 
     def install_button_event(self, event=None):
         if event is None or self.install_button.cget("state") == "disabled":

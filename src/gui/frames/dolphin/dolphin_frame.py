@@ -17,9 +17,9 @@ DOLPHIN_FOLDERS = ["Backup", "Cache", "Config", "Dump", "GameSettings", "GBA", "
 
 
 class DolphinFrame(EmulatorFrame):
-    def __init__(self, root, paths, settings, versions, assets, cache, event_manager):
-        super().__init__(parent_frame=root, paths=paths, settings=settings, versions=versions, assets=assets)
-        self.root = root
+    def __init__(self, master, paths, settings, versions, assets, cache, event_manager):
+        super().__init__(parent_frame=master, paths=paths, settings=settings, versions=versions, assets=assets)
+        self.root = master
         self.dolphin = Dolphin(settings, versions)
         self.paths = paths
         self.event_manager = event_manager
@@ -106,7 +106,6 @@ class DolphinFrame(EmulatorFrame):
         self.dolphin_data_log.grid(row=1, column=0, padx=20, pady=20, columnspan=3, sticky="new")
         self.dolphin_data_log.grid_columnconfigure(0, weight=1)
         self.dolphin_data_log.grid_rowconfigure(1, weight=1)
-        self.dolphin.data_progress_frame = ProgressFrame(self.dolphin_data_log)
 
         self.manage_roms_frame = customtkinter.CTkFrame(self, corner_radius=0, bg_color="transparent")
         self.manage_roms_frame.grid_columnconfigure(0, weight=1)
@@ -133,19 +132,17 @@ class DolphinFrame(EmulatorFrame):
         if event is None or self.launch_dolphin_button.cget("state") == "disabled":
             return
         if not (self.settings.dolphin.install_directory / "Dolphin.exe").exists():
-            messagebox.showerror(self, "Dolphin", f"'Dolphin.exe' not found at {os.path.join(self.settings.dolphin.install_directory, 'Dolphin.exe')}")
+            messagebox.showerror(self.root, "Dolphin", f"'Dolphin.exe' not found at {self.settings.dolphin.install_directory / 'Dolphin.exe'}")
             return
         self.configure_buttons("disabled", text="Launching...")
-        shift_clicked = True if event.state & 1 else False
-        auto_update = self.settings.auto_emulator_updates if not shift_clicked else not self.settings.auto_emulator_updates
-        
-        
+        auto_update = not self.settings.auto_emulator_updates if event.state & 1 else self.settings.auto_emulator_updates
         self.event_manager.add_event("launch_dolphin", self.launch_dolphin_handler, kwargs={"auto_update": auto_update}, completion_functions=[lambda: self.enable_buttons_after_thread(["main"])])
         
     def launch_dolphin_handler(self, auto_update):
         if auto_update:
-            self.install_dolphin_handler(update_mode=True)
-        
+            update_result = self.install_dolphin_handler(auto_update=True)
+            if not update_result.get("status", False):
+                return update_result
         self.configure_buttons("disabled", text="Launched!")
         status = self.dolphin.launch_dolphin()
         
@@ -161,15 +158,14 @@ class DolphinFrame(EmulatorFrame):
                 "message_args": (self.root, "Error", f"An error was encountered while launching/running Dolphin: {status['message']}"),
             }
 
-        
         return {}
 
     def install_dolphin_button_event(self, event=None):
         if event is None or self.install_dolphin_button.cget("state") == "disabled":
             return
         
-        if self.settings.dolphin.install_directory.exists() and self.settings.dolphin.install_directory.iterdir():
-            if not messagebox.askyesno(self.root, "Directory Exists", "The directory already exists. Are you sure you want to overwrite the contents inside?") == "yes":
+        if self.settings.dolphin.install_directory.is_dir() and any(self.settings.dolphin.install_directory.iterdir()):
+            if messagebox.askyesno(self.root, "Directory Exists", "The directory already exists. Are you sure you want to overwrite the contents inside?") != "yes":
                 return
             # Delete the contents of the directory
             delete_result = self.dolphin.delete_dolphin()
@@ -192,7 +188,7 @@ class DolphinFrame(EmulatorFrame):
         self.event_manager.add_event("install_dolphin", self.install_dolphin_handler, kwargs={"archive_path": path_to_archive}, completion_functions=[lambda: self.enable_buttons_after_thread(["main"])])
         
         
-    def install_dolphin_handler(self, archive_path=None, update_mode=False):
+    def install_dolphin_handler(self, archive_path=None, auto_update=False):
         
         custom_install = archive_path is not None
         
@@ -204,9 +200,10 @@ class DolphinFrame(EmulatorFrame):
                     "message_args": (self.root, "Dolphin", f"Failed to fetch the latest release of Dolphin: {release_fetch_result['message']}")
                 }
             
-            if update_mode:
-                if release_fetch_result["release"]["version"] == self.versions.get_version("dolphin"):
-                    return
+            if auto_update and release_fetch_result["release"]["version"] == self.versions.get_version("dolphin"):
+                return {
+                    "status": True,
+                }
             
             download_result = self.dolphin.download_release(release_fetch_result["release"]) 
             if not download_result["status"]:
@@ -227,20 +224,38 @@ class DolphinFrame(EmulatorFrame):
         self.metadata.set_version("dolphin", release_fetch_result["release"]["version"] if not custom_install else "")
         return ({
             "message_func": messagebox.showsuccess,
-            "message_args": (self.root, "Dolphin", f"Successfully installed Dolphin to {self.settings.dolphin.install_directory}")
+            "message_args": (self.root, "Dolphin", f"Successfully installed Dolphin to {self.settings.dolphin.install_directory}"),
+            "status": True
         })
         
 
     def delete_dolphin_button_event(self):
-        if not self.settings.dolphin.install_directory.exists():
-            messagebox.showinfo(self.root, "Delete Dolphin", f"The dolphin installation directory does not exist:\n {self.settings.dolphin.install_directory}")
+        if not self.settings.dolphin.install_directory.is_dir() or not any(self.settings.dolphin.install_directory.iterdir()):
+            messagebox.showinfo(self.root, "Delete Dolphin", f"The Dolphin Installation directory is either empty or does not exist:\n {self.settings.dolphin.install_directory}")
+            return 
+
+        if messagebox.askyesno(self.root, "Confirmation", f"Are you sure you want to delete the contents of `{self.settings.dolphin.install_directory}`") != "yes":
             return
-        if not messagebox.askyesno(self.root, "Confirmation", f"Are you sure you want to delete the contents of `{self.settings.dolphin.install_directory}`"):
-            return
+
         self.configure_buttons("disabled")
-        thread = Thread(target=self.dolphin.delete_dolphin)
-        thread.start()
-        Thread(target=self.enable_buttons_after_thread, args=(thread, ["main"], )).start()
+        self.event_manager.add_event("delete_dolphin", self.delete_dolphin_handler, completion_functions=[lambda: self.enable_buttons_after_thread(["main"])])
+
+    def delete_dolphin_handler(self):
+        if not self.settings.dolphin.install_directory.is_dir() or not any(self.settings.dolphin.install_directory.iterdir()):
+            return {
+                "message_func": messagebox.showinfo,
+                "message_args": (self.root, "Delete Dolphin", f"The Dolphin Installation directory is either empty or does not exist:\n {self.settings.dolphin.install_directory}")
+            }
+        delete_result = self.dolphin.delete_dolphin()
+        if not delete_result["status"]:
+            return {
+                "message_func": messagebox.showerror,
+                "message_args": (self.root, "Error", f"Failed to delete the contents of the directory: {delete_result['message']}")
+            }
+        return {
+            "message_func": messagebox.showsuccess,
+            "message_args": (self.root, "Delete Dolphin", f"Successfully deleted the contents of `{self.settings.dolphin.install_directory}`")
+        }
 
     def import_data_button_event(self):
         directory = None

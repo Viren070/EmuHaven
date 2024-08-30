@@ -9,6 +9,7 @@ class App(Enum):
     CACHE_VERSION = 2
     GH_OWNER = "Viren070"
     GH_REPO = "Emulator-Manager"
+    GITHUB = f"https://github.com/{GH_OWNER}/{GH_REPO}"
     DISCORD = "https://discord.viren070.me"
     KOFI = "https://ko-fi.com/viren070"
     DEFAULT_COLOUR_THEMES = ["blue", "dark-blue", "green"]

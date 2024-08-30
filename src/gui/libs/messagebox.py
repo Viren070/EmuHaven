@@ -35,8 +35,8 @@ def showerror(master, title, message):
     return show_messagebox(master=master, title=title, message=message, icon="cancel", option_1="OK")
 
 
-def askyesno(master, title, message):
-    return show_messagebox(master=master, title=title, message=message, icon="question", option_1="Yes", option_2="No")
+def askyesno(master, title, message, icon="question"):
+    return show_messagebox(master=master, title=title, message=message, icon=icon, option_1="Yes", option_2="No")
 
 
 def askokcancel(master, title, message, icon="question"):
@@ -47,5 +47,5 @@ def askretrycancel(master, title, message, icon="question"):
     return show_messagebox(master=master, title=title, message=message, icon=icon, option_1="Retry", option_2="Cancel")
 
 
-def askyesnocancel(master, title, message):
-    return show_messagebox(master=master, title=title, message=message, icon="question", option_1="Yes", option_2="No", option_3="Cancel")
+def askyesnocancel(master, title, message, icon="question"):
+    return show_messagebox(master=master, title=title, message=message, icon=icon, option_1="Yes", option_2="No", option_3="Cancel")

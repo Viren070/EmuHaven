@@ -1,4 +1,6 @@
-from core.constants import GitHub, Requests, GitHubOAuth
+import re
+
+from core.constants import GitHub, GitHubOAuth, Requests
 from core.utils import web
 from core.utils.logger import Logger
 
@@ -6,13 +8,11 @@ logger = Logger(__name__).get_logger()
 
 
 def get_headers(token=None):
-    logger.debug("Getting headers with token: %s", token)
     headers = Requests.GH_HEADERS.value.copy()
     if token:
         headers["Authorization"] = headers["Authorization"].format(GH_TOKEN=token)
     else:
         headers.pop("Authorization")
-    logger.debug("Headers: %s", headers)
     return headers
 
 
@@ -38,7 +38,7 @@ def get_latest_release(repo_owner, repo_name, token=None):
 
 def find_asset_with_regex(assets, regex):
     for asset in assets:
-        if regex.match(asset["name"]):
+        if re.match(regex, asset["name"]):
             return {"status": True, "message": "Regex matched", "asset": asset}
     return {"status": False, "message": "No asset found"}
 
@@ -54,21 +54,18 @@ def get_latest_release_with_asset(repo_owner, repo_name, regex, token=None):
         regex (str): The regex to match the asset name
         token (str, optional): The GitHub token to use for the request. Defaults to None.
 
-    Returns:
-       dict: Get a dictionary containing
+    Returns a dict with keys:
        
-            - status: True if successful, False otherwise
-            - message: A message describing the status
+        - status: True if successful, False otherwise
+        - message: A message describing the status
+        - release: A dict with keys:
             - version: The version of the release
             - size: The size of the asset
             - download_url: The download url of the asset
             - filename: The name of the asset
-            - 
                 
     """
     release = {
-        "status": False,
-        "message": None,
         "version": None,
         "size": None,
         "download_url": None,
@@ -76,28 +73,37 @@ def get_latest_release_with_asset(repo_owner, repo_name, regex, token=None):
     }
     latest_release = get_latest_release(repo_owner, repo_name, token)
     if not latest_release["status"]:
-        release["message"] = latest_release["message"]
-        return release
+        return latest_release
+    
     version = latest_release["response"].get("tag_name")
     assets = latest_release["response"].get("assets")
+    
     if any(value is None for value in [version, assets]):
-        release["message"] = "Failed to get the version or assets for the latest release"
-        return release
+        return {
+            "status": False, 
+            "message": "Failed to get the version or assets for the latest release"
+        }
+    
     asset = find_asset_with_regex(assets, regex)
     if not asset["status"]:
-        release["message"] = "Failed to find the asset with the given regex"
-        return release
+        return {
+            "status": False,
+            "message": "Failed to find an asset that matches the regex"
+        }
     asset = asset["asset"]
+    
     release = {
-        "status": True,
-        "message": "Successfully retrieved the metadata for the asset",
         "version": version,
         "size": asset.get("size"),
         "download_url": asset.get("browser_download_url"),
         "filename": asset.get("name"),
         
     }
-    return release
+    return {
+        "status": True,
+        "message": "Successfully retrieved release",
+        "release": release,
+    }
 
 
 def get_rate_limit_status(token):

@@ -75,25 +75,17 @@ class Ryujinx(SwitchEmulator):
     def delete_ryujinx(self, skip_prompt=False):
         try:
             shutil.rmtree(os.path.join(self.settings.ryujinx.install_directory, "publish"))
-            if not skip_prompt:
-                messagebox.showinfo("Delete Ryujinx", "Installation of Ryujinx successfully deleted")
+            return {
+                "status": True,
+                "message": "Ryujinx was successfully deleted",
+            }
         except Exception as error:
-            messagebox.showerror("Delete Error", f"An error occured while trying to delete the installation of Ryujinx:\n\n{error}")
+            return {
+                "status": False,
+                "message": f"Failed to delete Ryujinx due to error: {error}",
+            }
 
-    def launch_ryujinx_handler(self, skip_update=False, wait_for_exit=True):
-        if not skip_update:
-            self.gui.configure_action_buttons("disabled", text="Fetching Updates...")
-            self.install_release_handler(True)
-        self.check_and_prompt_firmware_keys_install()
-        self.gui.configure_action_buttons("disabled", text="Launched!  ")
-        ryujinx_exe = os.path.join(self.settings.ryujinx.install_directory, "publish", "Ryujinx.exe")
-        args = [ryujinx_exe]
-        self.running = True
-        if wait_for_exit:
-            subprocess.run(args, check=False)
-        else:
-            subprocess.Popen(args)
-        self.running = False
+
 
     def check_and_prompt_firmware_keys_install(self):
         # Helper function to get version

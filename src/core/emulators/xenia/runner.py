@@ -4,10 +4,12 @@ import subprocess
 import time
 from tkinter import messagebox
 from zipfile import ZipFile
+from pathlib import Path
 
+from core import constants
+from core.utils.files import copy_directory_with_progress, extract_zip_archive_with_progress
 from core.utils.github import get_latest_release_with_asset
-from core.utils.files import copy_directory_with_progress
-
+from core.utils.web import download_file_with_progress
 
 class Xenia:
     def __init__(self, gui, settings, metadata):
@@ -32,132 +34,82 @@ class Xenia:
         except Exception:
             return False
 
-    def install_xenia_handler(self, release_channel=None, path_to_archive=None, updating=False):
-        release_archive = path_to_archive
-        if release_channel is None and path_to_archive is None:
-            raise ValueError("If release channel is None, you must provide a path to archive")
-        if path_to_archive is None:
-            release_result = self.get_xenia_release(release_channel)
-            if not all(release_result):
-                messagebox.showerror("Install Xenia", f"There was an error while attempting to fetch the latest {release_channel} release of Xenia:\n\n{release_result[1]}")
-                return
-            release = release_result[1]
-            installed_version = self.metadata.get_installed_version(f"xenia_{release_channel.lower()}")
-            if updating and release.version == installed_version:
-                return
-            download_result = self.download_release(release)
-            if not all(download_result):
-                if download_result[1] != "Cancelled":
-                    messagebox.showerror("Error", f"There was an error while attempting to download the latest {release_channel} release of Xenia\n\n{download_result[1]}")
-                else:
-                    try:
-                        os.remove(download_result[2])
-                    except Exception as error:
-                        messagebox.showwarning("Error", f"Failed to delete file after cancelling due to error below:\n\n{error}")
-                return
-            release_archive = download_result[1]
-        elif not self.verify_xenia_zip(path_to_archive, release_channel):
-            messagebox.showerror("Error", "The xenia archive you have provided is invalid. ")
-            return
-        extract_result = self.extract_xenia_release(release_archive, release_channel)
-        if path_to_archive is None and self.settings.app.delete_files == "True":
-            os.remove(release_archive)
-        if not all(extract_result):
-            if extract_result[1] != "Cancelled":
-                messagebox.showerror("Extract Error", f"An error occurred while extracting the release: \n\n{extract_result[1]}")
-            return
-        if path_to_archive is None:
-            self.metadata.update_installed_version(f"xenia_{release_channel.lower()}", release.version)
-        if not updating:
-            messagebox.showinfo("Install Xenia", f"Xenia was successfully installed to {self.settings.xenia.install_directory}")
+    def get_xenia_release(self):
+        release_channel = self.settings.xenia.release_channel.lower()
+        return get_latest_release_with_asset(
+            repo_owner=constants.Xenia.GH_CANARY_RELEASE_REPO_OWNER.value if release_channel == "canary" else constants.Xenia.GH_RELEASE_REPO_OWNER.value,
+            repo_name=constants.Xenia.GH_CANARY_RELEASE_REPO_NAME.value if release_channel == "canary" else constants.Xenia.GH_RELEASE_REPO_NAME.value,
+            regex=constants.Xenia.GH_CANARY_RELEASE_ASSET_REGEX.value if release_channel == "canary" else constants.Xenia.GH_RELEASE_ASSET_REGEX.value,
+            token=self.settings.token
+        )
+    
+    def download_xenia_release(self, release, progress_handler=None):
+        download_path = Path(release["filename"]).resolve()
+        return download_file_with_progress(
+            download_url=release["download_url"],
+            download_path=download_path,
+            progress_handler=progress_handler,
+        )
 
-    def get_xenia_release(self, release_channel):
-        repo_url = "https://api.github.com/repos/xenia-project/release-builds-windows/releases/latest" if release_channel == "Master" else "https://api.github.com/repos/xenia-canary/xenia-canary/releases/latest"
-        response = create_get_connection(repo_url, headers=get_headers(self.settings.app.token), timeout=30)
-        if not all(response):
-            return response
-        response = response[1]
+    def extract_xenia_release(self, release, progress_handler=None):
+        if release.suffix != ".zip":
+            return {
+                    "status": False,
+                    "message": "Unsupported archive type",
+            }
+
+        return self.extract_xenia_zip_archive(release, progress_handler)
+
+    def extract_xenia_zip_archive(self, release_archive, progress_handler=None):
+        return extract_zip_archive_with_progress(
+            zip_path=release_archive,
+            extract_directory=self.settings.xenia.install_directory / self.settings.xenia.release_channel,
+            progress_handler=progress_handler
+        )
+
+    def delete_xenia(self):
+        release_channel = self.settings.xenia.release_channel
         try:
-            release_info = response.json()
-            latest_version = release_info["tag_name"] if release_channel == "Master" else release_info["target_commitish"][:7]
-            assets = release_info["assets"]
-        except KeyError:
-            return (False, "Unable to parse response from GitHub. You may have been API rate limited.")
-        release = get_release_from_assets(assets, f"xenia_{release_channel.lower()}.zip", wildcard=True)
-        release.version = latest_version
-        return (True, release)
-
-    def download_release(self, release):
-        download_folder = os.getcwd()
-        download_path = os.path.join(download_folder, f"{release.name.replace(".zip", "")}@{release.version}.zip")
-        response_result = create_get_connection(release.download_url, headers=get_headers(), stream=True, timeout=30)
-        if not all(response_result):
-            return response_result
-        response = response_result[1]
-        self.main_progress_frame.start_download(release.name, release.size)
-        self.main_progress_frame.grid(row=0, column=0, sticky="ew")
-
-        download_result = download_through_stream(response, download_path, self.main_progress_frame, 1024*203)
-        self.main_progress_frame.complete_download()
-        return download_result
-
-    def extract_xenia_release(self, release, release_channel):
-        if release.endswith(".zip"):
-            return self.extract_xenia_zip_archive(release, release_channel)
-        else:
-            return (False, "Unsupported archive type")
-
-    def extract_xenia_zip_archive(self, release_archive, release_channel):
-        self.main_progress_frame.start_download(f"{os.path.basename(release_archive).replace(".zip", "")}", 0)
-        self.main_progress_frame.complete_download()
-        self.main_progress_frame.update_status_label("Extracting... ")
-        self.main_progress_frame.grid(row=0, column=0, sticky="nsew")
-        extracted = True
-        try:
-            with ZipFile(release_archive, 'r') as archive:
-                total_files = len(archive.namelist())
-                extracted_files = []
-                for file in archive.namelist():
-                    if self.main_progress_frame.cancel_download_raised:
-                        extracted = False
-                        break
-                    archive.extract(file, os.path.join(self.settings.xenia.install_directory, release_channel.lower()))
-                    extracted_files.append(file)
-                    # Calculate and display progress
-                    self.main_progress_frame.update_extraction_progress(len(extracted_files) / total_files)
-            self.main_progress_frame.grid_forget()
-            if extracted:
-                return (True, extracted_files)
-            else:
-                return (False, "Cancelled")
-        except Exception as error:
-            self.main_progress_frame.grid_forget()
-            return (False, error)
-
-    def delete_xenia(self, version):
-        try:
-            path_to_remove = os.path.join(self.settings.xenia.install_directory, version)
+            path_to_remove = self.settings.xenia.install_directory / release_channel
             shutil.rmtree(path_to_remove)
-            messagebox.showinfo("Success", f"The Xenia {version} installation was successfully was removed")
-        except Exception as e:
-            messagebox.showerror("Error", f"There was an error while attempting to delete Xenia {version}: \n\\n{e}")
-            return
+            return {
+                "status": True,
+                "message": f"Successfully deleted Xenia {release_channel}",
+            }
+            
+        except OSError as e:
+            return {
+                "status": False,
+                "message": f"Failed to delete Xenia {release_channel} due to error:\n\n{e}",
+            }
 
-    def launch_xenia_handler(self, release_channel, skip_update=False, wait_for_exit=True):
-        if not skip_update:
-            self.gui.configure_action_buttons("disabled", text="Fetching Updates...  ", width=170)
-            self.install_xenia_handler(release_channel, None, True)
+    def launch_xenia(self):
 
-        self.gui.configure_action_buttons("disabled", text="Launched!  ", width=170)
-        xenia_exe = os.path.join(self.settings.xenia.install_directory, release_channel, "xenia.exe" if release_channel == "Master" else "xenia_canary.exe")
+        xenia_exe = self.settings.xenia.install_directory / self.settings.xenia.release_channel / ("xenia.exe" if self.settings.xenia.release_channel == "master" else "xenia_canary.exe")
+        if not xenia_exe.exists():
+            return {
+                "run_status": False,
+                "message": "Xenia executable does not exist",
+            }
         args = [xenia_exe]
-        self.running = True
-
-        if wait_for_exit:
-            subprocess.run(args, check=False)
-        else:
-            subprocess.Popen(args)
-        self.running = False
+        try:
+            run = subprocess.run(args, check=False, capture_output=True)
+        except Exception as e:
+            return {
+                "run_status": False,
+                "message": f"Failed to launch xenia due to error:\n\n{e}",
+            }
+        if run.returncode != 0:
+            return {    
+                "run_status": True,
+                "error_encountered": True,
+                "message": run.stderr.decode("utf-8")
+            }
+        return {
+            "run_status": True,
+            "error_encountered": False,
+            "message": "Dolphin successfully launched and exited with no errors"
+        }
 
     def export_xenia_data(self, mode, directory_to_export_to, folders_to_export=None):
         user_directory = self.settings.xenia.user_directory
