@@ -62,8 +62,6 @@ def extract_zip_archive_with_progress(zip_path, extract_directory, progress_hand
     extracted_files = []
     if progress_handler is None:
         progress_handler = ProgressHandler()
-    if extract_directory.exists() and extract_directory.iterdir():
-        shutil.rmtree(extract_directory)
     try:
         with ZipFile(zip_path, 'r') as archive:
             total_files = len(archive.namelist())

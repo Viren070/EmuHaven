@@ -10,7 +10,7 @@ from zipfile import ZipFile
 from packaging import version
 
 from core.emulators.common.switch_emulator import SwitchEmulator
-from core.utils.files import copy_directory_with_progress
+from core.utils.files import copy_directory_with_progress, extract_zip_archive_with_progress
 
 
 
@@ -36,136 +36,66 @@ class Yuzu(SwitchEmulator):
         except Exception:
             return False
 
-    def delete_early_access(self, skip_prompt=False):
+
+    def extract_release(self, zip_path, progress_handler=None):
+        return extract_zip_archive_with_progress(
+            zip_path=zip_path,
+            extract_directory=self.settings.yuzu.install_directory,
+            progress_handler=progress_handler
+        )
+
+    def install_yuzu(self, archive_path, progress_handler=None):
+        extract_directory = self.settings.yuzu.install_directory / ("yuzu-windows-msvc-early-access" if self.settings.yuzu.release_channel == "early_access" else "yuzu-windows-msvc")
+        if not self.verify_yuzu_zip(archive_path, self.settings.yuzu.release_channel):
+            return {
+                "status": False,
+                "message": "The archive is not a valid yuzu release"
+            }
+        return self.extract_release(archive_path, progress_handler)
+
+    def launch_yuzu(self):
+        yuzu_path = self.settings.yuzu.install_directory / ("yuzu-windows-msvc-early-access" if self.settings.yuzu.release_channel == "early_access" else "yuzu-windows-msvc") / "yuzu.exe"
+        args = [yuzu_path]
         try:
-            shutil.rmtree(os.path.join(self.settings.yuzu.install_directory, "yuzu-windows-msvc-early-access"))
-            if not skip_prompt:
-                messagebox.showinfo("Success", "The installation of yuzu EA was successfully deleted!")
-            return (True, "Success")
-        except Exception as error_msg:
-            messagebox.showerror("Delete Error", f"Failed to delete yuzu-ea: \n\n{error_msg}")
-            return (False, error_msg)
-
-
-    def extract_release(self, zip_path, release_type):
-        extract_folder = self.settings.yuzu.install_directory
-        extracted_files = []
-
-        self.main_progress_frame.start_download(os.path.basename(zip_path).replace(".zip", ""), 0)
-        self.main_progress_frame.complete_download()
-        self.main_progress_frame.update_status_label("Extracting... ")
-        self.main_progress_frame.grid(row=0, column=0, sticky="ew")
-        if os.path.exists(os.path.join(self.settings.yuzu.install_directory, "yuzu-windows-msvc" if release_type == "mainline" else "yuzu-windows-msvc-early-access")):
-            delete_func = self.delete_mainline if release_type == "mainline" else self.delete_early_access
-            result = delete_func(True)
-            if not all(result):
-                return (False, "Failed to delete old installation")
-        try:
-            with ZipFile(zip_path, 'r') as archive:
-                total_files = len(archive.namelist())
-                for file in archive.namelist():
-                    if self.main_progress_frame.cancel_download_raised:
-                        self.main_progress_frame.grid_forget()
-                        return (False, "Cancelled")
-                    archive.extract(file, extract_folder)
-                    extracted_files.append(file)
-                    # Calculate and display progress
-                    self.main_progress_frame.update_extraction_progress(len(extracted_files) / total_files)
+            output = subprocess.run(args, check=False, capture_output=True)
         except Exception as error:
-            self.main_progress_frame.grid_forget()
-            return (False, error)
-        self.main_progress_frame.grid_forget()
-        return (True, extract_folder)
+            return {
+                "status": False,
+                "message": f"Failed to launch yuzu:\n\n{error}"
+            }
+        if output.returncode != 0:
+            return {
+                "status": True,
+                "error_encountered": True,
+                "message": f"Yuzu exited with a non-zero:\n\n{output.stderr.decode()}"
+            }
+        return {
+            "status": True, 
+            "error_encountered": False,
+            "message": "Yuzu safely launched and exited"
+        }
 
-    def install_release_handler(self, release_type, updating=False, path_to_archive=None):
-        release_archive = path_to_archive
-        if path_to_archive is None:
-            release_result = self.get_latest_release(release_type)
-            if not all(release_result):
-                messagebox.showerror("Install Yuzu", f"There was an error while attempting to fetch the latest release of Yuzu:\n\n{release_result[1]}")
-                return
-            release = release_result[1]
-            if updating and release.version == self.metadata.get_installed_version(release_type):
-                return
-            download_result = self.download_release(release, release_type)
-            if not all(download_result):
-                if download_result[1] != "Cancelled":
-                    messagebox.showerror("Error", f"There was an error while attempting to download the latest release of yuzu {release_type.replace('_', ' ').title()}:\n\n{download_result[1]}")
-                else:
-                    try:
-                        os.remove(download_result[2])
-                    except Exception as error:
-                        messagebox.showwarning("Error", f"Failed to delete the file after cancelling due to error below:\n\n{error}")
-                return
-            release_archive = download_result[1]
-        elif not self.verify_yuzu_zip(path_to_archive, release_type):
-            messagebox.showerror("Error", "The archive you have provided is invalid")
-            return
-        extract_result = self.extract_release(release_archive, release_type)
-        if not all(extract_result):
-            if extract_result[1] != "Cancelled":
-                messagebox.showerror("Extract Error", f"An error occurred while extracting the release: \n\n{extract_result[1]}")
-            elif path_to_archive is None:
-                try:
-                    os.remove(release_archive)
-                except Exception as error:
-                    messagebox.showwarning("Error", f"Failed to delete the file after cancelling due to error below:\n\n{error}")
-            return
-        if path_to_archive is None:
-            self.metadata.update_installed_version(release_type, release.version)
-        if path_to_archive is None and self.settings.app.delete_files == "True" and os.path.exists(release_archive):
-            os.remove(release_archive)
-        if not updating:
-            messagebox.showinfo("Install Yuzu", f"Yuzu was successfully installed to {extract_result[1]}")
-
-    def launch_yuzu_installer(self):
-        path_to_installer = self.settings.yuzu.installer_path
-        self.running = True
-        subprocess.run([path_to_installer], check=False)
-        self.running = False
-
-    def delete_mainline(self, skip_prompt=False):
-        try:
-            shutil.rmtree(os.path.join(self.settings.yuzu.install_directory, "yuzu-windows-msvc"))
-            if not skip_prompt:
-                messagebox.showinfo("Delete Yuzu", "Installation of yuzu successfully deleted")
-            return (True, "Success")
-        except Exception as error:
-            messagebox.showerror("Delete Error", f"An error occured while trying to delete the installation of yuzu:\n\n{error}")
-            return (False, error)
-
-    def launch_yuzu_handler(self, release_type, skip_update=False, wait_for_exit=True):
-        skip_update = True  # skip updates as yuzu is discontinued
-        if not skip_update and self.settings.yuzu.use_yuzu_installer != "True":
-            func = self.gui.configure_mainline_buttons if release_type == "mainline" else self.gui.configure_early_access_buttons
-            func("disabled", text="Fetching Updates...  ")
-            self.install_release_handler(release_type, True)
-        if release_type == "mainline":
-            self.gui.configure_mainline_buttons("disabled", text="Launching...  ")
-            yuzu_folder = "yuzu-windows-msvc"
-        elif release_type == "early_access":
-            self.gui.configure_early_access_buttons("disabled", text="Launching...  ")
-            yuzu_folder = "yuzu-windows-msvc-early-access"
-        self.check_and_prompt_firmware_keys_install()
-        func_to_call = self.gui.configure_mainline_buttons if release_type == "mainline" else self.gui.configure_early_access_buttons
-        func_to_call("disabled", text="Launched!  ")
-        yuzu_exe = os.path.join(self.settings.yuzu.install_directory, yuzu_folder, "yuzu.exe")
-        maintenance_tool = os.path.join(self.settings.yuzu.install_directory, "maintenancetool.exe")
-        use_installer = self.settings.yuzu.use_yuzu_installer == "True"
-
-        if use_installer and not skip_update and not os.path.exists(maintenance_tool):
-            messagebox.showerror("Error", "The update tool 'maintenancetool.exe' was not found, and it's required to update yuzu as the yuzu installer option is enabled. Please install yuzu first through the installer before launching it.")
-            args = [yuzu_exe]
-        else:
-            args = [maintenance_tool, "--launcher", yuzu_exe] if use_installer and not skip_update else [yuzu_exe]
-
-        self.running = True
-        if wait_for_exit:
-            subprocess.run(args, check=False)
-        else:
-            subprocess.Popen(args)
-        self.running = False
     
+    def delete_yuzu(self):
+        yuzu_path = self.settings.yuzu.install_directory / ("yuzu-windows-msvc-early-access" if self.settings.yuzu.release_channel == "early_access" else "yuzu-windows-msvc")
+        if not yuzu_path.is_dir() or not any(yuzu_path.iterdir()):
+            return {
+                "status": False,
+                "message": f"Could not find a yuzu installation at {yuzu_path}"
+            }
+        try:
+            shutil.rmtree(yuzu_path)
+            return {
+                "status": True,
+                "message": f"Successfully deleted yuzu {self.settings.yuzu.release_channel}"
+            }
+        except Exception as error:
+            return {
+                "status": False,
+                "message": f"Failed to delete yuzu {self.settings.yuzu.release_channel}:\n\n{error}"
+            }
+
+
     def check_and_prompt_firmware_keys_install(self):
         # Helper function to get version
         def get_version(key):

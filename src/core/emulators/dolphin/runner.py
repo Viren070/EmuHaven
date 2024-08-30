@@ -106,6 +106,12 @@ class Dolphin:
     def extract_release(self, release: Path, progress_handler=ProgressHandler()):
         match release.suffix:
             case ".zip":
+                if not self._verify_dolphin_archive(release):
+                    return {
+                        "status": False,
+                        "message": "Invalid archive",
+                        "extracted_files": []
+                    }
                 return self._extract_zip_archive(release, progress_handler)
             case ".7z":
                 return self._extract_7z_archive(release, progress_handler)

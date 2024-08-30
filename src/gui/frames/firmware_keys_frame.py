@@ -93,7 +93,6 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
     def configure_firmware_key_buttons(self, state):
         self.install_firmware_button.configure(state=state)
         self.install_keys_button.configure(state=state)
-        self.gui.fetch_versions()
 
     def create_scrollable_dropdown_with_dict(self, version_dict):
         firmware_versions = [release.version for release in version_dict.get("firmware", {}).values()]

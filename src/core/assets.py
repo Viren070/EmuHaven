@@ -43,7 +43,7 @@ class Assets:
 
     def get_theme_path(self, theme_name):
         if theme_name in constants.App.DEFAULT_COLOUR_THEMES.value:
-            path = Path(customtkinter.__file__).parent / "assets" / "themes" / f"{theme_name}.json"
+            path = Path(customtkinter.__file__).resolve().parent / "assets" / "themes" / f"{theme_name}.json"
         else:
             path = self.asset_dir / "themes" / f"{theme_name}.json"
             

@@ -38,7 +38,7 @@ class Ryujinx(SwitchEmulator):
                     return False
         except Exception:
             return False
-        
+
     def _determine_release_regex(self):
         machine = platform.machine()
         system = platform.system()
@@ -54,9 +54,9 @@ class Ryujinx(SwitchEmulator):
 
     def get_latest_release(self):
         return get_latest_release_with_asset(
-            repo_owner=constants.Ryujinx.GH_RELEASE_REPO_OWNER,
-            repo_name=constants.Ryujinx.GH_RELEASE_REPO_NAME,
-            regex=constants.Ryujinx.GH_RELEASE_WINDOWS_ASSET_REGEX,
+            repo_owner=constants.Ryujinx.GH_RELEASE_REPO_OWNER.value,
+            repo_name=constants.Ryujinx.GH_RELEASE_REPO_NAME.value,
+            regex=constants.Ryujinx.GH_RELEASE_WINDOWS_ASSET_REGEX.value,
             token=self.settings.token,
         )
 
@@ -84,7 +84,34 @@ class Ryujinx(SwitchEmulator):
                 "status": False,
                 "message": f"Failed to delete Ryujinx due to error: {error}",
             }
-
+            
+    def launch_ryujinx(self):
+        ryujinx_exe = self.settings.ryujinx.install_directory / "publish" / "Ryujinx.exe"
+        
+        if not ryujinx_exe.exists():
+            return {
+                "status": False,
+                "message": "Ryujinx executable not found",
+            }
+        args = [ryujinx_exe]
+        try:
+            run = subprocess.run(args, check=False, capture_output=True)
+        except Exception as error:
+            return {
+                "status": False,
+                "message": f"Failed to launch Ryujinx due to error: {error}",
+            }
+        if run.returncode != 0:
+            return {    
+                "status": True,
+                "error_encountered": True,
+                "message": run.stderr.decode("utf-8")
+            }
+        return {
+            "status": True,
+            "error_encountered": False,
+            "message": "Ryujinx successfully launched and exited with no errors"
+        }
 
 
     def check_and_prompt_firmware_keys_install(self):

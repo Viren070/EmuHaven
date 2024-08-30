@@ -34,5 +34,5 @@ class Versions:
     
     def get_version(self, key):
         self.load_versions_from_file()
-        return self.versions_dict.get(key)
+        return self.versions_dict.get(key, "")
     
