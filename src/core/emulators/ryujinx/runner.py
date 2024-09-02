@@ -52,7 +52,7 @@ class Ryujinx(SwitchEmulator):
             case _:
                 raise ValueError("Unsupported system")
 
-    def get_latest_release(self):
+    def get_release(self):
         return get_latest_release_with_asset(
             repo_owner=constants.Ryujinx.GH_RELEASE_REPO_OWNER.value,
             repo_name=constants.Ryujinx.GH_RELEASE_REPO_NAME.value,
@@ -64,12 +64,14 @@ class Ryujinx(SwitchEmulator):
         return download_file_with_progress(
             download_url=release["download_url"],
             download_path=release["filename"],
+            progress_handler=None
         )
 
     def extract_release(self, zip_path):
         return extract_zip_archive_with_progress(
             zip_path=zip_path,
-            target_directory=self.settings.ryujinx.install_directory,
+            extract_directory=self.settings.ryujinx.install_directory,
+            progress_handler=None
         )
 
     def delete_ryujinx(self, skip_prompt=False):
@@ -93,9 +95,14 @@ class Ryujinx(SwitchEmulator):
                 "status": False,
                 "message": "Ryujinx executable not found",
             }
-        args = [ryujinx_exe]
+        match platform.system().lower():
+            case "windows":
+                args = ["cmd", "/c", "start", "cmd", "/c", str(ryujinx_exe)]
+            case _:
+                args = [ryujinx_exe]
+        
         try:
-            run = subprocess.run(args, check=False, capture_output=True)
+            run = subprocess.run(args, check=False, capture_output=True, shell=True)
         except Exception as error:
             return {
                 "status": False,
@@ -105,7 +112,7 @@ class Ryujinx(SwitchEmulator):
             return {    
                 "status": True,
                 "error_encountered": True,
-                "message": run.stderr.decode("utf-8")
+                "message": f"The process exited with a non zero exit code:\n\n{run.stderr.decode("utf-8")}"
             }
         return {
             "status": True,

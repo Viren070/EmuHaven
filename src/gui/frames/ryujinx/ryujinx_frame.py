@@ -1,16 +1,12 @@
-import os
 from threading import Thread
-from tkinter import messagebox
 
 import customtkinter
 from CTkToolTip import CTkToolTip
-from PIL import Image
 
 from core.emulators.ryujinx.runner import Ryujinx
-from core.paths import Paths
 from gui.frames.emulator_frame import EmulatorFrame
 from gui.frames.firmware_keys_frame import FirmwareKeysFrame
-from gui.frames.progress_frame import ProgressFrame
+from gui.libs import messagebox
 from gui.frames.ryujinx.ryujinx_rom_frame import RyujinxROMFrame
 from gui.windows.path_dialog import PathDialog
 from gui.windows.folder_selector import FolderSelector
@@ -19,9 +15,10 @@ FOLDERS = ["bis", "games", "mods", "profiles", "sdcard", "system"]
 
 
 class RyujinxFrame(EmulatorFrame):
-    def __init__(self, parent_frame, paths, settings, versions, assets, cache, event_manager):
-        super().__init__(parent_frame=parent_frame, paths=paths, settings=settings, versions=versions, assets=assets)
+    def __init__(self, master, paths, settings, versions, assets, cache, event_manager):
+        super().__init__(parent_frame=master, paths=paths, settings=settings, versions=versions, assets=assets)
         self.ryujinx = Ryujinx(self, settings, versions)
+        self.root = master
         self.cache = cache
         self.ryujinx_version = None
         self.paths = paths
@@ -57,16 +54,16 @@ class RyujinxFrame(EmulatorFrame):
         self.actions_frame.grid_columnconfigure(1, weight=1)  # Stretch horizontally
         self.actions_frame.grid_columnconfigure(2, weight=1)  # Stretch horizontally
 
-        self.launch_button = customtkinter.CTkButton(self.actions_frame, height=40, width=225, image=self.assets.play_image, text="Launch Ryujinx  ", command=self.launch_button_event, font=customtkinter.CTkFont(size=15, weight="bold"))
+        self.launch_button = customtkinter.CTkButton(self.actions_frame, height=40, width=225, image=self.assets.play_image, text="Launch Ryujinx  ", command=self.launch_ryujinx_button_event, font=customtkinter.CTkFont(size=15, weight="bold"))
         self.launch_button.grid(row=0, column=2, padx=30, pady=15, sticky="n")
-        self.launch_button.bind("<Button-1>", command=self.launch_button_event)
+        self.launch_button.bind("<Button-1>", command=self.launch_ryujinx_button_event)
         CTkToolTip(self.launch_button, message="Click me to launch Ryujinx.\nHold shift to toggle the update behaviour.\nIf automatic updates are disabled, shift-clicking will update the emulator\nand otherwise it will skip the update.")
-        self.install_button = customtkinter.CTkButton(self.actions_frame, text="Install Ryujinx", command=self.install_button_event)
+        self.install_button = customtkinter.CTkButton(self.actions_frame, text="Install Ryujinx", command=self.install_ryujinx_button_event)
         self.install_button.grid(row=0, column=1, padx=10, pady=5, sticky="ew")
-        self.install_button.bind("<Button-1>", command=self.install_button_event)
+        self.install_button.bind("<Button-1>", command=self.install_ryujinx_button_event)
         CTkToolTip(self.install_button, message="Click me to download and install the latest release of Ryujinx from the internet\nShift-Click me to install Ryujinx with a custom archive")
 
-        self.delete_button = customtkinter.CTkButton(self.actions_frame, text="Delete Ryujinx", fg_color="red", hover_color="darkred", command=self.delete_button_event)
+        self.delete_button = customtkinter.CTkButton(self.actions_frame, text="Delete Ryujinx", fg_color="red", hover_color="darkred", command=self.delete_ryujinx_button_event)
         self.delete_button.grid(row=0, column=3, padx=10, pady=5, sticky="ew")
         CTkToolTip(self.delete_button, message="Click me to delete the installation of Ryujinx at the directory specified in settings.")
 
@@ -77,7 +74,6 @@ class RyujinxFrame(EmulatorFrame):
         self.log_frame.grid(row=4, column=0, padx=80, sticky="ew")
         self.log_frame.grid_propagate(False)
         self.log_frame.grid_columnconfigure(0, weight=3)
-        self.ryujinx.main_progress_frame = ProgressFrame(self.log_frame)
         # create ryujinx 'Manage Data' frame and widgets
         self.manage_data_frame = customtkinter.CTkFrame(self, corner_radius=0, bg_color="transparent")
         self.manage_data_frame.grid_columnconfigure(0, weight=1)
@@ -137,41 +133,137 @@ class RyujinxFrame(EmulatorFrame):
     def install_key_handler(self, *args):
         self.ryujinx.install_key_handler(*args)
 
-    def launch_button_event(self, event=None):
+    def launch_ryujinx_button_event(self, event=None):
         if event is None or self.launch_button.cget("state") == "disabled":
             return
-        if not os.path.exists(os.path.join(self.settings.ryujinx.install_directory, "publish", "ryujinx.exe")):
-            messagebox.showerror("Ryujinx", "Installation of Ryujinx not found, please install Ryujinx using the button to the left")
-            return
+        auto_update = self.settings.auto_emulator_updates if not event.state & 1 else not self.settings.auto_emulator_updates
         self.configure_action_buttons("disabled")
-        self.firmware_keys_frame.configure_firmware_key_buttons("disabled")
-        shift_clicked = True if event.state & 1 else False
-        shift_clicked = not shift_clicked if self.settings.app.disable_automatic_updates == "True" else shift_clicked
-        thread = Thread(target=self.ryujinx.launch_ryujinx_handler, args=(shift_clicked, ))
-        thread.start()
-        Thread(target=self.enable_buttons_after_thread, args=(thread, ["action", "firmware_keys"],)).start()
-        
+        self.event_manager.add_event(
+            event_id="launch_ryujinx",
+            func=self.launch_ryujinx_handler,
+            kwargs={"auto_update": auto_update},
+            completion_functions=[lambda: self.enable_buttons(["action"])],
+        )
 
-    def install_button_event(self, event=None):
+    def launch_ryujinx_handler(self, auto_update):
+        if auto_update:
+            update = self.install_ryujinx_handler(update_mode=True)
+            if not update.get("status", False):
+                return update
+        
+        launch_result = self.ryujinx.launch_ryujinx()
+        
+        if not launch_result["status"]:
+            return {
+                "message_func": messagebox.showerror,
+                "message_args": (self.root, "Error", launch_result["message"]),
+            }
+        if launch_result["error_encountered"]:
+            return {
+                "message_func": messagebox.showerror,
+                "message_args": (self.root, "Error", launch_result["message"]),
+            }
+        
+        return {}
+    
+    def install_ryujinx_button_event(self, event=None):
         if event is None or self.install_button.cget("state") == "disabled":
             return
-        if os.path.exists(os.path.join(self.settings.ryujinx.install_directory, "publish")) and not messagebox.askyesno("Directory Exists", "The directory already exists. Are you sure you want to overwrite the contents inside?"):
+        if (
+            (self.settings.ryujinx.install_directory / "publish").is_dir() and (
+                any((self.settings.ryujinx.install_directory / "publish").iterdir()) and (
+                    messagebox.askyesno(
+                        self.root,
+                        "Confirmation", "An installation of Ryujinx already exists. Do you want to overwrite it?"
+                    ) != "yes"
+                )
+            )
+        ):
             return
         path_to_archive = None
+        
         if event.state & 1:
-            path_to_archive = PathDialog(filetypes=(".zip",), title="Custom Ryujinx Archive", text="Enter path to Ryujinx archive: ")
-            path_to_archive = path_to_archive.get_input()
+            path_to_archive = PathDialog(filetypes=(".zip",), title="Custom Ryujinx Archive", text="Enter path to Ryujinx archive: ").get_input()
             if not all(path_to_archive):
                 if path_to_archive[1] is not None:
-                    messagebox.showerror("Error", "The path you have provided is invalid")
+                    messagebox.showerror(self.root, "Error", "The path you have provided is invalid")
                 return
             path_to_archive = path_to_archive[1]
+        
         self.configure_action_buttons("disabled")
-        self.firmware_keys_frame.configure_firmware_key_buttons("disabled")
+        self.event_manager.add_event(
+            event_id="install_ryujinx",
+            func=self.install_ryujinx_handler,
+            kwargs={"archive_path": path_to_archive},
+            completion_functions=[lambda: self.enable_buttons(["action"])],
+            allow_no_output=False,
+            event_error_function=lambda: messagebox.showerror(self.root, "Error", "An unexpected error occured while installing Ryujinx. Please check the logs for more information.")
+        )
+        
+    def install_ryujinx_handler(self, update_mode=False, archive_path=None):
+        custom_install = archive_path is not None
+        
+        if archive_path is None:
+            release_fetch_result = self.ryujinx.get_release()
+            if not release_fetch_result["status"]:
+                return {
+                    "message_func": messagebox.showerror,
+                    "message_args": (self.root, "Ryujinx", f"Failed to fetch the latest release of Ryujinx: {release_fetch_result['message']}")
+                }
+            
+            if update_mode and release_fetch_result["release"]["version"] == self.versions.get_version("ryujinx"):
+                return {
+                    "status": True
+                }
+            
+            download_result = self.ryujinx.download_release(release_fetch_result["release"]) 
+            if not download_result["status"]:
+                return ({
+                    "message_func": messagebox.showerror,
+                    "message_args": (self.root, "Ryujinx", f"Failed to download the latest release of Ryujinx: {download_result['message']}")
+                })
+                
+            archive_path = download_result["download_path"]
 
-        thread = Thread(target=self.ryujinx.install_release_handler, args=(False, path_to_archive, ))
-        thread.start()
-        Thread(target=self.enable_buttons_after_thread, args=(thread, ["action", "firmware_keys"],)).start()
+        extract_result = self.ryujinx.extract_release(archive_path)
+        if not extract_result["status"]:
+            return ({
+                "message_func": messagebox.showerror,
+                "message_args": (self.root, "ryujinx", f"Failed to extract the latest release of ryujinx: {extract_result['message']}")
+            })
+
+        self.metadata.set_version("ryujinx", release_fetch_result["release"]["version"] if not custom_install else "")
+        return ({
+            "message_func": messagebox.showsuccess,
+            "message_args": (self.root, "ryujinx", f"Successfully installed ryujinx to {self.settings.ryujinx.install_directory}"),
+            "status": True
+        })
+
+    def delete_ryujinx_button_event(self, event=None):
+        if not (self.settings.ryujinx.install_directory / "publish").is_dir() or not any((self.settings.ryujinx.install_directory / "publish").iterdir()):
+            messagebox.showerror(self.root, "Error", f"Could not find a Ryujinx installation at {self.settings.ryujinx.install_directory}")
+            return
+        if messagebox.askyesno(self.root, "Confirmation", "This will delete the Ryujinx installation. This action cannot be undone, are you sure you wish to continue?", icon="warning") != "yes":
+            return
+        self.configure_action_buttons("disabled")
+        self.event_manager.add_event(
+            event_id="delete_ryujinx",
+            func=self.delete_ryujinx_handler,
+            allow_no_output=False,
+            event_error_function=lambda: messagebox.showerror(self.root, "Error", "An unexpected error occured while deleting Ryujinx. Please check the logs for more information."),
+            completion_functions=[lambda: self.enable_buttons(["action"])],
+        )
+    def delete_ryujinx_handler(self):
+        delete_result = self.ryujinx.delete_ryujinx()
+        if not delete_result["status"]:
+            return {
+                "message_func": messagebox.showerror,
+                "message_args": (self.root, "Error", delete_result["message"]),
+            }
+        return {
+            "message_func": messagebox.showsuccess,
+            "message_args": (self.root, "Success", delete_result["message"]),
+        }
 
     def install_firmware_button_event(self, event=None):
         if event is None or self.firmware_keys_frame.install_firmware_button.cget("state") == "disabled":
@@ -224,16 +316,6 @@ class RyujinxFrame(EmulatorFrame):
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["firmware_keys", "action"],)).start()
 
-    def delete_button_event(self):
-        if not os.path.exists(os.path.join(self.settings.ryujinx.install_directory, "publish")):
-            messagebox.showinfo("Delete Ryujinx", f"Could not find a Ryujinx installation at {os.path.join(self.settings.ryujinx.install_directory, 'publish')} ")
-            return
-        if not messagebox.askyesno("Confirmation", f"Are you sure you want to delete the contents of '{self.settings.ryujinx.install_directory}'?"):
-            return
-        self.configure_action_buttons("disabled")
-        thread = Thread(target=self.ryujinx.delete_ryujinx)
-        thread.start()
-        Thread(target=self.enable_buttons_after_thread, args=(thread, ["action"],)).start()
 
     def import_data_button_event(self):
         directory = None
@@ -296,8 +378,7 @@ class RyujinxFrame(EmulatorFrame):
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["data"],)).start()
 
-    def enable_buttons_after_thread(self, thread, buttons):
-        thread.join()
+    def enable_buttons(self, buttons):
         for button in buttons:
             if button == "action":
                 self.configure_action_buttons("normal", text="Launch Ryujinx  ", width=200)
@@ -308,9 +389,9 @@ class RyujinxFrame(EmulatorFrame):
         self.fetch_versions()
 
     def fetch_versions(self, installed_only=True):
-        self.installed_ryujinx_version = self.metadata.get_installed_version("ryujinx")
-        self.installed_firmware_version = self.metadata.get_installed_version("ryujinx_firmware")
-        self.installed_key_version = self.metadata.get_installed_version("ryujinx_keys")
+        self.installed_ryujinx_version = self.metadata.get_version("ryujinx")
+        self.installed_firmware_version = self.metadata.get_version("ryujinx_firmware")
+        self.installed_key_version = self.metadata.get_version("ryujinx_keys")
         self.update_version_text()
 
     def update_version_text(self):
