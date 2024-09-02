@@ -391,5 +391,5 @@ class YuzuFrame(EmulatorFrame):
             self.launch_yuzu_button.configure(text="Launch Yuzu EA  ")
             self.install_yuzu_button.configure(text="Install Yuzu EA")
             self.delete_yuzu_button.configure(text="Delete Yuzu EA")
-        self.firmware_keys_frame.installed_firmware_version_label.configure(text=self.metadata.get_version("yuzu_firmware").replace("Rebootless Update", "RU") if self.installed_firmware_version != "" else "Not Installed")
+        self.firmware_keys_frame.installed_firmware_version_label.configure(text=self.metadata.get_version("yuzu_firmware").replace("Rebootless Update", "RU") if self.metadata.get_version("yuzu_firmware") != "" else "Not Installed")
         self.firmware_keys_frame.installed_key_version_label.configure(text=self.metadata.get_version("yuzu_keys") if self.metadata.get_version("yuzu_keys") != "" else "Not Installed")

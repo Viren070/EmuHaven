@@ -3,6 +3,9 @@ import shutil
 
 from zipfile import ZipFile
 
+from core import constants
+from core.utils.github import get_all_releases, get_file_list
+from core.utils.web import download_file_with_progress
 
 class SwitchEmulator:
     def __init__(self, emulator, emulator_settings, firmware_path, key_path):
@@ -151,5 +154,74 @@ class SwitchEmulator:
         progress_frame.grid_forget()
         return (True, extracted_files)
     
-    def get_firmware_key_links(self):
-        pass
+    @staticmethod
+    def get_firmware_keys_dict(github_token=None):
+        releases = get_all_releases(
+            repo_owner=constants.Switch.FIRMWARE_KEYS_GH_REPO_OWNER.value,
+            repo_name=constants.Switch.FIRMWARE_KEYS_GH_REPO_NAME.value,
+            token=github_token,
+        )
+        if not releases["status"]:
+            return releases
+
+        firmware_keys = {}
+        releases = releases["response"].json()
+
+        for release in releases:
+            if not release["assets"]:
+                continue
+            version = release["name"]
+            assets = release["assets"]
+            key_release = {}
+            firmware_release = {}
+
+            for asset in assets:
+                if "Alpha" in asset["name"]:
+                    firmware_release = {
+                        "name": asset["name"].replace("Alpha", "Firmware"),
+                        "download_url": asset["browser_download_url"],
+                        "size": asset["size"],
+                        "version": version,
+                    }
+                elif "Rebootless" not in version and "Beta" in asset["name"]:
+                    key_release = {
+                        "name": asset["name"].replace("Beta", "Keys"),
+                        "download_url": asset["browser_download_url"],
+                        "size": asset["size"],
+                        "version": version,
+                    }
+
+            if firmware_release is not None:
+                firmware_keys["firmware"][version] = firmware_release
+            if key_release is not None and "Rebootless" not in version:
+                firmware_keys["keys"][version] = key_release
+
+        return {
+            "status": True,
+            "message": "Firmware and keys retrieved successfully",
+            "firmware_keys": firmware_keys,
+        }
+        
+    @staticmethod
+    def download_titledb(progress_handler=None):
+        return download_file_with_progress(
+            download_url=constants.Switch.TITLEDB_DOWNLOAD_URL.value,
+            download_path=constants.Switch.TITLEDB_FILENAME.value,
+            progress_handler=progress_handler,
+        )
+        
+    @staticmethod
+    def get_saves_list(progress_handler=None):
+        saves = get_file_list(
+            repo_owner=constants.Switch.SAVES_GH_REPO_OWNER.value,
+            repo_name=constants.Switch.SAVES_GH_REPO_NAME.value,
+            path=constants.Switch.SAVES_GH_REPO_PATH.value,
+        )
+        if not saves["status"]:
+            return saves
+        saves = saves["response"]
+        return [save["name"] for save in saves]
+    
+    @staticmethod
+    def get_game_urls(game_name):
+        return []

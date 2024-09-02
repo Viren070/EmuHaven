@@ -30,7 +30,8 @@ class GitHub(Enum):
     API_CONTENTS = API_URL + "repos/{owner}/{repo}/contents/{path}"
     API_RATE_LIMIT = API_URL + "rate_limit"
     API_USER = API_URL + "user"
-
+    RAW_URL = "https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{path}"
+    
 
 class Myrient(Enum):
     BASE_URL = "https://myrient.erista.me/files/"
@@ -63,8 +64,11 @@ class Switch(Enum):
     FIRMWARE_KEYS_GH_REPO_NAME = "NX_FK"
     SAVES_GH_REPO_OWNER = "NXResources"
     SAVES_GH_REPO_NAME = "NX_Saves"
+    SAVES_GH_REPO_PATH = "nintendo/switch/savegames"
     TITLEDB_GH_REPO_OWNER = "NXResources"
     TITLEDB_GH_REPO_NAME = "NX_TitleDB"
+    TITLEDB_FILENAME = "titles-tiny.US.en.json"
+    TITLEDB_DOWNLOAD_URL = f"https://github.com/{TITLEDB_GH_REPO_OWNER}/{TITLEDB_GH_REPO_NAME}/releases/download/latest/{TITLEDB_FILENAME}"
     GAMES_URLS = []
 
 

@@ -105,6 +105,14 @@ def get_latest_release_with_asset(repo_owner, repo_name, regex, token=None):
         "release": release,
     }
 
+def get_file_list(repo_owner, repo_name, path, token=None):
+    logger.debug("Getting file list for %s/%s/%s", repo_owner, repo_name, path)
+    response = web.get(GitHub.API_CONTENTS.value.format(owner=repo_owner, repo=repo_name, path=path), headers=get_headers(token))
+    if response["status"]:
+        response["response"] = response["response"].json()
+        return response
+    logger.error("Failed to get file list: %s", response)
+    return response
 
 def get_rate_limit_status(token):
     headers = get_headers(token)

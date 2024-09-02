@@ -60,18 +60,18 @@ class Ryujinx(SwitchEmulator):
             token=self.settings.token,
         )
 
-    def download_release(self, release):
+    def download_release(self, release, progress_handler=None):
         return download_file_with_progress(
             download_url=release["download_url"],
             download_path=release["filename"],
-            progress_handler=None
+            progress_handler=progress_handler
         )
 
-    def extract_release(self, zip_path):
+    def extract_release(self, zip_path, progress_handler=None):
         return extract_zip_archive_with_progress(
             zip_path=zip_path,
             extract_directory=self.settings.ryujinx.install_directory,
-            progress_handler=None
+            progress_handler=progress_handler
         )
 
     def delete_ryujinx(self, skip_prompt=False):
