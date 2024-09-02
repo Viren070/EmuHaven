@@ -104,7 +104,7 @@ class SettingsFrame(customtkinter.CTkFrame):
             self.xenia_settings_frame.grid_forget()
         if name == "app":
             self.app_settings_frame.grid(row=0, column=1, sticky="nsew")
-            self.app_settings_frame.start_update_requests_left()
+            self.app_settings_frame.start_update_requests_left(show_error=False)
         else:
             self.app_settings_frame.grid_forget()
 

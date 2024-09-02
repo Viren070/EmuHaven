@@ -9,7 +9,7 @@ from zipfile import ZipFile
 
 from packaging import version
 
-from core.emulators.common.switch_emulator import SwitchEmulator
+from core.emulators.switch_emulator import SwitchEmulator
 from core.utils.files import copy_directory_with_progress, extract_zip_archive_with_progress
 
 

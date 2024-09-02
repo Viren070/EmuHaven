@@ -9,7 +9,7 @@ import platform
 
 from packaging import version
 
-from core.emulators.common.switch_emulator import SwitchEmulator
+from core.emulators.switch_emulator import SwitchEmulator
 from core.utils.github import get_latest_release_with_asset
 from core.utils.web import download_file_with_progress
 from core.utils.files import copy_directory_with_progress, extract_zip_archive_with_progress

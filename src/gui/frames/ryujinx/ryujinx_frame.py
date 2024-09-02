@@ -147,13 +147,15 @@ class RyujinxFrame(EmulatorFrame):
             func=self.launch_ryujinx_handler,
             kwargs={"auto_update": auto_update},
             completion_functions=[lambda: self.configure_buttons("normal", launch_ryujinx_button_text="Launch Ryujinx")],
+            error_functions=[lambda: messagebox.showerror(self.root, "Error", "An unexpected error occured while launching Ryujinx. Please check the logs for more information and report the issue.")],
         )
 
     def launch_ryujinx_handler(self, auto_update):
         if auto_update:
             self.configure_buttons(launch_ryujinx_button_text="Updating...")
             update = self.install_ryujinx_handler(update_mode=True)
-            if not update.get("status", False):
+            if update.get("status", False) is False:
+                self.configure_buttons(launch_ryujinx_button_text="Oops!")
                 return update
 
         self.configure_buttons(launch_ryujinx_button_text="Launched!")
@@ -204,8 +206,7 @@ class RyujinxFrame(EmulatorFrame):
             func=self.install_ryujinx_handler,
             kwargs={"archive_path": path_to_archive},
             completion_functions=[lambda: self.configure_buttons(state="normal")],
-            allow_no_output=False,
-            event_error_function=lambda: messagebox.showerror(self.root, "Error", "An unexpected error occured while installing Ryujinx. Please check the logs for more information.")
+            error_functions=[lambda: messagebox.showerror(self.root, "Error", "An unexpected error occured while installing Ryujinx. Please check the logs for more information and report this issue.")]
         )
 
     def install_ryujinx_handler(self, update_mode=False, archive_path=None):
@@ -257,10 +258,10 @@ class RyujinxFrame(EmulatorFrame):
         self.event_manager.add_event(
             event_id="delete_ryujinx",
             func=self.delete_ryujinx_handler,
-            allow_no_output=False,
-            event_error_function=lambda: messagebox.showerror(self.root, "Error", "An unexpected error occured while deleting Ryujinx. Please check the logs for more information."),
+            error_functions=[lambda: messagebox.showerror(self.root, "Error", "An unexpected error occured while deleting Ryujinx. Please check the logs for more information and report this issue.")],
             completion_functions=[lambda: self.configure_buttons(state="normal")],
         )
+
     def delete_ryujinx_handler(self):
         delete_result = self.ryujinx.delete_ryujinx()
         if not delete_result["status"]:

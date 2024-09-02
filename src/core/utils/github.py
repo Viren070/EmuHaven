@@ -43,7 +43,7 @@ def find_asset_with_regex(assets, regex):
     return {"status": False, "message": "No asset found"}
 
 
-def get_latest_release_with_asset(repo_owner, repo_name, regex, token=None):
+def get_latest_release_with_asset(repo_owner, repo_name, regex, token=None, use_commit_as_version=False):
     """
     Get the version, size, download URL and filename for the asset that matches
     the given regex for the latest release of the GitHub repository with the given owner and name.
@@ -93,7 +93,7 @@ def get_latest_release_with_asset(repo_owner, repo_name, regex, token=None):
     asset = asset["asset"]
     
     release = {
-        "version": version,
+        "version": version if not use_commit_as_version else latest_release["response"].get("target_commitish"),
         "size": asset.get("size"),
         "download_url": asset.get("browser_download_url"),
         "filename": asset.get("name"),
@@ -128,7 +128,7 @@ def get_rate_limit_status(token):
     else:
         return {
             "status": False,
-            "message": f"Failed to get rate limit status: {response["message"]}",
+            "message": f"Failed to get rate limit status:\n{response["message"]}",
         }
 
 

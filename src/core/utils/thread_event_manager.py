@@ -11,15 +11,15 @@ class ThreadEventManager:
         self.window = window
         self.result_queue = queue.Queue()
 
-    def add_event(self, event_id, func, kwargs=None, completion_functions=None, allow_no_output=True, event_error_function=None):
+    def add_event(self, event_id, func, kwargs=None, completion_functions=None, error_functions=None):
         event = {
             "id": event_id,
             "function": func,
             "kwargs": kwargs if kwargs else {},
             "completion_functions": completion_functions if completion_functions else [],
-            "allow_no_output": allow_no_output,
-            "event_error_function": event_error_function,
-            "result_queue": queue.Queue()
+            "error_functions": error_functions if error_functions else [],
+            "result_queue": queue.Queue(),
+            "error_during_run": False
         }
         self.events.append(event)
         self.start_event(event)
@@ -35,6 +35,7 @@ class ThreadEventManager:
             result = event["function"](**event["kwargs"])
         except Exception as e:
             self.logger.error(f"Error in event {event["id"]}: {e} \n{traceback.format_exc()}")
+            event["error_during_run"] = True
             result = None
 
         self.logger.info(f"Event {event["id"]} completed")
@@ -50,7 +51,7 @@ class ThreadEventManager:
         if not event["result_queue"].empty():
             result = event["result_queue"].get()
             self._process_result(result, event)
-        self.window.after(200, self._main_thread_loop, event)
+        self.window.after(50, self._main_thread_loop, event)
 
     def _process_result(self, result, event):
         # Assuming result is a dictionary with keys "message_func" and "message_args"
@@ -59,8 +60,9 @@ class ThreadEventManager:
         message_func, message_args = result.get("message_func"), result.get("message_args")
         if message_func:
             message_func(*message_args)
-        elif not event.get("allow_no_output", True) and event.get("event_error_function") is not None:
-            event["event_error_function"]()
+        if event["error_during_run"] and event["error_functions"]:
+            for error_func in event["error_functions"]:
+                error_func()
         for completion_func in event["completion_functions"]:
             completion_func()
         # Remove the event from the list of events

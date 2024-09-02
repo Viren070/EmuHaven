@@ -211,16 +211,13 @@ class SwitchEmulator:
         )
         
     @staticmethod
-    def get_saves_list(progress_handler=None):
+    def get_saves_list():
         saves = get_file_list(
             repo_owner=constants.Switch.SAVES_GH_REPO_OWNER.value,
             repo_name=constants.Switch.SAVES_GH_REPO_NAME.value,
             path=constants.Switch.SAVES_GH_REPO_PATH.value,
         )
-        if not saves["status"]:
-            return saves
-        saves = saves["response"]
-        return [save["name"] for save in saves]
+        return [save["name"] for save in saves["response"]] if saves["status"] else saves
     
     @staticmethod
     def get_game_urls(game_name):

@@ -118,32 +118,40 @@ class DolphinFrame(EmulatorFrame):
         self.settings.dolphin.release_channel = value.lower()
         self.settings.save()
 
-    def configure_data_buttons(self, **kwargs):
-        self.dolphin_delete_button.configure(**kwargs)
-        self.dolphin_import_button.configure(**kwargs)
-        self.dolphin_export_button.configure(**kwargs)
+    def configure_buttons(
+        self,
+        state="disabled",
+        launch_dolphin_button_text="Launch Dolphin",
+        install_dolphin_button_text="Install Dolphin",
+        delete_dolphin_button_text="Delete Dolphin",
+    ):
+        self.launch_dolphin_button.configure(state=state, text=launch_dolphin_button_text)
+        self.install_dolphin_button.configure(state=state, text=install_dolphin_button_text)
+        self.delete_dolphin_button.configure(state=state, text=delete_dolphin_button_text)
 
-    def configure_buttons(self, state, **kwargs):
-        self.launch_dolphin_button.configure(state=state, **kwargs)
-        self.install_dolphin_button.configure(state=state)
-        self.delete_dolphin_button.configure(state=state)
-
+    
     def launch_dolphin_button_event(self, event=None):
         if event is None or self.launch_dolphin_button.cget("state") == "disabled":
             return
         if not (self.settings.dolphin.install_directory / "Dolphin.exe").exists():
             messagebox.showerror(self.root, "Dolphin", f"'Dolphin.exe' not found at {self.settings.dolphin.install_directory / 'Dolphin.exe'}")
             return
-        self.configure_buttons("disabled", text="Launching...")
+        self.configure_buttons(launch_dolphin_button_text="Launching...")
         auto_update = not self.settings.auto_emulator_updates if event.state & 1 else self.settings.auto_emulator_updates
-        self.event_manager.add_event("launch_dolphin", self.launch_dolphin_handler, kwargs={"auto_update": auto_update}, completion_functions=[lambda: self.enable_buttons_after_thread(["main"])])
+        self.event_manager.add_event(
+            "launch_dolphin",
+            self.launch_dolphin_handler,
+            kwargs={"auto_update": auto_update}, 
+            completion_functions=[lambda: self.configure_buttons(state="normal")],
+            error_functions=[lambda: messagebox.showerror(self.root, "Error", "An unexpected error occurred while launching Dolphin.\nPlease check the logs for more information and report this issue.")]
+            )
         
     def launch_dolphin_handler(self, auto_update):
         if auto_update:
             update_result = self.install_dolphin_handler(auto_update=True)
             if not update_result.get("status", False):
                 return update_result
-        self.configure_buttons("disabled", text="Launched!")
+        self.configure_buttons(launch_dolphin_button_text="Launched!")
         status = self.dolphin.launch_dolphin()
         
         if not status["run_status"]:
@@ -183,9 +191,15 @@ class DolphinFrame(EmulatorFrame):
                 return
             path_to_archive = path_to_archive[1]
 
-        self.configure_buttons("disabled")
+        self.configure_buttons(install_dolphin_button_text="Installing...")
         
-        self.event_manager.add_event("install_dolphin", self.install_dolphin_handler, kwargs={"archive_path": path_to_archive}, completion_functions=[lambda: self.enable_buttons_after_thread(["main"])])
+        self.event_manager.add_event(
+            "install_dolphin", 
+            self.install_dolphin_handler, 
+            kwargs={"archive_path": path_to_archive}, 
+            completion_functions=[lambda: self.configure_buttons(state="normal")],
+            error_functions=[lambda: messagebox.showerror(self.root, "Error", "An unexpected error occurred while installing Dolphin.\nPlease check the logs for more information and report this issue.")]
+            )
         
         
     def install_dolphin_handler(self, archive_path=None, auto_update=False):
@@ -237,8 +251,13 @@ class DolphinFrame(EmulatorFrame):
         if messagebox.askyesno(self.root, "Confirmation", f"Are you sure you want to delete the contents of `{self.settings.dolphin.install_directory}`") != "yes":
             return
 
-        self.configure_buttons("disabled")
-        self.event_manager.add_event("delete_dolphin", self.delete_dolphin_handler, completion_functions=[lambda: self.enable_buttons_after_thread(["main"])])
+        self.configure_buttons(delete_dolphin_button_text="Deleting...")
+        self.event_manager.add_event(
+            "delete_dolphin", 
+            self.delete_dolphin_handler, 
+            completion_functions=[lambda: self.configure_buttons(state="normal")],
+            error_functions=[lambda: messagebox.showerror(self.root, "Error", "An unexpected error occurred while deleting Dolphin.\nPlease check the logs for more information and report this issue.")]
+            )
 
     def delete_dolphin_handler(self):
         if not self.settings.dolphin.install_directory.is_dir() or not any(self.settings.dolphin.install_directory.iterdir()):
@@ -315,41 +334,3 @@ class DolphinFrame(EmulatorFrame):
         thread = Thread(target=self.dolphin.delete_dolphin_data, args=args)
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["data"],)).start()
-
-    def enable_buttons_after_thread(self, buttons):
-        if not isinstance(buttons, list):
-            raise TypeError("Expected list of button types")
-        for button in buttons:
-            if button == "main":
-                self.configure_buttons("normal", text="Launch Dolphin  ", width=230)
-            elif button == "data":
-                self.configure_data_buttons(state="normal")
-        self.fetch_versions()
-
-    def fetch_versions(self, installed_only=True):
-        if not installed_only:
-            pass
-        self.installed_dolphin_version = self.versions.get_version("dolphin")
-        self.update_version_text()
-
-    def update_version_text(self):
-
-        if self.dolphin_version is not None and self.install_dolphin_button.cget("state") != "disabled":
-            self.install_dolphin_button.configure(text=f"Install Dolphin {self.dolphin_version}")
-        if self.installed_dolphin_version != "":
-            if self.launch_dolphin_button.cget("state") != "disabled":
-                self.launch_dolphin_button.configure(text=f"Launch Dolphin {self.installed_dolphin_version}  ")
-        else:
-            self.launch_dolphin_button.configure(text="Launch Dolphin  ")
-
-
-    def start_queue_check(self):
-        self.after(100, self.check_queue)
-        
-    def check_queue(self):
-        if not self.result_queue.is_empty():
-            result = self.result_queue.dequeue()
-            self.show_message_after_thread(result["message_func"], result["message_args"])
-        else:
-            self.start_queue_check()
-

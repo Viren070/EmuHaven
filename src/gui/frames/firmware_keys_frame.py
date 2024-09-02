@@ -135,46 +135,7 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
         firmware_key_version_dict = firmware_key_dict_result[1]
         # Extract firmware versions from the self.firmware_key_version_dict
         self.create_scrollable_dropdown_with_dict(firmware_key_version_dict)
-        self.cache.add_json_data_to_cache("firmware_keys", self.create_cacheable_dict(firmware_key_version_dict))
+        self.cache.add_json_data_to_cache("firmware_keys", firmware_key_version_dict)
         self.fetching_versions = False
         self.firmware_key_version_dict = firmware_key_version_dict
 
-    def create_cacheable_dict(self, firmware_key_version_dict):
-        return {
-            "firmware": {
-                release.version: {
-                    "download_url": release.download_url,
-                    "name": release.name,
-                    "size": release.size,
-                    "version": release.version,
-                } for release in firmware_key_version_dict.get("firmware", {}).values()
-            },
-            "keys": {
-                release.version: {
-                    "download_url": release.download_url,
-                    "name": release.name,
-                    "size": release.size,
-                    "version": release.version,
-                } for release in firmware_key_version_dict.get("keys", {}).values()
-            }
-        }
-
-    def create_dict_from_cache(self, cache_dict):
-        return {
-            "firmware": {
-                version: Release(
-                    download_url=release_dict["download_url"],
-                    name=release_dict["name"],
-                    size=release_dict["size"],
-                    version=release_dict["version"],
-                ) for version, release_dict in cache_dict.get("firmware", {}).items()
-            },
-            "keys": {
-                version: Release(
-                    download_url=release_dict["download_url"],
-                    name=release_dict["name"],
-                    size=release_dict["size"],
-                    version=release_dict["version"],
-                ) for version, release_dict in cache_dict.get("keys", {}).items()
-            }
-        }

@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta, datetime
 from pathlib import Path
 from threading import Thread
 from tkinter import filedialog, ttk
@@ -12,17 +13,17 @@ from core.paths import Paths
 from core.utils.github import get_rate_limit_status
 from gui.libs import messagebox
 from gui.windows.github_login_window import GitHubLoginWindow
+from core.utils.thread_event_manager import ThreadEventManager
 
 
 class AppSettingsFrame(customtkinter.CTkFrame):
-    def __init__(self, parent_frame, settings, paths, assets, event_manager):
+    def __init__(self, parent_frame, settings, paths, assets, event_manager: ThreadEventManager):
         super().__init__(parent_frame, corner_radius=0, fg_color="transparent")
         self.root_window = parent_frame.root_window
+        self.updating_rate_limit = False
         self.event_manager = event_manager
         self.settings = settings
         self.parent_frame = parent_frame
-        self.update_status = True
-        self.update_requests_thread = Thread(target=self.update_requests_left, args=(self.settings.token,))
         self.paths = paths
         self.assets = assets
         self.token_gen = None
@@ -85,24 +86,51 @@ class AppSettingsFrame(customtkinter.CTkFrame):
         CTkToolTip(button, message="Provide a GitHub token or authorise the application through the OAuth.\nGenerated tokens last for 8 hours.\nNo data is stored, will need to be provided again if app is restarted.")
 
     def start_update_requests_left(self, event=None, show_error=True):
-        if self.update_status and not self.update_requests_thread.is_alive():
+        if not self.updating_rate_limit:
             self.requests_left_label.configure(text="API Requests Left: Fetching...\nResets in: Fetching...", anchor="w")
-            self.update_requests_thread = Thread(target=self.update_requests_left, args=(self.settings.token, show_error))
-            self.update_requests_thread.start()
+            self.event_manager.add_event(
+                event_id="fetch_rate_limit_status",
+                func=self.update_requests_left,
+                kwargs={"token": self.settings.token, "show_error": show_error},
+                error_functions=[lambda: self.requests_left_label.configure(text="API Requests Left: Unknown\nResets in: Unknown"), lambda: messagebox.showerror(self.root_window, "API Rate Limit Status", "An unexpected error occurred while fetching the rate limit status.\nCheck the logs for more information and report this issue."), lambda: setattr(self, "updating_rate_limit", False)]
+            )
         else:
             messagebox.showerror(self.root_window, "API Rate Limit Status", "Please wait, there is currently a fetch in progress. Or it has been disabled.")
 
     def update_requests_left(self, token, show_error=True):
+        self.updating_rate_limit = True
         rate_limit_status = get_rate_limit_status(token)
         if not rate_limit_status["status"]:
+            self.updating_rate_limit = False
             self.requests_left_label.configure(text="API Requests Left: Unknown\nResets in: Unknown")
             if show_error:
-                messagebox.showerror(self.root_window, "Requests Error", rate_limit_status["message"])
+                return {
+                    "message_func": messagebox.showerror,
+                    "message_args": (self.root_window, "API Rate Limit Status", f"{rate_limit_status["message"]}")
+                }
             return
+        
         r_left = rate_limit_status["requests_remaining"]
         t_left = rate_limit_status["reset_time"]
-        self.requests_left_label.configure(text=f"API Requests Left: {r_left}\nResets in: {(int(t_left))}")
 
+        # Calculate the time difference       
+        time_till_reset = datetime.fromtimestamp(int(t_left)) - datetime.now()
+
+        # Extract hours, and minutes
+        total_seconds = time_till_reset.seconds
+        hours, remainder = divmod(total_seconds, 3600)
+        minutes, _ = divmod(remainder, 60)
+
+        # Build the relative time string
+        if hours > 0:
+            relative_time = f"{hours} hour{'s' if hours > 1 else ''}"
+        elif minutes > 0:
+            relative_time = f"{minutes} minute{'s' if minutes > 1 else ''}"
+        else:
+            relative_time = "less than a minute"
+
+        self.requests_left_label.configure(text=f"API Requests Left: {r_left}\nResets in: {relative_time}")
+        self.updating_rate_limit = False
     def change_colour_theme(self, theme):
         current_theme = Path(customtkinter.ThemeManager._currently_loaded_theme.replace(".json", "")).stem
         new_theme = theme.lower().replace(" ", "-")

@@ -16,7 +16,8 @@ logger = Logger(__name__).get_logger()
 def load_customtkinter_settings(settings_object: Settings):
     theme = settings_object.colour_theme_path
     appearance = settings_object.appearance_mode
-    logger.info("Setting appearance mode to %s and theme to %s", appearance, theme)
+    logger.info("Appearance mode: %s", appearance)
+    logger.info("Theme: %s", theme)
     customtkinter.set_appearance_mode(appearance)
     customtkinter.set_default_color_theme(str(theme))
 

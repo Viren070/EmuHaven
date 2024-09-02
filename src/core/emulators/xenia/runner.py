@@ -40,7 +40,8 @@ class Xenia:
             repo_owner=constants.Xenia.GH_CANARY_RELEASE_REPO_OWNER.value if release_channel == "canary" else constants.Xenia.GH_RELEASE_REPO_OWNER.value,
             repo_name=constants.Xenia.GH_CANARY_RELEASE_REPO_NAME.value if release_channel == "canary" else constants.Xenia.GH_RELEASE_REPO_NAME.value,
             regex=constants.Xenia.GH_CANARY_RELEASE_ASSET_REGEX.value if release_channel == "canary" else constants.Xenia.GH_RELEASE_ASSET_REGEX.value,
-            token=self.settings.token
+            token=self.settings.token,
+            use_commit_as_version=release_channel == "canary"
         )
     
     def download_xenia_release(self, release, progress_handler=None):

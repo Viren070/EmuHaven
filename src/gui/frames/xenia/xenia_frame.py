@@ -30,7 +30,7 @@ class XeniaFrame(EmulatorFrame):
 
     def add_to_frame(self):
 
-        # create yuzu 'Play' frame and widgets
+        # create xenia 'Play' frame and widgets
         self.start_frame = customtkinter.CTkFrame(self, corner_radius=0, border_width=0)
         self.start_frame.grid_columnconfigure(0, weight=1)
         self.start_frame.grid_rowconfigure(0, weight=1)
@@ -59,26 +59,26 @@ class XeniaFrame(EmulatorFrame):
         self.actions_frame.grid_columnconfigure(1, weight=1)  # Stretch horizontally
         self.actions_frame.grid_columnconfigure(2, weight=1)  # Stretch horizontally
 
-        self.launch_button = customtkinter.CTkButton(self.actions_frame, height=40, width=200, image=self.assets.play_image, text="Launch Xenia  ", command=self.launch_button_event, font=customtkinter.CTkFont(size=15, weight="bold"))
-        self.launch_button.grid(row=0, column=2, padx=30, pady=15, sticky="n")
-        self.launch_button.bind("<Button-1>", command=self.launch_button_event)
-        CTkToolTip(self.launch_button, message="Click me to launch Xenia.\nHold shift to toggle the update behaviour.\nIf automatic updates are disabled, shift-clicking will update the emulator\nand otherwise it will skip the update.")
+        self.launch_xenia_button = customtkinter.CTkButton(self.actions_frame, height=40, width=200, image=self.assets.play_image, text="Launch Xenia  ", command=self.launch_xenia_button_event, font=customtkinter.CTkFont(size=15, weight="bold"))
+        self.launch_xenia_button.grid(row=0, column=2, padx=30, pady=15, sticky="n")
+        self.launch_xenia_button.bind("<Button-1>", command=self.launch_xenia_button_event)
+        CTkToolTip(self.launch_xenia_button, message="Click me to launch Xenia.\nHold shift to toggle the update behaviour.\nIf automatic updates are disabled, shift-clicking will update the emulator\nand otherwise it will skip the update.")
 
-        self.install_button = customtkinter.CTkButton(self.actions_frame, text="Install Xenia", command=self.install_button_event)
-        self.install_button.grid(row=0, column=1, padx=10, pady=5, sticky="ew")
-        self.install_button.bind("<Button-1>", command=self.install_button_event)
-        CTkToolTip(self.install_button, message="Click me to download and install the latest release of Xenia from the internet\nShift-Click me to install xenia with a custom archive")
+        self.install_xenia_button = customtkinter.CTkButton(self.actions_frame, text="Install Xenia", command=self.install_xenia_button_event)
+        self.install_xenia_button.grid(row=0, column=1, padx=10, pady=5, sticky="ew")
+        self.install_xenia_button.bind("<Button-1>", command=self.install_xenia_button_event)
+        CTkToolTip(self.install_xenia_button, message="Click me to download and install the latest release of Xenia from the internet\nShift-Click me to install xenia with a custom archive")
 
-        self.delete_button = customtkinter.CTkButton(self.actions_frame, text="Delete Xenia", fg_color="red", hover_color="darkred", command=self.delete_button_event)
-        self.delete_button.grid(row=0, column=3, padx=10, pady=5, sticky="ew")
-        CTkToolTip(self.delete_button, message="Click me to delete the installation of Xenia at the directory specified in settings.")
+        self.delete_xenia_button = customtkinter.CTkButton(self.actions_frame, text="Delete Xenia", fg_color="red", hover_color="darkred", command=self.delete_xenia_button_event)
+        self.delete_xenia_button.grid(row=0, column=3, padx=10, pady=5, sticky="ew")
+        CTkToolTip(self.delete_xenia_button, message="Click me to delete the installation of Xenia at the directory specified in settings.")
         # Early Access Actions Frame
 
         self.log_frame = customtkinter.CTkFrame(self.center_frame, fg_color='transparent', border_width=0)
         self.log_frame.grid(row=4, column=0, padx=80, sticky="ew")
         self.log_frame.grid_propagate(False)
         self.log_frame.grid_columnconfigure(0, weight=3)
-        # create yuzu 'Manage Data' frame and widgets
+        # create xenia 'Manage Data' frame and widgets
         self.manage_data_frame = customtkinter.CTkFrame(self, corner_radius=0, bg_color="transparent")
         self.manage_data_frame.grid_columnconfigure(0, weight=1)
         self.manage_data_frame.grid_columnconfigure(1, weight=1)
@@ -108,7 +108,7 @@ class XeniaFrame(EmulatorFrame):
         self.data_log.grid_columnconfigure(0, weight=1)
         self.data_log.grid_rowconfigure(1, weight=1)
         self.xenia.data_progress_frame = ProgressFrame(self.data_log)
-        # create yuzu downloader button, frame and widgets
+        # create xenia downloader button, frame and widgets
         self.actions_frame.grid_propagate(False)
         self.selected_channel.set(self.settings.xenia.release_channel.title())
         self.switch_channel()
@@ -119,45 +119,38 @@ class XeniaFrame(EmulatorFrame):
         self.rom_frame = XeniaROMFrame(self.manage_roms_frame, self.xenia, self.settings, self.cache)
         self.rom_frame.grid(row=0, column=0,  padx=20, pady=20, sticky="nsew")
 
-    def manage_roms_button_event(self):
-        self.select_frame_by_name("roms")
-
-    def configure_data_buttons(self, **kwargs):
-        self.delete_data_button.configure(**kwargs)
-        self.import_data_button.configure(**kwargs)
-        self.export_data_button.configure(**kwargs)
-
-    def configure_action_buttons(self, state, **kwargs):
-        self.launch_button.configure(state=state, **kwargs)
-        self.install_button.configure(state=state)
-        self.delete_button.configure(state=state)
-
     def switch_channel(self, value=None):
         value = self.selected_channel.get()
         self.settings.xenia.release_channel = value.lower()
         self.settings.save()
-        if value == "Master":
-            self.image_button.configure(image=self.assets.xenia_banner)
-            self.launch_button.configure(text="Launch Xenia ")
-            self.install_button.configure(text="Install Xenia")
-            self.delete_button.configure(text="Delete Xenia")
-        elif value == "Canary":
-            self.image_button.configure(image=self.assets.xenia_canary_banner)
-            self.launch_button.configure(text="Launch Xenia Canary")
-            self.install_button.configure(text="Install Xenia Canary")
-            self.delete_button.configure(text="Delete Xenia Canary")
-        self.fetch_versions()
+        self.image_button.configure(image=self.assets.xenia_canary_banner if value == "Canary" else self.assets.xenia_banner)
+        self.configure_buttons(state="normal")
 
-    def launch_button_event(self, event=None):
-        if event is None or self.launch_button.cget("state") == "disabled":
+    def configure_buttons(
+        self,
+        state="disabled",
+        launch_xenia_button_text="Launch Xenia",
+        install_xenia_button_text="Install Xenia",
+        delete_xenia_button_text="Delete Xenia",
+    ):
+        for button_text in [launch_xenia_button_text, install_xenia_button_text, delete_xenia_button_text]:
+            button_text += f" {self.settings.xenia.release_channel.title()}"
+
+        self.launch_xenia_button.configure(state=state, text=launch_xenia_button_text)
+        self.install_xenia_button.configure(state=state, text=install_xenia_button_text)
+        self.delete_xenia_button.configure(state=state, text=delete_xenia_button_text)
+
+    def launch_xenia_button_event(self, event=None):
+        if event is None or self.launch_xenia_button.cget("state") == "disabled":
             return
         auto_update = self.settings.auto_emulator_updates if not event.state & 1 else not self.settings.auto_emulator_updates
-        self.configure_action_buttons("disabled")
+        self.configure_buttons(state="disabled", launch_xenia_button_text="Checking for updates..." if auto_update else "Launching...")
         self.event_manager.add_event(
             event_id="launch_xenia",
             func=self.launch_xenia_handler,
             kwargs={"auto_update": auto_update},
-            completion_functions=[lambda: self.enable_buttons(["action"])],
+            completion_functions=[lambda: self.configure_buttons(state="normal")],
+            error_functions=[lambda: messagebox.showerror(self.root, "Error", "An unexpected error occured while launching Xenia. Please check the logs for more information and report this issue.")]
         )
 
         
@@ -165,16 +158,20 @@ class XeniaFrame(EmulatorFrame):
         if auto_update:
             update = self.install_xenia_handler(update_mode=True)
             if not update.get("status", False):
+                self.configure_buttons(launch_xenia_button_text="Oops!")
                 return update
         
+        self.configure_buttons(launch_xenia_button_text="Launched!")
         launch_result = self.xenia.launch_xenia()
         
         if not launch_result["run_status"]:
+            self.configure_buttons(launch_xenia_button_text="Oops!")
             return {
                 "message_func": messagebox.showerror,
                 "message_args": (self.root, "Error", launch_result["message"]),
             }
         if launch_result["error_encountered"]:
+            self.configure_buttons(launch_xenia_button_text="Oops!")
             return {
                 "message_func": messagebox.showerror,
                 "message_args": (self.root, "Error", launch_result["message"]),
@@ -182,8 +179,8 @@ class XeniaFrame(EmulatorFrame):
         
         return {}
     
-    def install_button_event(self, event=None):
-        if event is None or self.install_button.cget("state") == "disabled":
+    def install_xenia_button_event(self, event=None):
+        if event is None or self.install_xenia_button.cget("state") == "disabled":
             return
         if (
             (self.settings.xenia.install_directory / self.selected_channel.get()).is_dir() and (
@@ -204,14 +201,13 @@ class XeniaFrame(EmulatorFrame):
                     messagebox.showerror(self.root, "Error", "The path you have provided is invalid")
                 return
             path_to_archive = path_to_archive[1]
-        self.configure_action_buttons("disabled")
+        self.configure_buttons(install_xenia_button_text="Installing...")
         self.event_manager.add_event(
             event_id="install_xenia",
             func=self.install_xenia_handler,
             kwargs={"archive_path": path_to_archive},
-            completion_functions=[lambda: self.enable_buttons(["action"])],
-            allow_no_output=False,
-            event_error_function=lambda: messagebox.showerror(self.root, "Error", "An unexpected error occured while installing Xenia. Please check the logs for more information.")
+            completion_functions=[lambda: self.configure_buttons(state="normal")],
+            error_functions=[lambda: messagebox.showerror(self.root, "Error", "An unexpected error occured while installing Xenia. Please check the logs for more information and report this issue.")]
         )
         
     def install_xenia_handler(self, update_mode=False, archive_path=None):
@@ -253,20 +249,20 @@ class XeniaFrame(EmulatorFrame):
             "status": True
         })
 
-    def delete_button_event(self, event=None):
+    def delete_xenia_button_event(self, event=None):
         if not (self.settings.xenia.install_directory / self.selected_channel.get()).is_dir() or not any((self.settings.xenia.install_directory / self.selected_channel.get()).iterdir()):
             messagebox.showerror(self.root, "Error", f"Could not find a Xenia {self.selected_channel.get()} installation at {self.settings.xenia.install_directory}")
             return
         if messagebox.askyesno(self.root, "Confirmation", "This will delete the Xenia installation. This action cannot be undone, are you sure you wish to continue?", icon="warning") != "yes":
             return
-        self.configure_action_buttons("disabled")
+        self.configure_buttons(delete_xenia_button_text="Deleting...")
         self.event_manager.add_event(
             event_id="delete_xenia",
             func=self.delete_xenia_handler,
-            allow_no_output=False,
-            event_error_function=lambda: messagebox.showerror(self.root, "Error", "An unexpected error occured while deleting Xenia. Please check the logs for more information."),
-            completion_functions=[lambda: self.enable_buttons(["action"])],
+            error_functions=[lambda: messagebox.showerror(self.root, "Error", "An unexpected error occured while deleting Xenia. Please check the logs for more information and report this issue.")],
+            completion_functions=[lambda: self.configure_buttons(state="normal")],
         )
+
     def delete_xenia_handler(self):
         delete_result = self.xenia.delete_xenia()
         if not delete_result["status"]:
@@ -278,6 +274,7 @@ class XeniaFrame(EmulatorFrame):
             "message_func": messagebox.showsuccess,
             "message_args": (self.root, "Success", delete_result["message"]),
         }
+    
     def import_data_button_event(self):
         directory = None
         folders = None
@@ -342,23 +339,3 @@ class XeniaFrame(EmulatorFrame):
         thread.start()
         Thread(target=self.enable_buttons_after_thread, args=(thread, ["data"],)).start()
 
-    def enable_buttons(self, buttons):
-        for button in buttons:
-            if button == "action":
-                self.configure_action_buttons("normal", text="Launch Xenia  ", width=200)
-            elif button == "data":
-                self.configure_data_buttons(state="normal")
-        self.fetch_versions()
-
-    def fetch_versions(self, installed_only=True):
-        self.installed_xenia_version = self.metadata.get_version("xenia")
-        self.installed_xenia_canary_version = self.metadata.get_version("xenia_canary")
-        self.update_version_text()
-
-    def update_version_text(self):
-        if self.launch_button.cget("state") == "disabled":
-            return
-        if self.selected_channel.get() == "Master" and self.installed_xenia_version is not None:
-            self.launch_button.configure(text=f"Launch Xenia {self.installed_xenia_version.replace("-master", "")}")
-        elif self.selected_channel.get() == "Canary":
-            pass  # there are no versions for xenia just commit hashes and it is better to not display these
