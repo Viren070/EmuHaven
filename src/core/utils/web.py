@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 from requests import RequestException
 from urllib.parse import urlparse, urljoin, unquote
+from pathlib import Path
 
 from core.utils.logger import Logger
 from core.utils.progress_handler import ProgressHandler
@@ -140,7 +141,7 @@ def download_through_stream(response, download_path, chunk_size, progress_handle
     return {
         "status": True,
         "message": "Download successful",
-        "download_path": download_path
+        "download_path": Path(download_path)
     }
 
 def download_file(download_url, download_path, **kwargs):
@@ -164,7 +165,7 @@ def download_file(download_url, download_path, **kwargs):
         return {
             "status": True,
             "message": "Download successful",
-            "download_path": download_path
+            "download_path": Path(download_path)
         }
     except RequestException as error:
         download_path.unlink()

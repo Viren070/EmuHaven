@@ -18,7 +18,7 @@ class RyujinxFrame(EmulatorFrame):
     def __init__(self, master, paths, settings, versions, assets, cache, event_manager):
         super().__init__(parent_frame=master, paths=paths, settings=settings, versions=versions, assets=assets)
         self.ryujinx = Ryujinx(self, settings, versions)
-        self.root = master
+        self.versions = versions
         self.cache = cache
         self.ryujinx_version = None
         self.paths = paths
@@ -65,7 +65,7 @@ class RyujinxFrame(EmulatorFrame):
         self.delete_button.grid(row=0, column=3, padx=10, pady=5, sticky="ew")
         CTkToolTip(self.delete_button, message="Click me to delete the installation of Ryujinx at the directory specified in settings.")
 
-        self.firmware_keys_frame = FirmwareKeysFrame(self.center_frame, self)
+        self.firmware_keys_frame = FirmwareKeysFrame(master=self.center_frame, frame_obj=self, emulator_obj=self.ryujinx)
         self.firmware_keys_frame.grid(row=3, column=0, padx=10, pady=10, columnspan=3)
 
         self.log_frame = customtkinter.CTkFrame(self.center_frame, fg_color='transparent', border_width=0)
@@ -116,26 +116,21 @@ class RyujinxFrame(EmulatorFrame):
         self.rom_frame.current_roms_frame.check_titles_db()
         self.select_frame_by_name("roms")
 
-    def install_firmware_button_event(self, *args):
-        pass
-
-    def install_keys_button_event(self, *args):
-        pass
-
     def configure_buttons(
         self,
         state="disabled",
         launch_ryujinx_button_text="Launch Ryujinx",
         install_ryujinx_button_text="Install Ryujinx",
         delete_ryujinx_button_text="Delete Ryujinx",
-        install_firmware_button_text="Install Firmware",
-        install_keys_button_text="Install Keys",
+        install_firmware_button_text="Install",
+        install_keys_button_text="Install",
     ):
         self.launch_button.configure(state=state, text=launch_ryujinx_button_text)
         self.install_button.configure(state=state, text=install_ryujinx_button_text)
         self.delete_button.configure(state=state, text=delete_ryujinx_button_text)
         self.firmware_keys_frame.install_firmware_button.configure(state=state, text=install_firmware_button_text)
         self.firmware_keys_frame.install_keys_button.configure(state=state, text=install_keys_button_text)
+        self.firmware_keys_frame.update_installed_versions()
 
     def launch_ryujinx_button_event(self, event=None):
         if event is None or self.launch_button.cget("state") == "disabled":
@@ -147,7 +142,7 @@ class RyujinxFrame(EmulatorFrame):
             func=self.launch_ryujinx_handler,
             kwargs={"auto_update": auto_update},
             completion_functions=[lambda: self.configure_buttons("normal", launch_ryujinx_button_text="Launch Ryujinx")],
-            error_functions=[lambda: messagebox.showerror(self.root, "Error", "An unexpected error occured while launching Ryujinx. Please check the logs for more information and report the issue.")],
+            error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Error", "An unexpected error occured while launching Ryujinx. Please check the logs for more information and report the issue.")],
         )
 
     def launch_ryujinx_handler(self, auto_update):
@@ -164,14 +159,18 @@ class RyujinxFrame(EmulatorFrame):
         if not launch_result["status"]:
             self.configure_buttons(launch_ryujinx_button_text="Oops!")
             return {
-                "message_func": messagebox.showerror,
-                "message_args": (self.root, "Error", launch_result["message"]),
+                "message": {
+                    "function": messagebox.showerror,
+                    "arguments": (self.winfo_toplevel(), "Error", launch_result["message"]),
+                }
             }
         if launch_result["error_encountered"]:
             self.configure_buttons(launch_ryujinx_button_text="Oops!")
             return {
-                "message_func": messagebox.showerror,
-                "message_args": (self.root, "Error", launch_result["message"]),
+                "message": {
+                    "function": messagebox.showerror,
+                    "arguments": (self.winfo_toplevel(), "Error", launch_result["message"]),
+                }
             }
 
         return {}
@@ -183,7 +182,7 @@ class RyujinxFrame(EmulatorFrame):
             (self.settings.ryujinx.install_directory / "publish").is_dir() and (
                 any((self.settings.ryujinx.install_directory / "publish").iterdir()) and (
                     messagebox.askyesno(
-                        self.root,
+                        self.winfo_toplevel(),
                         "Confirmation", "An installation of Ryujinx already exists. Do you want to overwrite it?"
                     ) != "yes"
                 )
@@ -194,11 +193,12 @@ class RyujinxFrame(EmulatorFrame):
 
         if event.state & 1:
             path_to_archive = PathDialog(filetypes=(".zip",), title="Custom Ryujinx Archive", text="Enter path to Ryujinx archive: ").get_input()
-            if not all(path_to_archive):
-                if path_to_archive[1] is not None:
-                    messagebox.showerror(self.root, "Error", "The path you have provided is invalid")
-                return
-            path_to_archive = path_to_archive[1]
+            path_to_archive = path_to_archive.get_input()
+            if not path_to_archive["status"]:
+                if path_to_archive["cancelled"]:
+                    return
+                messagebox.showerror(self.winfo_toplevel(), "Install Ryujinx", path_to_archive["message"])
+            path_to_archive = path_to_archive["path"]
 
         self.configure_buttons(install_ryujinx_button_text="Installing...")
         self.event_manager.add_event(
@@ -206,7 +206,7 @@ class RyujinxFrame(EmulatorFrame):
             func=self.install_ryujinx_handler,
             kwargs={"archive_path": path_to_archive},
             completion_functions=[lambda: self.configure_buttons(state="normal")],
-            error_functions=[lambda: messagebox.showerror(self.root, "Error", "An unexpected error occured while installing Ryujinx. Please check the logs for more information and report this issue.")]
+            error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Error", "An unexpected error occured while installing Ryujinx. Please check the logs for more information and report this issue.")]
         )
 
     def install_ryujinx_handler(self, update_mode=False, archive_path=None):
@@ -216,8 +216,10 @@ class RyujinxFrame(EmulatorFrame):
             release_fetch_result = self.ryujinx.get_release()
             if not release_fetch_result["status"]:
                 return {
-                    "message_func": messagebox.showerror,
-                    "message_args": (self.root, "Ryujinx", f"Failed to fetch the latest release of Ryujinx: {release_fetch_result['message']}")
+                    "message": {
+                        "function": messagebox.showerror,
+                        "arguments": (self.winfo_toplevel(), "Ryujinx", f"Failed to fetch the latest release of Ryujinx: {release_fetch_result['message']}"),
+                    }
                 }
 
             if update_mode and release_fetch_result["release"]["version"] == self.versions.get_version("ryujinx"):
@@ -227,38 +229,45 @@ class RyujinxFrame(EmulatorFrame):
 
             download_result = self.ryujinx.download_release(release_fetch_result["release"]) 
             if not download_result["status"]:
-                return ({
-                    "message_func": messagebox.showerror,
-                    "message_args": (self.root, "Ryujinx", f"Failed to download the latest release of Ryujinx: {download_result['message']}")
-                })
+                return {
+                    "message": {
+                        "function": messagebox.showerror,
+                        "arguments": (self.winfo_toplevel(), "Ryujinx", f"Failed to download the latest release of Ryujinx: {download_result['message']}"),
+                    }
+                }
 
             archive_path = download_result["download_path"]
 
         extract_result = self.ryujinx.extract_release(archive_path)
         if not extract_result["status"]:
-            return ({
-                "message_func": messagebox.showerror,
-                "message_args": (self.root, "ryujinx", f"Failed to extract the latest release of ryujinx: {extract_result['message']}")
-            })
+            return {
+                "message": {
+                    "function": messagebox.showerror,
+                    "arguments": (self.winfo_toplevel(), "Ryujinx", f"Failed to extract the latest release of Ryujinx: {extract_result['message']}"),
+                }
+            }
 
         self.metadata.set_version("ryujinx", release_fetch_result["release"]["version"] if not custom_install else "")
-        return ({
-            "message_func": messagebox.showsuccess,
-            "message_args": (self.root, "ryujinx", f"Successfully installed ryujinx to {self.settings.ryujinx.install_directory}"),
+        return {
+            "message": {
+                "function": messagebox.showsuccess,
+                "arguments": (self.winfo_toplevel(), "Ryujinx", f"Successfully installed Ryujinx to {self.settings.ryujinx.install_directory}"),
+            },
             "status": True
-        })
+        }
+
 
     def delete_ryujinx_button_event(self, event=None):
         if not (self.settings.ryujinx.install_directory / "publish").is_dir() or not any((self.settings.ryujinx.install_directory / "publish").iterdir()):
-            messagebox.showerror(self.root, "Error", f"Could not find a Ryujinx installation at {self.settings.ryujinx.install_directory}")
+            messagebox.showerror(self.winfo_toplevel(), "Error", f"Could not find a Ryujinx installation at {self.settings.ryujinx.install_directory}")
             return
-        if messagebox.askyesno(self.root, "Confirmation", "This will delete the Ryujinx installation. This action cannot be undone, are you sure you wish to continue?", icon="warning") != "yes":
+        if messagebox.askyesno(self.winfo_toplevel(), "Confirmation", "This will delete the Ryujinx installation. This action cannot be undone, are you sure you wish to continue?", icon="warning") != "yes":
             return
         self.configure_buttons(delete_ryujinx_button_text="Deleting...")
         self.event_manager.add_event(
             event_id="delete_ryujinx",
             func=self.delete_ryujinx_handler,
-            error_functions=[lambda: messagebox.showerror(self.root, "Error", "An unexpected error occured while deleting Ryujinx. Please check the logs for more information and report this issue.")],
+            error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Error", "An unexpected error occured while deleting Ryujinx. Please check the logs for more information and report this issue.")],
             completion_functions=[lambda: self.configure_buttons(state="normal")],
         )
 
@@ -266,12 +275,17 @@ class RyujinxFrame(EmulatorFrame):
         delete_result = self.ryujinx.delete_ryujinx()
         if not delete_result["status"]:
             return {
-                "message_func": messagebox.showerror,
-                "message_args": (self.root, "Error", delete_result["message"]),
+                "message": {
+                    "function": messagebox.showerror,
+                    "arguments": (self.winfo_toplevel(), "Error", delete_result["message"]),
+                }
             }
+
         return {
-            "message_func": messagebox.showsuccess,
-            "message_args": (self.root, "Success", delete_result["message"]),
+            "message": {
+                "function": messagebox.showsuccess,
+                "arguments": (self.winfo_toplevel(), "Success", delete_result["message"]),
+            }
         }
 
     def import_data_button_event(self):

@@ -1,5 +1,5 @@
 name: ⭐ Feature request
-description: Suggest a feature to improve Emulator Manager
+description: Suggest a feature to improve EmuHaven
 labels: [Feature request]
 body:
 
@@ -7,7 +7,7 @@ body:
     id: feature-description
     attributes:
       label: Describe your suggested feature
-      description: How can Emulator Manager be improved?
+      description: How can EmuHaven be improved?
       placeholder: |
         Example:
           "It should work like this..."
@@ -31,7 +31,7 @@ body:
           required: true
         - label: I have written a short but informative title.
           required: true
-        - label: I have updated the app to version **[0.13.11](https://github.com/Viren070/Emulator-Manager/releases/latest)**.
+        - label: I have updated the app to version **[0.14.0](https://github.com/Viren070/Emulator-Manager/releases/latest)**.
           required: true
         - label: I will fill out all of the requested information in this form.
           required: true

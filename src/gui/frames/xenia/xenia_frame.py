@@ -22,7 +22,6 @@ class XeniaFrame(EmulatorFrame):
     def __init__(self, master, paths, settings, versions, assets, cache, event_manager: ThreadEventManager):
         super().__init__(parent_frame=master, paths=paths, settings=settings, versions=versions, assets=assets)
         self.xenia = Xenia(self, settings, versions)
-        self.root = master
         self.paths = paths
         self.cache = cache
         self.event_manager = event_manager
@@ -129,12 +128,16 @@ class XeniaFrame(EmulatorFrame):
     def configure_buttons(
         self,
         state="disabled",
-        launch_xenia_button_text="Launch Xenia",
-        install_xenia_button_text="Install Xenia",
-        delete_xenia_button_text="Delete Xenia",
+        launch_xenia_button_text=None,
+        install_xenia_button_text=None,
+        delete_xenia_button_text=None,
     ):
-        for button_text in [launch_xenia_button_text, install_xenia_button_text, delete_xenia_button_text]:
-            button_text += f" {self.settings.xenia.release_channel.title()}"
+        if launch_xenia_button_text is None:
+            launch_xenia_button_text = f"Launch Xenia {self.settings.xenia.release_channel.title()}"
+        if install_xenia_button_text is None:
+            install_xenia_button_text = f"Install Xenia {self.settings.xenia.release_channel.title()}"
+        if delete_xenia_button_text is None:
+            delete_xenia_button_text = f"Delete Xenia {self.settings.xenia.release_channel.title()}"
 
         self.launch_xenia_button.configure(state=state, text=launch_xenia_button_text)
         self.install_xenia_button.configure(state=state, text=install_xenia_button_text)
@@ -150,7 +153,7 @@ class XeniaFrame(EmulatorFrame):
             func=self.launch_xenia_handler,
             kwargs={"auto_update": auto_update},
             completion_functions=[lambda: self.configure_buttons(state="normal")],
-            error_functions=[lambda: messagebox.showerror(self.root, "Error", "An unexpected error occured while launching Xenia. Please check the logs for more information and report this issue.")]
+            error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Error", "An unexpected error occured while launching Xenia. Please check the logs for more information and report this issue.")]
         )
 
         
@@ -167,14 +170,18 @@ class XeniaFrame(EmulatorFrame):
         if not launch_result["run_status"]:
             self.configure_buttons(launch_xenia_button_text="Oops!")
             return {
-                "message_func": messagebox.showerror,
-                "message_args": (self.root, "Error", launch_result["message"]),
+                "message": {
+                    "function": messagebox.showerror,
+                    "arguments": (self.winfo_toplevel(), "Error", launch_result["message"]),
+                }
             }
         if launch_result["error_encountered"]:
             self.configure_buttons(launch_xenia_button_text="Oops!")
             return {
-                "message_func": messagebox.showerror,
-                "message_args": (self.root, "Error", launch_result["message"]),
+                "message": {
+                    "function": messagebox.showerror,
+                    "arguments": (self.winfo_toplevel(), "Error", launch_result["message"]),
+                }
             }
         
         return {}
@@ -186,7 +193,7 @@ class XeniaFrame(EmulatorFrame):
             (self.settings.xenia.install_directory / self.selected_channel.get()).is_dir() and (
                 any((self.settings.xenia.install_directory / self.selected_channel.get()).iterdir()) and (
                     messagebox.askyesno(
-                        self.root,
+                        self.winfo_toplevel(),
                         "Confirmation", f"An installation of Xenia {self.selected_channel.get()} already exists. Do you want to overwrite it?"
                     ) != "yes"
                 )
@@ -196,18 +203,19 @@ class XeniaFrame(EmulatorFrame):
         path_to_archive = None
         if event.state & 1:
             path_to_archive = PathDialog(filetypes=(".zip",), title="Custom Xenia Archive", text=f"Enter path to Xenia {self.selected_channel.get()} archive: ").get_input()
-            if not all(path_to_archive):
-                if path_to_archive[1] is not None:
-                    messagebox.showerror(self.root, "Error", "The path you have provided is invalid")
-                return
-            path_to_archive = path_to_archive[1]
+            path_to_archive = path_to_archive.get_input()
+            if not path_to_archive["status"]:
+                if path_to_archive["cancelled"]:
+                    return
+                messagebox.showerror(self.winfo_toplevel(), "Install Xenia", path_to_archive["message"])
+            path_to_archive = path_to_archive["path"]
         self.configure_buttons(install_xenia_button_text="Installing...")
         self.event_manager.add_event(
             event_id="install_xenia",
             func=self.install_xenia_handler,
             kwargs={"archive_path": path_to_archive},
             completion_functions=[lambda: self.configure_buttons(state="normal")],
-            error_functions=[lambda: messagebox.showerror(self.root, "Error", "An unexpected error occured while installing Xenia. Please check the logs for more information and report this issue.")]
+            error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Error", "An unexpected error occured while installing Xenia. Please check the logs for more information and report this issue.")]
         )
         
     def install_xenia_handler(self, update_mode=False, archive_path=None):
@@ -217,8 +225,10 @@ class XeniaFrame(EmulatorFrame):
             release_fetch_result = self.xenia.get_xenia_release()
             if not release_fetch_result["status"]:
                 return {
-                    "message_func": messagebox.showerror,
-                    "message_args": (self.root, "Xenia", f"Failed to fetch the {self.settings.xenia.release_channel} latest release of Xenia: {release_fetch_result['message']}")
+                    "message": {
+                        "function": messagebox.showerror,
+                        "arguments": (self.winfo_toplevel(), "Xenia", f"Failed to fetch the {self.settings.xenia.release_channel} latest release of Xenia: {release_fetch_result['message']}"),
+                    }
                 }
             
             if update_mode and release_fetch_result["release"]["version"] == self.versions.get_version(f"xenia_{self.settings.xenia.release_channel}"):
@@ -228,38 +238,44 @@ class XeniaFrame(EmulatorFrame):
             
             download_result = self.xenia.download_xenia_release(release_fetch_result["release"]) 
             if not download_result["status"]:
-                return ({
-                    "message_func": messagebox.showerror,
-                    "message_args": (self.root, "Xenia", f"Failed to download the latest {self.settings.xenia.release_channel} release of Xenia: {download_result['message']}")
-                })
+                return {
+                    "message": {
+                        "function": messagebox.showerror,
+                        "arguments": (self.winfo_toplevel(), "Xenia", f"Failed to download the latest {self.settings.xenia.release_channel} release of Xenia: {download_result['message']}"),
+                    }
+                }
                 
             archive_path = download_result["download_path"]
 
         extract_result = self.xenia.extract_xenia_release(archive_path)
         if not extract_result["status"]:
-            return ({
-                "message_func": messagebox.showerror,
-                "message_args": (self.root, "xenia", f"Failed to extract the latest release of xenia: {extract_result['message']}")
-            })
+            return {
+                "message": {
+                    "function": messagebox.showerror,
+                    "arguments": (self.winfo_toplevel(), "Xenia", f"Failed to extract the latest release of Xenia: {extract_result['message']}"),
+                }
+            }
 
         self.metadata.set_version(f"xenia_{self.settings.xenia.release_channel}", release_fetch_result["release"]["version"] if not custom_install else "")
-        return ({
-            "message_func": messagebox.showsuccess,
-            "message_args": (self.root, "xenia", f"Successfully installed xenia to {self.settings.xenia.install_directory}"),
+        return {
+            "message": {
+                "function": messagebox.showsuccess,
+                "arguments": (self.winfo_toplevel(), "Xenia", f"Successfully installed xenia to {self.settings.xenia.install_directory}"),
+            },
             "status": True
-        })
+        }
 
     def delete_xenia_button_event(self, event=None):
         if not (self.settings.xenia.install_directory / self.selected_channel.get()).is_dir() or not any((self.settings.xenia.install_directory / self.selected_channel.get()).iterdir()):
-            messagebox.showerror(self.root, "Error", f"Could not find a Xenia {self.selected_channel.get()} installation at {self.settings.xenia.install_directory}")
+            messagebox.showerror(self.winfo_toplevel(), "Error", f"Could not find a Xenia {self.selected_channel.get()} installation at {self.settings.xenia.install_directory}")
             return
-        if messagebox.askyesno(self.root, "Confirmation", "This will delete the Xenia installation. This action cannot be undone, are you sure you wish to continue?", icon="warning") != "yes":
+        if messagebox.askyesno(self.winfo_toplevel(), "Confirmation", "This will delete the Xenia installation. This action cannot be undone, are you sure you wish to continue?", icon="warning") != "yes":
             return
         self.configure_buttons(delete_xenia_button_text="Deleting...")
         self.event_manager.add_event(
             event_id="delete_xenia",
             func=self.delete_xenia_handler,
-            error_functions=[lambda: messagebox.showerror(self.root, "Error", "An unexpected error occured while deleting Xenia. Please check the logs for more information and report this issue.")],
+            error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Error", "An unexpected error occured while deleting Xenia. Please check the logs for more information and report this issue.")],
             completion_functions=[lambda: self.configure_buttons(state="normal")],
         )
 
@@ -268,11 +284,11 @@ class XeniaFrame(EmulatorFrame):
         if not delete_result["status"]:
             return {
                 "message_func": messagebox.showerror,
-                "message_args": (self.root, "Error", delete_result["message"]),
+                "message_args": (self.winfo_toplevel(), "Error", delete_result["message"]),
             }
         return {
             "message_func": messagebox.showsuccess,
-            "message_args": (self.root, "Success", delete_result["message"]),
+            "message_args": (self.winfo_toplevel(), "Success", delete_result["message"]),
         }
     
     def import_data_button_event(self):

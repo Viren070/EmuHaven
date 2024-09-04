@@ -24,9 +24,9 @@ class YuzuFrame(EmulatorFrame):
     def __init__(self, master, paths, settings, versions, assets, cache, event_manager: ThreadEventManager):
         super().__init__(parent_frame=master, paths=paths, settings=settings, versions=versions, assets=assets)
         self.yuzu = Yuzu(self, settings, versions)
-        self.root = master
         self.cache = cache
         self.paths = paths
+        self.versions = versions
         self.event_manager = event_manager
         self.mainline_version = None
         self.early_access_version = None
@@ -82,7 +82,7 @@ class YuzuFrame(EmulatorFrame):
         CTkToolTip(self.delete_yuzu_button, message="Click me to delete the installation of yuzu at the directory specified in settings.")
 
     
-        self.firmware_keys_frame = FirmwareKeysFrame(self.center_frame, self)
+        self.firmware_keys_frame = FirmwareKeysFrame(self.center_frame, frame_obj=self, emulator_obj=self.yuzu)
         self.firmware_keys_frame.grid(row=3, column=0, padx=10, pady=10, columnspan=3)
 
         self.yuzu_log_frame = customtkinter.CTkFrame(self.center_frame, fg_color='transparent', border_width=0)
@@ -157,6 +157,7 @@ class YuzuFrame(EmulatorFrame):
         self.delete_yuzu_button.configure(state=state, text=delete_yuzu_button_text)
         self.firmware_keys_frame.install_firmware_button.configure(state=state, text=install_firmware_button_text)
         self.firmware_keys_frame.install_keys_button.configure(state=state, text=install_keys_button_text)
+        self.firmware_keys_frame.update_installed_versions()
     
     def switch_channel(self, value=None):
         value = self.selected_channel.get().lower().replace(" ", "_")
@@ -171,103 +172,109 @@ class YuzuFrame(EmulatorFrame):
         if self.launch_yuzu_button.cget("state") == "disabled":
             return
         self.configure_buttons(launch_yuzu_button_text="Launching...")
-        self.firmware_keys_frame.configure_firmware_key_buttons("disabled")
         self.event_manager.add_event(
             event_id="launch_yuzu",
             func=self.launch_yuzu_handler,
             completion_functions=[lambda: self.configure_buttons(state="normal")],
-            error_functions=[lambda: messagebox.showerror(self.root, "Launch Yuzu", "An unexpected error has occured while launching Yuzu.\n\nPlease check the logs for more information and report this issue.")],
+            error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Launch Yuzu", "An unexpected error has occured while launching Yuzu.\n\nPlease check the logs for more information and report this issue.")],
         )
 
     def launch_yuzu_handler(self):
         yuzu_path = self.settings.yuzu.install_directory / ("yuzu-windows-msvc-early-access" if self.settings.yuzu.release_channel == "early_access" else "yuzu-windows-msvc") / "yuzu.exe"
         if not yuzu_path.is_file():
             return {
-                "message_func": messagebox.showerror,
-                "message_args": (self.root, "Launch Yuzu", f"Installation of yuzu {self.settings.yuzu.release_channel.replace("_", " ").title()} not found.\nYou may use a ZIP archive to install Yuzu by using the Install button.")
+                "message": {
+                    "function": messagebox.showerror,
+                    "arguments": (self.winfo_toplevel(), "Launch Yuzu", f"Installation of yuzu {self.settings.yuzu.release_channel.replace('_', ' ').title()} not found.\nYou may use a ZIP archive to install Yuzu by using the Install button."),
+                }
             }
+
         run_status = self.yuzu.launch_yuzu()
         if not run_status["status"]:
             return {
-                "message_func": messagebox.showerror,
-                "message_args": (self.root, "Launch Yuzu", run_status["message"])
+                "message": {
+                    "function": messagebox.showerror,
+                    "arguments": (self.winfo_toplevel(), "Launch Yuzu", run_status["message"]),
+                }
             }
         if run_status["error_encountered"]:
             return {
-                "message_func": messagebox.showerror,
-                "message_args": (self.root, "Launch Yuzu", "It seems that yuzu has encountered an error.")
+                "message": {
+                    "function": messagebox.showerror,
+                    "arguments": (self.winfo_toplevel(), "Launch Yuzu", "It seems that yuzu has encountered an error."),
+                }
             }
-    
+
         return {}
 
     def install_yuzu_button_event(self, event=None):
         if event is None or self.install_yuzu_button.cget("state") == "disabled":
             return
         yuzu_path = self.settings.yuzu.install_directory / ("yuzu-windows-msvc-early-access" if self.settings.yuzu.release_channel == "early_access" else "yuzu-windows-msvc")
-        if yuzu_path.is_dir() and any(yuzu_path.iterdir()) and messagebox.askyesno(self.root, "Directory Exists", "The directory already exists. Are you sure you want to overwrite the contents inside?") != "yes":
+        if yuzu_path.is_dir() and any(yuzu_path.iterdir()) and messagebox.askyesno(self.winfo_toplevel(), "Directory Exists", "The directory already exists. Are you sure you want to overwrite the contents inside?") != "yes":
             return
         
         path_to_archive = PathDialog(filetypes=(".zip",), title="Custom Yuzu Archive", text="Enter path to yuzu archive: ")
         path_to_archive = path_to_archive.get_input()
-        if not all(path_to_archive):
-            if path_to_archive[1] is not None:
-                messagebox.showerror("Error", "The path you have provided is invalid")
-            return
-        path_to_archive = path_to_archive[1]
+        if not path_to_archive["status"]:
+            if path_to_archive["cancelled"]:
+                return
+            messagebox.showerror(self.winfo_toplevel(), "Install Yuzu", path_to_archive["message"])
+        path_to_archive = path_to_archive["path"]
 
         self.configure_buttons(install_yuzu_button_text="Installing...")
-        self.firmware_keys_frame.configure_firmware_key_buttons("disabled")
         self.event_manager.add_event(
             event_id="install_yuzu",
             func=self.install_yuzu_handler,
             kwargs={"archive_path": path_to_archive},
             completion_functions=[lambda: self.configure_buttons(state="normal")],
-            error_functions=[lambda: messagebox.showerror(self.root, "Install Yuzu", "An unexpected error has occured while installing Yuzu.\n\nPlease check the logs for more information and report this issue.")],
+            error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Install Yuzu", "An unexpected error has occured while installing Yuzu.\n\nPlease check the logs for more information and report this issue.")],
         )
 
     def install_yuzu_handler(self, archive_path):
         install_status = self.yuzu.install_yuzu(archive_path)
         if not install_status["status"]:
             return {
-                "message_func": messagebox.showerror,
-                "message_args": (self.root, "Install Yuzu", install_status["message"])
+                "message": {
+                    "function": messagebox.showerror,
+                    "arguments": (self.winfo_toplevel(), "Install Yuzu", install_status["message"]),
+                }
             }
         return {
-            "message_func": messagebox.showsuccess,
-            "message_args": (self.root, "Install Yuzu", "Yuzu has been installed successfully.")
+            "message": {
+                "function": messagebox.showsuccess,
+                "arguments": (self.winfo_toplevel(), "Install Yuzu", "Yuzu has been installed successfully."),
+            }
         }
 
     def delete_yuzu_button_event(self):
         yuzu_path = self.settings.yuzu.install_directory / ("yuzu-windows-msvc-early-access" if self.settings.yuzu.release_channel == "early_access" else "yuzu-windows-msvc")
-        if messagebox.askyesno(self.root, "Delete Yuzu", f"Are you sure you want to delete yuzu and its contents from '{yuzu_path}'?") != "yes":
+        if messagebox.askyesno(self.winfo_toplevel(), "Delete Yuzu", f"Are you sure you want to delete yuzu and its contents from '{yuzu_path}'?") != "yes":
             return
         self.configure_buttons(delete_yuzu_button_text="Deleting...")
         self.event_manager.add_event(
             event_id="delete_yuzu",
             func=self.delete_yuzu_handler,
             completion_functions=[lambda: self.configure_buttons(state="normal")],
-            error_functions=[lambda: messagebox.showerror(self.root, "Delete Yuzu", "An unexpected error has occured while deleting Yuzu.\n\nPlease check the logs for more information and report this issue either on the GitHub page or Discord server.")],
+            error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Delete Yuzu", "An unexpected error has occured while deleting Yuzu.\n\nPlease check the logs for more information and report this issue either on the GitHub page or Discord server.")],
         )
 
     def delete_yuzu_handler(self):
         delete_result = self.yuzu.delete_yuzu()
         if not delete_result["status"]:
             return {
-                "message_func": messagebox.showerror,
-                "message_args": (self.root, "Delete Yuzu", delete_result["message"])
+                "message": {
+                    "function": messagebox.showerror,
+                    "arguments": (self.winfo_toplevel(), "Delete Yuzu", delete_result["message"]),
+                }
             }
+
         return {
-            "message_func": messagebox.showsuccess,
-            "message_args": (self.root, "Delete Yuzu", "Yuzu has been deleted successfully.")
+            "message": {
+                "function": messagebox.showsuccess,
+                "arguments": (self.winfo_toplevel(), "Delete Yuzu", "Yuzu has been deleted successfully."),
+            }
         }
-        
-
-    def install_firmware_button_event(self, event=None):
-        pass
-
-    def install_keys_button_event(self, event=None):
-        
-        pass
 
     def import_data_button_event(self):
         directory = None
@@ -281,11 +288,12 @@ class YuzuFrame(EmulatorFrame):
             ).get_input()
         else:
             directory = PathDialog(title="Import Directory", text="Enter directory to import from: ", directory=True).get_input()
-            if directory and directory[1] is not None:
-                directory = directory[1]
-            else:
-                messagebox.showerror("Error", "The path you have provided is invalid")
-                return
+            directory = directory.get_input()
+            if not directory["status"]:
+                if directory["cancelled"]:
+                    return
+                messagebox.showerror(self.winfo_toplevel(), "Import Yuzu Data", directory["message"])
+            directory = directory["path"]
 
         if directory is None:
             return

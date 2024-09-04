@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          repository: Viren070/Emulator-Manager
+          repository: Viren070/EmuHaven
 
       - name: Set up Python 3.12
         uses: actions/setup-python@v5 
@@ -33,12 +33,13 @@ jobs:
 
       - name: Build distributables
         run: |
-            pyinstaller --noconfirm --onefile --console --name "Emulator.Manager.${{ github.event_name == 'push' && github.ref_name || github.event.inputs.tag }}" --clean --add-data "${{ env.Python_ROOT_DIR }}/Lib/site-packages/customtkinter;customtkinter/" --add-data "src/assets;assets/"  src/main.py
-            pyinstaller --noconfirm --onedir --console --name "Emulator.Manager.${{ github.event_name == 'push' && github.ref_name || github.event.inputs.tag }}" --clean --add-data "${{ env.Python_ROOT_DIR }}/Lib/site-packages/customtkinter;customtkinter/" --add-data "src/assets;assets/"  src/main.py
+            pyinstaller --noconfirm --onedir --console --name "EmuHaven" --clean --add-data "${{ env.Python_ROOT_DIR }}/Lib/site-packages/customtkinter;customtkinter/" --add-data "src/assets;assets/"  src/main.py
+            pyinstaller --noconfirm --onedir --console --name "Updater" --clean src/updater.py
+            Move-Item -Path "dist/Updater/Updater.exe" -Destination "dist/EmuHaven/Updater.exe"
     
       - name: Compress onedir
         run: |
-          Compress-Archive -Path "dist/Emulator.Manager.${{ github.event_name == 'push' && github.ref_name || github.event.inputs.tag }}/*" -DestinationPath "dist/Emulator.Manager.${{ github.event_name == 'push' && github.ref_name || github.event.inputs.tag }}.zip"
+          Compress-Archive -Path "dist/EmuHaven/*" -DestinationPath "dist/EmuHaven.zip"
 
       - uses: "softprops/action-gh-release@v2"
         env:
@@ -47,5 +48,4 @@ jobs:
           prerelease: ${{ contains(env.TAG, 'alpha') || contains(env.TAG, 'beta') }}
           tag_name: ${{ env.TAG }}
           files: |
-            dist/Emulator.Manager.*.exe
-            dist/Emulator.Manager.*.zip
+            dist/EmuHaven.*.zip

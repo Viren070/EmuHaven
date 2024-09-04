@@ -44,7 +44,7 @@ class Cache:
         data = index.get(key)
         if data is None:
             return None
-        if not data["data"].is_file():
+        if not Path(data["data"]).is_file():
             self.remove_from_index(key)
             return None
         return data

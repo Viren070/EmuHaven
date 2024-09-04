@@ -4,11 +4,12 @@ from enum import Enum
 class App(Enum):
     NAME = "EmuHaven"
     AUTHOR = "Viren070"
-    VERSION = "0.14.0-alpha.1"
+    VERSION = "0.14.0a1"
     SETTINGS_VERSION = 5
     CACHE_VERSION = 2
     GH_OWNER = "Viren070"
     GH_REPO = "Emulator-Manager"
+    GH_ASSET_REGEX = r"Emulator.Manager.*\.exe"
     GITHUB = f"https://github.com/{GH_OWNER}/{GH_REPO}"
     DISCORD = "https://discord.viren070.me"
     KOFI = "https://ko-fi.com/viren070"

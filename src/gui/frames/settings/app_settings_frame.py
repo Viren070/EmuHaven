@@ -12,6 +12,7 @@ from core.assets import Assets
 from core.paths import Paths
 from core.utils.github import get_rate_limit_status
 from gui.libs import messagebox
+from gui.libs.ext.CTkScrollableDropdown import CTkScrollableDropdown
 from gui.windows.github_login_window import GitHubLoginWindow
 from core.utils.thread_event_manager import ThreadEventManager
 
@@ -47,14 +48,20 @@ class AppSettingsFrame(customtkinter.CTkFrame):
         self.auto_app_updates_variable.set(self.settings.auto_app_updates)
         self.auto_emulator_updates_variable.set(self.settings.auto_emulator_updates)
 
-        colour_themes = [str(theme.name).replace("-", " ").replace(".json", "").title() for theme in self.assets.get_list_of_themes()]
-        colour_themes.append("Choose custom theme...")
+
+        appearance_modes = ["Dark", "Light"]
         customtkinter.CTkLabel(self, text="Appearance Mode: ").grid(row=0, column=0, padx=10, pady=10, sticky="w")
-        customtkinter.CTkOptionMenu(self, variable=self.appearance_mode_variable, values=["Dark", "Light"], command=self.change_appearance_mode).grid(row=0, column=2, padx=10, pady=10, sticky="e")
+        appearance_modes_option_menu = customtkinter.CTkOptionMenu(self, variable=self.appearance_mode_variable, values=["Dark", "Light"], command=self.change_appearance_mode)
+        appearance_modes_option_menu.grid(row=0, column=2, padx=10, pady=10, sticky="e")
+        CTkScrollableDropdown(appearance_modes_option_menu, values=appearance_modes, command=self.change_appearance_mode, width=150, height=400, resize=True, button_height=35)
         ttk.Separator(self, orient='horizontal').grid(row=1, columnspan=4, sticky="ew")
 
+        colour_themes = [str(theme.name).replace("-", " ").replace(".json", "").title() for theme in self.assets.get_list_of_themes()]
+        colour_themes.append("Custom...")
         customtkinter.CTkLabel(self, text="Theme: ").grid(row=2, column=0, padx=10, pady=10, sticky="w")
-        customtkinter.CTkOptionMenu(self, variable=self.colour_theme_variable, values=colour_themes, command=self.change_colour_theme).grid(row=2, column=2, padx=10, pady=10, sticky="e")
+        theme_option_menu = customtkinter.CTkOptionMenu(self, variable=self.colour_theme_variable, values=colour_themes, command=self.change_colour_theme)
+        theme_option_menu.grid(row=2, column=2, padx=10, pady=10, sticky="e")
+        CTkScrollableDropdown(theme_option_menu, values=colour_themes, command=self.change_colour_theme, width=150, height=400, resize=True, button_height=35)
         ttk.Separator(self, orient='horizontal').grid(row=3, columnspan=4, sticky="ew")
 
         customtkinter.CTkLabel(self, text="Delete Files after installing").grid(row=8, column=0, padx=10, pady=10, sticky="w")
@@ -132,24 +139,27 @@ class AppSettingsFrame(customtkinter.CTkFrame):
         self.requests_left_label.configure(text=f"API Requests Left: {r_left}\nResets in: {relative_time}")
         self.updating_rate_limit = False
     def change_colour_theme(self, theme):
-        current_theme = Path(customtkinter.ThemeManager._currently_loaded_theme.replace(".json", "")).stem
-        new_theme = theme.lower().replace(" ", "-")
-                
-        if current_theme == new_theme:
-            return
-        if theme == "Choose custom theme...":
-            self.colour_theme_variable.set(str(current_theme.stem).replace("-", " ").title())
+        current_theme = Path(customtkinter.ThemeManager._currently_loaded_theme)
+
+        if theme == "Custom...":
+            self.colour_theme_variable.set(self.settings.colour_theme_path.stem.replace("-", " ").title())
             custom_theme = filedialog.askopenfilename(title="Select a customtkinter theme", filetypes=[("customtkinter theme", "*json")])
-            if not theme:
+            if not custom_theme:
                 return
             self.settings.colour_theme_path = Path(custom_theme)
         else:
-            self.settings.colour_theme_path = self.assets.get_theme_path(new_theme)
+            new_theme = self.assets.get_theme_path(theme.lower().replace(" ", "-"))
+            if current_theme == new_theme:
+                return
+            self.settings.colour_theme_path = new_theme
+    
         self.settings.save()
+        self.colour_theme_variable.set(theme)
         messagebox.showinfo(self.root_window, "Theme Change", "Please restart the application to apply the new theme.")
 
     def change_appearance_mode(self, mode):
-        customtkinter.set_appearance_mode(mode.lower())  # change appearance mode using customtkinters function
+        self.appearance_mode_variable.set(mode)
+        self.after(100, lambda: customtkinter.set_appearance_mode(mode.lower()))  # change appearance mode using customtkinters function
         self.settings.appearance_mode = mode.lower()
         self.settings.save()   # update settings.json if change was through settings menu
 

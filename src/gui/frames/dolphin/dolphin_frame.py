@@ -19,7 +19,6 @@ DOLPHIN_FOLDERS = ["Backup", "Cache", "Config", "Dump", "GameSettings", "GBA", "
 class DolphinFrame(EmulatorFrame):
     def __init__(self, master, paths, settings, versions, assets, cache, event_manager):
         super().__init__(parent_frame=master, paths=paths, settings=settings, versions=versions, assets=assets)
-        self.root = master
         self.dolphin = Dolphin(settings, versions)
         self.paths = paths
         self.event_manager = event_manager
@@ -134,7 +133,7 @@ class DolphinFrame(EmulatorFrame):
         if event is None or self.launch_dolphin_button.cget("state") == "disabled":
             return
         if not (self.settings.dolphin.install_directory / "Dolphin.exe").exists():
-            messagebox.showerror(self.root, "Dolphin", f"'Dolphin.exe' not found at {self.settings.dolphin.install_directory / 'Dolphin.exe'}")
+            messagebox.showerror(self.winfo_toplevel(), "Dolphin", f"'Dolphin.exe' not found at {self.settings.dolphin.install_directory / 'Dolphin.exe'}")
             return
         self.configure_buttons(launch_dolphin_button_text="Launching...")
         auto_update = not self.settings.auto_emulator_updates if event.state & 1 else self.settings.auto_emulator_updates
@@ -143,7 +142,7 @@ class DolphinFrame(EmulatorFrame):
             self.launch_dolphin_handler,
             kwargs={"auto_update": auto_update}, 
             completion_functions=[lambda: self.configure_buttons(state="normal")],
-            error_functions=[lambda: messagebox.showerror(self.root, "Error", "An unexpected error occurred while launching Dolphin.\nPlease check the logs for more information and report this issue.")]
+            error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Error", "An unexpected error occurred while launching Dolphin.\nPlease check the logs for more information and report this issue.")]
             )
         
     def launch_dolphin_handler(self, auto_update):
@@ -156,14 +155,18 @@ class DolphinFrame(EmulatorFrame):
         
         if not status["run_status"]:
             return {
-                "message_func": messagebox.showerror,
-                "message_args": (self.root, "Error", f"Failed to launch Dolphin: {status['message']}"),
+                "message": {
+                    "function": messagebox.showerror,
+                    "arguments": (self.winfo_toplevel(), "Error", f"Failed to launch Dolphin: {status['message']}"),
+                }
             }
 
         if status["error_encountered"]:
             return {
-                "message_func": messagebox.showerror,
-                "message_args": (self.root, "Error", f"An error was encountered while launching/running Dolphin: {status['message']}"),
+                "message": {
+                    "function": messagebox.showerror,
+                    "arguments": (self.winfo_toplevel(), "Error", f"An error was encountered while launching/running Dolphin: {status['message']}"),
+                }
             }
 
         return {}
@@ -173,23 +176,23 @@ class DolphinFrame(EmulatorFrame):
             return
         
         if self.settings.dolphin.install_directory.is_dir() and any(self.settings.dolphin.install_directory.iterdir()):
-            if messagebox.askyesno(self.root, "Directory Exists", "The directory already exists. Are you sure you want to overwrite the contents inside?") != "yes":
+            if messagebox.askyesno(self.winfo_toplevel(), "Directory Exists", "The directory already exists. Are you sure you want to overwrite the contents inside?") != "yes":
                 return
             # Delete the contents of the directory
             delete_result = self.dolphin.delete_dolphin()
             if not delete_result["status"]:
-                messagebox.showerror(self.root, "Error", f"Failed to delete the contents of the directory: {delete_result['message']}")
+                messagebox.showerror(self.winfo_toplevel(), "Error", f"Failed to delete the contents of the directory: {delete_result['message']}")
                 return
 
         path_to_archive = None
         if event.state & 1:
             path_to_archive = PathDialog(filetypes=(".zip", ".7z", ), title="Custom Dolphin Archive", text="Type path to Dolphin Archive: ")
             path_to_archive = path_to_archive.get_input()
-            if not all(path_to_archive):
-                if path_to_archive[1] is not None:
-                    messagebox.showerror(self.root, "Error", "The path you have provided is invalid")
-                return
-            path_to_archive = path_to_archive[1]
+            if not path_to_archive["status"]:
+                if path_to_archive["cancelled"]:
+                    return
+                messagebox.showerror(self.winfo_toplevel(), "Install Dolphin", path_to_archive["message"])
+            path_to_archive = path_to_archive["path"]
 
         self.configure_buttons(install_dolphin_button_text="Installing...")
         
@@ -198,7 +201,7 @@ class DolphinFrame(EmulatorFrame):
             self.install_dolphin_handler, 
             kwargs={"archive_path": path_to_archive}, 
             completion_functions=[lambda: self.configure_buttons(state="normal")],
-            error_functions=[lambda: messagebox.showerror(self.root, "Error", "An unexpected error occurred while installing Dolphin.\nPlease check the logs for more information and report this issue.")]
+            error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Error", "An unexpected error occurred while installing Dolphin.\nPlease check the logs for more information and report this issue.")]
             )
         
         
@@ -210,10 +213,12 @@ class DolphinFrame(EmulatorFrame):
             release_fetch_result = self.dolphin.get_dolphin_release()
             if not release_fetch_result["status"]:
                 return {
-                    "message_func": messagebox.showerror,
-                    "message_args": (self.root, "Dolphin", f"Failed to fetch the latest release of Dolphin: {release_fetch_result['message']}")
+                    "message": {
+                        "function": messagebox.showerror,
+                        "arguments": (self.winfo_toplevel(), "Dolphin", f"Failed to fetch the latest release of Dolphin: {release_fetch_result['message']}"),
+                    }
                 }
-            
+
             if auto_update and release_fetch_result["release"]["version"] == self.versions.get_version("dolphin"):
                 return {
                     "status": True,
@@ -221,34 +226,40 @@ class DolphinFrame(EmulatorFrame):
             
             download_result = self.dolphin.download_release(release_fetch_result["release"]) 
             if not download_result["status"]:
-                return ({
-                    "message_func": messagebox.showerror,
-                    "message_args": (self.root, "Dolphin", f"Failed to download the latest release of Dolphin: {download_result['message']}")
-                })
+                return {
+                    "message": {
+                        "function": messagebox.showerror,
+                        "arguments": (self.winfo_toplevel(), "Dolphin", f"Failed to download the latest release of Dolphin: {download_result['message']}"),
+                    }
+                }
                 
             archive_path = download_result["download_path"]
 
         extract_result = self.dolphin.extract_release(archive_path)
         if not extract_result["status"]:
-            return ({
-                "message_func": messagebox.showerror,
-                "message_args": (self.root, "Dolphin", f"Failed to extract the latest release of Dolphin: {extract_result['message']}")
-            })
+            return {
+                "message": {
+                    "function": messagebox.showerror,
+                    "arguments": (self.winfo_toplevel(), "Dolphin", f"Failed to extract the latest release of Dolphin: {extract_result['message']}"),
+                }
+            }
 
         self.metadata.set_version("dolphin", release_fetch_result["release"]["version"] if not custom_install else "")
-        return ({
-            "message_func": messagebox.showsuccess,
-            "message_args": (self.root, "Dolphin", f"Successfully installed Dolphin to {self.settings.dolphin.install_directory}"),
+        return {
+            "message": {
+                "function": messagebox.showsuccess,
+                "arguments": (self.winfo_toplevel(), "Dolphin", f"Successfully installed Dolphin to {self.settings.dolphin.install_directory}"),
+            },
             "status": True
-        })
+        }
         
 
     def delete_dolphin_button_event(self):
         if not self.settings.dolphin.install_directory.is_dir() or not any(self.settings.dolphin.install_directory.iterdir()):
-            messagebox.showinfo(self.root, "Delete Dolphin", f"The Dolphin Installation directory is either empty or does not exist:\n {self.settings.dolphin.install_directory}")
+            messagebox.showinfo(self.winfo_toplevel(), "Delete Dolphin", f"The Dolphin Installation directory is either empty or does not exist:\n {self.settings.dolphin.install_directory}")
             return 
 
-        if messagebox.askyesno(self.root, "Confirmation", f"Are you sure you want to delete the contents of `{self.settings.dolphin.install_directory}`") != "yes":
+        if messagebox.askyesno(self.winfo_toplevel(), "Confirmation", f"Are you sure you want to delete the contents of `{self.settings.dolphin.install_directory}`") != "yes":
             return
 
         self.configure_buttons(delete_dolphin_button_text="Deleting...")
@@ -256,24 +267,31 @@ class DolphinFrame(EmulatorFrame):
             "delete_dolphin", 
             self.delete_dolphin_handler, 
             completion_functions=[lambda: self.configure_buttons(state="normal")],
-            error_functions=[lambda: messagebox.showerror(self.root, "Error", "An unexpected error occurred while deleting Dolphin.\nPlease check the logs for more information and report this issue.")]
+            error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Error", "An unexpected error occurred while deleting Dolphin.\nPlease check the logs for more information and report this issue.")]
             )
 
     def delete_dolphin_handler(self):
         if not self.settings.dolphin.install_directory.is_dir() or not any(self.settings.dolphin.install_directory.iterdir()):
             return {
-                "message_func": messagebox.showinfo,
-                "message_args": (self.root, "Delete Dolphin", f"The Dolphin Installation directory is either empty or does not exist:\n {self.settings.dolphin.install_directory}")
+                "message": {
+                    "function": messagebox.showinfo,
+                    "arguments": (self.winfo_toplevel(), "Delete Dolphin", f"The Dolphin Installation directory is either empty or does not exist:\n {self.settings.dolphin.install_directory}"),
+                }
             }
         delete_result = self.dolphin.delete_dolphin()
         if not delete_result["status"]:
             return {
-                "message_func": messagebox.showerror,
-                "message_args": (self.root, "Error", f"Failed to delete the contents of the directory: {delete_result['message']}")
+                "message": {
+                    "function": messagebox.showerror,
+                    "arguments": (self.winfo_toplevel(), "Error", f"Failed to delete the contents of the directory: {delete_result['message']}"),
+                }
             }
+
         return {
-            "message_func": messagebox.showsuccess,
-            "message_args": (self.root, "Delete Dolphin", f"Successfully deleted the contents of `{self.settings.dolphin.install_directory}`")
+            "message": {
+                "function": messagebox.showsuccess,
+                "arguments": (self.winfo_toplevel(), "Delete Dolphin", f"Successfully deleted the contents of `{self.settings.dolphin.install_directory}`"),
+            }
         }
 
     def import_data_button_event(self):

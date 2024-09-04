@@ -1,13 +1,14 @@
 import os
 import shutil
 import webbrowser
-from sys import exit as sysexit
-from threading import Thread
+import sys
 from packaging import version
+from pathlib import Path
+
 
 import customtkinter
 from customtkinter import ThemeManager
-from PIL import Image
+
 
 from gui.frames.dolphin.dolphin_frame import DolphinFrame
 from gui.frames.ryujinx.ryujinx_frame import RyujinxFrame
@@ -36,7 +37,7 @@ class EmulatorManager(customtkinter.CTk):
         self.just_opened = False
         self.select_frame_by_name(opening_menu)
   
-        self.protocol("WM_DELETE_WINDOW", self.on_closing)
+        self.protocol("WM_DELETE_WINDOW", self.close_app)
 
     def build_gui(self):
         self.resizable(True, True)  # disable resizing of window
@@ -66,7 +67,7 @@ class EmulatorManager(customtkinter.CTk):
 
         # Create navigation menu buttons
         text_color = ThemeManager.theme["CTkLabel"]["text_color"]
-        self.dolphin_button = customtkinter.CTkButton(scrollable_frame, corner_radius=0, height=40, width=50, image=self.assets.dolphin_logo, border_spacing=10, text="Dolphin",
+        self.dolphin_button = customtkinter.CTkButton(scrollable_frame, corner_radius=0, height=50, image=self.assets.dolphin_logo, border_spacing=10, text="Dolphin",
                                                       fg_color="transparent", text_color=text_color,
                                                       anchor="w", command=self.dolphin_button_event)
         self.dolphin_button.grid(row=0, column=0, sticky="ew")
@@ -192,9 +193,7 @@ class EmulatorManager(customtkinter.CTk):
     def revert_settings(self):
         self.settings_frame.revert_settings()
 
-
-    def on_closing(self):
-       
+    def close_app(self):
         ongoing_events = [event["id"] for event in self.event_manager.events]
         if ongoing_events:
             messagebox.showwarning(self, "Warning", f"There are ongoing events. Please wait for them to finish before closing the application.\n\nOngoing events: {', '.join(ongoing_events)}")
@@ -205,4 +204,4 @@ class EmulatorManager(customtkinter.CTk):
                 shutil.rmtree(temp_folder)
             except PermissionError:
                 pass
-        sysexit()
+        self.destroy()

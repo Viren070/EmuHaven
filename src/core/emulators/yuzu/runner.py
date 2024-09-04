@@ -1,17 +1,19 @@
 import json
 import os
+import platform
 import re
 import shutil
 import subprocess
 import time
+from pathlib import Path
 from tkinter import messagebox
 from zipfile import ZipFile
 
 from packaging import version
 
 from core.emulators.switch_emulator import SwitchEmulator
-from core.utils.files import copy_directory_with_progress, extract_zip_archive_with_progress
-
+from core.utils.files import (copy_directory_with_progress,
+                              extract_zip_archive_with_progress)
 
 
 class Yuzu(SwitchEmulator):
@@ -37,6 +39,17 @@ class Yuzu(SwitchEmulator):
             return False
 
 
+    def get_user_directory(self):
+        
+        if self.settings.yuzu.portable_mode:
+            return self.settings.yuzu.install_directory / "user"
+        
+        match platform.system().lower():
+            case "windows":
+                return Path.home() / "AppData" / "Roaming" / "yuzu"
+            case _:
+                raise NotImplementedError("Only Windows is supported for non-portable mode")
+                
     def extract_release(self, zip_path, progress_handler=None):
         return extract_zip_archive_with_progress(
             zip_path=zip_path,
@@ -241,21 +254,7 @@ class Yuzu(SwitchEmulator):
         self.gui.fetch_versions()
         return True
 
-    def download_firmware_archive(self, release):
-        firmware = release
 
-        response_result = create_get_connection(firmware.download_url, stream=True, headers=get_headers(self.settings.app.token), timeout=30)
-        if not all(response_result):
-            return response_result
-
-        response = response_result[1]
-        self.main_progress_frame.start_download(f"Firmware {firmware.version}", firmware.size)
-        self.main_progress_frame.grid(row=0, column=0, sticky="ew")
-
-        download_path = os.path.join(os.getcwd(), f"Firmware {firmware.version}.zip")
-        download_result = download_through_stream(response, download_path, self.main_progress_frame, 1024*203)
-        self.main_progress_frame.complete_download()
-        return download_result
 
     def install_key_handler(self, mode, path_or_release, skip_prompt=False):
         if not skip_prompt and self.check_current_keys()["prod.keys"] and not messagebox.askyesno("Keys Exist", "It seems you already have decryption keys. Would you like to continue?"):

@@ -6,6 +6,7 @@ import subprocess
 from tkinter import messagebox
 from zipfile import ZipFile
 import platform
+from pathlib import Path
 
 from packaging import version
 
@@ -29,6 +30,13 @@ class Ryujinx(SwitchEmulator):
         self.installing_firmware_or_keys = False
         self.running = False
 
+    def get_user_directory(self):
+        if self.settings.ryujinx.portable_mode:
+            return self.settings.ryujinx.install_directory / "portable"
+        match platform.system().lower():
+            case "windows":
+                return Path.home() / "AppData" / "Roaming" / "Ryujinx"
+                
     def verify_ryujinx_zip(self, path_to_archive):
         try:
             with ZipFile(path_to_archive, 'r') as archive:

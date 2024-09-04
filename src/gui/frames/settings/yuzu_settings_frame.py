@@ -12,25 +12,44 @@ class YuzuSettingsFrame(customtkinter.CTkFrame):
         self.update_entry_widgets()
 
     def build_frame(self):
+        # give 1st column a weight of 1 so it fills all available space
         self.grid_columnconfigure(0, weight=1)
+        # create fonts
+        title_font = customtkinter.CTkFont(family="Arial", size=15, weight="bold")
+        description_font = customtkinter.CTkFont(family="Arial", size=13)
 
-        customtkinter.CTkLabel(self, text="User Directory: ").grid(row=0, column=0, padx=10, pady=10, sticky="w")
-        self.user_directory_entry = customtkinter.CTkEntry(self,  width=300)
-        self.user_directory_entry.grid(row=0, column=2, padx=10, pady=10, sticky="e")
-        customtkinter.CTkButton(self, text="Browse", width=50, command=lambda entry_widget=self.user_directory_entry: self.update_with_explorer(entry_widget)).grid(row=0, column=3, padx=5, pady=10, sticky="e")
-        ttk.Separator(self, orient='horizontal').grid(row=1, columnspan=4, sticky="ew")
 
-        customtkinter.CTkLabel(self, text="yuzu Install Directory: ").grid(row=2, column=0, padx=10, pady=10, sticky="w")
-        self.install_directory_entry = customtkinter.CTkEntry(self, width=300)
-        self.install_directory_entry.grid(row=2, column=2, padx=10, pady=10, sticky="e")
-        customtkinter.CTkButton(self, text="Browse", width=50, command=lambda entry_widget=self.install_directory_entry: self.update_with_explorer(entry_widget)).grid(row=2, column=3, padx=5, pady=5, sticky="E")
-        ttk.Separator(self, orient='horizontal').grid(row=3, columnspan=4, sticky="ew")
+        install_directory_frame = customtkinter.CTkFrame(self, corner_radius=10, border_width=1)
+        install_directory_frame.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
+        install_directory_frame.grid_columnconfigure(0, weight=1)
+    
+        install_directory_title = customtkinter.CTkLabel(install_directory_frame, text="Install Directory", font=title_font)
+        install_directory_title.grid(row=0, column=0, padx=10, pady=2, sticky="w")
+        
+        install_directory_description = customtkinter.CTkLabel(install_directory_frame, justify="left", text="The directory where yuzu will be installed to.\nWithin the directory you select, a 'yuzu-windows-msvc' and 'yuzu-windows-msvc-early-access' folder will be used\nto store the respective versions of yuzu", font=description_font)
+        install_directory_description.grid(row=1, column=0, padx=10, pady=2, sticky="w")
+       
+        install_directory_setting_frame = customtkinter.CTkFrame(install_directory_frame, fg_color="transparent", border_width=0)
+        install_directory_setting_frame.grid(row=2, column=0, pady=5, padx=10, sticky="ew")
+        install_directory_setting_frame.grid_columnconfigure(0, weight=1)
+        
+        self.install_directory_entry = customtkinter.CTkEntry(install_directory_setting_frame)
+        self.install_directory_entry.grid(row=0, column=0, pady=5, sticky="ew")
+        customtkinter.CTkButton(install_directory_setting_frame, text="Browse", width=100, command=lambda entry_widget=self.install_directory_entry: self.update_with_explorer(entry_widget)).grid(row=0, column=1, padx=10, pady=5, sticky="e")
+    
 
-        self.actions_frame = customtkinter.CTkFrame(self, fg_color="transparent")
-        self.actions_frame.grid_columnconfigure(0, weight=1)
-        self.actions_frame.grid(row=14, sticky="ew", columnspan=4, padx=10, pady=10)
-        customtkinter.CTkButton(self.actions_frame, text="Apply", command=self.apply).grid(row=10, column=3, padx=10, pady=10, sticky="e")
-        customtkinter.CTkButton(self.actions_frame, text="Restore Defaults", command=self.restore_defaults).grid(row=10, column=0, padx=10, pady=10, sticky="w")
+        portable_mode_frame = customtkinter.CTkFrame(self, corner_radius=10, border_width=1)
+        portable_mode_frame.grid(row=1, column=0, padx=10, pady=5, sticky="ew")
+        
+        portable_mode_title = customtkinter.CTkLabel(portable_mode_frame, text="Portable Mode", font=title_font)
+        portable_mode_title.grid(row=0, column=0, padx=10, pady=1, sticky="w")
+        
+        portable_mode_description = customtkinter.CTkLabel(portable_mode_frame, text="With portable mode enabled, your user files (saves, config etc.) are stored in the same directory as the install directory", font=description_font)
+        portable_mode_description.grid(row=1, column=0, padx=10, pady=0, sticky="w")
+        
+        self.portable_mode_var = customtkinter.BooleanVar()
+        portable_mode_switch = customtkinter.CTkSwitch(portable_mode_frame, text="", variable=self.portable_mode_var, onvalue=True, offvalue=False, command=self.toggle_portable_mode, switch_height=24, switch_width=54)
+        portable_mode_switch.grid(row=2, column=0, padx=10, pady=10, sticky="w")
 
         self.matching_dict = {
             "install_directory": self.install_directory_entry,
@@ -46,6 +65,10 @@ class YuzuSettingsFrame(customtkinter.CTkFrame):
             if Path(entry_widget.get()).resolve() != getattr(self.settings.yuzu, setting_name).resolve():
                 return True
         return False
+
+    def toggle_portable_mode(self):
+        self.settings.yuzu.portable_mode = self.portable_mode_var.get()
+        self.settings.save()
 
     def update_with_explorer(self, entry_widget, dialogtype=None):
         if dialogtype is None:
