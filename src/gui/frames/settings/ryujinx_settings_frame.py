@@ -1,7 +1,6 @@
-from pathlib import Path
-from tkinter import filedialog, messagebox, ttk
-from gui.frames.settings.setting_modal import SettingModal
 import customtkinter
+
+from gui.frames.settings.setting_modal import SettingModal
 
 
 class RyujinxSettingsFrame(customtkinter.CTkFrame):
@@ -29,7 +28,7 @@ class RyujinxSettingsFrame(customtkinter.CTkFrame):
             }
         )
         install_directory_setting.grid(row=0, column=0, padx=10, pady=5, sticky="ew")
-        
+
         portable_mode_setting = SettingModal(
             master=self,
             settings=self.settings,

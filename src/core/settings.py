@@ -115,6 +115,8 @@ class Settings:
                     continue
                 if "path" in setting_name or "directory" in setting_name and value:
                     value = Path(value)
+                    if value.is_dir():
+                        value.mkdir(parents=True, exist_ok=True)
                 try:
                     # Set the value from the settings file
                     setattr(section_obj, setting_name, value)

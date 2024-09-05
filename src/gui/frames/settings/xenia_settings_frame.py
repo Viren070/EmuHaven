@@ -1,9 +1,6 @@
-from pathlib import Path
-from tkinter import filedialog, messagebox, ttk
+import customtkinter
 
 from gui.frames.settings.setting_modal import SettingModal
-
-import customtkinter
 
 
 class XeniaSettingsFrame(customtkinter.CTkFrame):
@@ -11,7 +8,6 @@ class XeniaSettingsFrame(customtkinter.CTkFrame):
         super().__init__(parent_frame, corner_radius=0, fg_color="transparent")
         self.settings = settings
         self.build_frame()
-
 
     def build_frame(self):
         self.grid_columnconfigure(0, weight=1)
@@ -32,7 +28,7 @@ class XeniaSettingsFrame(customtkinter.CTkFrame):
             }
         )
         install_directory_setting.grid(row=0, column=0, padx=10, pady=5, sticky="ew")
-        
+
         game_directory_setting = SettingModal(
             master=self,
             settings=self.settings,
@@ -49,7 +45,7 @@ class XeniaSettingsFrame(customtkinter.CTkFrame):
             }
         )
         game_directory_setting.grid(row=1, column=0, padx=10, pady=5, sticky="ew")
-        
+
         portable_mode_setting = SettingModal(
             master=self,
             settings=self.settings,
@@ -62,6 +58,3 @@ class XeniaSettingsFrame(customtkinter.CTkFrame):
             },
         )
         portable_mode_setting.grid(row=2, column=0, padx=10, pady=5, sticky="ew")
-    
-        
-

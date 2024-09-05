@@ -1,10 +1,6 @@
-from pathlib import Path
-from tkinter import filedialog, messagebox
+import customtkinter
 
 from gui.frames.settings.setting_modal import SettingModal
-
-
-import customtkinter
 
 
 class YuzuSettingsFrame(customtkinter.CTkFrame):
@@ -12,7 +8,6 @@ class YuzuSettingsFrame(customtkinter.CTkFrame):
         super().__init__(parent_frame, corner_radius=0, fg_color="transparent")
         self.settings = settings
         self.build_frame()
-
 
     def build_frame(self):
         # give 1st column a weight of 1 so it fills all available space
@@ -48,4 +43,3 @@ class YuzuSettingsFrame(customtkinter.CTkFrame):
         )
         portable_mode_setting.grid(row=1, column=0, padx=10, pady=5, sticky="ew")
         self.matching_dict = {}
-

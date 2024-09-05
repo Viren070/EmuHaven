@@ -32,18 +32,9 @@ class AppSettingsFrame(customtkinter.CTkFrame):
 
         # create appearance and themes widgets for settings menu 'Appearance'
         self.grid_columnconfigure(0, weight=1)
-        
-        self.colour_theme_variable = customtkinter.StringVar()
-
-        self.colour_theme_variable.set(str(Path(customtkinter.ThemeManager._currently_loaded_theme).stem).replace("-", " ").title())
-
-
-
-
 
         colour_themes = [str(theme.name).replace("-", " ").replace(".json", "").title() for theme in self.assets.get_list_of_themes()]
         colour_themes.append("Custom...")
-        
         theme_setting = SettingModal(
             master=self,
             settings=self.settings,
@@ -59,11 +50,10 @@ class AppSettingsFrame(customtkinter.CTkFrame):
             },
             custom_options={
                 "update_function": self.change_colour_theme,
-                "get_function": lambda: self.colour_theme_variable.get()
+                "get_function": lambda: self.settings.colour_theme_path.stem.replace("-", " ").title()
             }
         )
         theme_setting.grid(row=1, column=0, padx=10, pady=5, sticky="ew")
-
 
         dark_mode_setting = SettingModal(
             master=self,
@@ -76,11 +66,11 @@ class AppSettingsFrame(customtkinter.CTkFrame):
                 "description": "Enable dark mode.",
             },
             custom_options={
-                "update_function": self.set_dark_mode_setting
+                "update_function": self.set_dark_mode_setting,
             }
         )
         dark_mode_setting.grid(row=3, column=0, padx=10, pady=5, sticky="ew")
-        
+
         delete_files_after_installing_setting = SettingModal(
             master=self,
             settings=self.settings,
@@ -93,7 +83,7 @@ class AppSettingsFrame(customtkinter.CTkFrame):
             },
         )
         delete_files_after_installing_setting.grid(row=4, column=0, padx=10, pady=5, sticky="ew")
-        
+
         auto_app_updates_setting = SettingModal(
             master=self,
             settings=self.settings,
@@ -106,7 +96,7 @@ class AppSettingsFrame(customtkinter.CTkFrame):
             },
         )
         auto_app_updates_setting.grid(row=5, column=0, padx=10, pady=5, sticky="ew")
-        
+
         auto_emulator_updates_setting = SettingModal(
             master=self,
             settings=self.settings,
@@ -119,7 +109,6 @@ class AppSettingsFrame(customtkinter.CTkFrame):
             },
         )
         auto_emulator_updates_setting.grid(row=6, column=0, padx=10, pady=5, sticky="ew")
-        
 
         self.actions_frame = customtkinter.CTkFrame(self, fg_color="transparent")
         self.actions_frame.grid_columnconfigure(0, weight=1)
@@ -161,7 +150,7 @@ class AppSettingsFrame(customtkinter.CTkFrame):
                     "message_args": (self.root_window, "API Rate Limit Status", f"{rate_limit_status["message"]}")
                 }
             return
-        
+
         r_left = rate_limit_status["requests_remaining"]
         t_left = rate_limit_status["reset_time"]
 
@@ -183,7 +172,7 @@ class AppSettingsFrame(customtkinter.CTkFrame):
 
         self.requests_left_label.configure(text=f"API Requests Left: {r_left}\nResets in: {relative_time}")
         self.updating_rate_limit = False
-    
+
     def change_colour_theme(self, theme, var):
         current_theme = Path(customtkinter.ThemeManager._currently_loaded_theme)
 
@@ -199,7 +188,7 @@ class AppSettingsFrame(customtkinter.CTkFrame):
                 var.set(theme)
                 return
             self.settings.colour_theme_path = new_theme
-    
+
         self.settings.save()
         var.set(theme)
         messagebox.showinfo(self.root_window, "Theme Change", "Please restart the application to apply the new theme.")
@@ -208,7 +197,6 @@ class AppSettingsFrame(customtkinter.CTkFrame):
         self.settings.dark_mode = value
         self.after(100, lambda: customtkinter.set_appearance_mode("dark" if value else "light"))
         self.settings.save()
-
 
     def open_token_window(self):
         if self.token_gen is None:

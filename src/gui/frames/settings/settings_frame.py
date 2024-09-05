@@ -1,8 +1,6 @@
 import customtkinter
 from customtkinter import ThemeManager
-from PIL import Image
 
-from core.paths import Paths
 from gui.frames.settings.app_settings_frame import AppSettingsFrame
 from gui.frames.settings.dolphin_settings_frame import DolphinSettingsFrame
 from gui.frames.settings.yuzu_settings_frame import YuzuSettingsFrame
@@ -110,6 +108,7 @@ class SettingsFrame(customtkinter.CTkFrame):
 
     def settings_changed(self):
         return False 
+
     def revert_settings(self):
         self.yuzu_settings_frame.update_entry_widgets()
         self.dolphin_settings_frame.update_entry_widgets()
