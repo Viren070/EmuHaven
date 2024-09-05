@@ -15,10 +15,10 @@ logger = Logger(__name__).get_logger()
 
 def load_customtkinter_settings(settings_object: Settings):
     theme = settings_object.colour_theme_path
-    appearance = settings_object.appearance_mode
-    logger.info("Appearance mode: %s", appearance)
+    dark_mode = settings_object.dark_mode
+    logger.info("Dark: %s", dark_mode)
     logger.info("Theme: %s", theme)
-    customtkinter.set_appearance_mode(appearance)
+    customtkinter.set_appearance_mode("dark" if dark_mode else "light")
     customtkinter.set_default_color_theme(str(theme))
 
 if __name__ == "__main__":

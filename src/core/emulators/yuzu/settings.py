@@ -5,8 +5,8 @@ class YuzuSettings:
     def __init__(self):
         self.config = {
             "install_directory": self.get_default_install_directory(),
-            "portable": False,
-            "release_channel": "master",
+            "portable_mode": False,
+            "release_channel": "mainline",
         }
     
     def get_default_install_directory(self):

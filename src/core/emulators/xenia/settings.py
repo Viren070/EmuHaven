@@ -5,9 +5,9 @@ class XeniaSettings:
     def __init__(self):
         self.config = {
             "install_directory": self.get_default_install_directory(),
-            "portable": False,
+            "portable_mode": False,
             "release_channel": "master",
-            "game_directory": Path(),
+            "game_directory": Path().resolve(),
         }
 
    

@@ -9,7 +9,7 @@ class RyujinxSettings:
         self.logger = Logger(__name__).get_logger()
         self.config = {
             "install_directory": self.get_default_install_directory(),
-            "portable": False,
+            "portable_mode": False,
             "release_channel": "master",
         }
 

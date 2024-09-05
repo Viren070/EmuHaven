@@ -109,8 +109,7 @@ class SettingsFrame(customtkinter.CTkFrame):
             self.app_settings_frame.grid_forget()
 
     def settings_changed(self):
-        return (self.yuzu_settings_frame.settings_changed() or self.dolphin_settings_frame.settings_changed() or self.xenia_settings_frame.settings_changed() or self.ryujinx_settings_frame.settings_changed())
-
+        return False 
     def revert_settings(self):
         self.yuzu_settings_frame.update_entry_widgets()
         self.dolphin_settings_frame.update_entry_widgets()

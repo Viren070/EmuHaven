@@ -9,7 +9,7 @@ class DolphinSettings:
         self.logger = Logger(__name__).get_logger()
         self.config = {
             "release_channel": "release",
-            "portable": False,
+            "portable_mode": False,
             "install_directory": self.get_default_install_directory(),
             "game_directory": Path().resolve(),
         }

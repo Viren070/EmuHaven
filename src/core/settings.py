@@ -13,7 +13,7 @@ class Settings:
     def __init__(self, paths: Paths):
         self.logger = Logger(__name__).get_logger()
         self.default_settings = {
-            "appearance_mode": "dark",
+            "dark_mode": True,
             "colour_theme_path": Path("blue"),
             "delete_files_after_installing": True,
             "auto_app_updates": True,
@@ -80,7 +80,7 @@ class Settings:
                 "release_channel": "",
             },
             "app_settings": {
-                "appearance_mode": "",
+                "dark_mode": "",
                 "colour_theme_path": "",
                 "delete_files_after_installing": "",
                 "auto_app_updates": "",
@@ -119,10 +119,10 @@ class Settings:
                     # Set the value from the settings file
                     setattr(section_obj, setting_name, value)
                 except Exception as error:
+                    self.logger.error(f"Error loading setting {setting_name} from section {section_name}: {error}")
                     # If the value is invalid, simply ignore it as
                     # we are in the initialisation stage and cannot
                     # display error messages
-                    pass
 
     def save(self):
         # when saving the settings, we need to convert Path objects to strings
@@ -153,7 +153,7 @@ class Settings:
                 "game_directory": str(self.xenia.game_directory.resolve())
             },
             "app_settings": {
-                "appearance_mode": self.appearance_mode,
+                "dark_mode": self.dark_mode,
                 "colour_theme_path": str(self.colour_theme_path.resolve()),
                 "delete_files_after_installing": self.delete_files_after_installing,
                 "auto_app_updates": self.auto_app_updates,
@@ -171,8 +171,6 @@ class Settings:
                 pass
             else:
                 value = self.default_settings[property_name]
-        elif property_name == "appearance_mode" and not value.lower().replace(" ", "-") in App.VALID_APPEARANCE_MODES.value:
-            value = "dark"
         self._settings[property_name] = value
 
     def _get_property(self, property_name):
@@ -183,9 +181,9 @@ class Settings:
         lambda self, value: self._set_property("colour_theme_path", value),
     )
 
-    appearance_mode = property(
-        lambda self: self._get_property("appearance_mode"),
-        lambda self, value: self._set_property("appearance_mode", value),
+    dark_mode = property(
+        lambda self: self._get_property("dark_mode"),
+        lambda self, value: self._set_property("dark_mode", value),
     )
     delete_files_after_installing = property(
         lambda self: self._get_property("delete_files_after_installing"),

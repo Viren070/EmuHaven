@@ -1,20 +1,16 @@
 import os
-from datetime import timedelta, datetime
+from datetime import datetime
 from pathlib import Path
-from threading import Thread
-from tkinter import filedialog, ttk
+from tkinter import filedialog
 
 import customtkinter
 from CTkToolTip import CTkToolTip
 
-from core import constants
-from core.assets import Assets
-from core.paths import Paths
 from core.utils.github import get_rate_limit_status
-from gui.libs import messagebox
-from gui.libs.ext.CTkScrollableDropdown import CTkScrollableDropdown
-from gui.windows.github_login_window import GitHubLoginWindow
 from core.utils.thread_event_manager import ThreadEventManager
+from gui.frames.settings.setting_modal import SettingModal
+from gui.libs import messagebox
+from gui.windows.github_login_window import GitHubLoginWindow
 
 
 class AppSettingsFrame(customtkinter.CTkFrame):
@@ -37,48 +33,97 @@ class AppSettingsFrame(customtkinter.CTkFrame):
         # create appearance and themes widgets for settings menu 'Appearance'
         self.grid_columnconfigure(0, weight=1)
         
-        self.appearance_mode_variable = customtkinter.StringVar()
         self.colour_theme_variable = customtkinter.StringVar()
-        self.auto_app_updates_variable = customtkinter.BooleanVar()
-        self.auto_emulator_updates_variable = customtkinter.BooleanVar()
-        self.appearance_mode_variable.set(customtkinter.get_appearance_mode().title())
+
         self.colour_theme_variable.set(str(Path(customtkinter.ThemeManager._currently_loaded_theme).stem).replace("-", " ").title())
-        self.delete_files_after_installing_variable = customtkinter.BooleanVar()
-        self.delete_files_after_installing_variable.set(self.settings.delete_files_after_installing)
-        self.auto_app_updates_variable.set(self.settings.auto_app_updates)
-        self.auto_emulator_updates_variable.set(self.settings.auto_emulator_updates)
 
 
-        appearance_modes = ["Dark", "Light"]
-        customtkinter.CTkLabel(self, text="Appearance Mode: ").grid(row=0, column=0, padx=10, pady=10, sticky="w")
-        appearance_modes_option_menu = customtkinter.CTkOptionMenu(self, variable=self.appearance_mode_variable, values=["Dark", "Light"], command=self.change_appearance_mode)
-        appearance_modes_option_menu.grid(row=0, column=2, padx=10, pady=10, sticky="e")
-        CTkScrollableDropdown(appearance_modes_option_menu, values=appearance_modes, command=self.change_appearance_mode, width=150, height=400, resize=True, button_height=35)
-        ttk.Separator(self, orient='horizontal').grid(row=1, columnspan=4, sticky="ew")
+
+
 
         colour_themes = [str(theme.name).replace("-", " ").replace(".json", "").title() for theme in self.assets.get_list_of_themes()]
         colour_themes.append("Custom...")
-        customtkinter.CTkLabel(self, text="Theme: ").grid(row=2, column=0, padx=10, pady=10, sticky="w")
-        theme_option_menu = customtkinter.CTkOptionMenu(self, variable=self.colour_theme_variable, values=colour_themes, command=self.change_colour_theme)
-        theme_option_menu.grid(row=2, column=2, padx=10, pady=10, sticky="e")
-        CTkScrollableDropdown(theme_option_menu, values=colour_themes, command=self.change_colour_theme, width=150, height=400, resize=True, button_height=35)
-        ttk.Separator(self, orient='horizontal').grid(row=3, columnspan=4, sticky="ew")
+        
+        theme_setting = SettingModal(
+            master=self,
+            settings=self.settings,
+            setting_options={
+                "object": self.settings,
+                "id": "colour_theme_path",
+                "type": "option_menu",
+                "title": "Theme",
+                "description": "Select a colour theme for the application.",
+            },
+            option_menu_options={
+                "values": colour_themes,
+            },
+            custom_options={
+                "update_function": self.change_colour_theme,
+                "get_function": lambda: self.colour_theme_variable.get()
+            }
+        )
+        theme_setting.grid(row=1, column=0, padx=10, pady=5, sticky="ew")
 
-        customtkinter.CTkLabel(self, text="Delete Files after installing").grid(row=8, column=0, padx=10, pady=10, sticky="w")
-        customtkinter.CTkCheckBox(self, text="", variable=self.delete_files_after_installing_variable, onvalue=True, offvalue=False, command=self.change_delete_files_option).grid(row=8, column=2, padx=(50, 0), pady=10, sticky="ew")
-        ttk.Separator(self, orient="horizontal").grid(row=9, columnspan=4, sticky="ew")
 
-        customtkinter.CTkLabel(self, text="Auto App Updates").grid(row=10, column=0, padx=10, pady=10, sticky="w")
-        customtkinter.CTkCheckBox(self, text="", variable=self.auto_app_updates_variable, onvalue=True, offvalue=False, command=self.change_app_update_option).grid(row=10, column=2, padx=(50, 0), pady=10, sticky="ew")
-        ttk.Separator(self, orient="horizontal").grid(row=11, columnspan=4, sticky="ew")
-
-        customtkinter.CTkLabel(self, text="Auto Emulator Updates").grid(row=12, column=0, padx=10, pady=10, sticky="w")
-        customtkinter.CTkCheckBox(self, text="", variable=self.auto_emulator_updates_variable, onvalue=True, offvalue=False, command=self.change_emulator_update_option).grid(row=12, column=2, padx=(50, 0), pady=10, sticky="ew")
-        ttk.Separator(self, orient="horizontal").grid(row=13, columnspan=4, sticky="ew")
+        dark_mode_setting = SettingModal(
+            master=self,
+            settings=self.settings,
+            setting_options={
+                "object": self.settings,
+                "id": "dark_mode",
+                "type": "switch",
+                "title": "Dark Mode",
+                "description": "Enable dark mode.",
+            },
+            custom_options={
+                "update_function": self.set_dark_mode_setting
+            }
+        )
+        dark_mode_setting.grid(row=3, column=0, padx=10, pady=5, sticky="ew")
+        
+        delete_files_after_installing_setting = SettingModal(
+            master=self,
+            settings=self.settings,
+            setting_options={
+                "object": self.settings,
+                "id": "delete_files_after_installing",
+                "type": "switch",
+                "title": "Delete Files after installing",
+                "description": "Delete downloaded files after installing.",
+            },
+        )
+        delete_files_after_installing_setting.grid(row=4, column=0, padx=10, pady=5, sticky="ew")
+        
+        auto_app_updates_setting = SettingModal(
+            master=self,
+            settings=self.settings,
+            setting_options={
+                "object": self.settings,
+                "id": "auto_app_updates",
+                "type": "switch",
+                "title": "Auto App Updates",
+                "description": "Automatically check for and install updates for applications.",
+            },
+        )
+        auto_app_updates_setting.grid(row=5, column=0, padx=10, pady=5, sticky="ew")
+        
+        auto_emulator_updates_setting = SettingModal(
+            master=self,
+            settings=self.settings,
+            setting_options={
+                "object": self.settings,
+                "id": "auto_emulator_updates",
+                "type": "switch",
+                "title": "Auto Emulator Updates",
+                "description": "Automatically check for and install updates for emulators.",
+            },
+        )
+        auto_emulator_updates_setting.grid(row=6, column=0, padx=10, pady=5, sticky="ew")
+        
 
         self.actions_frame = customtkinter.CTkFrame(self, fg_color="transparent")
         self.actions_frame.grid_columnconfigure(0, weight=1)
-        self.actions_frame.grid(row=14, sticky="ew", columnspan=5, padx=10, pady=10)
+        self.actions_frame.grid(row=14, sticky="ew", padx=10, pady=10)
         self.requests_left_label = customtkinter.CTkLabel(self.actions_frame, anchor="w", justify="left", text="API Requests Left: Unknown\nResets in: Unknown")
         self.requests_left_label.bind("<Button-1>", command=self.start_update_requests_left)
         CTkToolTip(self.requests_left_label, message="GitHub API Usage:\n"
@@ -138,11 +183,12 @@ class AppSettingsFrame(customtkinter.CTkFrame):
 
         self.requests_left_label.configure(text=f"API Requests Left: {r_left}\nResets in: {relative_time}")
         self.updating_rate_limit = False
-    def change_colour_theme(self, theme):
+    
+    def change_colour_theme(self, theme, var):
         current_theme = Path(customtkinter.ThemeManager._currently_loaded_theme)
 
         if theme == "Custom...":
-            self.colour_theme_variable.set(self.settings.colour_theme_path.stem.replace("-", " ").title())
+            var.set(self.settings.colour_theme_path.stem.replace("-", " ").title())
             custom_theme = filedialog.askopenfilename(title="Select a customtkinter theme", filetypes=[("customtkinter theme", "*json")])
             if not custom_theme:
                 return
@@ -150,30 +196,19 @@ class AppSettingsFrame(customtkinter.CTkFrame):
         else:
             new_theme = self.assets.get_theme_path(theme.lower().replace(" ", "-"))
             if current_theme == new_theme:
+                var.set(theme)
                 return
             self.settings.colour_theme_path = new_theme
     
         self.settings.save()
-        self.colour_theme_variable.set(theme)
+        var.set(theme)
         messagebox.showinfo(self.root_window, "Theme Change", "Please restart the application to apply the new theme.")
 
-    def change_appearance_mode(self, mode):
-        self.appearance_mode_variable.set(mode)
-        self.after(100, lambda: customtkinter.set_appearance_mode(mode.lower()))  # change appearance mode using customtkinters function
-        self.settings.appearance_mode = mode.lower()
-        self.settings.save()   # update settings.json if change was through settings menu
-
-    def change_delete_files_option(self):
-        self.settings.delete_files_after_installing = self.delete_files_after_installing_variable.get()
+    def set_dark_mode_setting(self, value, var):
+        self.settings.dark_mode = value
+        self.after(100, lambda: customtkinter.set_appearance_mode("dark" if value else "light"))
         self.settings.save()
 
-    def change_app_update_option(self):
-        self.settings.auto_app_updates = self.auto_app_updates_variable.get()
-        self.settings.save()
-
-    def change_emulator_update_option(self):
-        self.settings.auto_emulator_updates = self.auto_emulator_updates_variable.get()
-        self.settings.save()
 
     def open_token_window(self):
         if self.token_gen is None:
