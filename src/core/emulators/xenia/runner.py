@@ -12,13 +12,18 @@ from core.utils.github import get_latest_release_with_asset
 from core.utils.web import download_file_with_progress
 
 class Xenia:
-    def __init__(self, gui, settings, metadata):
+    def __init__(self, gui, settings, versions):
         self.settings = settings
-        self.metadata = metadata
+        self.versions = versions
         self.gui = gui
         self.running = False
         self.main_progress_frame = None
         self.data_progress_frame = None
+
+
+
+    def get_installed_version(self, release_channel):
+        return (self.versions.get_version(f"xenia_{release_channel.lower()}") or "Unknown") if ((self.settings.xenia.install_directory / release_channel.lower() / ("xenia_canary.exe" if release_channel == "canary" else "xenia.exe")).exists()) else ""
 
     def delete_xenia_zip(self, zip_path):
         time.sleep(2)

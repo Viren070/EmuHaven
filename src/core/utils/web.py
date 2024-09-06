@@ -88,7 +88,7 @@ def get_all_files_from_page(url, file_ext=None, **kwargs):
     return {"status": True, "message": "Files retrieved successfully", "files": files}
 
 
-def download_file_with_progress(download_url, download_path, progress_handler, chunk_size=1024, **kwargs):
+def download_file_with_progress(download_url, download_path, progress_handler, chunk_size=1024*256, **kwargs):
     """Download a file from the given URL using a stream with a progress handler.
 
     Args:
@@ -112,6 +112,9 @@ def download_file_with_progress(download_url, download_path, progress_handler, c
 def download_through_stream(response, download_path, chunk_size, progress_handler):
     if progress_handler is None:
         progress_handler = ProgressHandler()
+    size = int(response.headers.get('content-length', 0))
+    if not progress_handler.is_total_units_set():
+        progress_handler.set_total_units(size / 1024 / 1024)
     try:
         with open(download_path, 'wb') as f:
             downloaded_bytes = 0
@@ -127,12 +130,20 @@ def download_through_stream(response, download_path, chunk_size, progress_handle
                 f.write(chunk)
                 downloaded_bytes += len(chunk)
 
-                progress_handler.report_progress(downloaded_bytes)
+                progress_handler.report_progress(downloaded_bytes / 1024 / 1024)
 
             progress_handler.report_success()
+    except PermissionError as error:
+        progress_handler.report_error(error)
+        download_path.unlink(missing_ok=True)
+        return {
+            "status": False,
+            "message": f"Permission was denied. Make sure the app and the user have permission to write to the current directory:\n\n{download_path.parent}",
+            "download_path": None
+        }
     except (FileNotFoundError, RequestException, OSError) as error:
         progress_handler.report_error(error)
-        download_path.unlink()
+        download_path.unlink(missing_ok=True)
         return {
             "status": False,
             "message": error,
@@ -159,18 +170,24 @@ def download_file(download_url, download_path, **kwargs):
     if not response["status"]:
         return response
     response = response["response"]
+    
+    try:
+        content = response.content
+    except RequestException as error:
+        logger.error("Error downloading file: %s", error)
+        return {"status": False, "message": error, "download_path": None}
+    
+    download_path.parent.mkdir(parents=True, exist_ok=True)
+    
     try:
         with open(download_path, "wb") as f:
-            f.write(response.content)
-        return {
-            "status": True,
-            "message": "Download successful",
-            "download_path": Path(download_path)
-        }
-    except RequestException as error:
-        download_path.unlink()
-        return {
-            "status": False,
-            "message": error,
-            "download_path": None
-        }
+            f.write(content)
+    except (PermissionError) as error:
+        logger.error("Error writing file: %s", error)
+        return {"status": False, "message": f"Permission was denied. Make sure the app and the user have permission to write to the current directory:\n\n{download_path.parent}",
+                "download_path": None}
+    return {
+        "status": True,
+        "message": "Download successful",
+        "download_path": download_path
+    }

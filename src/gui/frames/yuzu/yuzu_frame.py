@@ -10,11 +10,11 @@ from core.paths import Paths
 from core.utils.thread_event_manager import ThreadEventManager
 from gui.frames.emulator_frame import EmulatorFrame
 from gui.frames.firmware_keys_frame import FirmwareKeysFrame
-from gui.frames.progress_frame import ProgressFrame
 from gui.frames.yuzu.yuzu_rom_frame import YuzuROMFrame
 from gui.windows.path_dialog import PathDialog
 from gui.windows.folder_selector import FolderSelector
 from gui.libs import messagebox
+from gui.progress_handler import ProgressHandler
 
 
 FOLDERS = ["amiibo", "cache", "config", "crash_dumps", "dump", "icons", "keys", "load", "log", "nand", "play_time", "screenshots", "sdmc", "shader", "tas", "sysdata"]
@@ -28,12 +28,6 @@ class YuzuFrame(EmulatorFrame):
         self.paths = paths
         self.versions = versions
         self.event_manager = event_manager
-        self.mainline_version = None
-        self.early_access_version = None
-        self.installed_firmware_version = "Unknown"
-        self.installed_key_version = "Unknown"
-        self.installed_mainline_version = ""
-        self.installed_early_access_version = ""
         self.add_to_frame()
 
     def add_to_frame(self):
@@ -89,7 +83,8 @@ class YuzuFrame(EmulatorFrame):
         self.yuzu_log_frame.grid(row=4, column=0, padx=80, sticky="ew")
         self.yuzu_log_frame.grid_propagate(False)
         self.yuzu_log_frame.grid_columnconfigure(0, weight=3)
-        self.yuzu.main_progress_frame = ProgressFrame(self.yuzu_log_frame)
+        self.main_progress_frame = ProgressHandler(self.yuzu_log_frame)
+        
         # create yuzu 'Manage Data' frame and widgets
         self.manage_data_frame = customtkinter.CTkFrame(self, corner_radius=0, bg_color="transparent")
         self.manage_data_frame.grid_columnconfigure(0, weight=1)
@@ -119,7 +114,6 @@ class YuzuFrame(EmulatorFrame):
         self.yuzu_data_log.grid(row=1, column=0, padx=20, pady=20, columnspan=3, sticky="new")
         self.yuzu_data_log.grid_columnconfigure(0, weight=1)
         self.yuzu_data_log.grid_rowconfigure(1, weight=1)
-        self.yuzu.data_progress_frame = ProgressFrame(self.yuzu_data_log)
         # create yuzu downloader button, frame and widgets
 
         self.actions_frame.grid_propagate(False)
@@ -220,6 +214,7 @@ class YuzuFrame(EmulatorFrame):
             if path_to_archive["cancelled"]:
                 return
             messagebox.showerror(self.winfo_toplevel(), "Install Yuzu", path_to_archive["message"])
+            return
         path_to_archive = path_to_archive["path"]
 
         self.configure_buttons(install_yuzu_button_text="Installing...")
@@ -232,12 +227,28 @@ class YuzuFrame(EmulatorFrame):
         )
 
     def install_yuzu_handler(self, archive_path):
-        install_status = self.yuzu.install_yuzu(archive_path)
-        if not install_status["status"]:
+
+        if not self.yuzu.verify_yuzu_zip(archive_path, self.settings.yuzu.release_channel):
             return {
                 "message": {
                     "function": messagebox.showerror,
-                    "arguments": (self.winfo_toplevel(), "Install Yuzu", install_status["message"]),
+                    "arguments": (self.winfo_toplevel(), "Install Yuzu", f"The archive provided is not a valid yuzu {self.settings.yuzu.release_channel.replace("_", " ")} release."),
+                }
+            }
+        self.main_progress_frame.start_operation("Installing Yuzu", 0, " Files", "Extracting...")
+        install_status = self.yuzu.install_yuzu(archive_path, progress_handler=self.main_progress_frame)
+        if not install_status["status"]:
+            if "cancelled" in install_status["message"]:
+                return {
+                    "message": {
+                        "function": messagebox.showinfo,
+                        "arguments": (self.winfo_toplevel(), "Install Yuzu", "Installation of Yuzu was cancelled."),
+                    }
+                }
+            return {
+                "message": {
+                    "function": messagebox.showerror,
+                    "arguments": (self.winfo_toplevel(), "Install Yuzu", f"Failed to install Yuzu:\n\n{install_status['message']}"),
                 }
             }
         return {

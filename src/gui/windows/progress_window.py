@@ -1,5 +1,4 @@
 import customtkinter
-from gui.frames.progress_frame import ProgressFrame
 
 
 class ProgressWindow(customtkinter.CTkToplevel):

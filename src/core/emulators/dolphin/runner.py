@@ -36,6 +36,9 @@ class Dolphin:
         
         self.running = False
 
+    def get_installed_version(self):
+        return (self.versions.get_version("dolphin") or "Unknown") if (self.settings.dolphin.install_directory / "Dolphin.exe").exists() else ""
+
     def _verify_dolphin_archive(self, path_to_archive):
         if path_to_archive.endswith(".7z"):  # don't know how else to check if its valid for 7z
             return True
@@ -85,7 +88,7 @@ class Dolphin:
                 release = {
                     "download_url": release,
                     "filename": filename,
-                    "version": version
+                    "version": version,
                 }
                 return {
                     "status": True,
@@ -100,7 +103,6 @@ class Dolphin:
             download_url=release["download_url"],
             download_path=download_path,
             progress_handler=progress_handler,
-            chunk_size=1024
         )
         
     def extract_release(self, release: Path, progress_handler=ProgressHandler()):
@@ -133,9 +135,9 @@ class Dolphin:
                 pass
             self.settings.dolphin.install_directory.mkdir(exist_ok=True, parents=True)
             
+            
             with py7zr.SevenZipFile(release_archive, mode="r") as archive:
                 archive.extractall(path=self.settings.dolphin.install_directory)
-
             parent_folder = self.settings.dolphin.install_directory
             subfolder = self.settings.dolphin.install_directory / "Dolphin-x64"
 
@@ -148,7 +150,8 @@ class Dolphin:
             os.rmdir(subfolder)
     
             extracted_files = os.listdir(self.settings.dolphin.install_directory)
- 
+            progress_handler.report_progress(1)
+            progress_handler.report_success()
             return {
                 "status": True,
                 "message": "Extraction successful",

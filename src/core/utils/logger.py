@@ -13,24 +13,23 @@ class Logger:
         if self.logger.hasHandlers():
             self.logger.handlers.clear()
 
-        # Create a console handler and set the log level
-        console_handler = logging.StreamHandler()
-        console_handler.setLevel(logging.DEBUG)
-        # create a file handler and set the log level
-        file_handler = logging.FileHandler(f"{App.NAME.value}.log")
-        file_handler.setLevel(logging.DEBUG)
-
         # Create a formatter that includes the timestamp with milliseconds
         formatter = logging.Formatter('[%(asctime)s.%(msecs)03d] [%(levelname)s] [%(name)s]: %(message)s',
                                       datefmt='%Y-%m-%d %H:%M:%S')
-
-        # Set the formatter for handlers
+        
+        # Create a console handler and set the log level
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.DEBUG)
         console_handler.setFormatter(formatter)
-        file_handler.setFormatter(formatter)
-
-        # Add the handlers to the logger
         self.logger.addHandler(console_handler)
-        self.logger.addHandler(file_handler)
+        # create a file handler and set the log level
+        try:
+            file_handler = logging.FileHandler(f"{App.NAME.value}.log")
+            file_handler.setLevel(logging.DEBUG)
+            file_handler.setFormatter(formatter)
+            self.logger.addHandler(file_handler)
+        except PermissionError:
+            self.logger.error("Permission denied to write to log file")
 
     def get_logger(self):
         return self.logger

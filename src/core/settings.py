@@ -115,7 +115,7 @@ class Settings:
                     continue
                 if "path" in setting_name or "directory" in setting_name and value:
                     value = Path(value)
-                    if value.is_dir():
+                    if "directory" in setting_name:
                         value.mkdir(parents=True, exist_ok=True)
                 try:
                     # Set the value from the settings file

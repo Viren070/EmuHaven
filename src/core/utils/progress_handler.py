@@ -26,6 +26,12 @@ class ProgressHandler:
     def report_error(self, error):
         pass
         
+    def set_total_units(self, total_units):
+        pass
+
+    def is_total_units_set(self):
+        return True
+
     def should_cancel(self):
         pass
     

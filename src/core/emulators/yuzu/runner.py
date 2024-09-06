@@ -17,10 +17,10 @@ from core.utils.files import (copy_directory_with_progress,
 
 
 class Yuzu(SwitchEmulator):
-    def __init__(self, gui, settings, metadata):
-        super().__init__(emulator="yuzu", emulator_settings=settings.yuzu, firmware_path="nand/system/Contents/registered", key_path="keys")
+    def __init__(self, gui, settings, versions):
+        super().__init__(emulator="yuzu", emulator_settings=settings.yuzu, versions=versions, firmware_path="nand/system/Contents/registered", key_path="keys")
         self.settings = settings
-        self.metadata = metadata
+        self.metadata = versions
         self.gui = gui
         self.main_progress_frame = None
         self.data_progress_frame = None
@@ -31,10 +31,7 @@ class Yuzu(SwitchEmulator):
     def verify_yuzu_zip(self, path_to_archive, release_type):
         try:
             with ZipFile(path_to_archive, 'r') as archive:
-                if (release_type == "mainline" and 'yuzu-windows-msvc/yuzu.exe' in archive.namelist()) or (release_type == "early_access" and "yuzu-windows-msvc-early-access/yuzu.exe" in archive.namelist()):
-                    return True
-                else:
-                    return False
+                return bool((release_type == "mainline" and 'yuzu-windows-msvc/yuzu.exe' in archive.namelist()) or (release_type == "early_access" and "yuzu-windows-msvc-early-access/yuzu.exe" in archive.namelist()))
         except Exception:
             return False
 
@@ -58,8 +55,8 @@ class Yuzu(SwitchEmulator):
         )
 
     def install_yuzu(self, archive_path, progress_handler=None):
-        extract_directory = self.settings.yuzu.install_directory / ("yuzu-windows-msvc-early-access" if self.settings.yuzu.release_channel == "early_access" else "yuzu-windows-msvc")
         if not self.verify_yuzu_zip(archive_path, self.settings.yuzu.release_channel):
+            progress_handler.cancel()
             return {
                 "status": False,
                 "message": "The archive is not a valid yuzu release"

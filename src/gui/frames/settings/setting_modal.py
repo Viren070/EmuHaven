@@ -36,6 +36,7 @@ class SettingModal(CTkFrame):
         self.dir_cycle_index = 0
         self.custom_options = custom_options if custom_options is not None else {}
         self.setting_var = StringVar()
+        self.is_updating = False
         self.typing_delay = 1000
         self.typing_timer = None
         self.build_frame()
@@ -99,7 +100,7 @@ class SettingModal(CTkFrame):
                 CTkScrollableDropdown(option_widget, values=values, width=160, height=400, resize=True, button_height=35, command=self.update_setting_value, font=("Helvetica", 14))
 
     def update_dir_cycle(self):
-        self.dir_cycle = [Path(self.setting_var.get())] + [item for item in Path(self.setting_var.get()).iterdir() if item.is_dir()]
+        self.dir_cycle = [Path(self.setting_var.get())] + [item.resolve() for item in Path(self.setting_var.get()).iterdir() if item.is_dir()]
         self.dir_cycle.sort()
         self.dir_cycle_index = 0
 
@@ -119,6 +120,9 @@ class SettingModal(CTkFrame):
         self.typing_timer = self.after(self.typing_delay, self.update_setting_value)
 
     def update_setting_value(self, *args):
+        if self.is_updating:
+            return
+        self.is_updating = True
         self.logger.info("Updating setting %s, args: %s", self.setting_id, args)
 
         if self.setting_type == "path":
@@ -127,9 +131,12 @@ class SettingModal(CTkFrame):
             except Exception as error:
                 self.update_entry_widget()
                 messagebox.showerror(self.winfo_toplevel(), self.setting_id.replace("_", " ").title(), f"The path you entered is invalid.\n\n{error}")
+                self.is_updating = False
+                return
             if not value.exists():
                 self.update_entry_widget()
                 messagebox.showerror(self.winfo_toplevel(), self.setting_id.replace("_", " ").title(), "The path you entered does not exist.")
+                self.is_updating = False
                 return
             self.update_dir_cycle()
         elif self.setting_type == "option_menu":
@@ -139,11 +146,13 @@ class SettingModal(CTkFrame):
 
         if self.custom_options.get("update_function") is not None:
             self.custom_options.get("update_function")(value, self.setting_var)
+            self.is_updating = False
             return
 
         setattr(self.settings_object, self.setting_id, value)
         self.setting_var.set(value)
         self.settings.save()
+        self.is_updating = False
 
     def update_entry_widget(self):
         self.entry_widget.delete(0, 'end')

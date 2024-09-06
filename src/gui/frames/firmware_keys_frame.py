@@ -19,6 +19,7 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
         self.emulator_obj = emulator_obj
         self.firmware_key_dict = {}
         self.fetching_versions = False
+        self.fetched = False
         self.build_frame()
         self.update_installed_versions()
 
@@ -98,8 +99,16 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
         custom_archive = firmware_archive is not None
 
         if firmware_archive is None:
-            download_result = self.emulator_obj.download_firmware_release(firmware_release)
+            self.frame_obj.main_progress_frame.start_operation("Install Firmware", total_units=firmware_release["size"] / 1024 / 1024, units=" MiB", status="Downloading...")
+            download_result = self.emulator_obj.download_firmware_release(firmware_release, progress_handler=self.frame_obj.main_progress_frame)
             if not download_result["status"]:
+                if "cancelled" in download_result["message"]:
+                    return {
+                        "message": {
+                            "function": messagebox.showinfo,
+                            "arguments": (self.winfo_toplevel(), "Firmware Installation", "Firmware installation was cancelled"),
+                        }
+                    }
                 return {
                     "message": {
                         "function": messagebox.showerror,
@@ -115,9 +124,16 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
                     "arguments": (self.winfo_toplevel(), "Firmware Installation", "The firmware archive is invalid or corrupt"),
                 }
             }
-            
-        install_result = self.emulator_obj.install_firmware_from_archive(firmware_archive)
+        self.frame_obj.main_progress_frame.start_operation("Install Firmware", total_units=0, units=" Files", status="Extracting...")
+        install_result = self.emulator_obj.install_firmware_from_archive(firmware_archive, progress_handler=self.frame_obj.main_progress_frame)
         if not install_result["status"]:
+            if "cancelled" in install_result["message"]:
+                return {
+                    "message": {
+                        "function": messagebox.showinfo,
+                        "arguments": (self.winfo_toplevel(), "Firmware Installation", "Firmware installation was cancelled"),
+                    }
+                }
             return {
                 "message": {
                     "function": messagebox.showerror,
@@ -172,12 +188,20 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
         custom_keys = keys_file is not None
         
         if keys_file is None:
-            download_result = self.emulator_obj.download_keys_release(keys_release)
+            self.frame_obj.main_progress_frame.start_operation("Install Keys", total_units=keys_release["size"] / 1024 / 1024, units=" MiB", status="Downloading...")
+            download_result = self.emulator_obj.download_keys_release(keys_release, progress_handler=self.frame_obj.main_progress_frame)
             if not download_result["status"]:
+                if "cancelled" in download_result["message"]:
+                    return {
+                        "message": {
+                            "function": messagebox.showinfo,
+                            "arguments": (self.winfo_toplevel(), "Key Installation", "Key installation was cancelled"),
+                        }
+                    }
                 return {
                     "message": {
                         "function": messagebox.showerror,
-                        "arguments": (self.winfo_toplevel(), "Key Installation", download_result["message"]),
+                        "arguments": (self.winfo_toplevel(), "Key Installation", f"Failed to download keys:\n\n{download_result["message"]}"),
                     }
                 }
             key_archive = download_result["download_path"]
@@ -186,23 +210,28 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
             return {
                 "message": {
                     "function": messagebox.showerror,
-                    "arguments": (self.winfo_toplevel(), "Key Installation", "The keys you have provided are invalid."),
+                    "arguments": (self.winfo_toplevel(), "Key Installation", "Failed to install keys: \n\nInvalid or corrupt keys file or archive."),
                 }
             }
         
-        if custom_keys:
-            if custom_keys.stem == ".keys":
-                install_result = self.emulator_obj.install_keys_from_file(keys_file)
-            else:
-                install_result = self.emulator_obj.install_keys_from_archive(keys_file)
+        if custom_keys and keys_file.suffix == ".keys":
+            install_result = self.emulator_obj.install_keys_from_file(keys_file)
         else:
-            install_result = self.emulator_obj.install_keys_from_archive(key_archive)
+            self.frame_obj.main_progress_frame.start_operation("Install Keys", total_units=0, units=" Files", status="Extracting...")
+            install_result = self.emulator_obj.install_keys_from_archive(keys_file if custom_keys else key_archive, progress_handler=self.frame_obj.main_progress_frame)
 
         if not install_result["status"]:
+            if "cancelled" in install_result["message"]:
+                return {
+                    "message": {
+                        "function": messagebox.showinfo,
+                        "arguments": (self.winfo_toplevel(), "Key Installation", "Key installation was cancelled"),
+                    }
+                }
             return {
                 "message": {
                     "function": messagebox.showerror,
-                    "arguments": (self.winfo_toplevel(), "Key Installation", install_result["message"]),
+                    "arguments": (self.winfo_toplevel(), "Key Installation", f"Failed to install keys:\n\n{install_result["message"]}"),
                 }
             }
             
@@ -231,9 +260,10 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
             CTkScrollableDropdown(self.firmware_option_menu, values=firmware_versions, width=300, height=200, resize=False, button_height=30)
         else:
             self.firmware_option_menu_variable.set("None Found")
+        self.fetched = True
 
     def request_fetch(self, *args):
-        if self.fetching_versions:
+        if self.fetching_versions or self.fetched:
             return
         
         self.event_manager.add_event(
@@ -270,5 +300,5 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
         }
         
     def update_installed_versions(self):
-        self.installed_firmware_version_label.configure(text=self.versions.get_version(f"{self.emulator_obj.emulator}_firmware"))
-        self.installed_key_version_label.configure(text=self.versions.get_version(f"{self.emulator_obj.emulator}_keys"))
+        self.installed_firmware_version_label.configure(text=self.emulator_obj.get_installed_firmware_version() or "Not Installed")
+        self.installed_key_version_label.configure(text=self.emulator_obj.get_installed_key_version() or "Not Installed")

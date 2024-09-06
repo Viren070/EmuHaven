@@ -1,6 +1,6 @@
 import os
 import shutil
-from zipfile import ZipFile
+import zipfile
 from core.utils.progress_handler import ProgressHandler
 
 
@@ -63,16 +63,20 @@ def extract_zip_archive_with_progress(zip_path, extract_directory, progress_hand
     if progress_handler is None:
         progress_handler = ProgressHandler()
     try:
-        with ZipFile(zip_path, 'r') as archive:
+        with zipfile.ZipFile(zip_path, 'r') as archive:
             total_files = len(archive.namelist())
+            progress_handler.set_total_units(total_files)
             for file in archive.namelist():
                 if progress_handler.should_cancel():
                     progress_handler.cancel()
-                    return {"status": False, "message": "The extraction was cancelled by the user"}
+                    return {"status": False, "message": "Extraction cancelled by user"}
                 archive.extract(file, extract_directory)
                 extracted_files.append(file)
                 # Calculate and display progress
                 progress_handler.report_progress(len(extracted_files))
+    except zipfile.BadZipFile as error:
+        progress_handler.report_error(error)
+        return {"status": False, "message": "The ZIP file is corrupted or invalid"}
     except Exception as error:
         progress_handler.report_error(error)
         return {"status": False, "message": error}

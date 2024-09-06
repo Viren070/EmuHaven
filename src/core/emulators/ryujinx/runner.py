@@ -19,16 +19,19 @@ from core import constants
 
 
 class Ryujinx(SwitchEmulator):
-    def __init__(self, gui, settings, metadata):
-        super().__init__(emulator="ryujinx", emulator_settings=settings.ryujinx, firmware_path="bis/system/Contents/registered", key_path="system")
+    def __init__(self, gui, settings, versions):
+        super().__init__(emulator="ryujinx", emulator_settings=settings.ryujinx, versions=versions, firmware_path="bis/system/Contents/registered", key_path="system")
         self.settings = settings
-        self.metadata = metadata
+        self.versions = versions
         self.gui = gui
         self.main_progress_frame = None
         self.data_progress_frame = None
         self.updating_ea = False
         self.installing_firmware_or_keys = False
         self.running = False
+
+    def get_installed_version(self):
+        return (self.versions.get_version("ryujinx") or "Unknown") if (self.settings.ryujinx.install_directory / "publish" / "Ryujinx.exe").exists() else ""
 
     def get_user_directory(self):
         if self.settings.ryujinx.portable_mode:

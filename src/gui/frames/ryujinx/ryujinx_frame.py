@@ -9,6 +9,7 @@ from gui.frames.firmware_keys_frame import FirmwareKeysFrame
 from gui.libs import messagebox
 from gui.frames.ryujinx.ryujinx_rom_frame import RyujinxROMFrame
 from gui.windows.path_dialog import PathDialog
+from gui.progress_handler import ProgressHandler
 from gui.windows.folder_selector import FolderSelector
 
 FOLDERS = ["bis", "games", "mods", "profiles", "sdcard", "system"]
@@ -72,6 +73,7 @@ class RyujinxFrame(EmulatorFrame):
         self.log_frame.grid(row=4, column=0, padx=80, sticky="ew")
         self.log_frame.grid_propagate(False)
         self.log_frame.grid_columnconfigure(0, weight=3)
+        self.main_progress_frame = ProgressHandler(self.log_frame)
         # create ryujinx 'Manage Data' frame and widgets
         self.manage_data_frame = customtkinter.CTkFrame(self, corner_radius=0, bg_color="transparent")
         self.manage_data_frame.grid_columnconfigure(0, weight=1)
@@ -135,19 +137,19 @@ class RyujinxFrame(EmulatorFrame):
     def launch_ryujinx_button_event(self, event=None):
         if event is None or self.launch_button.cget("state") == "disabled":
             return
-        auto_update = self.settings.auto_emulator_updates if not event.state & 1 else not self.settings.auto_emulator_updates
+        update_mode = self.settings.auto_emulator_updates if not event.state & 1 else not self.settings.auto_emulator_updates
         self.configure_buttons("disabled", launch_ryujinx_button_text="Launching...")
         self.event_manager.add_event(
             event_id="launch_ryujinx",
             func=self.launch_ryujinx_handler,
-            kwargs={"auto_update": auto_update},
+            kwargs={"update_mode": update_mode},
             completion_functions=[lambda: self.configure_buttons("normal", launch_ryujinx_button_text="Launch Ryujinx")],
             error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Error", "An unexpected error occured while launching Ryujinx. Please check the logs for more information and report the issue.")],
         )
 
-    def launch_ryujinx_handler(self, auto_update):
-        if auto_update:
-            self.configure_buttons(launch_ryujinx_button_text="Updating...")
+    def launch_ryujinx_handler(self, update_mode=False):
+        if update_mode:
+            self.configure_buttons(launch_ryujinx_button_text="Checking for updates...")
             update = self.install_ryujinx_handler(update_mode=True)
             if update.get("status", False) is False:
                 self.configure_buttons(launch_ryujinx_button_text="Oops!")
@@ -193,11 +195,11 @@ class RyujinxFrame(EmulatorFrame):
 
         if event.state & 1:
             path_to_archive = PathDialog(filetypes=(".zip",), title="Custom Ryujinx Archive", text="Enter path to Ryujinx archive: ").get_input()
-            path_to_archive = path_to_archive.get_input()
             if not path_to_archive["status"]:
                 if path_to_archive["cancelled"]:
                     return
                 messagebox.showerror(self.winfo_toplevel(), "Install Ryujinx", path_to_archive["message"])
+                return
             path_to_archive = path_to_archive["path"]
 
         self.configure_buttons(install_ryujinx_button_text="Installing...")
@@ -211,39 +213,56 @@ class RyujinxFrame(EmulatorFrame):
 
     def install_ryujinx_handler(self, update_mode=False, archive_path=None):
         custom_install = archive_path is not None
-
         if archive_path is None:
             release_fetch_result = self.ryujinx.get_release()
             if not release_fetch_result["status"]:
                 return {
                     "message": {
                         "function": messagebox.showerror,
-                        "arguments": (self.winfo_toplevel(), "Ryujinx", f"Failed to fetch the latest release of Ryujinx: {release_fetch_result['message']}"),
+                        "arguments": (self.winfo_toplevel(), "Ryujinx", f"Failed to fetch the latest release of Ryujinx:\n\n{release_fetch_result['message']}"),
                     }
                 }
 
-            if update_mode and release_fetch_result["release"]["version"] == self.versions.get_version("ryujinx"):
-                return {
-                    "status": True
-                }
-
-            download_result = self.ryujinx.download_release(release_fetch_result["release"]) 
+            if update_mode:
+                if release_fetch_result["release"]["version"] == self.ryujinx.get_installed_version():
+                    return {
+                        "status": True
+                    }
+                self.configure_buttons(launch_ryujinx_button_text="Updating...")
+            total_units = release_fetch_result["release"]["size"] / 1024 / 1024
+            self.main_progress_frame.start_operation(title="Install Ryujinx", total_units=total_units, units=" MiB", status="Downloading...")
+            download_result = self.ryujinx.download_release(release_fetch_result["release"], progress_handler=self.main_progress_frame) 
             if not download_result["status"]:
+                if "cancelled" in download_result["message"]:
+                    return {
+                        "message": {
+                            "function": messagebox.showinfo,
+                            "arguments": (self.winfo_toplevel(), "Ryujinx", "Download was cancelled"),
+                        }
+                    }
                 return {
                     "message": {
                         "function": messagebox.showerror,
-                        "arguments": (self.winfo_toplevel(), "Ryujinx", f"Failed to download the latest release of Ryujinx: {download_result['message']}"),
+                        "arguments": (self.winfo_toplevel(), "Ryujinx", f"Failed to download the latest release of Ryujinx:\n\n{download_result['message']}"),
                     }
                 }
 
             archive_path = download_result["download_path"]
 
-        extract_result = self.ryujinx.extract_release(archive_path)
+        self.main_progress_frame.start_operation(title="Install Ryujinx", total_units=0, units=" Files", status="Extracting...")
+        extract_result = self.ryujinx.extract_release(archive_path, progress_handler=self.main_progress_frame)
         if not extract_result["status"]:
+            if "cancelled" in extract_result["message"]:
+                return {
+                    "message": {
+                        "function": messagebox.showinfo,
+                        "arguments": (self.winfo_toplevel(), "Ryujinx", "Extraction was cancelled"),
+                    }
+                }
             return {
                 "message": {
                     "function": messagebox.showerror,
-                    "arguments": (self.winfo_toplevel(), "Ryujinx", f"Failed to extract the latest release of Ryujinx: {extract_result['message']}"),
+                    "arguments": (self.winfo_toplevel(), "Ryujinx", f"Failed to extract the latest release of Ryujinx:\n\n{extract_result['message']}"),
                 }
             }
 

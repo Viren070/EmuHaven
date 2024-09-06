@@ -6,7 +6,6 @@ from zipfile import ZipFile
 import customtkinter
 
 from gui.frames.current_roms_frame import CurrentROMSFrame
-from gui.frames.progress_frame import ProgressFrame
 from gui.frames.rom_search_frame import ROMSearchFrame
 from core.utils.web import download_file_with_progress
 from core import constants

@@ -10,10 +10,10 @@ from core.paths import Paths
 from gui.libs import messagebox
 from core.utils.thread_event_manager import ThreadEventManager
 from gui.frames.emulator_frame import EmulatorFrame
-from gui.frames.progress_frame import ProgressFrame
 from gui.frames.xenia.xenia_rom_frame import XeniaROMFrame
 from gui.windows.path_dialog import PathDialog
 from gui.windows.folder_selector import FolderSelector
+from gui.progress_handler import ProgressHandler
 
 FOLDERS = ["cache", "content", "xenia.config.toml"]
 
@@ -77,6 +77,7 @@ class XeniaFrame(EmulatorFrame):
         self.log_frame.grid(row=4, column=0, padx=80, sticky="ew")
         self.log_frame.grid_propagate(False)
         self.log_frame.grid_columnconfigure(0, weight=3)
+        self.main_progress_frame = ProgressHandler(self.log_frame)
         # create xenia 'Manage Data' frame and widgets
         self.manage_data_frame = customtkinter.CTkFrame(self, corner_radius=0, bg_color="transparent")
         self.manage_data_frame.grid_columnconfigure(0, weight=1)
@@ -106,7 +107,6 @@ class XeniaFrame(EmulatorFrame):
         self.data_log.grid(row=1, column=0, padx=20, pady=20, columnspan=3, sticky="new")
         self.data_log.grid_columnconfigure(0, weight=1)
         self.data_log.grid_rowconfigure(1, weight=1)
-        self.xenia.data_progress_frame = ProgressFrame(self.data_log)
         # create xenia downloader button, frame and widgets
         self.actions_frame.grid_propagate(False)
         self.selected_channel.set(self.settings.xenia.release_channel.title())
@@ -159,6 +159,7 @@ class XeniaFrame(EmulatorFrame):
         
     def launch_xenia_handler(self, auto_update):
         if auto_update:
+            self.configure_buttons(launch_xenia_button_text="Checking for updates...")
             update = self.install_xenia_handler(update_mode=True)
             if not update.get("status", False):
                 self.configure_buttons(launch_xenia_button_text="Oops!")
@@ -208,6 +209,7 @@ class XeniaFrame(EmulatorFrame):
                 if path_to_archive["cancelled"]:
                     return
                 messagebox.showerror(self.winfo_toplevel(), "Install Xenia", path_to_archive["message"])
+                return
             path_to_archive = path_to_archive["path"]
         self.configure_buttons(install_xenia_button_text="Installing...")
         self.event_manager.add_event(
@@ -227,32 +229,49 @@ class XeniaFrame(EmulatorFrame):
                 return {
                     "message": {
                         "function": messagebox.showerror,
-                        "arguments": (self.winfo_toplevel(), "Xenia", f"Failed to fetch the {self.settings.xenia.release_channel} latest release of Xenia: {release_fetch_result['message']}"),
+                        "arguments": (self.winfo_toplevel(), "Xenia", f"Failed to fetch the {self.settings.xenia.release_channel} latest release of Xenia:\n\n{release_fetch_result['message']}"),
                     }
                 }
             
-            if update_mode and release_fetch_result["release"]["version"] == self.versions.get_version(f"xenia_{self.settings.xenia.release_channel}"):
-                return {
-                    "status": True
-                }
-            
-            download_result = self.xenia.download_xenia_release(release_fetch_result["release"]) 
+            if update_mode:
+                if release_fetch_result["release"]["version"] == self.xenia.get_installed_version(release_channel=self.settings.xenia.release_channel):
+                    return {
+                        "status": True
+                    }
+                self.configure_buttons(launch_xenia_button_text="Updating...")
+            self.main_progress_frame.start_operation(title="Installing Xenia", total_units=release_fetch_result["release"]["size"] / 1024 / 1024, units=" MiB", status="Downloading...")
+            download_result = self.xenia.download_xenia_release(release_fetch_result["release"], progress_handler=self.main_progress_frame) 
             if not download_result["status"]:
+                if "cancelled" in download_result["message"]:
+                    return {
+                        "message": {
+                            "function": messagebox.showinfo,
+                            "arguments": (self.winfo_toplevel(), "Xenia", "Cancelled download of Xenia"),
+                        }
+                    }
                 return {
                     "message": {
                         "function": messagebox.showerror,
-                        "arguments": (self.winfo_toplevel(), "Xenia", f"Failed to download the latest {self.settings.xenia.release_channel} release of Xenia: {download_result['message']}"),
+                        "arguments": (self.winfo_toplevel(), "Xenia", f"Failed to download the latest {self.settings.xenia.release_channel} release of Xenia:\n\n{download_result['message']}"),
                     }
                 }
                 
             archive_path = download_result["download_path"]
 
-        extract_result = self.xenia.extract_xenia_release(archive_path)
+        self.main_progress_frame.start_operation(title="Installing Xenia", total_units=0, units=" Files", status="Extracting...")
+        extract_result = self.xenia.extract_xenia_release(archive_path, progress_handler=self.main_progress_frame)
         if not extract_result["status"]:
+            if "cancelled" in extract_result["message"]:
+                return {
+                    "message": {
+                        "function": messagebox.showinfo,
+                        "arguments": (self.winfo_toplevel(), "Xenia", "Cancelled installation of Xenia"),
+                    }
+                }
             return {
                 "message": {
                     "function": messagebox.showerror,
-                    "arguments": (self.winfo_toplevel(), "Xenia", f"Failed to extract the latest release of Xenia: {extract_result['message']}"),
+                    "arguments": (self.winfo_toplevel(), "Xenia", f"Failed to extract Xenia:\n\n{extract_result['message']}"),
                 }
             }
 

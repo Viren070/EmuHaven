@@ -8,9 +8,9 @@ from core.emulators.dolphin.runner import Dolphin
 from gui.frames.dolphin.dolphin_rom_frame import DolphinROMFrame
 from gui.windows.path_dialog import PathDialog
 from gui.windows.folder_selector import FolderSelector
-from gui.frames.progress_frame import ProgressFrame
 from gui.frames.emulator_frame import EmulatorFrame
 from gui.libs import messagebox
+from gui.progress_handler import ProgressHandler
 from core.paths import Paths
 
 DOLPHIN_FOLDERS = ["Backup", "Cache", "Config", "Dump", "GameSettings", "GBA", "GC", "Load", "Logs", "Maps", "ResourcePacks", "SavedAssembly", "ScreenShots", "Shaders", "StateSaves", "Styles", "Themes", "Wii"]
@@ -76,7 +76,8 @@ class DolphinFrame(EmulatorFrame):
         self.dolphin_log_frame.grid(row=3, column=0, padx=80, sticky="ew")
         self.dolphin_log_frame.grid_propagate(False)
         self.dolphin_log_frame.grid_columnconfigure(0, weight=3)
-
+        self.main_progress_frame = ProgressHandler(self.dolphin_log_frame)
+        
         self.manage_data_frame = customtkinter.CTkFrame(self, corner_radius=0, bg_color="transparent")
         self.manage_data_frame.grid_columnconfigure(0, weight=1)
         self.manage_data_frame.grid_columnconfigure(1, weight=1)
@@ -132,22 +133,20 @@ class DolphinFrame(EmulatorFrame):
     def launch_dolphin_button_event(self, event=None):
         if event is None or self.launch_dolphin_button.cget("state") == "disabled":
             return
-        if not (self.settings.dolphin.install_directory / "Dolphin.exe").exists():
-            messagebox.showerror(self.winfo_toplevel(), "Dolphin", f"'Dolphin.exe' not found at {self.settings.dolphin.install_directory / 'Dolphin.exe'}")
-            return
         self.configure_buttons(launch_dolphin_button_text="Launching...")
-        auto_update = not self.settings.auto_emulator_updates if event.state & 1 else self.settings.auto_emulator_updates
+        update_mode = not self.settings.auto_emulator_updates if event.state & 1 else self.settings.auto_emulator_updates
         self.event_manager.add_event(
             "launch_dolphin",
             self.launch_dolphin_handler,
-            kwargs={"auto_update": auto_update}, 
+            kwargs={"update_mode": update_mode}, 
             completion_functions=[lambda: self.configure_buttons(state="normal")],
             error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Error", "An unexpected error occurred while launching Dolphin.\nPlease check the logs for more information and report this issue.")]
             )
         
-    def launch_dolphin_handler(self, auto_update):
-        if auto_update:
-            update_result = self.install_dolphin_handler(auto_update=True)
+    def launch_dolphin_handler(self, update_mode):
+        if update_mode:
+            self.configure_buttons(launch_dolphin_button_text="Checking for updates...")
+            update_result = self.install_dolphin_handler(update_mode=True)
             if not update_result.get("status", False):
                 return update_result
         self.configure_buttons(launch_dolphin_button_text="Launched!")
@@ -192,6 +191,7 @@ class DolphinFrame(EmulatorFrame):
                 if path_to_archive["cancelled"]:
                     return
                 messagebox.showerror(self.winfo_toplevel(), "Install Dolphin", path_to_archive["message"])
+                return
             path_to_archive = path_to_archive["path"]
 
         self.configure_buttons(install_dolphin_button_text="Installing...")
@@ -205,7 +205,7 @@ class DolphinFrame(EmulatorFrame):
             )
         
         
-    def install_dolphin_handler(self, archive_path=None, auto_update=False):
+    def install_dolphin_handler(self, archive_path=None, update_mode=False):
         
         custom_install = archive_path is not None
         
@@ -219,28 +219,47 @@ class DolphinFrame(EmulatorFrame):
                     }
                 }
 
-            if auto_update and release_fetch_result["release"]["version"] == self.versions.get_version("dolphin"):
-                return {
-                    "status": True,
-                }
+            if update_mode:
+                if release_fetch_result["release"]["version"] == self.dolphin.get_installed_version():
+                    return {
+                        "status": True,
+                    }
+                self.configure_buttons(launch_dolphin_button_text="Updating...")
             
-            download_result = self.dolphin.download_release(release_fetch_result["release"]) 
+            self.main_progress_frame.start_operation(title="Install Dolphin", total_units=0, units=" MiB", status="Downloading...")
+            download_result = self.dolphin.download_release(release_fetch_result["release"], progress_handler=self.main_progress_frame) 
             if not download_result["status"]:
+                if "cancelled" in download_result["message"]:
+                    return {
+                        "message": {
+                            "function": messagebox.showinfo,
+                            "arguments": (self.winfo_toplevel(), "Dolphin", "The download was cancelled."),
+                        }
+                    }
                 return {
                     "message": {
                         "function": messagebox.showerror,
-                        "arguments": (self.winfo_toplevel(), "Dolphin", f"Failed to download the latest release of Dolphin: {download_result['message']}"),
+                        "arguments": (self.winfo_toplevel(), "Dolphin", f"Failed to download the latest release of Dolphin:\n\n{download_result['message']}"),
                     }
                 }
                 
             archive_path = download_result["download_path"]
 
-        extract_result = self.dolphin.extract_release(archive_path)
+        self.main_progress_frame.start_operation(title="Install Dolphin", total_units=1, units=" Files", status="Extracting...")
+        self.main_progress_frame.set_cancel_button_state(state="disabled")
+        extract_result = self.dolphin.extract_release(archive_path, progress_handler=self.main_progress_frame)
         if not extract_result["status"]:
+            if "cancelled" in extract_result["message"]:
+                return {
+                    "message": {
+                        "function": messagebox.showinfo,
+                        "arguments": (self.winfo_toplevel(), "Dolphin", "The extraction was cancelled."),
+                    }
+                }
             return {
                 "message": {
                     "function": messagebox.showerror,
-                    "arguments": (self.winfo_toplevel(), "Dolphin", f"Failed to extract the latest release of Dolphin: {extract_result['message']}"),
+                    "arguments": (self.winfo_toplevel(), "Dolphin", f"Failed to extract the latest release of Dolphin:\n\n{extract_result['message']}"),
                 }
             }
 
