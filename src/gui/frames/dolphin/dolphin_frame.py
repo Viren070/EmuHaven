@@ -12,12 +12,13 @@ from gui.frames.emulator_frame import EmulatorFrame
 from gui.libs import messagebox
 from gui.progress_handler import ProgressHandler
 from core.paths import Paths
+from core import constants
+from core.utils.thread_event_manager import ThreadEventManager
 
-DOLPHIN_FOLDERS = ["Backup", "Cache", "Config", "Dump", "GameSettings", "GBA", "GC", "Load", "Logs", "Maps", "ResourcePacks", "SavedAssembly", "ScreenShots", "Shaders", "StateSaves", "Styles", "Themes", "Wii"]
 
 
 class DolphinFrame(EmulatorFrame):
-    def __init__(self, master, paths, settings, versions, assets, cache, event_manager):
+    def __init__(self, master, paths, settings, versions, assets, cache, event_manager: ThreadEventManager):
         super().__init__(parent_frame=master, paths=paths, settings=settings, versions=versions, assets=assets)
         self.dolphin = Dolphin(settings, versions)
         self.paths = paths
@@ -35,7 +36,7 @@ class DolphinFrame(EmulatorFrame):
         self.start_frame.grid_columnconfigure(0, weight=1)
         self.start_frame.grid_rowconfigure(0, weight=1)
 
-        self.center_frame = customtkinter.CTkFrame(self.start_frame)
+        self.center_frame = customtkinter.CTkFrame(self.start_frame, corner_radius=0)
         self.center_frame.grid(row=0, column=0, sticky="nsew")
         self.center_frame.grid_columnconfigure(0, weight=1)
         self.center_frame.grid_rowconfigure(0, weight=1)
@@ -106,6 +107,7 @@ class DolphinFrame(EmulatorFrame):
         self.dolphin_data_log.grid(row=1, column=0, padx=20, pady=20, columnspan=3, sticky="new")
         self.dolphin_data_log.grid_columnconfigure(0, weight=1)
         self.dolphin_data_log.grid_rowconfigure(1, weight=1)
+        self.data_progress_handler = ProgressHandler(self.dolphin_data_log)
 
         self.manage_roms_frame = customtkinter.CTkFrame(self, corner_radius=0, bg_color="transparent")
         self.manage_roms_frame.grid_columnconfigure(0, weight=1)
@@ -128,6 +130,11 @@ class DolphinFrame(EmulatorFrame):
         self.launch_dolphin_button.configure(state=state, text=launch_dolphin_button_text)
         self.install_dolphin_button.configure(state=state, text=install_dolphin_button_text)
         self.delete_dolphin_button.configure(state=state, text=delete_dolphin_button_text)
+        
+    def configure_data_buttons(self, state="disabled", import_text="Import", export_text="Export", delete_text="Delete"):
+        self.dolphin_import_button.configure(state=state, text=import_text)
+        self.dolphin_export_button.configure(state=state, text=export_text)
+        self.dolphin_delete_button.configure(state=state, text=delete_text)
 
     
     def launch_dolphin_button_event(self, event=None):
@@ -314,60 +321,149 @@ class DolphinFrame(EmulatorFrame):
         }
 
     def import_data_button_event(self):
-        directory = None
-        folders = None
+
         import_option = self.dolphin_import_optionmenu.get()
 
         if import_option == "Custom":
             directory, folders = FolderSelector(
                 title="Choose directory and folders to import",
-                allowed_folders=DOLPHIN_FOLDERS
+                allowed_folders=constants.Dolphin.USER_FOLDERS.value
             ).get_input()
         else:
             directory = PathDialog(title="Import Directory", text="Enter directory to import from: ", directory=True).get_input()
-            if directory and directory[1] is not None:
-                directory = directory[1]
-            else:
-                messagebox.showerror("Error", "The path you have provided is invalid")
+            if not directory["status"]:
+                if directory["cancelled"]:
+                    return
+                messagebox.showerror(self.winfo_toplevel(), "Error", directory["message"])
                 return
-        self.configure_data_buttons(state="disabled")
-        thread_args = (import_option, directory, folders, ) if folders else (import_option, directory, )
-        thread = Thread(target=self.dolphin.import_dolphin_data, args=thread_args)
-        thread.start()
-        Thread(target=self.enable_buttons_after_thread, args=(thread, ["data"],)).start()
+            directory = directory["path"]
+            folders = constants.Dolphin.USER_FOLDERS.value
+
+        self.configure_data_buttons(import_text="Importing...")
+        self.event_manager.add_event(
+            event_id="import_dolphin_data",
+            func=self.import_data_handler,
+            kwargs={"import_directory": directory, "folders": folders},
+            completion_functions=[lambda: self.configure_data_buttons(state="normal")],
+            error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Error", "An unexpected error occurred while importing Dolphin data.\nPlease check the logs for more information and report this issue.")]
+        )
+
+    def import_data_handler(self, import_directory, folders):
+        self.data_progress_handler.start_operation(
+            title="Import Dolphin Data",
+            total_units=0,
+            units=" Files",
+            status="Importing..."
+        )
+        import_result = self.dolphin.import_dolphin_data(
+            import_directory=import_directory,
+            folders=folders,
+            progress_handler=self.data_progress_handler
+        )
+        if not import_result["status"]:
+            return {
+                "message": {
+                    "function": messagebox.showerror,
+                    "arguments": (self.winfo_toplevel(), "Error", f"Failed to import Dolphin data: {import_result['message']}"),
+                }
+            }
+        return {
+            "message": {
+                "function": messagebox.showsuccess,
+                "arguments": (self.winfo_toplevel(), "Import Dolphin Data", f"Successfully imported Dolphin data from {import_directory}"),
+            }
+        }
 
     def export_data_button_event(self):
-        directory = PathDialog(title="Export Directory", text="Enter directory to export to: ", directory=True)
-        directory = directory.get_input()
-        if not all(directory):
-            if directory[1] is not None:
-                messagebox.showerror("Error", "The path you have provided is invalid")
+        export_directory = PathDialog(title="Export Directory", text="Enter directory to export to: ", directory=True)
+        export_directory = export_directory.get_input()
+        if not export_directory["status"]:
+            if export_directory["cancelled"]:
                 return
+            messagebox.showerror("Error", export_directory["message"])
             return
-        directory = directory[1]
+        export_directory = export_directory["path"]
+        
         if self.dolphin_export_optionmenu.get() == "Custom":
-            user_directory, folders = FolderSelector(title="Choose folders to export", predefined_directory=self.settings.dolphin.user_directory, allowed_folders=DOLPHIN_FOLDERS).get_input()
-            if user_directory is None or folders is None:
+            _, folders = FolderSelector(title="Choose folders to export", predefined_directory=self.dolphin.get_user_directory(), allowed_folders=constants.Dolphin.USER_FOLDERS.value).get_input()
+            if folders is None:
                 return
-            args = ("Custom", directory, folders, )
         else:
-            args = (self.dolphin_export_optionmenu.get(), directory, )
-        self.configure_data_buttons(state="disabled")
-        thread = Thread(target=self.dolphin.export_dolphin_data, args=args)
-        thread.start()
-        Thread(target=self.enable_buttons_after_thread, args=(thread, ["data"],)).start()
+            folders = constants.Dolphin.USER_FOLDERS.value
+        
+        self.configure_data_buttons(export_text="Exporting...")
+        
+        self.event_manager.add_event(
+            event_id="export_dolphin_data",
+            func=self.export_data_handler,
+            kwargs={"export_directory": export_directory, "folders": folders},
+            completion_functions=[lambda: self.configure_data_buttons(state="normal")],
+            error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Error", "An unexpected error occurred while exporting Dolphin data.\nPlease check the logs for more information and report this issue.")]
+        )
+        
+    def export_data_handler(self, export_directory, folders):
+        self.data_progress_handler.start_operation(
+            title="Export Dolphin Data",
+            total_units=0,
+            units=" Files",
+            status="Exporting..."
+        )
+        export_result = self.dolphin.export_dolphin_data(
+            export_directory=export_directory,
+            folders=folders,
+            progress_handler=self.data_progress_handler
+        )
+        if not export_result["status"]:
+            return {
+                "message": {
+                    "function": messagebox.showerror,
+                    "arguments": (self.winfo_toplevel(), "Error", f"Failed to export Dolphin data: {export_result['message']}"),
+                }
+            }
+        return {
+            "message": {
+                "function": messagebox.showsuccess,
+                "arguments": (self.winfo_toplevel(), "Export Dolphin Data", f"Successfully exported Dolphin data to {export_directory}"),
+            }
+        }
 
     def delete_data_button_event(self):
         if self.dolphin_delete_optionmenu.get() == "Custom":
-            directory, folders = FolderSelector(title="Choose folders to delete", predefined_directory=self.settings.dolphin.user_directory, allowed_folders=DOLPHIN_FOLDERS).get_input()
-            if directory is None or folders is None:
+            _, folders = FolderSelector(title="Choose folders to delete", predefined_directory=self.dolphin.get_user_directory(), allowed_folders=constants.Dolphin.USER_FOLDERS.value).get_input()
+            if folders is None:
                 return
-            args = ("Custom", folders)
         else:
-            args = (self.dolphin_delete_optionmenu.get(), )
-        if not messagebox.askyesno("Confirmation", "This will delete the data from Dolphin's directory. This action cannot be undone, are you sure you wish to continue?"):
+            folders = constants.Dolphin.USER_FOLDERS.value
+
+        if messagebox.askyesno(self.winfo_toplevel(), "Confirmation", "This will delete the data from Dolphin's directory. This action cannot be undone, are you sure you wish to continue?") != "yes":
             return
-        self.configure_data_buttons(state="disabled")
-        thread = Thread(target=self.dolphin.delete_dolphin_data, args=args)
-        thread.start()
-        Thread(target=self.enable_buttons_after_thread, args=(thread, ["data"],)).start()
+        self.configure_data_buttons(delete_text="Deleting...")
+        self.event_manager.add_event(
+            event_id="delete_dolphin_data",
+            func=self.delete_data_handler,
+            kwargs={"folders": folders},
+            completion_functions=[lambda: self.configure_data_buttons(state="normal")],
+            error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Error", "An unexpected error occurred while deleting Dolphin data.\nPlease check the logs for more information and report this issue.")]
+        )
+
+    def delete_data_handler(self, folders):
+        self.data_progress_handler.start_operation(
+            title="Delete Dolphin Data",
+            total_units=0,
+            units=" Files",
+            status="Deleting..."
+        )
+        delete_result = self.dolphin.delete_dolphin_data(folders_to_delete=folders, progress_handler=self.data_progress_handler)
+        if not delete_result["status"]:
+            return {
+                "message": {
+                    "function": messagebox.showerror,
+                    "arguments": (self.winfo_toplevel(), "Error", f"Failed to delete Dolphin data: {delete_result['message']}"),
+                }
+            }
+        return {
+            "message": {
+                "function": messagebox.showsuccess,
+                "arguments": (self.winfo_toplevel(), "Delete Dolphin Data", "Successfully deleted Dolphin data"),
+            }
+        }

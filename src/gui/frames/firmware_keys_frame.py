@@ -251,13 +251,13 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
         if not len(key_versions) == 0:
             self.key_option_menu_variable.set(key_versions[0])
             self.key_option_menu.configure(state="normal")
-            CTkScrollableDropdown(self.key_option_menu, values=key_versions, width=300, height=200, resize=False, button_height=30)
+            CTkScrollableDropdown(self.key_option_menu, values=key_versions, width=215, height=210, resize=False, button_height=30)
         else:
             self.key_option_menu_variable.set("None Found")
         if not len(firmware_versions) == 0:
             self.firmware_option_menu_variable.set(firmware_versions[0])
             self.firmware_option_menu.configure(state="normal")
-            CTkScrollableDropdown(self.firmware_option_menu, values=firmware_versions, width=300, height=200, resize=False, button_height=30)
+            CTkScrollableDropdown(self.firmware_option_menu, values=firmware_versions, width=215, height=210, resize=False, button_height=30)
         else:
             self.firmware_option_menu_variable.set("None Found")
         self.fetched = True

@@ -12,6 +12,7 @@ from core import constants
 from core.utils.web import download_file_with_progress, get_all_files_from_page
 from core.utils.files import copy_directory_with_progress, extract_zip_archive_with_progress
 from core.utils.progress_handler import ProgressHandler
+from core.utils.logger import Logger
 
 
 class Dolphin:
@@ -33,8 +34,17 @@ class Dolphin:
     def __init__(self, settings, versions):
         self.settings = settings
         self.versions = versions
-        
+        self.logger = Logger(__name__).get_logger()
         self.running = False
+
+    def get_user_directory(self):
+        if self.settings.dolphin.portable_mode:
+            return self.settings.dolphin.install_directory / "User"
+        match platform.system().lower():
+            case "windows":
+                return Path.home() / "AppData" / "Roaming" / "Dolphin Emulator"
+            case _:
+                raise NotImplementedError("Unsupported system")
 
     def get_installed_version(self):
         return (self.versions.get_version("dolphin") or "Unknown") if (self.settings.dolphin.install_directory / "Dolphin.exe").exists() else ""
@@ -97,15 +107,14 @@ class Dolphin:
                 }
         return {"status": False, "message": "Unable to find a release for your system"}
 
-    def download_release(self, release, progress_handler=ProgressHandler()):
-        download_path = Path(release["filename"]).resolve()
+    def download_release(self, release, progress_handler=None):
         return download_file_with_progress(
             download_url=release["download_url"],
-            download_path=download_path,
+            download_path=Path(release["filename"]).resolve(),
             progress_handler=progress_handler,
         )
         
-    def extract_release(self, release: Path, progress_handler=ProgressHandler()):
+    def extract_release(self, release: Path, progress_handler=None):
         match release.suffix:
             case ".zip":
                 if not self._verify_dolphin_archive(release):
@@ -127,45 +136,55 @@ class Dolphin:
 
     def _extract_7z_archive(self, release_archive, progress_handler):
 
+        # check if the installation directory exists and has files
+        if self.settings.dolphin.install_directory.exists() and self.settings.dolphin.install_directory.iterdir():
+            # delete old installation 
+            # check for portable mode and temporarily move the user directory
+            pass
+        self.settings.dolphin.install_directory.mkdir(exist_ok=True, parents=True)
+        
         try:
-            # check if the installation directory exists and has files
-            if self.settings.dolphin.install_directory.exists() and self.settings.dolphin.install_directory.iterdir():
-                # delete old installation 
-                # check for portable mode and temporarily move the user directory
-                pass
-            self.settings.dolphin.install_directory.mkdir(exist_ok=True, parents=True)
-            
-            
             with py7zr.SevenZipFile(release_archive, mode="r") as archive:
                 archive.extractall(path=self.settings.dolphin.install_directory)
-            parent_folder = self.settings.dolphin.install_directory
-            subfolder = self.settings.dolphin.install_directory / "Dolphin-x64"
-
-            contents = os.listdir(subfolder)
-            for item in contents:
-                item_path = subfolder / item
-                destination_path = parent_folder / item
-                shutil.move(item_path, destination_path)
-                
-            os.rmdir(subfolder)
-    
-            extracted_files = os.listdir(self.settings.dolphin.install_directory)
-            progress_handler.report_progress(1)
-            progress_handler.report_success()
-            return {
-                "status": True,
-                "message": "Extraction successful",
-                "extracted_files": extracted_files
-            }
-
         except Exception as error:
-            # fix later. need to add more specific error handling
-            # and rollback changes if necessary
+            self.logger.error("Error extracting 7z archive: %s", error)
             return {
-                "status": False,
-                "message": error,
+                "status": False, 
+                "message": "Extraction failed",
+                "error": error,
                 "extracted_files": []
             }
+
+        parent_folder = self.settings.dolphin.install_directory
+        subfolder = self.settings.dolphin.install_directory / "Dolphin-x64"
+
+        # move all files from the subfolder to the parent folder
+        progress_handler.set_total_units(len(list(subfolder.iterdir())))
+        progress_handler.report_progress(5)
+        for x, item in enumerate(subfolder.iterdir()):
+            destination = parent_folder / item.name
+
+            # If the destination exists, remove it
+            if destination.exists():
+                if destination.is_dir():
+                    # cant use rmdir as it only works on empty directories
+                    shutil.rmtree(destination)
+                else:
+                    destination.unlink()
+
+            # Move the item to the parent folder
+            shutil.move(str(item), str(destination))
+            progress_handler.report_progress(x + 1)
+
+        subfolder.rmdir()
+
+        progress_handler.report_progress(1)
+        progress_handler.report_success()
+        return {
+            "status": True,
+            "message": "Extraction successful",
+            "extracted_files": []
+        }
 
     def _extract_zip_archive(self, release_archive, progress_handler):
         return extract_zip_archive_with_progress(release_archive, self.settings.dolphin.install_directory, progress_handler)
@@ -205,64 +224,76 @@ class Dolphin:
             "message": "Dolphin successfully launched and exited with no errors"
         }
 
-    """
-    def export_dolphin_data(self, mode, directory_to_export_to, folders_to_export=None):
-       
 
-        if not user_directory.:
-            messagebox.showerror("Missing Folder", "No dolphin data on local drive found")
-            return  # Handle the case when the user directory doesn't exist.
-        if mode == "All Data":
-            copy_directory_with_progress(user_directory, directory_to_export_to, "Exporting All Dolphin Data", self.data_progress_frame)
-        elif mode == "Custom":
-            if not folders_to_export:
-                messagebox.showerror("Missing Folder", "No folders were selected to export")
-                return
-            copy_directory_with_progress(user_directory, directory_to_export_to, "Exporting All Dolphin Data", self.data_progress_frame, include=folders_to_export)
+    def export_dolphin_data(self, export_directory, folders, progress_handler=None):
+        
+        user_directory = self.get_user_directory()
+        
+        if not user_directory.exists():
+            return {
+                "status": False,
+                "message": f"No dolphin data was found. Nothing to export.\n\nPortable: {"True" if self.settings.dolphin.portable_mode else "False"}\nUser Directory:{user_directory}"
+            }
+        
+        return copy_directory_with_progress(
+            source_dir=user_directory,
+            target_dir=export_directory,
+            progress_handler=progress_handler,
+            include=folders
+        )
 
-    def import_dolphin_data(self, mode, directory_to_import_from, folders_to_import=None):
-        user_directory = self.settings.dolphin.user_directory
+    def import_dolphin_data(self, import_directory, folders, progress_handler=None):
+        user_directory = self.get_user_directory()
 
-        if not os.path.exists(directory_to_import_from):
-            messagebox.showerror("Missing Folder", "No dolphin data associated with your username was found")
-            return  # Handle the case when the user directory doesn't exist.
-        if mode == "All Data":
-            copy_directory_with_progress(directory_to_import_from, user_directory, "Importing All Dolphin Data", self.data_progress_frame)
-        elif mode == "Custom":
-            if not folders_to_import:
-                messagebox.showerror("Missing Folder", "No folders were selected to import")
-                return
-            copy_directory_with_progress(directory_to_import_from, user_directory, "Importing All Dolphin Data", self.data_progress_frame, include=folders_to_import)
+        if not user_directory.exists():
+            return {
+                "status": False,
+                "message": f"No dolphin data was found. Nothing to import.\n\nPortable: {"True" if self.settings.dolphin.portable_mode else "False"}\nUser Directory:{user_directory}"
+            }
 
-    def delete_dolphin_data(self, mode, folders_to_delete=None):
-        result = ""
-        user_directory = self.settings.dolphin.user_directory
+        return copy_directory_with_progress(
+            source_dir=import_directory,
+            target_dir=user_directory,
+            progress_handler=progress_handler,
+            include=folders
+        )
 
-        def delete_directory(directory):
-            if os.path.exists(directory):
-                try:
-                    shutil.rmtree(directory)
-                    return True
-                except Exception as error:
-                    messagebox.showerror("Delete Dolphin Data", f"Unable to delete \n{directory}\ndue to error:\n\n{error}")
-                    return False
-            return False
-        if mode == "All Data":
-            result += f"Data Deleted from {user_directory}\n" if delete_directory(user_directory) else ""
-        elif mode == "Custom":
-            deleted = False
-            for folder in folders_to_delete:
-                folder_path = os.path.join(user_directory, folder)
-                if os.path.exists(folder_path) and os.path.isdir(folder_path):
-                    if delete_directory(folder_path):
-                        deleted = True
-                        result += f"Data deleted from {folder_path}\n"
-                    else:
-                        result += f"Deletion failed for {folder_path}\n"
-            if not deleted:
-                result = ""
-        if result:
-            messagebox.showinfo("Delete result", result)
-        else:
-            messagebox.showinfo("Delete result", "Nothing was deleted.")
-    """
+    def delete_dolphin_data(self, folders_to_delete=None, progress_handler=None):
+        user_directory = self.get_user_directory()
+
+        if folders_to_delete is None:
+            folders_to_delete = constants.Dolphin.USER_FOLDERS.value
+
+        total = len(folders_to_delete)
+        progress = 0
+        progress_handler.set_total_units(total)
+        for folder in folders_to_delete:
+            if progress_handler.should_cancel():
+                progress_handler.cancel()
+                return {
+                    "status": False,
+                    "message": "Delete operation cancelled"
+                }
+            path = user_directory / folder
+            if not path.exists():
+                total -= 1
+                progress_handler.set_total_units(total)
+                continue
+
+            try:
+                self.logger.info("Deleting %s", path)
+                shutil.rmtree(path)
+                progress += 1
+                progress_handler.report_progress(progress)
+            except Exception as error:
+                self.logger.error("Delete error: %s", error)
+                progress_handler.report_error(error)
+                return {
+                    "status": False,
+                    "message": f"Error while attempting to delete {folder}: {error}"
+                }
+        progress_handler.report_success()
+        return {
+            "status": True,
+            "message": "Dolphin data deleted successfully"
+        }

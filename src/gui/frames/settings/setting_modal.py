@@ -65,16 +65,19 @@ class SettingModal(CTkFrame):
                 setting_frame.grid_columnconfigure(0, weight=1)
                 self.setting_var.set(self.get_setting_value())
                 self.update_dir_cycle()
-                self.entry_widget = CTkEntry(setting_frame, textvariable=self.setting_var, font=("Helvetica", 16), height=35)
-                self.entry_widget.grid(row=0, column=0, padx=5, pady=2, sticky="ew")
 
-                browse_button = CTkButton(setting_frame, text="Browse", width=100, height=35, command=self.update_with_explorer, font=("Helvetica", 14))
-                browse_button.grid(row=0, column=1, padx=5, pady=5, sticky="e")
+                self.entry_widget = CTkEntry(setting_frame, textvariable=self.setting_var, corner_radius=7, font=("Helvetica", 16), height=35)
+                self.entry_widget.grid(row=0, column=0, padx=5, pady=10, sticky="ew")
+
+                browse_button = CTkButton(setting_frame, text="Browse", width=100, height=35, corner_radius=7, command=self.update_with_explorer, font=("Helvetica", 14))
+                browse_button.grid(row=0, column=1, padx=5, pady=10, sticky="e")
 
                 self.entry_widget.bind("<Return>", self.update_setting_value)
                 self.entry_widget.bind("<KeyRelease>", self.on_key_release)
                 self.entry_widget.bind("<Up>", lambda event: self.cycle_dir(-1))
                 self.entry_widget.bind("<Down>", lambda event: self.cycle_dir(1))
+                self.entry_widget.bind("<Control-Up>", lambda event: self.up_dir())
+
             case "switch":
                 switch_frame = CTkFrame(self, fg_color="transparent", border_width=0)
                 switch_frame.grid(row=0, column=1, rowspan=2, pady=5, padx=5, sticky="ew")
@@ -100,9 +103,13 @@ class SettingModal(CTkFrame):
                 CTkScrollableDropdown(option_widget, values=values, width=160, height=400, resize=True, button_height=35, command=self.update_setting_value, font=("Helvetica", 14))
 
     def update_dir_cycle(self):
-        self.dir_cycle = [Path(self.setting_var.get())] + [item.resolve() for item in Path(self.setting_var.get()).iterdir() if item.is_dir()]
+        current_value = Path(self.setting_var.get().strip()).resolve()
+        self.dir_cycle = [current_value] + [item.resolve() for item in current_value.iterdir() if item.is_dir()]
         self.dir_cycle.sort()
         self.dir_cycle_index = 0
+
+    def up_dir(self):
+        self.setting_var.set(str(Path(self.setting_var.get()).parent))
 
     def cycle_dir(self, direction):
         if len(self.dir_cycle) == 0:
@@ -123,7 +130,6 @@ class SettingModal(CTkFrame):
         if self.is_updating:
             return
         self.is_updating = True
-        self.logger.info("Updating setting %s, args: %s", self.setting_id, args)
 
         if self.setting_type == "path":
             try:
@@ -144,6 +150,7 @@ class SettingModal(CTkFrame):
         else:
             value = self.setting_var.get()
 
+        self.logger.info("Updating setting %s to value: %s", self.setting_id, value)
         if self.custom_options.get("update_function") is not None:
             self.custom_options.get("update_function")(value, self.setting_var)
             self.is_updating = False

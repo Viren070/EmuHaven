@@ -11,17 +11,19 @@ from zipfile import ZipFile
 
 from packaging import version
 
+from core import constants
 from core.emulators.switch_emulator import SwitchEmulator
 from core.utils.files import (copy_directory_with_progress,
                               extract_zip_archive_with_progress)
+from core.utils.logger import Logger
 
 
 class Yuzu(SwitchEmulator):
-    def __init__(self, gui, settings, versions):
+    def __init__(self, settings, versions):
         super().__init__(emulator="yuzu", emulator_settings=settings.yuzu, versions=versions, firmware_path="nand/system/Contents/registered", key_path="keys")
         self.settings = settings
         self.metadata = versions
-        self.gui = gui
+        self.logger = Logger(__name__).get_logger()
         self.main_progress_frame = None
         self.data_progress_frame = None
         self.updating_ea = False
@@ -105,72 +107,80 @@ class Yuzu(SwitchEmulator):
                 "message": f"Failed to delete yuzu {self.settings.yuzu.release_channel}:\n\n{error}"
             }
 
-    def export_yuzu_data(self, mode, directory_to_export_to, folders=None):
-        user_directory = self.settings.yuzu.user_directory
-        if not os.path.exists(user_directory):
-            messagebox.showerror("Missing Folder", "No yuzu data on local drive found")
-            return  # Handle the case when the user directory doesn't exist.
+    def export_yuzu_data(self, export_directory, folders=None, progress_handler=None, save_folder=False):
 
-        if mode == "All Data":
-            copy_directory_with_progress(user_directory, directory_to_export_to, "Exporting All Yuzu Data", self.data_progress_frame)
-        elif mode == "Save Data":
-            save_dir = os.path.join(user_directory, 'nand', 'user', 'save')
-            copy_directory_with_progress(save_dir, os.path.join(directory_to_export_to, 'nand', 'user', 'save'), "Exporting Yuzu Save Data", self.data_progress_frame)
-        elif mode == "Custom...":
-            copy_directory_with_progress(user_directory, directory_to_export_to, "Exporting Custom Yuzu Data", self.data_progress_frame, include=folders)
-        else:
-            messagebox.showerror("Error", f"An unexpected error has occured, {mode} is an invalid option.")
+        user_directory = self.get_user_directory()
+        if save_folder:
+            user_directory = user_directory / "bis" / "user" / "save"
+            export_directory = export_directory / "bis" / "user" / "save"
+        if not user_directory.exists():
+            progress_handler.report_error("FileNotFoundError")
+            return {
+                "status": False,
+                "message": f"No yuzu data was found. Nothing to export.\n\nPortable: {"True" if self.settings.yuzu.portable_mode else "False"}\nUser Directory:{user_directory}"
+            }
 
-    def import_yuzu_data(self, mode, directory_to_import_from, folders=None):
-        user_directory = self.settings.yuzu.user_directory
-        if not os.path.exists(directory_to_import_from):
-            messagebox.showerror("Missing Folder", "No yuzu data associated with your username found")
-            return
-        if mode == "All Data":
-            copy_directory_with_progress(directory_to_import_from, user_directory, "Import All Yuzu Data", self.data_progress_frame)
-        elif mode == "Save Data":
-            save_dir = os.path.join(directory_to_import_from, 'nand', 'user', 'save')
-            copy_directory_with_progress(save_dir, os.path.join(user_directory, 'nand', 'user', 'save'), "Importing Yuzu Save Data", self.data_progress_frame)
-        elif mode == "Custom...":
-            copy_directory_with_progress(directory_to_import_from, user_directory, "Import Custom", self.data_progress_frame, include=folders)
-        else:
-            messagebox.showerror("Error", f"An unexpected error has occured, {mode} is an invalid option.")
+        return copy_directory_with_progress(
+            source_dir=user_directory,
+            target_dir=export_directory,
+            progress_handler=progress_handler,
+            include=folders
+        )
 
-    def delete_yuzu_data(self, mode, folders=None):
-        result = ""
+    def import_yuzu_data(self, import_directory, folders=None, progress_handler=None, save_folder=False):
+        user_directory = self.get_user_directory()
+        if not user_directory.exists():
+            return {
+                "status": False,
+                "message": f"No Yuzu data was found. Nothing to import.\n\nPortable: {"True" if self.settings.yuzu.portable_mode else "False"}\nUser Directory:{user_directory}"
+            }
+        if save_folder:
+            import_directory = import_directory / "nand" / "user" / "save"
+            user_directory = user_directory / "nand" / "user" / "save"
+            
+        return copy_directory_with_progress(
+            source_dir=import_directory,
+            target_dir=user_directory,
+            progress_handler=progress_handler,
+            include=folders
+        )
 
-        user_directory = self.settings.yuzu.user_directory
+    def delete_yuzu_data(self, folders_to_delete=None, progress_handler=None):
+        user_directory = self.get_user_directory()
 
-        def delete_directory(directory):
-            if os.path.exists(directory):
-                try:
-                    shutil.rmtree(directory)
-                    return True
-                except Exception as error:
-                    messagebox.showerror("Delete Yuzu Data", f"Unable to delete {directory}:\n\n{error}")
-                    return False
-            return False
+        if folders_to_delete is None:
+            folders_to_delete = constants.Yuzu.USER_FOLDERS.value
 
-        if mode == "All Data":
-            result += f"Data Deleted from {user_directory}\n" if delete_directory(user_directory) else ""
-        elif mode == "Save Data":
-            save_dir = os.path.join(user_directory, 'nand', 'user', 'save')
-            result += f"Data deleted from {save_dir}\n" if delete_directory(save_dir) else ""
-        elif mode == "Custom...":
-            deleted = False
-            for folder in folders:
-                folder_path = os.path.join(user_directory, folder)
-                if os.path.exists(folder_path) and os.path.isdir(folder_path):
-                    if delete_directory(folder_path):
-                        deleted = True
-                        result += f"Data deleted from {folder_path}\n"
-                    else:
-                        result += f"Deletion failed for {folder_path}\n"
-            if not deleted:
-                result = ""
+        total = len(folders_to_delete)
+        progress = 0
+        progress_handler.set_total_units(total)
+        for folder in folders_to_delete:
+            if progress_handler.should_cancel():
+                progress_handler.cancel()
+                return {
+                    "status": False,
+                    "message": "Delete operation cancelled"
+                }
+            path = user_directory / folder
+            if not path.exists():
+                total -= 1
+                progress_handler.set_total_units(total)
+                continue
 
-        if result:
-            messagebox.showinfo("Delete result", result)
-        else:
-            messagebox.showinfo("Delete result", "Nothing was deleted.")
-        self.gui.configure_data_buttons(state="normal")
+            try:
+                self.logger.info("Deleting %s", path)
+                shutil.rmtree(path)
+                progress += 1
+                progress_handler.report_progress(progress)
+            except Exception as error:
+                self.logger.error("Delete error: %s", error)
+                progress_handler.report_error(error)
+                return {
+                    "status": False,
+                    "message": f"Error while attempting to delete {folder}: {error}"
+                }
+        progress_handler.report_success()
+        return {
+            "status": True,
+            "message": "Yuzu data deleted successfully"
+        }

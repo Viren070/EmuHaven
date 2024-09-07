@@ -28,6 +28,12 @@ class SwitchEmulator:
     def get_user_directory(self):
         return
     
+    def get_firmware_path(self):
+        return self.get_user_directory() / self.firmware_path
+    
+    def get_key_path(self):
+        return self.get_user_directory() / self.key_path
+    
     def get_installed_firmware_version(self):
         return (self.versions.get_version(f"{self.emulator}_firmware") or "Unknown") if self.check_current_firmware() else ""
     
@@ -39,7 +45,7 @@ class SwitchEmulator:
         Returns:
             bool: True if the firmware is present, False otherwise
         """
-        firmware_directory = self.get_user_directory() / self.firmware_path
+        firmware_directory = self.get_firmware_path()
         if firmware_directory.is_dir() and any(firmware_directory.iterdir()):
             return True
         return False
@@ -50,7 +56,7 @@ class SwitchEmulator:
         Returns:
             dict: A dictionary containing the status of the prod.keys and title.keys files 
         """
-        key_directory = self.get_user_directory() / self.key_path
+        key_directory = self.get_key_path()
         prod_key = key_directory / "prod.keys"
         title_key = key_directory / "title.keys"
         return {"prod.keys": prod_key.exists(), "title.keys": title_key.exists()}
@@ -118,7 +124,7 @@ class SwitchEmulator:
     def install_firmware_from_archive(self, firmware_source, progress_handler=None):
         if progress_handler is None:
             progress_handler = ProgressHandler()
-        firmware_directory = self.get_user_directory() / self.firmware_path
+        firmware_directory = self.get_firmware_path()
         if firmware_directory.exists():
             shutil.rmtree(firmware_directory)
         firmware_directory.mkdir(parents=True, exist_ok=True)
@@ -173,8 +179,6 @@ class SwitchEmulator:
             "status": True,
             "message": "Firmware extracted successfully",
         }
-       
-
 
     def install_keys_from_file(self, key_path):
         if not key_path.exists():

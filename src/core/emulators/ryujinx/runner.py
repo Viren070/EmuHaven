@@ -3,7 +3,7 @@ import os
 import re
 import shutil
 import subprocess
-from tkinter import messagebox
+
 from zipfile import ZipFile
 import platform
 from pathlib import Path
@@ -15,20 +15,16 @@ from core.utils.github import get_latest_release_with_asset
 from core.utils.web import download_file_with_progress
 from core.utils.files import copy_directory_with_progress, extract_zip_archive_with_progress
 from core import constants
-
+from core.utils.logger import Logger
 
 
 class Ryujinx(SwitchEmulator):
-    def __init__(self, gui, settings, versions):
+    def __init__(self, settings, versions):
         super().__init__(emulator="ryujinx", emulator_settings=settings.ryujinx, versions=versions, firmware_path="bis/system/Contents/registered", key_path="system")
         self.settings = settings
         self.versions = versions
-        self.gui = gui
-        self.main_progress_frame = None
-        self.data_progress_frame = None
-        self.updating_ea = False
-        self.installing_firmware_or_keys = False
-        self.running = False
+        self.logger = Logger(__name__).get_logger()
+
 
     def get_installed_version(self):
         return (self.versions.get_version("ryujinx") or "Unknown") if (self.settings.ryujinx.install_directory / "publish" / "Ryujinx.exe").exists() else ""
@@ -74,7 +70,7 @@ class Ryujinx(SwitchEmulator):
     def download_release(self, release, progress_handler=None):
         return download_file_with_progress(
             download_url=release["download_url"],
-            download_path=release["filename"],
+            download_path=Path(release["filename"]).resolve(),
             progress_handler=progress_handler
         )
 
@@ -132,72 +128,80 @@ class Ryujinx(SwitchEmulator):
         }
 
 
-    def export_ryujinx_data(self, mode, directory_to_export_to, folders=None):
-        user_directory = self.settings.ryujinx.user_directory
-        if not os.path.exists(user_directory):
-            messagebox.showerror("Missing Folder", "No Ryujinx data on local drive found")
-            return  # Handle the case when the user directory doesn't exist.
+    def export_ryujinx_data(self, export_directory, folders=None, progress_handler=None, save_folder=False):
 
-        if mode == "All Data":
-            copy_directory_with_progress(user_directory, directory_to_export_to, "Exporting All Ryujinx Data", self.data_progress_frame)
-        elif mode == "Save Data":
-            save_dir = os.path.join(user_directory, 'bis', 'user', 'save')
-            copy_directory_with_progress(save_dir, os.path.join(directory_to_export_to, 'bis', 'user', 'save'), "Exporting Ryujinx Save Data", self.data_progress_frame)
-        elif mode == "Custom...":
-            copy_directory_with_progress(user_directory, directory_to_export_to, "Exporting Custom Ryujinx Data", self.data_progress_frame, include=folders)
-        else:
-            messagebox.showerror("Error", f"An unexpected error has occured, {mode} is an invalid option.")
+        user_directory = self.get_user_directory()
+        if save_folder:
+            user_directory = user_directory / "bis" / "user" / "save"
+            export_directory = export_directory / "bis" / "user" / "save"
+        if not user_directory.exists():
+            progress_handler.report_error("FileNotFoundError")
+            return {
+                "status": False,
+                "message": f"No ryujinx data was found. Nothing to export.\n\nPortable: {"True" if self.settings.ryujinx.portable_mode else "False"}\nUser Directory:{user_directory}"
+            }
 
-    def import_ryujinx_data(self, mode, directory_to_import_from, folders=None):
-        user_directory = self.settings.ryujinx.user_directory
-        if not os.path.exists(directory_to_import_from):
-            messagebox.showerror("Missing Folder", "No Ryujinx data associated with your username found")
-            return
-        if mode == "All Data":
-            copy_directory_with_progress(directory_to_import_from, user_directory, "Import All Ryujinx Data", self.data_progress_frame)
-        elif mode == "Save Data":
-            save_dir = os.path.join(directory_to_import_from, 'bis', 'user', 'save')
-            copy_directory_with_progress(save_dir, os.path.join(user_directory, 'bis', 'user', 'save'), "Importing Ryujinx Save Data", self.data_progress_frame)
-        elif mode == "Custom...":
-            copy_directory_with_progress(directory_to_import_from, user_directory, "Import All Ryujinx Data", self.data_progress_frame, include=folders)
-        else:
-            messagebox.showerror("Error", f"An unexpected error has occured, {mode} is an invalid option.")
+        return copy_directory_with_progress(
+            source_dir=user_directory,
+            target_dir=export_directory,
+            progress_handler=progress_handler,
+            include=folders
+        )
 
-    def delete_ryujinx_data(self, mode, folders=None):
-        result = ""
+    def import_ryujinx_data(self, import_directory, folders=None, progress_handler=None, save_folder=False):
+        user_directory = self.get_user_directory()
+        if not user_directory.exists():
+            return {
+                "status": False,
+                "message": f"No Ryujinx data was found. Nothing to import.\n\nPortable: {"True" if self.settings.ryujinx.portable_mode else "False"}\nUser Directory:{user_directory}"
+            }
+        if save_folder:
+            import_directory = import_directory / "bis" / "user" / "save"
+            user_directory = user_directory / "bis" / "user" / "save"
+            
+        return copy_directory_with_progress(
+            source_dir=import_directory,
+            target_dir=user_directory,
+            progress_handler=progress_handler,
+            include=folders
+        )
 
-        user_directory = self.settings.ryujinx.user_directory
+    def delete_ryujinx_data(self, folders_to_delete=None, progress_handler=None):
+        user_directory = self.get_user_directory()
 
-        def delete_directory(directory):
-            if os.path.exists(directory):
-                try:
-                    shutil.rmtree(directory)
-                    return True
-                except Exception as error:
-                    messagebox.showerror("Delete Ryujinx Data", f"Unable to delete {directory}:\n\n{error}")
-                    return False
-            return False
+        if folders_to_delete is None:
+            folders_to_delete = constants.Ryujinx.USER_FOLDERS.value
 
-        if mode == "All Data":
-            result += f"Data Deleted from {user_directory}\n" if delete_directory(user_directory) else ""
-        elif mode == "Save Data":
-            save_dir = os.path.join(user_directory, 'bis', 'user', 'save')
-            result += f"Data deleted from {save_dir}\n" if delete_directory(save_dir) else ""
-        elif mode == "Custom...":
-            deleted = False
-            for folder in folders:
-                folder_path = os.path.join(user_directory, folder)
-                if os.path.exists(folder_path) and os.path.isdir(folder_path):
-                    if delete_directory(folder_path):
-                        deleted = True
-                        result += f"Data deleted from {folder_path}\n"
-                    else:
-                        result += f"Deletion failed for {folder_path}\n"
-            if not deleted:
-                result = ""
+        total = len(folders_to_delete)
+        progress = 0
+        progress_handler.set_total_units(total)
+        for folder in folders_to_delete:
+            if progress_handler.should_cancel():
+                progress_handler.cancel()
+                return {
+                    "status": False,
+                    "message": "Delete operation cancelled"
+                }
+            path = user_directory / folder
+            if not path.exists():
+                total -= 1
+                progress_handler.set_total_units(total)
+                continue
 
-        if result:
-            messagebox.showinfo("Delete result", result)
-        else:
-            messagebox.showinfo("Delete result", "Nothing was deleted.")
-        self.gui.configure_data_buttons(state="normal")
+            try:
+                self.logger.info("Deleting %s", path)
+                shutil.rmtree(path)
+                progress += 1
+                progress_handler.report_progress(progress)
+            except Exception as error:
+                self.logger.error("Delete error: %s", error)
+                progress_handler.report_error(error)
+                return {
+                    "status": False,
+                    "message": f"Error while attempting to delete {folder}: {error}"
+                }
+        progress_handler.report_success()
+        return {
+            "status": True,
+            "message": "Ryujinx data deleted successfully"
+        }

@@ -110,7 +110,7 @@ class AppSettingsFrame(customtkinter.CTkFrame):
         )
         auto_emulator_updates_setting.grid(row=6, column=0, padx=10, pady=5, sticky="ew")
 
-        self.actions_frame = customtkinter.CTkFrame(self, fg_color="transparent")
+        self.actions_frame = customtkinter.CTkFrame(self, fg_color="transparent", corner_radius=10, border_width=2)
         self.actions_frame.grid_columnconfigure(0, weight=1)
         self.actions_frame.grid(row=14, sticky="ew", padx=10, pady=10)
         self.requests_left_label = customtkinter.CTkLabel(self.actions_frame, anchor="w", justify="left", text="API Requests Left: Unknown\nResets in: Unknown")

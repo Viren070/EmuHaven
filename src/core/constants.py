@@ -47,6 +47,8 @@ class Dolphin(Enum):
     MYRIENT_GAMECUBE_PATH = ""
     MYRIENT_WII_PATH = "Redump/Nintendo - Wii - NKit RVZ [zstd-19-128k]/"
     GAME_FILE_EXTENSIONS = [".wbfs", ".iso", ".rvz", ".gcm", ".gcz", ".ciso"]
+    USER_FOLDERS = ["Backup", "Cache", "Config", "Dump", "GameSettings", "GBA", "GC", "Load", "Logs", "Maps", "ResourcePacks", "SavedAssembly", "ScreenShots", "Shaders", "StateSaves", "Styles", "Themes", "Wii"]
+
 
 
 class Xenia(Enum):
@@ -77,12 +79,14 @@ class Yuzu(Enum):
     GH_RELEASE_REPO_OWNER = "yuzu-emu"
     GH_RELEASE_REPO_NAME = "yuzu"
     GH_RELEASE_WINDOWS_ASSET_REGEX = r"yuzu-windows-msvc-.*\.zip"
+    USER_FOLDERS = ["amiibo", "cache", "config", "crash_dumps", "dump", "icons", "keys", "load", "log", "nand", "play_time", "screenshots", "sdmc", "shader", "tas", "sysdata"]
 
 
 class Ryujinx(Enum):
     GH_RELEASE_REPO_OWNER = "Ryujinx"
     GH_RELEASE_REPO_NAME = "release-channel-master"
     GH_RELEASE_WINDOWS_ASSET_REGEX = r'ryujinx-\d+\.\d+\.\d+-win_x64\.zip'
+    USER_FOLDERS = ["bis", "games", "mods", "profiles", "sdcard", "system", "Config.json"]
 
 
 class Requests(Enum):

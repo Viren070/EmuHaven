@@ -10,13 +10,14 @@ We need to create the progress bar class.
 from time import perf_counter
 import customtkinter 
 from gui.progress_frame import ProgressFrame
+from gui.progress_window import ProgressWindow
 import queue
 from core.utils.logger import Logger
 
 class ProgressHandler:
-    def __init__(self, master):
+    def __init__(self, master, type="frame"):
         self.logger = Logger(__name__).get_logger()
-        self._progress_bar = ProgressFrame(master, self)
+        self._progress_bar = ProgressFrame(master, self) if type == "frame" else ProgressWindow(master, self)
         self.master = master
         self.smoothing_factor = 0.3
         self.report_queue = queue.Queue()

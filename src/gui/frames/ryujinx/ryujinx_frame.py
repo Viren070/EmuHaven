@@ -3,28 +3,26 @@ from threading import Thread
 import customtkinter
 from CTkToolTip import CTkToolTip
 
+from core import constants
 from core.emulators.ryujinx.runner import Ryujinx
 from gui.frames.emulator_frame import EmulatorFrame
 from gui.frames.firmware_keys_frame import FirmwareKeysFrame
-from gui.libs import messagebox
 from gui.frames.ryujinx.ryujinx_rom_frame import RyujinxROMFrame
-from gui.windows.path_dialog import PathDialog
+from gui.libs import messagebox
 from gui.progress_handler import ProgressHandler
 from gui.windows.folder_selector import FolderSelector
-
-FOLDERS = ["bis", "games", "mods", "profiles", "sdcard", "system"]
+from gui.windows.path_dialog import PathDialog
 
 
 class RyujinxFrame(EmulatorFrame):
     def __init__(self, master, paths, settings, versions, assets, cache, event_manager):
         super().__init__(parent_frame=master, paths=paths, settings=settings, versions=versions, assets=assets)
-        self.ryujinx = Ryujinx(self, settings, versions)
+        self.ryujinx = Ryujinx(settings, versions)
         self.versions = versions
         self.cache = cache
         self.ryujinx_version = None
         self.paths = paths
         self.event_manager = event_manager
-        self.installed_ryujinx_version = ""
         self.add_to_frame()
 
     def add_to_frame(self):
@@ -33,7 +31,7 @@ class RyujinxFrame(EmulatorFrame):
         self.start_frame.grid_columnconfigure(0, weight=1)
         self.start_frame.grid_rowconfigure(0, weight=1)
 
-        self.center_frame = customtkinter.CTkFrame(self.start_frame, border_width=0)
+        self.center_frame = customtkinter.CTkFrame(self.start_frame, corner_radius=0)
         self.center_frame.grid(row=0, column=0, sticky="nsew")
 
         self.center_frame.grid_columnconfigure(0, weight=1)
@@ -103,6 +101,7 @@ class RyujinxFrame(EmulatorFrame):
         self.data_log.grid(row=1, column=0, padx=20, pady=20, columnspan=3, sticky="new")
         self.data_log.grid_columnconfigure(0, weight=1)
         self.data_log.grid_rowconfigure(1, weight=1)
+        self.data_progress_handler = ProgressHandler(self.data_log)
         # create ryujinx downloader button, frame and widgets
 
         self.actions_frame.grid_propagate(False)
@@ -133,6 +132,11 @@ class RyujinxFrame(EmulatorFrame):
         self.firmware_keys_frame.install_firmware_button.configure(state=state, text=install_firmware_button_text)
         self.firmware_keys_frame.install_keys_button.configure(state=state, text=install_keys_button_text)
         self.firmware_keys_frame.update_installed_versions()
+        
+    def configure_data_buttons(self, state="disabled", import_text="Import", export_text="Export", delete_text="Delete"):
+        self.import_data_button.configure(state=state, text=import_text)
+        self.export_data_button.configure(state=state, text=export_text)
+        self.delete_data_button.configure(state=state, text=delete_text)
 
     def launch_ryujinx_button_event(self, event=None):
         if event is None or self.launch_button.cget("state") == "disabled":
@@ -308,62 +312,151 @@ class RyujinxFrame(EmulatorFrame):
         }
 
     def import_data_button_event(self):
-        directory = None
-        folders = None
+
         import_option = self.import_optionmenu.get()
 
         if import_option == "Custom...":
             directory, folders = FolderSelector(
                 title="Choose directory and folders to import",
-                allowed_folders=FOLDERS
+                allowed_folders=constants.Ryujinx.USER_FOLDERS.value
             ).get_input()
         else:
             directory = PathDialog(title="Import Directory", text="Enter directory to import from: ", directory=True).get_input()
-            if directory and directory[1] is not None:
-                directory = directory[1]
-            else:
-                messagebox.showerror("Error", "The path you have provided is invalid")
+            if not directory["status"]:
+                if directory["cancelled"]:
+                    return
+                messagebox.showerror(self.winfo_toplevel(), "Error", directory["message"])
                 return
-        if directory is None:
-            return
-        self.configure_data_buttons(state="disabled")
-        thread_args = (import_option, directory, folders, ) if folders else (import_option, directory,)
-        thread = Thread(target=self.ryujinx.import_ryujinx_data, args=thread_args)
-        thread.start()
-        Thread(target=self.enable_buttons_after_thread, args=(thread, ["data"],)).start()
+            directory = directory["path"]
+            folders = constants.Ryujinx.USER_FOLDERS.value
+
+        self.configure_data_buttons(import_text="Importing...")
+        self.event_manager.add_event(
+            event_id="import_ryujinx_data",
+            func=self.import_data_handler,
+            kwargs={"import_directory": directory, "folders": folders, "save_folder": import_option == "Save Data"},
+            completion_functions=[lambda: self.configure_data_buttons(state="normal")],
+            error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Error", "An unexpected error occurred while importing Ryujinx data.\nPlease check the logs for more information and report this issue.")]
+        )
+
+    def import_data_handler(self, import_directory, folders, save_folder=False):
+        self.data_progress_handler.start_operation(
+            title="Import Ryujinx Data",
+            total_units=0,
+            units=" Files",
+            status="Importing..."
+        )
+        import_result = self.ryujinx.import_ryujinx_data(
+            import_directory=import_directory,
+            folders=folders,
+            progress_handler=self.data_progress_handler,
+            save_folder=save_folder
+        )
+        if not import_result["status"]:
+            return {
+                "message": {
+                    "function": messagebox.showerror,
+                    "arguments": (self.winfo_toplevel(), "Error", f"Failed to import Ryujinx data: {import_result['message']}"),
+                }
+            }
+        return {
+            "message": {
+                "function": messagebox.showsuccess,
+                "arguments": (self.winfo_toplevel(), "Import Ryujinx Data", f"Successfully imported Ryujinx data from {import_directory}"),
+            }
+        }
 
     def export_data_button_event(self):
-        directory = PathDialog(title="Export Directory", text="Enter directory to export to: ", directory=True)
-        directory = directory.get_input()
-        if not all(directory):
-            if directory[1] is not None:
-                messagebox.showerror("Error", "The path you have provided is invalid")
+        export_directory = PathDialog(title="Export Directory", text="Enter directory to export to: ", directory=True)
+        export_directory = export_directory.get_input()
+        if not export_directory["status"]:
+            if export_directory["cancelled"]:
                 return
+            messagebox.showerror("Error", export_directory["message"])
             return
-        directory = directory[1]
+        export_directory = export_directory["path"]
+
         if self.export_optionmenu.get() == "Custom...":
-            user_directory, folders = FolderSelector(title="Choose folders to export", predefined_directory=self.settings.ryujinx.user_directory, allowed_folders=FOLDERS).get_input()
-            if user_directory is None or folders is None:
+            _, folders = FolderSelector(title="Choose folders to export", predefined_directory=self.ryujinx.get_user_directory(), allowed_folders=constants.Ryujinx.USER_FOLDERS.value).get_input()
+            if folders is None:
                 return
-            args = ("Custom...", directory, folders)
         else:
-            args = (self.export_optionmenu.get(), directory,)
-        self.configure_data_buttons(state="disabled")
-        thread = Thread(target=self.ryujinx.export_ryujinx_data, args=args)
-        thread.start()
-        Thread(target=self.enable_buttons_after_thread, args=(thread, ["data"],)).start()
+            folders = constants.Ryujinx.USER_FOLDERS.value
+        
+        self.configure_data_buttons(export_text="Exporting...")
+        
+        self.event_manager.add_event(
+            event_id="export_ryujinx_data",
+            func=self.export_data_handler,
+            kwargs={"export_directory": export_directory, "folders": folders, "save_folder": self.export_optionmenu.get() == "Save Data"},
+            completion_functions=[lambda: self.configure_data_buttons(state="normal")],
+            error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Error", "An unexpected error occurred while exporting Ryujinx data.\nPlease check the logs for more information and report this issue.")]
+        )
+        
+    def export_data_handler(self, export_directory, folders, save_folder=False):
+        self.data_progress_handler.start_operation(
+            title="Export Ryujinx Data",
+            total_units=0,
+            units=" Files",
+            status="Exporting..."
+        )
+        export_result = self.ryujinx.export_ryujinx_data(
+            export_directory=export_directory,
+            folders=folders,
+            progress_handler=self.data_progress_handler,
+            save_folder=save_folder
+        )
+        if not export_result["status"]:
+            return {
+                "message": {
+                    "function": messagebox.showerror,
+                    "arguments": (self.winfo_toplevel(), "Error", f"Failed to export Ryujinx data: {export_result['message']}"),
+                }
+            }
+        return {
+            "message": {
+                "function": messagebox.showsuccess,
+                "arguments": (self.winfo_toplevel(), "Export Ryujinx Data", f"Successfully exported Ryujinx data to {export_directory}"),
+            }
+        }
 
     def delete_data_button_event(self):
         if self.delete_optionmenu.get() == "Custom...":
-            directory, folders = FolderSelector(title="Delete Directory", predefined_directory=self.settings.ryujinx.user_directory, allowed_folders=FOLDERS).get_input()
-            if directory is None or folders is None:
+            _, folders = FolderSelector(title="Choose folders to delete", predefined_directory=self.ryujinx.get_user_directory(), allowed_folders=constants.Ryujinx.USER_FOLDERS.value).get_input()
+            if folders is None:
                 return
-            args = ("Custom...", folders)
         else:
-            args = (self.delete_optionmenu.get(), )
-        if not messagebox.askyesno("Confirmation", "This will delete the data from Ryujinx's directory. This action cannot be undone, are you sure you wish to continue?"):
+            folders = constants.Ryujinx.USER_FOLDERS.value
+
+        if messagebox.askyesno(self.winfo_toplevel(), "Confirmation", "This will delete the data from Ryujinx's directory. This action cannot be undone, are you sure you wish to continue?") != "yes":
             return
-        self.configure_data_buttons(state="disabled")
-        thread = Thread(target=self.ryujinx.delete_ryujinx_data, args=args)
-        thread.start()
-        Thread(target=self.enable_buttons_after_thread, args=(thread, ["data"],)).start()
+        self.configure_data_buttons(delete_text="Deleting...")
+        self.event_manager.add_event(
+            event_id="delete_ryujinx_data",
+            func=self.delete_data_handler,
+            kwargs={"folders": folders},
+            completion_functions=[lambda: self.configure_data_buttons(state="normal")],
+            error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Error", "An unexpected error occurred while deleting Ryujinx data.\nPlease check the logs for more information and report this issue.")]
+        )
+
+    def delete_data_handler(self, folders):
+        self.data_progress_handler.start_operation(
+            title="Delete Ryujinx Data",
+            total_units=0,
+            units=" Files",
+            status="Deleting..."
+        )
+        delete_result = self.ryujinx.delete_ryujinx_data(folders_to_delete=folders, progress_handler=self.data_progress_handler)
+        if not delete_result["status"]:
+            return {
+                "message": {
+                    "function": messagebox.showerror,
+                    "arguments": (self.winfo_toplevel(), "Error", f"Failed to delete Ryujinx data: {delete_result['message']}"),
+                }
+            }
+        return {
+            "message": {
+                "function": messagebox.showsuccess,
+                "arguments": (self.winfo_toplevel(), "Delete Ryujinx Data", "Successfully deleted Ryujinx data"),
+            }
+        }

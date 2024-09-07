@@ -93,7 +93,7 @@ def download_file_with_progress(download_url, download_path, progress_handler, c
 
     Args:
         url (str): URL to download the file from.
-        download_path (str): Path to save the downloaded file to.
+        download_path (pathlib.Path): Path to save the downloaded file to.
         progress_handler (ProgressHandler): Progress handler to update the download progress.
         headers (dict): Headers to include in the request.
         chunk_size (int): The size of the chunks to download.
@@ -101,6 +101,8 @@ def download_file_with_progress(download_url, download_path, progress_handler, c
     Returns:
         dict: A dictionary with fields: status (bool), message (str) and download_path (str)
     """
+    if not isinstance(download_path, Path):
+        raise TypeError("download_path must be a pathlib.Path object")
     logger.debug("Downloading file from %s to %s with chunk size: %s", download_url, download_path, chunk_size)
     response = get(download_url, stream=True, **kwargs)
     if not response["status"]:
@@ -112,21 +114,18 @@ def download_file_with_progress(download_url, download_path, progress_handler, c
 def download_through_stream(response, download_path, chunk_size, progress_handler):
     if progress_handler is None:
         progress_handler = ProgressHandler()
-    size = int(response.headers.get('content-length', 0))
     if not progress_handler.is_total_units_set():
+        size = int(response.headers.get('content-length', 0))
         progress_handler.set_total_units(size / 1024 / 1024)
+    rollback_needed = False
     try:
         with open(download_path, 'wb') as f:
             downloaded_bytes = 0
 
             for chunk in response.iter_content(chunk_size=chunk_size):
                 if progress_handler.should_cancel():
-                    progress_handler.cancel()
-                    return {
-                        "status": False,
-                        "message": "The download was cancelled by the user",
-                        "download_path": download_path
-                    }
+                    rollback_needed = True
+                    break
                 f.write(chunk)
                 downloaded_bytes += len(chunk)
 
@@ -147,6 +146,14 @@ def download_through_stream(response, download_path, chunk_size, progress_handle
         return {
             "status": False,
             "message": error,
+            "download_path": None
+        }
+    if rollback_needed:
+        progress_handler.cancel()
+        download_path.unlink(missing_ok=True)
+        return {
+            "status": False,
+            "message": "Download cancelled",
             "download_path": None
         }
     return {
@@ -183,6 +190,7 @@ def download_file(download_url, download_path, **kwargs):
         with open(download_path, "wb") as f:
             f.write(content)
     except (PermissionError) as error:
+        download_path.unlink(missing_ok=True)
         logger.error("Error writing file: %s", error)
         return {"status": False, "message": f"Permission was denied. Make sure the app and the user have permission to write to the current directory:\n\n{download_path.parent}",
                 "download_path": None}

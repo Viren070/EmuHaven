@@ -15,12 +15,11 @@ from gui.windows.path_dialog import PathDialog
 from gui.windows.folder_selector import FolderSelector
 from gui.progress_handler import ProgressHandler
 
-FOLDERS = ["cache", "content", "xenia.config.toml"]
 
 
 class XeniaFrame(EmulatorFrame):
     def __init__(self, master, paths, settings, versions, assets, cache, event_manager: ThreadEventManager):
-        super().__init__(parent_frame=master, paths=paths, settings=settings, versions=versions, assets=assets)
+        super().__init__(parent_frame=master, paths=paths, settings=settings, versions=versions, assets=assets, exclude_data=True)
         self.xenia = Xenia(self, settings, versions)
         self.paths = paths
         self.cache = cache
@@ -34,7 +33,7 @@ class XeniaFrame(EmulatorFrame):
         self.start_frame.grid_columnconfigure(0, weight=1)
         self.start_frame.grid_rowconfigure(0, weight=1)
 
-        self.center_frame = customtkinter.CTkFrame(self.start_frame, border_width=0)
+        self.center_frame = customtkinter.CTkFrame(self.start_frame, corner_radius=0)
         self.center_frame.grid(row=0, column=0, sticky="nsew")
         # self.center_frame.grid_propagate(False)
         self.center_frame.grid_columnconfigure(0, weight=1)
@@ -78,37 +77,10 @@ class XeniaFrame(EmulatorFrame):
         self.log_frame.grid_propagate(False)
         self.log_frame.grid_columnconfigure(0, weight=3)
         self.main_progress_frame = ProgressHandler(self.log_frame)
-        # create xenia 'Manage Data' frame and widgets
-        self.manage_data_frame = customtkinter.CTkFrame(self, corner_radius=0, bg_color="transparent")
-        self.manage_data_frame.grid_columnconfigure(0, weight=1)
-        self.manage_data_frame.grid_columnconfigure(1, weight=1)
-        self.manage_data_frame.grid_rowconfigure(0, weight=1)
-        self.manage_data_frame.grid_rowconfigure(1, weight=2)
-        self.data_actions_frame = customtkinter.CTkFrame(self.manage_data_frame, height=150)
-        self.data_actions_frame.grid(row=0, column=0, padx=20, columnspan=3, pady=20, sticky="ew")
-        self.data_actions_frame.grid_columnconfigure(1, weight=1)
-
-        self.import_data_optionmenu = customtkinter.CTkOptionMenu(self.data_actions_frame, width=300, values=["All Data", "Custom"])
-        self.export_data_optionmenu = customtkinter.CTkOptionMenu(self.data_actions_frame, width=300, values=["All Data", "Custom"])
-        self.delete_data_optionmenu = customtkinter.CTkOptionMenu(self.data_actions_frame, width=300, values=["All Data", "Custom"])
-
-        self.import_data_button = customtkinter.CTkButton(self.data_actions_frame, text="Import", command=self.import_data_button_event)
-        self.export_data_button = customtkinter.CTkButton(self.data_actions_frame, text="Export", command=self.export_data_button_event)
-        self.delete_data_button = customtkinter.CTkButton(self.data_actions_frame, text="Delete", command=self.delete_data_button_event, fg_color="red", hover_color="darkred")
-
-        self.import_data_optionmenu.grid(row=0, column=0, padx=10, pady=10, sticky="w")
-        self.import_data_button.grid(row=0, column=1, padx=10, pady=10, sticky="e")
-        self.export_data_optionmenu.grid(row=1, column=0, padx=10, pady=10, sticky="w")
-        self.export_data_button.grid(row=1, column=1, padx=10, pady=10, sticky="e")
-        self.delete_data_optionmenu.grid(row=2, column=0, padx=10, pady=10, sticky="w")
-        self.delete_data_button.grid(row=2, column=1, padx=10, pady=10, sticky="e")
-
-        self.data_log = customtkinter.CTkFrame(self.manage_data_frame)
-        self.data_log.grid(row=1, column=0, padx=20, pady=20, columnspan=3, sticky="new")
-        self.data_log.grid_columnconfigure(0, weight=1)
-        self.data_log.grid_rowconfigure(1, weight=1)
+        
+        self.manage_data_frame = customtkinter.CTkFrame(self.start_frame, corner_radius=0, border_width=0)
         # create xenia downloader button, frame and widgets
-        self.actions_frame.grid_propagate(False)
+        self.actions_frame.grid_propagate(True)
         self.selected_channel.set(self.settings.xenia.release_channel.title())
         self.switch_channel()
 
@@ -309,68 +281,3 @@ class XeniaFrame(EmulatorFrame):
             "message_func": messagebox.showsuccess,
             "message_args": (self.winfo_toplevel(), "Success", delete_result["message"]),
         }
-    
-    def import_data_button_event(self):
-        directory = None
-        folders = None
-        import_option = self.import_data_optionmenu.get()
-
-        if import_option == "Custom":
-            directory, folders = FolderSelector(
-                title="Choose directory and folders to import",
-                allowed_folders=FOLDERS,
-                show_files=True,
-            ).get_input()
-        else:
-            directory = PathDialog(title="Import Directory", text="Enter directory to import from: ", directory=True).get_input()
-            if directory and directory[1] is not None:
-                directory = directory[1]
-            else:
-                messagebox.showerror("Error", "The path you have provided is invalid")
-                return
-
-        if directory is None:
-            return
-
-        self.configure_data_buttons(state="disabled")
-        thread_args = (import_option, directory, folders, ) if folders else (import_option, directory, )
-        thread = Thread(target=self.xenia.import_xenia_data, args=thread_args)
-        thread.start()
-        Thread(target=self.enable_buttons_after_thread, args=(thread, ["data"],)).start()
-
-    def export_data_button_event(self):
-        directory = PathDialog(title="Export Directory", text="Enter directory to export to: ", directory=True)
-        directory = directory.get_input()
-        if not all(directory):
-            if directory[1] is not None:
-                messagebox.showerror("Error", "The path you have provided is invalid")
-                return
-            return
-        directory = directory[1]
-        if self.export_data_optionmenu.get() == "Custom":
-            user_directory, folders = FolderSelector(title="Choose folders to export", predefined_directory=self.settings.xenia.user_directory, allowed_folders=FOLDERS, show_files=True).get_input()
-            if user_directory is None or folders is None:
-                return
-            args = ("Custom", directory, folders,)
-        else:
-            args = (self.export_data_optionmenu.get(), directory,)
-
-        self.configure_data_buttons(state="disabled")
-        thread = Thread(target=self.xenia.export_xenia_data, args=args)
-        thread.start()
-        Thread(target=self.enable_buttons_after_thread, args=(thread, ["data"],)).start()
-
-    def delete_data_button_event(self):
-        if self.delete_data_optionmenu.get() == "Custom":
-            directory, folders = FolderSelector(title="Delete Directory", predefined_directory=self.settings.xenia.user_directory, allowed_folders=FOLDERS, show_files=True).get_input()
-            if directory is None or folders is None:
-                return
-            thread = Thread(target=self.xenia.delete_xenia_data, args=("Custom", folders,))
-        else:
-            thread = Thread(target=self.xenia.delete_xenia_data, args=(self.delete_data_optionmenu.get(),))
-        if not messagebox.askyesno("Confirmation", "This will delete the data from Yuzu's directory. This action cannot be undone, are you sure you wish to continue?"):
-            return
-        self.configure_data_buttons(state="disabled")
-        thread.start()
-        Thread(target=self.enable_buttons_after_thread, args=(thread, ["data"],)).start()
-

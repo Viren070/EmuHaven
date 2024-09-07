@@ -52,6 +52,7 @@ class ThreadEventManager:
         if not event["output_queue"].empty():
             output = event["output_queue"].get()
             self._process_output(output, event)
+            return
         self.window.after(50, self._main_thread_loop, event)
 
     def _process_output(self, output, event):

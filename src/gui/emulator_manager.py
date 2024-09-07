@@ -24,11 +24,12 @@ from core.cache import Cache
 from core.paths import Paths
 from core.utils.thread_event_manager import ThreadEventManager
 from core import constants
-
+from core.utils.logger import Logger
 
 class EmulatorManager(customtkinter.CTk):
     def __init__(self, paths: Paths, settings: Settings, versions: Versions, cache: Cache, assets: Assets, opening_menu=""):
         self.just_opened = True
+        self.logger = Logger(__name__).get_logger()
         super().__init__()
         self.paths, self.settings, self.versions, self.cache, self.assets = paths, settings, versions, cache, assets
         self.event_manager = ThreadEventManager(self)
@@ -36,8 +37,22 @@ class EmulatorManager(customtkinter.CTk):
         self.build_gui()
         self.just_opened = False
         self.select_frame_by_name(opening_menu)
-  
         self.protocol("WM_DELETE_WINDOW", self.close_app)
+
+        
+    def check_currentdir_permissions(self):
+        self.logger.info("Checking current directory permissions")
+        try:
+            test = Path("test.txt")
+            with open(test, "w", encoding="utf-8") as file:
+                file.write("Test")
+            test.unlink(missing_ok=True)
+            self.logger.info("Current directory is writable")
+        except PermissionError:
+            messagebox.showwarning(self, "Warning", "You do not have permission to write to the current directory. Please run the application as an administrator or move the application to a directory where you have write permissions.")
+            #sys.exit(1)
+
+        
 
     def build_gui(self):
         self.resizable(True, True)  # disable resizing of window
@@ -62,54 +77,57 @@ class EmulatorManager(customtkinter.CTk):
         self.navigation_frame_label.bind('<Double-Button-1>', command=lambda event: messagebox.showinfo(self, "About", f"{constants.App.NAME.value} v{self.version}, made by {constants.App.AUTHOR.value} on GitHub."))
 
         # Create frame in the middle
-        frame = customtkinter.CTkFrame(self.navigation_frame, fg_color="transparent")
-        frame.grid(row=1, column=0, sticky="nsew")
+        frame = customtkinter.CTkFrame(self.navigation_frame, fg_color="transparent", corner_radius=0, border_width=0)
+        frame.grid(row=1, column=0, sticky="nsew", padx=2)
 
         # Create navigation menu buttons
         text_color = ThemeManager.theme["CTkLabel"]["text_color"]
         self.dolphin_button = customtkinter.CTkButton(frame, corner_radius=0, height=50, image=self.assets.dolphin_logo, border_spacing=10, text="Dolphin",
                                                       fg_color="transparent", text_color=text_color,
                                                       anchor="w", command=self.dolphin_button_event)
-        self.dolphin_button.grid(row=0, column=0, sticky="ew")
+        self.dolphin_button.grid(row=0, column=0, sticky="ew", padx=2)
 
         self.yuzu_button = customtkinter.CTkButton(frame, corner_radius=0, height=40, image=self.assets.yuzu_logo, border_spacing=10, text="Yuzu",
                                                    fg_color="transparent", text_color=text_color,
                                                    anchor="w", command=self.yuzu_button_event)
-        self.yuzu_button.grid(row=1, column=0, sticky="ew")
+        self.yuzu_button.grid(row=1, column=0, sticky="ew", padx=2)
 
         self.ryujinx_button = customtkinter.CTkButton(frame, corner_radius=0, height=40, image=self.assets.ryujinx_logo, border_spacing=10, text="Ryujinx",
                                                       fg_color="transparent", text_color=text_color,
                                                       anchor="w", command=self.ryujinx_button_event)
-        self.ryujinx_button.grid(row=2, column=0, sticky="ew")
+        self.ryujinx_button.grid(row=2, column=0, sticky="ew", padx=2)
 
         self.xenia_button = customtkinter.CTkButton(frame, corner_radius=0, height=40, image=self.assets.xenia_logo, border_spacing=10, text="Xenia",
                                                     fg_color="transparent", text_color=text_color,
                                                     anchor="w", command=lambda: self.select_frame_by_name("xenia"))
-        self.xenia_button.grid(row=3, column=0, sticky="ew")
+        self.xenia_button.grid(row=3, column=0, sticky="ew", padx=2)
         # Set column weights of frame to make buttons expand
         frame.grid_columnconfigure(0, weight=1)
 
         socials_frame = customtkinter.CTkFrame(self.navigation_frame, corner_radius=0, border_width=0, fg_color="transparent")
-        socials_frame.grid(row=2, column=0, padx=(1, 0))
+        socials_frame.grid(row=2, column=0, padx=5, pady=10)
         socials_frame.grid_columnconfigure(0, weight=1)
     
-        github_button = customtkinter.CTkLabel(socials_frame, height=0, width=0, text="", image=self.assets.github_icon)
-        github_button.grid(row=0, column=0, padx=4, pady=20)
+        icon_frame = customtkinter.CTkFrame(socials_frame, corner_radius=0, border_width=0, fg_color="transparent")
+        icon_frame.grid(row=0, column=0, padx=10, pady=5)
+        
+        github_button = customtkinter.CTkLabel(icon_frame, height=0, width=0, text="", image=self.assets.github_icon, )
+        github_button.grid(row=0, column=0, padx=4, pady=0)
         github_button.bind("<Button-1>", lambda event: self.show_github())
 
-        discord_button = customtkinter.CTkLabel(socials_frame, height=0, width=0, text="", image=self.assets.discord_icon)
-        discord_button.grid(row=0, column=1, padx=4, pady=20)
+        discord_button = customtkinter.CTkLabel(icon_frame, height=0, width=0, text="", image=self.assets.discord_icon)
+        discord_button.grid(row=0, column=1, padx=10, pady=0)
         discord_button.bind("<Button-1>", lambda event: self.show_discord_invite())
         
-        kofi_button = customtkinter.CTkLabel(socials_frame, height=0, width=0, text="", image=self.assets.kofi_icon)
-        kofi_button.grid(row=0, column=2, padx=4, pady=20)
+        kofi_button = customtkinter.CTkLabel(socials_frame, height=0, width=0, text="", image=self.assets.kofi_button)
+        kofi_button.grid(row=1, column=0, padx=10, pady=10)
         kofi_button.bind("<Button-1>", lambda event: self.show_kofi_page())
-        
+
         # Create settings button at the bottom
         self.settings_button = customtkinter.CTkButton(self.navigation_frame, corner_radius=0, height=40, image=self.assets.settings_image, border_spacing=10, text="Settings",
                                                        fg_color="transparent", text_color=text_color,
                                                        anchor="w", command=self.settings_button_event)
-        self.settings_button.grid(row=3, column=0, sticky="ew")
+        self.settings_button.grid(row=3, column=0, sticky="ew", padx=2, pady=2)
 
         self.yuzu_frame = YuzuFrame(self, paths=self.paths, settings=self.settings, versions=self.versions, cache=self.cache, assets=self.assets, event_manager=self.event_manager)
         self.dolphin_frame = DolphinFrame(self, paths=self.paths, settings=self.settings, versions=self.versions, cache=self.cache, assets=self.assets, event_manager=self.event_manager)
@@ -126,7 +144,7 @@ class EmulatorManager(customtkinter.CTk):
             webbrowser.open(constants.App.DISCORD.value)
         
     def show_kofi_page(self):
-        if messagebox.askyesno(self, "Support", f"Would you like to support the development of {constants.App.NAME.value} by donating on Ko-fi?\n\nIf you click yes, your default web browser will open the Ko-fi page.") == "yes":
+        if messagebox.askyesno(self, "Support", f"Would you like to support the development of {constants.App.NAME.value} by donating on Ko-fi?") == "yes":
             webbrowser.open(constants.App.KOFI.value)
 
     def dolphin_button_event(self):

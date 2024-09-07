@@ -29,27 +29,27 @@ class SettingsFrame(customtkinter.CTkFrame):
 
         # create settings navigation menu buttons
         text_color = ThemeManager.theme["CTkLabel"]["text_color"]
-        self.app_settings_button = customtkinter.CTkButton(self.settings_navigation_frame, corner_radius=0, width=90, height=25, border_spacing=10, text="App",
+        self.app_settings_button = customtkinter.CTkButton(self.settings_navigation_frame, corner_radius=0, width=120, height=25, border_spacing=10, text="App",
                                                            fg_color="transparent", text_color=text_color,
                                                            anchor="w", command=self.app_settings_button_event)
         self.app_settings_button.grid(row=1, column=0, padx=2, pady=(2, 0), sticky="ew")
 
-        self.dolphin_settings_button = customtkinter.CTkButton(self.settings_navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Dolphin",
+        self.dolphin_settings_button = customtkinter.CTkButton(self.settings_navigation_frame, corner_radius=0, width=120, height=25, border_spacing=10, text="Dolphin",
                                                                fg_color="transparent", text_color=text_color,
                                                                anchor="w", command=self.dolphin_settings_button_event)
         self.dolphin_settings_button.grid(row=2, column=0, padx=2, sticky="ew")
 
-        self.yuzu_settings_button = customtkinter.CTkButton(self.settings_navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Yuzu",
+        self.yuzu_settings_button = customtkinter.CTkButton(self.settings_navigation_frame, corner_radius=0, width=120, height=25, border_spacing=10, text="Yuzu",
                                                             fg_color="transparent", text_color=text_color,
                                                             anchor="w", command=self.yuzu_settings_button_event)
         self.yuzu_settings_button.grid(row=3, column=0, padx=2, sticky="ew")
 
-        self.ryujinx_settings_button = customtkinter.CTkButton(self.settings_navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Ryujinx",
+        self.ryujinx_settings_button = customtkinter.CTkButton(self.settings_navigation_frame, corner_radius=0, width=120, height=25, border_spacing=10, text="Ryujinx",
                                                                fg_color="transparent", text_color=text_color,
                                                                anchor="w", command=self.ryujinx_settings_button_event)
         self.ryujinx_settings_button.grid(row=4, column=0, padx=2, sticky="ew")
 
-        self.xenia_settings_button = customtkinter.CTkButton(self.settings_navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Xenia",
+        self.xenia_settings_button = customtkinter.CTkButton(self.settings_navigation_frame, corner_radius=0, width=120, height=25, border_spacing=10, text="Xenia",
                                                              fg_color="transparent", text_color=text_color,
                                                              anchor="w", command=self.xenia_settings_button_event)
         self.xenia_settings_button.grid(row=5, column=0, padx=2, sticky="ew")

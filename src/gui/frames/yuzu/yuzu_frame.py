@@ -1,29 +1,23 @@
-import os
-from threading import Thread
-
 import customtkinter
 from CTkToolTip import CTkToolTip
-from PIL import Image
 
+
+from core import constants
 from core.emulators.yuzu.runner import Yuzu
-from core.paths import Paths
 from core.utils.thread_event_manager import ThreadEventManager
 from gui.frames.emulator_frame import EmulatorFrame
 from gui.frames.firmware_keys_frame import FirmwareKeysFrame
 from gui.frames.yuzu.yuzu_rom_frame import YuzuROMFrame
-from gui.windows.path_dialog import PathDialog
-from gui.windows.folder_selector import FolderSelector
 from gui.libs import messagebox
 from gui.progress_handler import ProgressHandler
-
-
-FOLDERS = ["amiibo", "cache", "config", "crash_dumps", "dump", "icons", "keys", "load", "log", "nand", "play_time", "screenshots", "sdmc", "shader", "tas", "sysdata"]
+from gui.windows.folder_selector import FolderSelector
+from gui.windows.path_dialog import PathDialog
 
 
 class YuzuFrame(EmulatorFrame):
     def __init__(self, master, paths, settings, versions, assets, cache, event_manager: ThreadEventManager):
         super().__init__(parent_frame=master, paths=paths, settings=settings, versions=versions, assets=assets)
-        self.yuzu = Yuzu(self, settings, versions)
+        self.yuzu = Yuzu(settings, versions)
         self.cache = cache
         self.paths = paths
         self.versions = versions
@@ -37,7 +31,7 @@ class YuzuFrame(EmulatorFrame):
         self.start_frame.grid_columnconfigure(0, weight=1)
         self.start_frame.grid_rowconfigure(0, weight=1)
 
-        self.center_frame = customtkinter.CTkFrame(self.start_frame, border_width=0)
+        self.center_frame = customtkinter.CTkFrame(self.start_frame, corner_radius=0)
         self.center_frame.grid(row=0, column=0, sticky="nsew")
         # self.center_frame.grid_propagate(False)
         self.center_frame.grid_columnconfigure(0, weight=1)
@@ -114,6 +108,7 @@ class YuzuFrame(EmulatorFrame):
         self.yuzu_data_log.grid(row=1, column=0, padx=20, pady=20, columnspan=3, sticky="new")
         self.yuzu_data_log.grid_columnconfigure(0, weight=1)
         self.yuzu_data_log.grid_rowconfigure(1, weight=1)
+        self.data_progress_handler = ProgressHandler(self.yuzu_data_log)
         # create yuzu downloader button, frame and widgets
 
         self.actions_frame.grid_propagate(False)
@@ -152,6 +147,11 @@ class YuzuFrame(EmulatorFrame):
         self.firmware_keys_frame.install_firmware_button.configure(state=state, text=install_firmware_button_text)
         self.firmware_keys_frame.install_keys_button.configure(state=state, text=install_keys_button_text)
         self.firmware_keys_frame.update_installed_versions()
+    
+    def configure_data_buttons(self, state="disabled", import_text="Import", export_text="Export", delete_text="Delete"):
+        self.yuzu_import_button.configure(state=state, text=import_text)
+        self.yuzu_export_button.configure(state=state, text=export_text)
+        self.yuzu_delete_button.configure(state=state, text=delete_text)
     
     def switch_channel(self, value=None):
         value = self.selected_channel.get().lower().replace(" ", "_")
@@ -288,67 +288,151 @@ class YuzuFrame(EmulatorFrame):
         }
 
     def import_data_button_event(self):
-        directory = None
-        folders = None
+
         import_option = self.yuzu_import_optionmenu.get()
 
         if import_option == "Custom...":
             directory, folders = FolderSelector(
                 title="Choose directory and folders to import",
-                allowed_folders=FOLDERS
+                allowed_folders=constants.Yuzu.USER_FOLDERS.value
             ).get_input()
         else:
             directory = PathDialog(title="Import Directory", text="Enter directory to import from: ", directory=True).get_input()
-            directory = directory.get_input()
             if not directory["status"]:
                 if directory["cancelled"]:
                     return
-                messagebox.showerror(self.winfo_toplevel(), "Import Yuzu Data", directory["message"])
+                messagebox.showerror(self.winfo_toplevel(), "Error", directory["message"])
+                return
             directory = directory["path"]
+            folders = constants.Yuzu.USER_FOLDERS.value
 
-        if directory is None:
-            return
+        self.configure_data_buttons(import_text="Importing...")
+        self.event_manager.add_event(
+            event_id="import_yuzu_data",
+            func=self.import_data_handler,
+            kwargs={"import_directory": directory, "folders": folders, "save_folder": import_option == "Save Data"},
+            completion_functions=[lambda: self.configure_data_buttons(state="normal")],
+            error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Error", "An unexpected error occurred while importing Yuzu data.\nPlease check the logs for more information and report this issue.")]
+        )
 
-        self.configure_data_buttons(state="disabled")
-        thread_args = (import_option, directory, folders, ) if folders else (import_option, directory, )
-        thread = Thread(target=self.yuzu.import_yuzu_data, args=thread_args)
-        thread.start()
-        Thread(target=self.enable_buttons_after_thread, args=(thread, ["data"],)).start()
+    def import_data_handler(self, import_directory, folders, save_folder=False):
+        self.data_progress_handler.start_operation(
+            title="Import Yuzu Data",
+            total_units=0,
+            units=" Files",
+            status="Importing..."
+        )
+        import_result = self.yuzu.import_yuzu_data(
+            import_directory=import_directory,
+            folders=folders,
+            progress_handler=self.data_progress_handler,
+            save_folder=save_folder
+        )
+        if not import_result["status"]:
+            return {
+                "message": {
+                    "function": messagebox.showerror,
+                    "arguments": (self.winfo_toplevel(), "Error", f"Failed to import Yuzu data: {import_result['message']}"),
+                }
+            }
+        return {
+            "message": {
+                "function": messagebox.showsuccess,
+                "arguments": (self.winfo_toplevel(), "Import Yuzu Data", f"Successfully imported Yuzu data from {import_directory}"),
+            }
+        }
 
     def export_data_button_event(self):
-        directory = PathDialog(title="Export Directory", text="Enter directory to export to: ", directory=True)
-        directory = directory.get_input()
-        if not all(directory):
-            if directory[1] is not None:
-                messagebox.showerror("Error", "The path you have provided is invalid")
+        export_directory = PathDialog(title="Export Directory", text="Enter directory to export to: ", directory=True)
+        export_directory = export_directory.get_input()
+        if not export_directory["status"]:
+            if export_directory["cancelled"]:
                 return
+            messagebox.showerror("Error", export_directory["message"])
             return
-        directory = directory[1]
-        if self.yuzu_export_optionmenu.get() == "Custom...":
-            user_directory, folders = FolderSelector(title="Choose folders to export", predefined_directory=self.settings.yuzu.user_directory, allowed_folders=FOLDERS).get_input()
-            if user_directory is None or folders is None:
-                return
-            args = ("Custom...", directory, folders,)
-        else:
-            args = (self.yuzu_export_optionmenu.get(), directory,)
+        export_directory = export_directory["path"]
 
-        self.configure_data_buttons(state="disabled")
-        thread = Thread(target=self.yuzu.export_yuzu_data, args=args)
-        thread.start()
-        Thread(target=self.enable_buttons_after_thread, args=(thread, ["data"],)).start()
+        if self.yuzu_export_optionmenu.get() == "Custom...":
+            _, folders = FolderSelector(title="Choose folders to export", predefined_directory=self.yuzu.get_user_directory(), allowed_folders=constants.Yuzu.USER_FOLDERS.value).get_input()
+            if folders is None:
+                return
+        else:
+            folders = constants.Yuzu.USER_FOLDERS.value
+        
+        self.configure_data_buttons(export_text="Exporting...")
+        
+        self.event_manager.add_event(
+            event_id="export_yuzu_data",
+            func=self.export_data_handler,
+            kwargs={"export_directory": export_directory, "folders": folders, "save_folder": self.yuzu_export_optionmenu.get() == "Save Data"},
+            completion_functions=[lambda: self.configure_data_buttons(state="normal")],
+            error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Error", "An unexpected error occurred while exporting Yuzu data.\nPlease check the logs for more information and report this issue.")]
+        )
+        
+    def export_data_handler(self, export_directory, folders, save_folder=False):
+        self.data_progress_handler.start_operation(
+            title="Export Yuzu Data",
+            total_units=0,
+            units=" Files",
+            status="Exporting..."
+        )
+        export_result = self.yuzu.export_yuzu_data(
+            export_directory=export_directory,
+            folders=folders,
+            progress_handler=self.data_progress_handler,
+            save_folder=save_folder
+        )
+        if not export_result["status"]:
+            return {
+                "message": {
+                    "function": messagebox.showerror,
+                    "arguments": (self.winfo_toplevel(), "Error", f"Failed to export Yuzu data: {export_result['message']}"),
+                }
+            }
+        return {
+            "message": {
+                "function": messagebox.showsuccess,
+                "arguments": (self.winfo_toplevel(), "Export Yuzu Data", f"Successfully exported Yuzu data to {export_directory}"),
+            }
+        }
 
     def delete_data_button_event(self):
         if self.yuzu_delete_optionmenu.get() == "Custom...":
-            directory, folders = FolderSelector(title="Delete Directory", predefined_directory=self.settings.yuzu.user_directory, allowed_folders=FOLDERS).get_input()
-            if directory is None or folders is None:
+            _, folders = FolderSelector(title="Choose folders to delete", predefined_directory=self.yuzu.get_user_directory(), allowed_folders=constants.Yuzu.USER_FOLDERS.value).get_input()
+            if folders is None:
                 return
-            thread = Thread(target=self.yuzu.delete_yuzu_data, args=("Custom...", folders,))
         else:
-            thread = Thread(target=self.yuzu.delete_yuzu_data, args=(self.yuzu_delete_optionmenu.get(),))
-        if not messagebox.askyesno("Confirmation", "This will delete the data from Yuzu's directory. This action cannot be undone, are you sure you wish to continue?"):
-            return
-        self.configure_data_buttons(state="disabled")
-        thread.start()
-        Thread(target=self.enable_buttons_after_thread, args=(thread, ["data"],)).start()
+            folders = constants.Yuzu.USER_FOLDERS.value
 
-    
+        if messagebox.askyesno(self.winfo_toplevel(), "Confirmation", "This will delete the data from Yuzu's directory. This action cannot be undone, are you sure you wish to continue?") != "yes":
+            return
+        self.configure_data_buttons(delete_text="Deleting...")
+        self.event_manager.add_event(
+            event_id="delete_yuzu_data",
+            func=self.delete_data_handler,
+            kwargs={"folders": folders},
+            completion_functions=[lambda: self.configure_data_buttons(state="normal")],
+            error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Error", "An unexpected error occurred while deleting Yuzu data.\nPlease check the logs for more information and report this issue.")]
+        )
+
+    def delete_data_handler(self, folders):
+        self.data_progress_handler.start_operation(
+            title="Delete Yuzu Data",
+            total_units=0,
+            units=" Files",
+            status="Deleting..."
+        )
+        delete_result = self.yuzu.delete_yuzu_data(folders_to_delete=folders, progress_handler=self.data_progress_handler)
+        if not delete_result["status"]:
+            return {
+                "message": {
+                    "function": messagebox.showerror,
+                    "arguments": (self.winfo_toplevel(), "Error", f"Failed to delete Yuzu data: {delete_result['message']}"),
+                }
+            }
+        return {
+            "message": {
+                "function": messagebox.showsuccess,
+                "arguments": (self.winfo_toplevel(), "Delete Yuzu Data", "Successfully deleted Yuzu data"),
+            }
+        }
