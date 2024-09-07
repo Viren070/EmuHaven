@@ -28,14 +28,12 @@ class Assets:
                                                  dark_image=Image.open(self.get_image_path("play_dark")), size=(20, 20))
         self.settings_image = customtkinter.CTkImage(light_image=Image.open(self.get_image_path("settings_light")),
                                                      dark_image=Image.open(self.get_image_path("settings_dark")), size=(20, 20))
-        self.lock_image = customtkinter.CTkImage(light_image=Image.open(self.get_image_path("padlock_light")),
-                                                 dark_image=Image.open(self.get_image_path("padlock_dark")), size=(20, 20))
         self.discord_icon = customtkinter.CTkImage(Image.open(self.get_image_path("discord_icon")), size=(40, 40))
 
         self.github_icon = customtkinter.CTkImage(light_image=Image.open(self.get_image_path("github-mark")),
                                                   dark_image=Image.open(self.get_image_path("github-mark-white")), size=(40, 40))
 
-        self.kofi_button = customtkinter.CTkImage(light_image=Image.open(self.get_image_path("kofi_button_blue"))), size=(1081*0.185, 170*0.195))
+        self.kofi_button = customtkinter.CTkImage(light_image=Image.open(self.get_image_path("kofi_button_blue")), size=(1081*0.185, 170*0.195))
 
     def get_image_path(self, image_name):
         path = self.asset_dir / "images" / f"{image_name}.png"
