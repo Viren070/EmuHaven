@@ -10,10 +10,7 @@ from core.settings import Settings
 from core.utils.logger import Logger
 from core.versions import Versions
 
-
 logger = Logger(__name__).get_logger()
-
-    
 
 
 def load_customtkinter_settings(settings_object: Settings):

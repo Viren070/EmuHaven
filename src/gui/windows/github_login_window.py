@@ -6,7 +6,8 @@ from tkinter import messagebox
 
 import customtkinter
 
-from core.utils.github import request_device_code, request_token, is_token_valid
+from core.utils.github import (is_token_valid, request_device_code,
+                               request_token)
 
 
 class GitHubLoginWindow(customtkinter.CTkToplevel):

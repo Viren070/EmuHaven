@@ -2,9 +2,6 @@ import customtkinter
 from customtkinter import ThemeManager
 
 
-from core.paths import Paths
-from core.assets import Assets
-
 class EmulatorFrame(customtkinter.CTkFrame):
     def __init__(self, parent_frame, paths, settings, versions, assets, exclude_data=False):
         super().__init__(parent_frame,  corner_radius=0, bg_color="transparent")

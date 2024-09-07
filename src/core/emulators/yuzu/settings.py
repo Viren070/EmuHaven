@@ -1,5 +1,6 @@
-from pathlib import Path
 import platform
+from pathlib import Path
+
 
 class YuzuSettings:
     def __init__(self):

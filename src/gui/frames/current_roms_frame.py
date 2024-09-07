@@ -1,6 +1,6 @@
 import os
-from tkinter import messagebox
 from pathlib import Path
+from tkinter import messagebox
 
 import customtkinter
 

@@ -1,7 +1,6 @@
 import customtkinter
 from CTkToolTip import CTkToolTip
 
-
 from core import constants
 from core.emulators.yuzu.runner import Yuzu
 from core.utils.thread_event_manager import ThreadEventManager

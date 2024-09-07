@@ -1,6 +1,6 @@
-import os
 import shutil
 import zipfile
+
 from core.utils.progress_handler import ProgressHandler
 
 

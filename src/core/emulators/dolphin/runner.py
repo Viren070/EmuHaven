@@ -1,18 +1,17 @@
-import os
+import platform
 import re
 import shutil
 import subprocess
-import time
-import platform
-from zipfile import ZipFile
 from pathlib import Path
+from zipfile import ZipFile
+
 import py7zr
 
 from core import constants
-from core.utils.web import download_file_with_progress, get_all_files_from_page
-from core.utils.files import copy_directory_with_progress, extract_zip_archive_with_progress
-from core.utils.progress_handler import ProgressHandler
+from core.utils.files import (copy_directory_with_progress,
+                              extract_zip_archive_with_progress)
 from core.utils.logger import Logger
+from core.utils.web import download_file_with_progress, get_all_files_from_page
 
 
 class Dolphin:

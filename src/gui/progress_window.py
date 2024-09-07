@@ -1,7 +1,6 @@
-from time import perf_counter
-from gui.progress_frame import ProgressFrame
-
 import customtkinter
+
+from gui.progress_frame import ProgressFrame
 
 
 class ProgressWindow(customtkinter.CTkToplevel):

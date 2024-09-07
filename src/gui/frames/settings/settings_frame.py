@@ -3,9 +3,9 @@ from customtkinter import ThemeManager
 
 from gui.frames.settings.app_settings_frame import AppSettingsFrame
 from gui.frames.settings.dolphin_settings_frame import DolphinSettingsFrame
-from gui.frames.settings.yuzu_settings_frame import YuzuSettingsFrame
 from gui.frames.settings.ryujinx_settings_frame import RyujinxSettingsFrame
 from gui.frames.settings.xenia_settings_frame import XeniaSettingsFrame
+from gui.frames.settings.yuzu_settings_frame import YuzuSettingsFrame
 
 
 class SettingsFrame(customtkinter.CTkFrame):

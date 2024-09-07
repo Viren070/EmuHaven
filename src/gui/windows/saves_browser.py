@@ -1,13 +1,12 @@
 import os
 import textwrap
-from tkinter import messagebox
-from urllib.parse import unquote
 from threading import Thread
+from urllib.parse import unquote
 
 import customtkinter
 
-from gui.windows.progress_window import ProgressWindow
 from core.utils.web import download_file_with_progress
+from gui.windows.progress_window import ProgressWindow
 
 
 class SavesBrowser(customtkinter.CTkToplevel):

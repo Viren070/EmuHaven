@@ -1,6 +1,7 @@
-import threading
 import queue
+import threading
 import traceback
+
 from core.utils.logger import Logger
 
 

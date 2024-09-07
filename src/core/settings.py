@@ -1,13 +1,13 @@
-import json 
+import json
+from pathlib import Path
 
 from core.emulators.dolphin.settings import DolphinSettings
 from core.emulators.ryujinx.settings import RyujinxSettings
-from core.emulators.yuzu.settings import YuzuSettings
 from core.emulators.xenia.settings import XeniaSettings
+from core.emulators.yuzu.settings import YuzuSettings
 from core.paths import Paths
-from core.constants import App
 from core.utils.logger import Logger
-from pathlib import Path
+
 
 class Settings:
     def __init__(self, paths: Paths):

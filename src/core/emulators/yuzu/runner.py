@@ -1,15 +1,8 @@
-import json
-import os
 import platform
-import re
 import shutil
 import subprocess
-import time
 from pathlib import Path
-from tkinter import messagebox
 from zipfile import ZipFile
-
-from packaging import version
 
 from core import constants
 from core.emulators.switch_emulator import SwitchEmulator

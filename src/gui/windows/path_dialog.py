@@ -1,8 +1,9 @@
-from tkinter import filedialog
-from typing import Union, Tuple, Optional
 from pathlib import Path
+from tkinter import filedialog
+from typing import Optional, Tuple, Union
 
-from customtkinter import CTkLabel, CTkEntry, CTkButton, ThemeManager, CTkToplevel, CTkFont, CTkFrame
+from customtkinter import (CTkButton, CTkEntry, CTkFont, CTkFrame, CTkLabel,
+                           CTkToplevel, ThemeManager)
 
 
 class PathDialog(CTkToplevel):

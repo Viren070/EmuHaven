@@ -1,9 +1,10 @@
 import os
+from pathlib import Path
 
 import customtkinter
 
 from gui.frames.switch_roms_frame import SwitchROMSFrame
-from pathlib import Path
+
 
 class RyujinxROMFrame(customtkinter.CTkTabview):
     def __init__(self, master, settings, cache):

@@ -5,10 +5,10 @@ from zipfile import ZipFile
 
 import customtkinter
 
+from core import constants
 from gui.frames.current_roms_frame import CurrentROMSFrame
 from gui.frames.rom_search_frame import ROMSearchFrame
-from core.utils.web import download_file_with_progress
-from core import constants
+
 
 class XeniaROMFrame(customtkinter.CTkTabview):
     def __init__(self, master, xenia, settings, cache):

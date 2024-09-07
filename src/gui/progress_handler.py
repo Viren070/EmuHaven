@@ -7,12 +7,13 @@ The report_progress method will then update the progress bar with the new values
 
 We need to create the progress bar class. 
 """
+import queue
 from time import perf_counter
-import customtkinter 
+
+from core.utils.logger import Logger
 from gui.progress_frame import ProgressFrame
 from gui.progress_window import ProgressWindow
-import queue
-from core.utils.logger import Logger
+
 
 class ProgressHandler:
     def __init__(self, master, type="frame"):

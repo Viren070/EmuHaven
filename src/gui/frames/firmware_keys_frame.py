@@ -1,12 +1,12 @@
 import time
-from threading import Thread
-from packaging import version
 
 import customtkinter
+
 from core.utils.thread_event_manager import ThreadEventManager
-from gui.libs.ext.CTkScrollableDropdown import CTkScrollableDropdown
 from gui.libs import messagebox
+from gui.libs.ext.CTkScrollableDropdown import CTkScrollableDropdown
 from gui.windows.path_dialog import PathDialog
+
 
 class FirmwareKeysFrame(customtkinter.CTkFrame):
     def __init__(self, master, frame_obj, emulator_obj):

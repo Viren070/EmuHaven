@@ -1,12 +1,13 @@
+from pathlib import Path
+from urllib.parse import urljoin, urlparse
+
 import requests
 from bs4 import BeautifulSoup
 from requests import RequestException
-from urllib.parse import urlparse, urljoin, unquote
-from pathlib import Path
 
+from core import constants
 from core.utils.logger import Logger
 from core.utils.progress_handler import ProgressHandler
-from core import constants 
 
 logger = Logger(__name__).get_logger()
 

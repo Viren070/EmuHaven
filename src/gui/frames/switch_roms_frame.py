@@ -9,9 +9,9 @@ from tkinter import filedialog, messagebox
 import customtkinter
 from PIL import Image
 
+from core.utils.web import download_file
 from gui.windows.progress_window import ProgressWindow
 from gui.windows.saves_browser import SavesBrowser
-from core.utils.web import download_file
 
 
 class SwitchTitle:

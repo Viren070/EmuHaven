@@ -4,12 +4,10 @@ import shutil
 import subprocess
 import time
 from pathlib import Path
-from tkinter import messagebox
 from zipfile import ZipFile
 
 from core import constants
-from core.utils.files import (copy_directory_with_progress,
-                              extract_zip_archive_with_progress)
+from core.utils.files import extract_zip_archive_with_progress
 from core.utils.github import get_latest_release_with_asset
 from core.utils.web import download_file_with_progress
 

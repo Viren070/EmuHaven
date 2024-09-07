@@ -1,21 +1,17 @@
-import json
 import os
-import re
+import platform
 import shutil
 import subprocess
-
-from zipfile import ZipFile
-import platform
 from pathlib import Path
+from zipfile import ZipFile
 
-from packaging import version
-
-from core.emulators.switch_emulator import SwitchEmulator
-from core.utils.github import get_latest_release_with_asset
-from core.utils.web import download_file_with_progress
-from core.utils.files import copy_directory_with_progress, extract_zip_archive_with_progress
 from core import constants
+from core.emulators.switch_emulator import SwitchEmulator
+from core.utils.files import (copy_directory_with_progress,
+                              extract_zip_archive_with_progress)
+from core.utils.github import get_latest_release_with_asset
 from core.utils.logger import Logger
+from core.utils.web import download_file_with_progress
 
 
 class Ryujinx(SwitchEmulator):

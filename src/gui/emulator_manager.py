@@ -1,30 +1,27 @@
 import os
 import shutil
 import webbrowser
-import sys
-from packaging import version
 from pathlib import Path
-
 
 import customtkinter
 from customtkinter import ThemeManager
+from packaging import version
 
-
+from core import constants
+from core.assets import Assets
+from core.cache import Cache
+from core.paths import Paths
+from core.settings import Settings
+from core.utils.logger import Logger
+from core.utils.thread_event_manager import ThreadEventManager
+from core.versions import Versions
 from gui.frames.dolphin.dolphin_frame import DolphinFrame
 from gui.frames.ryujinx.ryujinx_frame import RyujinxFrame
 from gui.frames.settings.settings_frame import SettingsFrame
-from gui.frames.yuzu.yuzu_frame import YuzuFrame
 from gui.frames.xenia.xenia_frame import XeniaFrame
+from gui.frames.yuzu.yuzu_frame import YuzuFrame
 from gui.libs import messagebox
 
-from core.assets import Assets
-from core.settings import Settings
-from core.versions import Versions
-from core.cache import Cache
-from core.paths import Paths
-from core.utils.thread_event_manager import ThreadEventManager
-from core import constants
-from core.utils.logger import Logger
 
 class EmulatorManager(customtkinter.CTk):
     def __init__(self, paths: Paths, settings: Settings, versions: Versions, cache: Cache, assets: Assets, opening_menu=""):

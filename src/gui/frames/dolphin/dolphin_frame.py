@@ -1,20 +1,15 @@
-import os
-from threading import Thread
-
 import customtkinter
 from CTkToolTip import CTkToolTip
 
+from core import constants
 from core.emulators.dolphin.runner import Dolphin
+from core.utils.thread_event_manager import ThreadEventManager
 from gui.frames.dolphin.dolphin_rom_frame import DolphinROMFrame
-from gui.windows.path_dialog import PathDialog
-from gui.windows.folder_selector import FolderSelector
 from gui.frames.emulator_frame import EmulatorFrame
 from gui.libs import messagebox
 from gui.progress_handler import ProgressHandler
-from core.paths import Paths
-from core import constants
-from core.utils.thread_event_manager import ThreadEventManager
-
+from gui.windows.folder_selector import FolderSelector
+from gui.windows.path_dialog import PathDialog
 
 
 class DolphinFrame(EmulatorFrame):

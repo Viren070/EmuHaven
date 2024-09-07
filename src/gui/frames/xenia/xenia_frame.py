@@ -1,20 +1,13 @@
-import os
-from threading import Thread
-
 import customtkinter
 from CTkToolTip import CTkToolTip
-from PIL import Image
 
 from core.emulators.xenia.runner import Xenia
-from core.paths import Paths
-from gui.libs import messagebox
 from core.utils.thread_event_manager import ThreadEventManager
 from gui.frames.emulator_frame import EmulatorFrame
 from gui.frames.xenia.xenia_rom_frame import XeniaROMFrame
-from gui.windows.path_dialog import PathDialog
-from gui.windows.folder_selector import FolderSelector
+from gui.libs import messagebox
 from gui.progress_handler import ProgressHandler
-
+from gui.windows.path_dialog import PathDialog
 
 
 class XeniaFrame(EmulatorFrame):

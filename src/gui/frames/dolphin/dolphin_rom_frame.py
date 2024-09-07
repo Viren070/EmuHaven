@@ -5,10 +5,11 @@ from zipfile import ZipFile
 
 import customtkinter
 
+from core import constants
+from core.utils.web import download_file_with_progress
 from gui.frames.current_roms_frame import CurrentROMSFrame
 from gui.frames.rom_search_frame import ROMSearchFrame
-from core.utils.web import download_file_with_progress
-from core import constants
+
 
 class DolphinROMFrame(customtkinter.CTkTabview):
     def __init__(self, master, dolphin, settings, cache):
