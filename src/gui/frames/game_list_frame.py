@@ -1,74 +1,67 @@
 import webbrowser
 from threading import Thread
-from tkinter import messagebox
 
 import customtkinter
 
+from core import constants
 from core.utils.myrient import get_list_of_games
+from core.utils.thread_event_manager import ThreadEventManager
+from gui.libs import messagebox
 
 
-class File:
-    def __init__(self, url, filename):
-        self.url = url
-        self.filename = filename
 
 
-class ROMSearchFrame(customtkinter.CTkFrame):
-    def __init__(self, master, root, myrient_path, console_name):
+class GameListFrame(customtkinter.CTkFrame):
+    def __init__(self, master, event_manager: ThreadEventManager):
         super().__init__(master, height=700)
-        self.myrient_path = myrient_path
-        self.console_name = console_name
-        self.results_per_page = 10
-        self.cache = root.cache
-        self.roms = None
-        self.searched_roms = None
-        self.total_pages = None
-        self.searched_roms = None
-        self.current_page = None
-        self.root = root
         self.update_in_progress = False
+        self.event_manager = event_manager
+        self.total_pages = 0
+        self.current_page = 1
+        self.game_list = []
+        self.searched_games = []
         self.build_frame()
-        cache_lookup_result = self.cache.get_json_data_from_cache(f"{self.console_name}_games")
-        if cache_lookup_result:
-            self.define_roms(cache_lookup_result["data"])
-
-
-    def get_roms(self):
-        self.refresh_button.configure(state="disabled", text="Fetching...")
-        get_roms_thread = Thread(target=self.define_roms)
-        get_roms_thread.start()
-
-    def define_roms(self, cached_games=None):
-        self.games = []
         
-        if cached_games:
-            self.games = cached_games
-        else:
-            scrape_result = get_list_of_games(myrient_path=self.myrient_path)
-            
-            if not scrape_result["status"]:
-                self.refresh_button.configure(state="normal", text="Fetch ROMs")
-                messagebox.showerror("Error", scrape_result["message"])
-                return
-            self.games = scrape_result["games"]
-            self.cache.add_json_data_to_cache(f"{self.console_name}_roms", scrape_result["games"])
-            
+    def configure_widgets(self, fetch_button_text="Get Games", state="disabled"):
+        self.refresh_button.configure(state=state, text=fetch_button_text)
+        self.search_entry.configure(state=state)
+        self.search_button.configure(state=state)
+        self.current_page_entry.configure(state=state)
+        self.prev_button.configure(state=state)
+        self.next_button.configure(state=state)
 
-        for widget in (self.refresh_button, self.search_button, self.search_entry, self.prev_button, self.next_button, self.current_page_entry):
-            widget.configure(state="normal")
-
-        self.searched_roms = self.roms
-        self.total_pages = (len(self.searched_roms) + self.results_per_page - 1) // self.results_per_page
+    def get_game_list_button_event(self, *args):
+        self.configure_widgets(fetch_button_text="Fetching...")
+        self.event_manager.add_event(
+            event_id="get_games",
+            func=self.get_game_list,
+            kwargs={},
+            completion_functions=[lambda: self.configure_widgets(state="normal")],
+            completion_funcs_with_result=[self.process_game_list],
+            error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Error", "Failed to fetch games.")]
+        )
+        
+    def get_game_list(self):
+        return {
+            "result": [],
+            "message": {
+                "function": messagebox.showerror,
+                "args": ("Error", "Game Fetch not implemented.")
+            }
+        }
+        
+    def process_game_list(self, game_list):
+        self.game_list = game_list
+        self.searched_games = game_list
+        self.total_pages = (len(game_list) + constants.App.RESULTS_PER_GAME_PAGE.value - 1) // constants.App.RESULTS_PER_GAME_PAGE.value
         self.total_pages_label.configure(text=f"/ {self.total_pages}")
-        self.refresh_button.grid_forget()
-        self.refresh_frame.grid_forget()
         self.update_results()
 
     def build_frame(self):
         # Create a search bar
         self.refresh_frame = customtkinter.CTkFrame(self, corner_radius=50)
         self.refresh_frame.grid(row=0, column=0, padx=10, pady=10, sticky="nw")
-        self.refresh_button = customtkinter.CTkButton(self.refresh_frame, text="Fetch ROMs", width=100, corner_radius=50, command=self.get_roms)
+        self.refresh_button = customtkinter.CTkButton(self.refresh_frame, text="Get Games", width=100, corner_radius=50, command=self.get_game_list_button_event)
         self.refresh_button.grid(row=0, column=0, padx=5, pady=5)
 
         search_frame = customtkinter.CTkFrame(self, corner_radius=50)
@@ -145,50 +138,44 @@ class ROMSearchFrame(customtkinter.CTkFrame):
             self.prev_button.configure(state="normal")
             return
         self.update_in_progress = True
-        start_index = (self.current_page - 1) * self.results_per_page
-        end_index = (start_index + self.results_per_page) - 1
+        start_index = (self.current_page - 1) * constants.App.RESULTS_PER_GAME_PAGE.value
+        end_index = (start_index + constants.App.RESULTS_PER_GAME_PAGE.value) - 1
         for widget in self.result_frame.winfo_children():
             widget.grid_forget()
 
         row_counter = 0
-        for i, rom in enumerate(self.searched_roms):
+        for i, game in enumerate(self.searched_games):
             if i > end_index:
                 break
             if i < start_index:
                 continue
 
-            entry = customtkinter.CTkEntry(self.result_frame, width=400)
-            entry.insert(0, rom.filename.replace(".zip", ""))
-            entry.configure(state="disabled")
-
-            entry.grid(row=row_counter, column=0, padx=10, pady=5, sticky="w")
-            button = customtkinter.CTkButton(self.result_frame, text="Download")
-            button.configure(command=lambda button=button, rom=rom: self.root.download_rom_event(rom, button))
-            button.bind("<Shift-Button-1>", lambda event, rom=rom: webbrowser.open(rom.url))
-            button.grid(row=row_counter, column=1, padx=10, pady=5, sticky="e")
+            self.add_game_to_frame(game, row_counter)
             row_counter += 2
+        
+        self.current_page_entry.configure(state="normal")
         self.current_page_entry.delete(0, customtkinter.END)
         self.current_page_entry.insert(0, str(self.current_page))
         self.next_button.configure(state="normal")
         self.prev_button.configure(state="normal")
         self.update_in_progress = False
+        
+    def add_game_to_frame(self, game, row_counter):
+        customtkinter.CTkLabel(self.result_frame, text=game).grid(row=row_counter, column=0, padx=5, pady=5, sticky="ew")
 
     def perform_search(self, *args):
-        # Implement your search logic here
-        # Update the 'results' list with the search results
-        # Then call self.update_results(results) to display the results
         query = self.search_entry.get()
         if query == "":
-            self.searched_roms = self.roms
+            self.searched_games = self.game_list
         else:
-            self.searched_roms = []
-            for rom in self.roms:
-                if query.lower() in rom.filename.lower():
-                    self.searched_roms.append(rom)
-        self.total_pages = (len(self.searched_roms) + self.results_per_page - 1) // self.results_per_page
+            self.searched_games = []
+            for game in self.game_list:
+                if query.lower() in game.lower():
+                    self.searched_games.append(game)
+        self.total_pages = (len(self.searched_games) + constants.App.RESULTS_PER_GAME_PAGE.value - 1) // constants.App.RESULTS_PER_GAME_PAGE.value
         self.total_pages_label.configure(text=f"/ {self.total_pages}")
         self.current_page = 1
-        Thread(target=self.update_results).start()
+        self.update_results()
 
     def go_to_page(self, event=None, page_no=None):
         if self.update_in_progress:
@@ -206,7 +193,7 @@ class ROMSearchFrame(customtkinter.CTkFrame):
                 self.current_page = page_number
                 self.current_page_entry.delete(0, customtkinter.END)
                 self.current_page_entry.insert(0, str(self.current_page))
-                Thread(target=self.update_results).start()
+                self.update_results()
             else:
                 # Display an error message or handle invalid page numbers
                 self.current_page_entry.delete(0, customtkinter.END)

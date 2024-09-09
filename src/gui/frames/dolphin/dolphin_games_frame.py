@@ -6,18 +6,19 @@ from zipfile import ZipFile
 import customtkinter
 
 from core import constants
-from gui.frames.current_roms_frame import CurrentROMSFrame
-from gui.frames.rom_search_frame import ROMSearchFrame
+from core.utils.web import download_file_with_progress
+from gui.frames.my_games_frame import MyGamesFrame
+from gui.frames.myrient_game_list_frame import MyrientGameListFrame
 
 
-class XeniaROMFrame(customtkinter.CTkTabview):
-    def __init__(self, master, xenia, settings, cache):
-        super().__init__(master, height=500, width=700)
+class DolphinROMFrame(customtkinter.CTkTabview):
+    def __init__(self, master, settings, cache, event_manager):
+        super().__init__(master, corner_radius=7, anchor="nw")
         self.master = master
+        self.event_manager = event_manager
         self.roms = None
         self.cache = cache
         self.settings = settings
-        self.xenia = xenia
         self.results_per_page = 10
         self.update_in_progress = False
         self.downloads_in_progress = 0
@@ -26,23 +27,25 @@ class XeniaROMFrame(customtkinter.CTkTabview):
     def build_frame(self):
         self.grid(row=0, column=0, sticky="nsew")
         self.add("My ROMs")
-        self.add("Xbox 360 ROMs")
-        self.add("Xbox 360 Digital")
+        self.add("Wii ROMs")
+        self.add("GameCube ROMs")
         self.add("Downloads")
         self.tab("My ROMs").grid_columnconfigure(0, weight=1)
         self.tab("My ROMs").grid_rowconfigure(0, weight=1)
-        self.tab("Xbox 360 ROMs").grid_columnconfigure(0, weight=1)
-        self.tab("Xbox 360 ROMs").grid_rowconfigure(0, weight=1)
-        self.tab("Xbox 360 Digital").grid_columnconfigure(0, weight=1)
-        self.tab("Xbox 360 Digital").grid_rowconfigure(0, weight=1)
+        self.tab("Wii ROMs").grid_columnconfigure(0, weight=1)
+        self.tab("Wii ROMs").grid_rowconfigure(0, weight=1)
+        self.tab("GameCube ROMs").grid_columnconfigure(0, weight=1)
+        self.tab("GameCube ROMs").grid_rowconfigure(0, weight=1)
+        self.tab("Downloads").grid_columnconfigure(0, weight=1)
+        self.tab("Downloads").grid_rowconfigure(0, weight=1)
 
-        self.current_roms_frame = CurrentROMSFrame(self.tab("My ROMs"), self, self.settings.xenia,  (".wbfs", ".iso", ".rvz", ".gcm", ".gcz", ".ciso"))
+        self.current_roms_frame = MyGamesFrame(master=self.tab("My ROMs"), emulator_settings_object=self.settings.dolphin, game_extensions=[".wbfs", ".iso", ".rvz", ".gcm", ".gcz", ".ciso"], event_manager=self.event_manager)
         self.current_roms_frame.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
-        self.xbox_roms_frame = ROMSearchFrame(self.tab("Xbox 360 ROMs"), self, myrient_path=constants.Xenia.MYRIENT_XBOX_360_PATH, console_name="microsoft_xbox_360")
-        self.xbox_roms_frame.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
-        self.gamecube_roms_frame = ROMSearchFrame(self.tab("Xbox 360 Digital"), self, myrient_path=constants.Xenia.MYRIENT_XBOX_360_DIGITAL_PATH, console_name="microsoft_xbox_360_digital")
+        self.wii_roms_frame = MyrientGameListFrame(master=self.tab("Wii ROMs"), event_manager=self.event_manager, cache=self.cache, myrient_path=constants.Dolphin.MYRIENT_WII_PATH.value, console_name="nintendo_wii", download_button_event=self.download_rom_event)
+        self.wii_roms_frame.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
+        self.gamecube_roms_frame = MyrientGameListFrame(master=self.tab("GameCube ROMs"), event_manager=self.event_manager, cache=self.cache, myrient_path=constants.Dolphin.MYRIENT_GAMECUBE_PATH.value, console_name="nintendo_gamecube", download_button_event=self.download_rom_event)
         self.gamecube_roms_frame.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
-        self.downloads_frame = customtkinter.CTkScrollableFrame(self.tab("Downloads"), width=650, height=420)
+        self.downloads_frame = customtkinter.CTkScrollableFrame(self.tab("Downloads"))
         self.downloads_frame.grid_columnconfigure(0, weight=1)
         self.downloads_frame.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
 
@@ -75,24 +78,18 @@ class XeniaROMFrame(customtkinter.CTkTabview):
         button.configure(state="normal", text="Download")
 
     def download_rom(self, rom):
-        download_folder = self.settings.xenia.rom_directory
+        download_folder = self.settings.dolphin.rom_directory
         if download_folder == "":
-            if messagebox.askyesno("No ROM Directory", "You have not set a ROM directory in the settings. Would you like to download to the current directory?"):
+            if messagebox.askyesno("No ROM Directory", "No ROM directory has been set in the settings. Would you like to download to the current directory?"):
                 download_folder = os.getcwd()
             else:
                 return (False, "Cancelled", "")
-        os.makedirs(download_folder, exist_ok=True)
-        download_path = os.path.join(download_folder, rom.filename)
-        response = create_get_connection(rom.url, stream=True, headers=get_headers(self.settings.app.token), timeout=30)
-        if not all(response):
-            return response
-        response = response[1]
-        progress_frame = ProgressFrame(self.downloads_frame)
-        progress_frame.start_download(rom.filename, int(response.headers.get("content-length", 0)))
-        progress_frame.grid(row=self.downloads_in_progress, column=0, padx=10, pady=10, sticky="ew")
-        download_result = download_through_stream(response, download_path, progress_frame, 1024*203)
-        progress_frame.destroy()
-        return download_result
+        download_file_with_progress(
+            download_url=rom["url"],
+            download_path=download_folder / rom["name"],
+            progress_handler=None,
+            chunk_size=1024,
+        )
 
     def extract_rom(self, path_to_rom_archive):
         try:
@@ -103,8 +100,8 @@ class XeniaROMFrame(customtkinter.CTkTabview):
                     return (False, "Unexpected number of files")
 
                 extracted_file_name = file_list[0]
-                extracted_file_path = os.path.join(self.settings.xenia.rom_directory, extracted_file_name)
-                zip_ref.extract(extracted_file_name, self.settings.xenia.rom_directory)
+                extracted_file_path = os.path.join(self.settings.dolphin.rom_directory, extracted_file_name)
+                zip_ref.extract(extracted_file_name, self.settings.dolphin.rom_directory)
 
                 return (True, extracted_file_path)
 

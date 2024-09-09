@@ -2,12 +2,10 @@ import os
 
 import customtkinter
 
-from gui.frames.switch_roms_frame import SwitchROMSFrame
 
-
-class YuzuROMFrame(customtkinter.CTkTabview):
+class YuzuGamesFrame(customtkinter.CTkTabview):
     def __init__(self, master, settings, cache):
-        super().__init__(master)
+        super().__init__(master, corner_radius=7, anchor="nw")
         self.master = master
         self.roms = None
         self.settings = settings
@@ -38,5 +36,5 @@ class YuzuROMFrame(customtkinter.CTkTabview):
         self.tab("My ROMs").grid_columnconfigure(0, weight=1)
         self.tab("My ROMs").grid_rowconfigure(0, weight=1)
 
-        self.current_roms_frame = SwitchROMSFrame(self.tab("My ROMs"), self.settings, self.cache, self.get_game_ids, "yuzu")
-        self.current_roms_frame.grid(row=0, column=0, sticky="nsew")
+        #self.current_roms_frame = SwitchROMSFrame(self.tab("My ROMs"), self.settings, self.cache, self.get_game_ids, "yuzu")
+        #self.current_roms_frame.grid(row=0, column=0, sticky="nsew")

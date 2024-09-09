@@ -4,7 +4,7 @@ from CTkToolTip import CTkToolTip
 from core import constants
 from core.emulators.dolphin.runner import Dolphin
 from core.utils.thread_event_manager import ThreadEventManager
-from gui.frames.dolphin.dolphin_rom_frame import DolphinROMFrame
+from gui.frames.dolphin.dolphin_games_frame import DolphinROMFrame
 from gui.frames.emulator_frame import EmulatorFrame
 from gui.libs import messagebox
 from gui.progress_handler import ProgressHandler
@@ -104,11 +104,8 @@ class DolphinFrame(EmulatorFrame):
         self.dolphin_data_log.grid_rowconfigure(1, weight=1)
         self.data_progress_handler = ProgressHandler(self.dolphin_data_log)
 
-        self.manage_roms_frame = customtkinter.CTkFrame(self, corner_radius=0, bg_color="transparent")
-        self.manage_roms_frame.grid_columnconfigure(0, weight=1)
-        self.manage_roms_frame.grid_rowconfigure(0, weight=1)
-        self.rom_frame = DolphinROMFrame(self.manage_roms_frame, self.dolphin, self.settings, self.cache)
-        self.rom_frame.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
+        self.manage_games_frame = DolphinROMFrame(self, self.settings, self.cache, event_manager=self.event_manager)
+        self.manage_games_frame.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
 
     def switch_channel(self, *args):
         value = self.selected_channel.get()
@@ -266,6 +263,8 @@ class DolphinFrame(EmulatorFrame):
             }
 
         self.metadata.set_version("dolphin", release_fetch_result["release"]["version"] if not custom_install else "")
+        if not custom_install and self.settings.delete_files_after_installing:
+            archive_path.unlink()
         return {
             "message": {
                 "function": messagebox.showsuccess,

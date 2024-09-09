@@ -3,9 +3,8 @@ from customtkinter import ThemeManager
 
 
 class EmulatorFrame(customtkinter.CTkFrame):
-    def __init__(self, parent_frame, paths, settings, versions, assets, exclude_data=False):
+    def __init__(self, parent_frame, paths, settings, versions, assets):
         super().__init__(parent_frame,  corner_radius=0, bg_color="transparent")
-        self.exclude_data = exclude_data
         self.settings = settings
         self.metadata = self.versions = versions
         self.paths = paths
@@ -30,17 +29,17 @@ class EmulatorFrame(customtkinter.CTkFrame):
         self.manage_data_button = customtkinter.CTkButton(self.navigation_frame, corner_radius=0, width=120, height=25, border_spacing=10, text="Manage Data",
                                                             fg_color="transparent", text_color=text_color,
                                                             anchor="w", command=self.manage_data_button_event)
-        if not self.exclude_data:
-            self.manage_data_button.grid(row=2, column=0, padx=2, sticky="ew")
 
-        self.manage_roms_button = customtkinter.CTkButton(self.navigation_frame, corner_radius=0, width=120, height=25, border_spacing=10, text="Manage ROMs",
+        self.manage_data_button.grid(row=2, column=0, padx=2, sticky="ew")
+
+        self.manage_games_button = customtkinter.CTkButton(self.navigation_frame, corner_radius=0, width=120, height=25, border_spacing=10, text="Manage Games",
                                                           fg_color="transparent", text_color=text_color,
-                                                          anchor="w", command=self.manage_roms_button_event)
-        self.manage_roms_button.grid(row=3, column=0, padx=2, sticky="ew")
+                                                          anchor="w", command=self.manage_games_button_event)
+        self.manage_games_button.grid(row=3, column=0, padx=2, sticky="ew")
 
         self.start_frame = None
         self.manage_data_frame = None
-        self.manage_roms_frame = None
+        self.manage_games_frame = None
 
     def start_button_event(self):
         self.select_frame_by_name("start")
@@ -48,13 +47,13 @@ class EmulatorFrame(customtkinter.CTkFrame):
     def manage_data_button_event(self):
         self.select_frame_by_name("data")
 
-    def manage_roms_button_event(self):
-        self.select_frame_by_name("roms")
+    def manage_games_button_event(self):
+        self.select_frame_by_name("games")
 
     def select_frame_by_name(self, name):
         self.start_button.configure(fg_color=self.start_button.cget("hover_color") if name == "start" else "transparent")
         self.manage_data_button.configure(fg_color=self.manage_data_button.cget("hover_color") if name == "data" else "transparent")
-        self.manage_roms_button.configure(fg_color=self.manage_roms_button.cget("hover_color") if name == "roms" else "transparent")
+        self.manage_games_button.configure(fg_color=self.manage_games_button.cget("hover_color") if name == "games" else "transparent")
         if name == "start":
             self.start_frame.grid(row=0, column=1, sticky="nsew")
         else:
@@ -63,7 +62,7 @@ class EmulatorFrame(customtkinter.CTkFrame):
             self.manage_data_frame.grid(row=0, column=1, sticky="nsew")
         else:
             self.manage_data_frame.grid_forget()
-        if name == "roms":
-            self.manage_roms_frame.grid(row=0, column=1, sticky="nsew")
+        if name == "games":
+            self.manage_games_frame.grid(row=0, column=1, sticky="nsew")
         else:
-            self.manage_roms_frame.grid_forget()
+            self.manage_games_frame.grid_forget()

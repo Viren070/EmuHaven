@@ -27,7 +27,7 @@ class Ryujinx(SwitchEmulator):
 
     def get_user_directory(self):
         if self.settings.ryujinx.portable_mode:
-            return self.settings.ryujinx.install_directory / "portable"
+            return self.settings.ryujinx.install_directory / "publish" / "portable"
         match platform.system().lower():
             case "windows":
                 return Path.home() / "AppData" / "Roaming" / "Ryujinx"
@@ -92,12 +92,30 @@ class Ryujinx(SwitchEmulator):
             
     def launch_ryujinx(self):
         ryujinx_exe = self.settings.ryujinx.install_directory / "publish" / "Ryujinx.exe"
-        
+        def ensure_user_directory():
+            user_directory = self.get_user_directory()
+            user_directory.mkdir(parents=True, exist_ok=True)
+            return user_directory
         if not ryujinx_exe.exists():
             return {
                 "status": False,
                 "message": "Ryujinx executable not found",
             }
+            
+        if self.settings.ryujinx.sync_user_data:
+            last_used_data_path = Path(self.settings.ryujinx.last_used_data_path) if self.settings.ryujinx.last_used_data_path else None
+            current_data_path = ensure_user_directory()
+
+            if last_used_data_path is not None and last_used_data_path.exists() and last_used_data_path != current_data_path:
+                self.logger.info("Copying user directory from %s to %s", last_used_data_path, current_data_path)
+                shutil.copytree(last_used_data_path, current_data_path, dirs_exist_ok=True)
+
+        elif not self.settings.ryujinx.portable_mode and (self.settings.ryujinx.install_directory / self.get_installation_folder_name() / "portable").exists():
+            return {
+                "status": False,
+                "message": "A portable user directory was found but portable mode and user data sync is disabled. Either:\n\n1. Enable portable mode\n2. Delete/Move the 'user' folder in the ryujinx install directory\n3. Enable user data sync"
+            }
+
         match platform.system().lower():
             case "windows":
                 args = ["cmd", "/c", "start", "cmd", "/c", str(ryujinx_exe)]
@@ -106,6 +124,8 @@ class Ryujinx(SwitchEmulator):
         
         try:
             run = subprocess.run(args, check=False, capture_output=True, shell=True)
+            self.settings.ryujinx.last_used_data_path = self.get_user_directory()
+            self.settings.save()
         except Exception as error:
             return {
                 "status": False,
@@ -179,14 +199,17 @@ class Ryujinx(SwitchEmulator):
                     "message": "Delete operation cancelled"
                 }
             path = user_directory / folder
-            if not path.exists():
+            if not path.exists() or path.name not in constants.Ryujinx.USER_FOLDERS.value:
                 total -= 1
                 progress_handler.set_total_units(total)
                 continue
 
             try:
                 self.logger.info("Deleting %s", path)
-                shutil.rmtree(path)
+                if path.is_file():
+                    path.unlink()
+                else:
+                    shutil.rmtree(path)
                 progress += 1
                 progress_handler.report_progress(progress)
             except Exception as error:

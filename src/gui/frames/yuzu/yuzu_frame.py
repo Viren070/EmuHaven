@@ -6,7 +6,7 @@ from core.emulators.yuzu.runner import Yuzu
 from core.utils.thread_event_manager import ThreadEventManager
 from gui.frames.emulator_frame import EmulatorFrame
 from gui.frames.firmware_keys_frame import FirmwareKeysFrame
-from gui.frames.yuzu.yuzu_rom_frame import YuzuROMFrame
+from gui.frames.yuzu.yuzu_games_frame import YuzuGamesFrame
 from gui.libs import messagebox
 from gui.progress_handler import ProgressHandler
 from gui.windows.folder_selector import FolderSelector
@@ -114,14 +114,10 @@ class YuzuFrame(EmulatorFrame):
         self.selected_channel.set(self.settings.yuzu.release_channel.title().replace("_", " "))
         self.switch_channel()
 
-        self.manage_roms_frame = customtkinter.CTkFrame(self, corner_radius=0, bg_color="transparent")
-        self.manage_roms_frame.grid_columnconfigure(0, weight=1)
-        self.manage_roms_frame.grid_rowconfigure(0, weight=1)
-        self.rom_frame = YuzuROMFrame(self.manage_roms_frame, self.settings, self.cache)
-        self.rom_frame.grid(row=0, column=0,  padx=20, pady=20, sticky="nsew")
+        self.manage_games_frame = YuzuGamesFrame(self, self.settings, self.cache)
+        self.manage_games_frame.grid(row=0, column=0,  padx=20, pady=20, sticky="nsew")
 
-    def manage_roms_button_event(self):
-        self.rom_frame.current_roms_frame.check_titles_db()
+    def manage_games_button_event(self):
         self.select_frame_by_name("roms")
 
     def configure_buttons(

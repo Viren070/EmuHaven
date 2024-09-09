@@ -114,7 +114,7 @@ class Settings:
                 if value == "":
                     continue
                 if "path" in setting_name or "directory" in setting_name and value:
-                    value = Path(value)
+                    value = Path(value) if value else value
                     if "directory" in setting_name:
                         value.mkdir(parents=True, exist_ok=True)
                 try:
@@ -135,24 +135,29 @@ class Settings:
             "dolphin_settings": {
                 "install_directory": str(self.dolphin.install_directory.resolve()),
                 "portable_mode": self.dolphin.portable_mode,
+                "sync_user_data": self.dolphin.sync_user_data,
                 "game_directory": str(self.dolphin.game_directory.resolve()),
-                "current_channel": self.dolphin.release_channel
-
+                "current_channel": self.dolphin.release_channel,
+                "last_used_data_path": str(self.dolphin.last_used_data_path)
             },
             "yuzu_settings": {
                 "install_directory": str(self.yuzu.install_directory.resolve()),
                 "release_channel": self.yuzu.release_channel,
-                "portable_mode": self.yuzu.portable_mode
-
+                "portable_mode": self.yuzu.portable_mode,
+                "sync_user_data": self.yuzu.sync_user_data,
+                "last_used_data_path": str(self.yuzu.last_used_data_path)
             },
             "ryujinx_settings": {
                 "install_directory": str(self.ryujinx.install_directory.resolve()),
-                "portable_mode": self.ryujinx.portable_mode
+                "portable_mode": self.ryujinx.portable_mode,
+                "sync_user_data": self.ryujinx.sync_user_data,
+                "last_used_data_path": str(self.ryujinx.last_used_data_path)
             },
             "xenia_settings": {
                 "install_directory": str(self.xenia.install_directory.resolve()),
                 "release_channel": self.xenia.release_channel,
-                "game_directory": str(self.xenia.game_directory.resolve())
+                "game_directory": str(self.xenia.game_directory.resolve()),
+                "portable_mode": self.xenia.portable_mode,
             },
             "app_settings": {
                 "dark_mode": self.dark_mode,

@@ -1,18 +1,20 @@
 import customtkinter
 from CTkToolTip import CTkToolTip
 
+from core import constants
 from core.emulators.xenia.runner import Xenia
 from core.utils.thread_event_manager import ThreadEventManager
 from gui.frames.emulator_frame import EmulatorFrame
-from gui.frames.xenia.xenia_rom_frame import XeniaROMFrame
+from gui.frames.xenia.xenia_games_frame import XeniaGamesFrame
 from gui.libs import messagebox
 from gui.progress_handler import ProgressHandler
+from gui.windows.folder_selector import FolderSelector
 from gui.windows.path_dialog import PathDialog
 
 
 class XeniaFrame(EmulatorFrame):
     def __init__(self, master, paths, settings, versions, assets, cache, event_manager: ThreadEventManager):
-        super().__init__(parent_frame=master, paths=paths, settings=settings, versions=versions, assets=assets, exclude_data=True)
+        super().__init__(parent_frame=master, paths=paths, settings=settings, versions=versions, assets=assets)
         self.xenia = Xenia(self, settings, versions)
         self.paths = paths
         self.cache = cache
@@ -77,11 +79,38 @@ class XeniaFrame(EmulatorFrame):
         self.selected_channel.set(self.settings.xenia.release_channel.title())
         self.switch_channel()
 
-        self.manage_roms_frame = customtkinter.CTkFrame(self, corner_radius=0, bg_color="transparent")
-        self.manage_roms_frame.grid_columnconfigure(0, weight=1)
-        self.manage_roms_frame.grid_rowconfigure(0, weight=1)
-        self.rom_frame = XeniaROMFrame(self.manage_roms_frame, self.xenia, self.settings, self.cache)
-        self.rom_frame.grid(row=0, column=0,  padx=20, pady=20, sticky="nsew")
+        self.manage_data_frame = customtkinter.CTkFrame(self, corner_radius=0, bg_color="transparent")
+        self.manage_data_frame.grid_columnconfigure(0, weight=1)
+        self.manage_data_frame.grid_columnconfigure(1, weight=1)
+        self.manage_data_frame.grid_rowconfigure(0, weight=1)
+        self.manage_data_frame.grid_rowconfigure(1, weight=2)
+        self.xenia_data_actions_frame = customtkinter.CTkFrame(self.manage_data_frame, height=150)
+        self.xenia_data_actions_frame.grid(row=0, column=0, padx=20, columnspan=3, pady=20, sticky="ew")
+        self.xenia_data_actions_frame.grid_columnconfigure(1, weight=1)
+
+        self.xenia_import_optionmenu = customtkinter.CTkOptionMenu(self.xenia_data_actions_frame, width=300, values=["All Data", "Custom"])
+        self.xenia_export_optionmenu = customtkinter.CTkOptionMenu(self.xenia_data_actions_frame, width=300, values=["All Data", "Custom"])
+        self.xenia_delete_optionmenu = customtkinter.CTkOptionMenu(self.xenia_data_actions_frame, width=300, values=["All Data", "Custom"])
+
+        self.xenia_import_button = customtkinter.CTkButton(self.xenia_data_actions_frame, text="Import", command=self.import_data_button_event)
+        self.xenia_export_button = customtkinter.CTkButton(self.xenia_data_actions_frame, text="Export", command=self.export_data_button_event)
+        self.xenia_delete_button = customtkinter.CTkButton(self.xenia_data_actions_frame, text="Delete", command=self.delete_data_button_event,  fg_color="red", hover_color="darkred")
+
+        self.xenia_import_optionmenu.grid(row=0, column=0, padx=10, pady=10, sticky="w")
+        self.xenia_import_button.grid(row=0, column=1, padx=10, pady=10, sticky="e")
+        self.xenia_export_optionmenu.grid(row=1, column=0, padx=10, pady=10, sticky="w")
+        self.xenia_export_button.grid(row=1, column=1, padx=10, pady=10, sticky="e")
+        self.xenia_delete_optionmenu.grid(row=2, column=0, padx=10, pady=10, sticky="w")
+        self.xenia_delete_button.grid(row=2, column=1, padx=10, pady=10, sticky="e")
+
+        self.xenia_data_log = customtkinter.CTkFrame(self.manage_data_frame)
+        self.xenia_data_log.grid(row=1, column=0, padx=20, pady=20, columnspan=3, sticky="new")
+        self.xenia_data_log.grid_columnconfigure(0, weight=1)
+        self.xenia_data_log.grid_rowconfigure(1, weight=1)
+        self.data_progress_handler = ProgressHandler(self.xenia_data_log)
+        
+        self.manage_games_frame = XeniaGamesFrame(self, settings=self.settings, cache=self.cache, event_manager=self.event_manager)
+
 
     def switch_channel(self, value=None):
         value = self.selected_channel.get()
@@ -107,6 +136,11 @@ class XeniaFrame(EmulatorFrame):
         self.launch_xenia_button.configure(state=state, text=launch_xenia_button_text)
         self.install_xenia_button.configure(state=state, text=install_xenia_button_text)
         self.delete_xenia_button.configure(state=state, text=delete_xenia_button_text)
+
+    def configure_data_buttons(self, state="disabled", import_text="Import", export_text="Export", delete_text="Delete"):
+        self.xenia_import_button.configure(state=state, text=import_text)
+        self.xenia_export_button.configure(state=state, text=export_text)
+        self.xenia_delete_button.configure(state=state, text=delete_text)
 
     def launch_xenia_button_event(self, event=None):
         if event is None or self.launch_xenia_button.cget("state") == "disabled":
@@ -241,6 +275,8 @@ class XeniaFrame(EmulatorFrame):
             }
 
         self.metadata.set_version(f"xenia_{self.settings.xenia.release_channel}", release_fetch_result["release"]["version"] if not custom_install else "")
+        if not custom_install and self.settings.delete_files_after_installing:
+            archive_path.unlink()
         return {
             "message": {
                 "function": messagebox.showsuccess,
@@ -273,4 +309,153 @@ class XeniaFrame(EmulatorFrame):
         return {
             "message_func": messagebox.showsuccess,
             "message_args": (self.winfo_toplevel(), "Success", delete_result["message"]),
+        }
+    
+    def import_data_button_event(self):
+
+        import_option = self.xenia_import_optionmenu.get()
+
+        if import_option == "Custom":
+            directory, folders = FolderSelector(
+                title="Choose directory and folders to import",
+                allowed_folders=constants.Xenia.USER_FOLDERS.value,
+                show_files=True
+            ).get_input()
+        else:
+            directory = PathDialog(title="Import Directory", text="Enter directory to import from: ", directory=True).get_input()
+            if not directory["status"]:
+                if directory["cancelled"]:
+                    return
+                messagebox.showerror(self.winfo_toplevel(), "Error", directory["message"])
+                return
+            directory = directory["path"]
+            folders = constants.Xenia.USER_FOLDERS.value
+
+        self.configure_data_buttons(import_text="Importing...")
+        self.event_manager.add_event(
+            event_id="import_xenia_data",
+            func=self.import_data_handler,
+            kwargs={"import_directory": directory, "folders": folders},
+            completion_functions=[lambda: self.configure_data_buttons(state="normal")],
+            error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Error", "An unexpected error occurred while importing Xenia data.\nPlease check the logs for more information and report this issue.")]
+        )
+
+    def import_data_handler(self, import_directory, folders):
+        self.data_progress_handler.start_operation(
+            title="Import Xenia Data",
+            total_units=0,
+            units=" Files",
+            status="Importing..."
+        )
+        import_result = self.xenia.import_xenia_data(
+            import_directory=import_directory,
+            folders=folders,
+            progress_handler=self.data_progress_handler
+        )
+        if not import_result["status"]:
+            return {
+                "message": {
+                    "function": messagebox.showerror,
+                    "arguments": (self.winfo_toplevel(), "Error", f"Failed to import Xenia data: {import_result['message']}"),
+                }
+            }
+        return {
+            "message": {
+                "function": messagebox.showsuccess,
+                "arguments": (self.winfo_toplevel(), "Import Xenia Data", f"Successfully imported Xenia data from {import_directory}"),
+            }
+        }
+
+    def export_data_button_event(self):
+        export_directory = PathDialog(title="Export Directory", text="Enter directory to export to: ", directory=True)
+        export_directory = export_directory.get_input()
+        if not export_directory["status"]:
+            if export_directory["cancelled"]:
+                return
+            messagebox.showerror("Error", export_directory["message"])
+            return
+        export_directory = export_directory["path"]
+        
+        if self.xenia_export_optionmenu.get() == "Custom":
+            _, folders = FolderSelector(title="Choose folders to export", predefined_directory=self.xenia.get_user_directory(), allowed_folders=constants.Xenia.USER_FOLDERS.value, show_files=True).get_input()
+            if folders is None:
+                return
+        else:
+            folders = constants.Xenia.USER_FOLDERS.value
+        
+        self.configure_data_buttons(export_text="Exporting...")
+        
+        self.event_manager.add_event(
+            event_id="export_xenia_data",
+            func=self.export_data_handler,
+            kwargs={"export_directory": export_directory, "folders": folders},
+            completion_functions=[lambda: self.configure_data_buttons(state="normal")],
+            error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Error", "An unexpected error occurred while exporting Xenia data.\nPlease check the logs for more information and report this issue.")]
+        )
+        
+    def export_data_handler(self, export_directory, folders):
+        self.data_progress_handler.start_operation(
+            title="Export Xenia Data",
+            total_units=0,
+            units=" Files",
+            status="Exporting..."
+        )
+        export_result = self.xenia.export_xenia_data(
+            export_directory=export_directory,
+            folders=folders,
+            progress_handler=self.data_progress_handler
+        )
+        if not export_result["status"]:
+            return {
+                "message": {
+                    "function": messagebox.showerror,
+                    "arguments": (self.winfo_toplevel(), "Error", f"Failed to export Xenia data: {export_result['message']}"),
+                }
+            }
+        return {
+            "message": {
+                "function": messagebox.showsuccess,
+                "arguments": (self.winfo_toplevel(), "Export Xenia Data", f"Successfully exported Xenia data to {export_directory}"),
+            }
+        }
+
+    def delete_data_button_event(self):
+        if self.xenia_delete_optionmenu.get() == "Custom":
+            _, folders = FolderSelector(title="Choose folders to delete", predefined_directory=self.xenia.get_user_directory(), allowed_folders=constants.Xenia.USER_FOLDERS.value, show_files=True).get_input()
+            if folders is None:
+                return
+        else:
+            folders = constants.Xenia.USER_FOLDERS.value
+
+        if messagebox.askyesno(self.winfo_toplevel(), "Confirmation", "This will delete the data from Xenia's directory. This action cannot be undone, are you sure you wish to continue?") != "yes":
+            return
+        self.configure_data_buttons(delete_text="Deleting...")
+        self.event_manager.add_event(
+            event_id="delete_xenia_data",
+            func=self.delete_data_handler,
+            kwargs={"folders": folders},
+            completion_functions=[lambda: self.configure_data_buttons(state="normal")],
+            error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Error", "An unexpected error occurred while deleting Xenia data.\nPlease check the logs for more information and report this issue.")]
+        )
+
+    def delete_data_handler(self, folders):
+        self.data_progress_handler.start_operation(
+            title="Delete Xenia Data",
+            total_units=0,
+            units=" Files",
+            status="Deleting..."
+        )
+        delete_result = self.xenia.delete_xenia_data(folders_to_delete=folders, progress_handler=self.data_progress_handler)
+        if not delete_result["status"]:
+            return {
+                "message": {
+                    "function": messagebox.showerror,
+                    "arguments": (self.winfo_toplevel(), "Error", f"Failed to delete Xenia data: {delete_result['message']}"),
+                }
+            }
+        return {
+            "message": {
+                "function": messagebox.showsuccess,
+                "arguments": (self.winfo_toplevel(), "Delete Xenia Data", "Successfully deleted Xenia data"),
+            }
         }

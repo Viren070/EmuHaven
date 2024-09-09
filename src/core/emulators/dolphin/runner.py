@@ -208,9 +208,25 @@ class Dolphin:
                 "run_status": False,
                 "message": "Dolphin executable not found"
             }
-        
+            
+        if self.settings.dolphin.sync_user_data:
+            last_used_data_path = Path(self.settings.dolphin.last_used_data_path) if self.settings.dolphin.last_used_data_path else None
+            current_data_path = self.get_user_directory()
+
+            if last_used_data_path is not None and last_used_data_path.exists() and last_used_data_path != current_data_path:
+                self.logger.info("Copying user directory from %s to %s", last_used_data_path, current_data_path)
+                shutil.copytree(last_used_data_path, current_data_path, dirs_exist_ok=True)
+
+            
+        if self.settings.dolphin.portable_mode:
+            (self.settings.dolphin.install_directory / "portable.txt").touch()
+        else:
+            (self.settings.dolphin.install_directory / "portable.txt").unlink(missing_ok=True)
+
         args = [dolphin_exe]
         run = subprocess.run(args, check=False, capture_output=True)
+        self.settings.dolphin.last_used_data_path = self.get_user_directory()
+        self.settings.save()
         if run.returncode != 0:
             return {    
                 "run_status": True,

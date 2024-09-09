@@ -55,6 +55,20 @@ class DolphinSettingsFrame(customtkinter.CTkFrame):
                 "description": "Enable portable mode for Dolphin.",
             },
         )
+        
+        sync_user_data_setting = SettingModal(
+            master=self,
+            settings=self.settings,
+            setting_options={
+                "object": self.settings.dolphin,
+                "id": "sync_user_data",
+                "type": "switch",
+                "title": "Sync User Data",
+                "description": "Keep your user data synced as you switch between portable and non-portable mode.",
+            },
+        )
+
         install_directory_setting.grid(row=0, column=0, padx=10, pady=5, sticky="ew")
         game_directory_setting.grid(row=1, column=0, padx=10, pady=5, sticky="ew")
         portable_mode_setting.grid(row=2, column=0, padx=10, pady=5, sticky="ew")
+        sync_user_data_setting.grid(row=3, column=0, padx=10, pady=5, sticky="ew")

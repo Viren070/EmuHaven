@@ -7,13 +7,15 @@ from pathlib import Path
 from zipfile import ZipFile
 
 from core import constants
-from core.utils.files import extract_zip_archive_with_progress
+from core.utils.logger import Logger
+from core.utils.files import extract_zip_archive_with_progress, copy_directory_with_progress
 from core.utils.github import get_latest_release_with_asset
 from core.utils.web import download_file_with_progress
 
 
 class Xenia:
     def __init__(self, gui, settings, versions):
+        self.logger = Logger(__name__).get_logger()
         self.settings = settings
         self.versions = versions
         self.gui = gui
@@ -21,15 +23,16 @@ class Xenia:
         self.main_progress_frame = None
         self.data_progress_frame = None
 
-    def get_config_file(self):
+
+    def get_user_directory(self):
         if self.settings.xenia.release_channel == "master": 
             if self.settings.xenia.portable_mode:
-                return self.settings.xenia.install_directory / "master" / "xenia.config.toml"
+                return self.settings.xenia.install_directory / "master" 
             match platform.system().lower():
                 case "windows":
-                    return Path.home() / "Documents" / "Xenia" / "xenia.config.toml"   
+                    return Path.home() / "Documents" / "Xenia"
         else:
-            return self.settings.xenia.install_directory / "canary" / "xenia-canary.config.toml"   
+            return self.settings.xenia.install_directory / "canary"
 
     def get_installed_version(self, release_channel):
         return (self.versions.get_version(f"xenia_{release_channel.lower()}") or "Unknown") if ((self.settings.xenia.install_directory / release_channel.lower() / ("xenia_canary.exe" if release_channel == "canary" else "xenia.exe")).exists()) else ""
@@ -105,6 +108,12 @@ class Xenia:
                 "run_status": False,
                 "message": "Xenia executable does not exist",
             }
+        
+        if self.settings.xenia.portable_mode and self.settings.xenia.release_channel == "master":
+            (self.settings.xenia.install_directory / "portable.txt").touch()
+        else:
+            (self.settings.xenia.install_directory / "portable.txt").unlink(missing_ok=True)
+
         args = [xenia_exe]
         try:
             run = subprocess.run(args, check=False, capture_output=True)
@@ -122,5 +131,81 @@ class Xenia:
         return {
             "run_status": True,
             "error_encountered": False,
-            "message": "Dolphin successfully launched and exited with no errors"
+            "message": "Xenia successfully launched and exited with no errors"
+        }
+
+    def export_xenia_data(self, export_directory, folders, progress_handler=None):
+        
+        user_directory = self.get_user_directory()
+        
+        if not user_directory.exists():
+            return {
+                "status": False,
+                "message": f"No xenia data was found. Nothing to export.\n\nPortable: {"True" if self.settings.xenia.portable_mode else "False"}\nUser Directory:{user_directory}"
+            }
+        
+        return copy_directory_with_progress(
+            source_dir=user_directory,
+            target_dir=export_directory,
+            progress_handler=progress_handler,
+            include=folders
+        )
+
+    def import_xenia_data(self, import_directory, folders, progress_handler=None):
+        user_directory = self.get_user_directory()
+
+        if not user_directory.exists():
+            return {
+                "status": False,
+                "message": f"No xenia data was found. Nothing to import.\n\nPortable: {"True" if self.settings.xenia.portable_mode else "False"}\nUser Directory:{user_directory}"
+            }
+
+        return copy_directory_with_progress(
+            source_dir=import_directory,
+            target_dir=user_directory,
+            progress_handler=progress_handler,
+            include=folders
+        )
+
+    def delete_xenia_data(self, folders_to_delete=None, progress_handler=None):
+        user_directory = self.get_user_directory()
+
+        if folders_to_delete is None:
+            folders_to_delete = constants.Xenia.USER_FOLDERS.value
+
+        total = len(folders_to_delete)
+        progress = 0
+        progress_handler.set_total_units(total)
+        for folder in folders_to_delete:
+            if progress_handler.should_cancel():
+                progress_handler.cancel()
+                return {
+                    "status": False,
+                    "message": "Delete operation cancelled"
+                }
+            path = user_directory / folder
+            if not path.exists() or path.name not in constants.Xenia.USER_FOLDERS.value:
+                total -= 1
+                progress_handler.set_total_units(total)
+                continue
+
+            try:
+                self.logger.info("Deleting %s", path)
+                if path.is_file():
+                    path.unlink()
+                else:
+                    shutil.rmtree(path)
+                progress += 1
+                progress_handler.report_progress(progress)
+            except Exception as error:
+                self.logger.error("Delete error: %s", error)
+                progress_handler.report_error(error)
+                return {
+                    "status": False,
+                    "message": f"Error while attempting to delete {folder}: {error}"
+                }
+        progress_handler.report_success()
+        return {
+            "status": True,
+            "message": "Xenia data deleted successfully"
         }

@@ -60,4 +60,5 @@ if __name__ == "__main__":
         logger.info("GUI built in %s seconds", round(time.time() - time_start, 2))
         logger.info("Running the GUI")
         app.after(200, app.check_currentdir_permissions)
+        app.after(400, app.check_for_updates)
         app.mainloop()

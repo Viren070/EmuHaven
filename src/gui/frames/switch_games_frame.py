@@ -127,7 +127,7 @@ class SwitchTitle:
         self.name.set(textwrap.fill(self.name.get(), width=max_length))
 
 
-class SwitchROMSFrame(customtkinter.CTkFrame):
+class MySwitchGamesFrame(customtkinter.CTkFrame):
     def __init__(self, master, settings, cache, get_title_ids_func, emulator):
         super().__init__(master, height=700)
         self.get_title_ids = get_title_ids_func

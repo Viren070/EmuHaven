@@ -15,6 +15,7 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
         self.event_manager = frame_obj.event_manager
         self.event_manager = ThreadEventManager(self)
         self.cache = frame_obj.cache
+        self.settings = frame_obj.settings
         self.versions = frame_obj.versions
         self.emulator_obj = emulator_obj
         self.firmware_key_dict = {}
@@ -141,6 +142,8 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
                 }
             }
             
+        if not custom_archive and self.settings.delete_files_after_installing:
+            firmware_archive.unlink()
         self.versions.set_version(f"{self.emulator_obj.emulator}_firmware", firmware_release["version"].replace("v", "") if not custom_archive else "Unknown")
         return {
             "message": {
@@ -234,7 +237,8 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
                     "arguments": (self.winfo_toplevel(), "Key Installation", f"Failed to install keys:\n\n{install_result["message"]}"),
                 }
             }
-            
+        if not custom_keys and self.settings.delete_files_after_installing:
+            key_archive.unlink()
         self.versions.set_version(f"{self.emulator_obj.emulator}_keys", keys_release["version"].replace("v", "") if not custom_keys else "Unknown")
         return {
             "message": {
@@ -270,7 +274,7 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
             event_id="fetch_firmware_keys",
             func=self.fetch_firmware_keys_dict,
             error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Firmware Keys", "An unexpected error occured while attempting to fetch the firmware and keys details.\nCheck the logs for more details and report this issue.")],
-            completion_func_with_result=self.add_dict_to_dropdown
+            completion_funcs_with_result=[self.add_dict_to_dropdown]
         )
 
     def fetch_firmware_keys_dict(self):

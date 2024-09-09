@@ -1,7 +1,9 @@
 import os
 import shutil
 import webbrowser
+import sys
 from pathlib import Path
+
 
 import customtkinter
 from customtkinter import ThemeManager
@@ -21,6 +23,7 @@ from gui.frames.settings.settings_frame import SettingsFrame
 from gui.frames.xenia.xenia_frame import XeniaFrame
 from gui.frames.yuzu.yuzu_frame import YuzuFrame
 from gui.libs import messagebox
+from updater import is_update_available
 
 
 class EmulatorManager(customtkinter.CTk):
@@ -48,8 +51,26 @@ class EmulatorManager(customtkinter.CTk):
         except PermissionError:
             messagebox.showwarning(self, "Warning", "You do not have permission to write to the current directory. Please run the application as an administrator or move the application to a directory where you have write permissions.")
             #sys.exit(1)
-
-        
+            
+    def check_for_updates(self):
+        # check if application is in executable mode or not
+        if getattr(sys, "frozen", False) is False:
+            return
+        if not os.path.exists("Updater.exe"):
+            self.logger.error("Updater.exe not found")
+            return
+        self.logger.info("Checking for updates")
+        update = is_update_available()
+        if update["status"]:
+            if update["update_available"]:
+                if messagebox.askyesno(self, "Update Available", f"An update is available. Would you like to download it now?\n\nCurrent version: {self.version}\nLatest version: {update['latest_release']['version']}"):
+                    self.after(200, self.destroy)
+                    # launch Updater.exe
+                    os.system("Updater.exe")
+            else:
+                self.logger.info("No updates available")
+        else:
+            self.logger.error(f"Failed to check for updates: {update['message']}")
 
     def build_gui(self):
         self.resizable(True, True)  # disable resizing of window

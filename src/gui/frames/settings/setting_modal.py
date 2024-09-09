@@ -12,7 +12,7 @@ from gui.libs.ext.CTkScrollableDropdown import CTkScrollableDropdown
 
 class SettingModal(CTkFrame):
     def __init__(self, master, settings, setting_options, path_options=None, option_menu_options=None, custom_options=None):
-        super().__init__(master=master, corner_radius=10, border_width=1)
+        super().__init__(master=master, corner_radius=10, border_width=3)
         self.logger = Logger(__name__).get_logger()
         self.settings = settings
         self.settings_object = setting_options.get("object")
@@ -49,10 +49,10 @@ class SettingModal(CTkFrame):
         self.description_font = CTkFont(family="Helvetica", size=14)
 
         install_directory_title = CTkLabel(self, text=self.setting_title, font=self.title_font)
-        install_directory_title.grid(row=0, column=0, padx=10, pady=2, sticky="w")
+        install_directory_title.grid(row=0, column=0, padx=10, pady=(5, 0), sticky="w")
 
         self.install_directory_description = CTkLabel(self, justify="left", text=self.setting_description, font=self.description_font)
-        self.install_directory_description.grid(row=1, column=0, padx=10, pady=2, sticky="w")
+        self.install_directory_description.grid(row=1, column=0, padx=10, pady=(0, 7), sticky="w")
 
         self.bind("<Configure>", self.on_resize)
         self.add_setting_widget()
@@ -61,16 +61,16 @@ class SettingModal(CTkFrame):
         match self.setting_type:
             case "path":
                 setting_frame = CTkFrame(self, fg_color="transparent", border_width=0)
-                setting_frame.grid(row=2, column=0, pady=5, padx=5, sticky="ew")
+                setting_frame.grid(row=2, column=0, pady=(0, 3), padx=5, sticky="ew")
                 setting_frame.grid_columnconfigure(0, weight=1)
                 self.setting_var.set(self.get_setting_value())
                 self.update_dir_cycle()
 
                 self.entry_widget = CTkEntry(setting_frame, textvariable=self.setting_var, corner_radius=7, font=("Helvetica", 16), height=35)
-                self.entry_widget.grid(row=0, column=0, padx=5, pady=10, sticky="ew")
+                self.entry_widget.grid(row=0, column=0, padx=5, pady=(0, 5), sticky="ew")
 
                 browse_button = CTkButton(setting_frame, text="Browse", width=100, height=35, corner_radius=7, command=self.update_with_explorer, font=("Helvetica", 14))
-                browse_button.grid(row=0, column=1, padx=5, pady=10, sticky="e")
+                browse_button.grid(row=0, column=1, padx=5, pady=(0, 5), sticky="e")
 
                 self.entry_widget.bind("<Return>", self.update_setting_value)
                 self.entry_widget.bind("<KeyRelease>", self.on_key_release)

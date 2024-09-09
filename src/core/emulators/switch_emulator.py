@@ -1,5 +1,6 @@
 import shutil
 import zipfile
+from pathlib import Path
 
 from packaging import version
 
@@ -110,14 +111,14 @@ class SwitchEmulator:
     def download_firmware_release(self, release, progress_handler=None):
         return download_file_with_progress(
             download_url=release["download_url"],
-            download_path=release["filename"],
+            download_path=Path(release["filename"]).resolve(),
             progress_handler=progress_handler,
         )
 
     def download_keys_release(self, release, progress_handler=None):
         return download_file_with_progress(
             download_url=release["download_url"],
-            download_path=release["filename"],
+            download_path=Path(release["filename"]).resolve(),
             progress_handler=progress_handler,
         )
 

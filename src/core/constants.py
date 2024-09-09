@@ -4,17 +4,18 @@ from enum import Enum
 class App(Enum):
     NAME = "EmuHaven"
     AUTHOR = "Viren070"
-    VERSION = "0.14.0a1"
+    VERSION = "1.0.0"
     SETTINGS_VERSION = 5
     CACHE_VERSION = 2
     GH_OWNER = "Viren070"
     GH_REPO = "Emulator-Manager"
-    GH_ASSET_REGEX = r"Emulator.Manager.*\.exe"
+    GH_ASSET_REGEX = r"Emulator.Manager.*\.zip"
     GITHUB = f"https://github.com/{GH_OWNER}/{GH_REPO}"
     DISCORD = "https://discord.viren070.me"
     KOFI = "https://ko-fi.com/viren070"
     DEFAULT_COLOUR_THEMES = ["blue", "dark-blue", "green"]
     VALID_APPEARANCE_MODES = ["dark", "light"]
+    RESULTS_PER_GAME_PAGE = 20
 
 
 class GitHubOAuth(Enum):
@@ -44,7 +45,7 @@ class Dolphin(Enum):
     DEVELOPMENT_WINDOWS_ARM64_REGEX = r"dolphin-master-\d+-\d+-ARM64\.7z"
     RELEASE_WINDOWS_X64_REGEX = r"dolphin-\d+-x64\.7z"
     RELEASE_WINDOWS_ARM64_REGEX = r"dolphin-\d+-ARM64\.7z"
-    MYRIENT_GAMECUBE_PATH = ""
+    MYRIENT_GAMECUBE_PATH = "Redump/Nintendo - GameCube - NKit RVZ [zstd-19-128k]/"
     MYRIENT_WII_PATH = "Redump/Nintendo - Wii - NKit RVZ [zstd-19-128k]/"
     GAME_FILE_EXTENSIONS = [".wbfs", ".iso", ".rvz", ".gcm", ".gcz", ".ciso"]
     USER_FOLDERS = ["Backup", "Cache", "Config", "Dump", "GameSettings", "GBA", "GC", "Load", "Logs", "Maps", "ResourcePacks", "SavedAssembly", "ScreenShots", "Shaders", "StateSaves", "Styles", "Themes", "Wii"]
@@ -58,8 +59,9 @@ class Xenia(Enum):
     GH_CANARY_RELEASE_REPO_OWNER = "xenia-canary"
     GH_CANARY_RELEASE_REPO_NAME = "xenia-canary"
     GH_CANARY_RELEASE_ASSET_REGEX = r"xenia_canary.zip"
-    MYRIENT_XBOX_360_PATH = "Redump/Microsoft - Xbox 360"
+    MYRIENT_XBOX_360_PATH = "Redump/Microsoft - Xbox 360/"
     MYRIENT_XBOX_360_DIGITAL_PATH = "No-Intro/Microsoft - Xbox 360 (Digital)/"
+    USER_FOLDERS = ["xenia.config.toml", "xenia-canary.config.toml", "content"]
 
 
 class Switch(Enum):

@@ -7,7 +7,7 @@ from core import constants
 from core.emulators.ryujinx.runner import Ryujinx
 from gui.frames.emulator_frame import EmulatorFrame
 from gui.frames.firmware_keys_frame import FirmwareKeysFrame
-from gui.frames.ryujinx.ryujinx_rom_frame import RyujinxROMFrame
+from gui.frames.ryujinx.ryujinx_games_frame import RyujinxROMFrame
 from gui.libs import messagebox
 from gui.progress_handler import ProgressHandler
 from gui.windows.folder_selector import FolderSelector
@@ -106,15 +106,11 @@ class RyujinxFrame(EmulatorFrame):
 
         self.actions_frame.grid_propagate(False)
 
-        self.manage_roms_frame = customtkinter.CTkFrame(self, corner_radius=0, bg_color="transparent")
-        self.manage_roms_frame.grid_columnconfigure(0, weight=1)
-        self.manage_roms_frame.grid_rowconfigure(0, weight=1)
-        self.rom_frame = RyujinxROMFrame(self.manage_roms_frame, self.settings, self.cache)
-        self.rom_frame.grid(row=0, column=0,  padx=20, pady=20, sticky="nsew")
+        self.manage_games_frame = RyujinxROMFrame(self, self.settings, self.cache)
+        self.manage_games_frame.grid(row=0, column=0,  padx=20, pady=20, sticky="nsew")
 
     # override parent method to check for titleDB before switching to roms frame
-    def manage_roms_button_event(self):
-        self.rom_frame.current_roms_frame.check_titles_db()
+    def manage_games_button_event(self):
         self.select_frame_by_name("roms")
 
     def configure_buttons(
@@ -271,6 +267,8 @@ class RyujinxFrame(EmulatorFrame):
             }
 
         self.metadata.set_version("ryujinx", release_fetch_result["release"]["version"] if not custom_install else "")
+        if not custom_install and self.settings.delete_files_after_installing:
+            archive_path.unlink()
         return {
             "message": {
                 "function": messagebox.showsuccess,
@@ -318,7 +316,8 @@ class RyujinxFrame(EmulatorFrame):
         if import_option == "Custom...":
             directory, folders = FolderSelector(
                 title="Choose directory and folders to import",
-                allowed_folders=constants.Ryujinx.USER_FOLDERS.value
+                allowed_folders=constants.Ryujinx.USER_FOLDERS.value,
+                show_files=True,
             ).get_input()
         else:
             directory = PathDialog(title="Import Directory", text="Enter directory to import from: ", directory=True).get_input()
@@ -377,7 +376,7 @@ class RyujinxFrame(EmulatorFrame):
         export_directory = export_directory["path"]
 
         if self.export_optionmenu.get() == "Custom...":
-            _, folders = FolderSelector(title="Choose folders to export", predefined_directory=self.ryujinx.get_user_directory(), allowed_folders=constants.Ryujinx.USER_FOLDERS.value).get_input()
+            _, folders = FolderSelector(title="Choose folders to export", predefined_directory=self.ryujinx.get_user_directory(), allowed_folders=constants.Ryujinx.USER_FOLDERS.value, show_files=True).get_input()
             if folders is None:
                 return
         else:
@@ -422,7 +421,7 @@ class RyujinxFrame(EmulatorFrame):
 
     def delete_data_button_event(self):
         if self.delete_optionmenu.get() == "Custom...":
-            _, folders = FolderSelector(title="Choose folders to delete", predefined_directory=self.ryujinx.get_user_directory(), allowed_folders=constants.Ryujinx.USER_FOLDERS.value).get_input()
+            _, folders = FolderSelector(title="Choose folders to delete", predefined_directory=self.ryujinx.get_user_directory(), allowed_folders=constants.Ryujinx.USER_FOLDERS.value, show_files=True).get_input()
             if folders is None:
                 return
         else:

@@ -12,13 +12,13 @@ class ThreadEventManager:
         self.window = window
         self.result_queue = queue.Queue()
 
-    def add_event(self, event_id, func, kwargs=None, completion_functions=None, error_functions=None, completion_func_with_result=None):
+    def add_event(self, event_id, func, kwargs=None, completion_functions=None, error_functions=None, completion_funcs_with_result=None):
         event = {
             "id": event_id,
             "function": func,
             "kwargs": kwargs if kwargs else {},
             "completion_functions": completion_functions if completion_functions else [],
-            "completion_func_with_result": completion_func_with_result,
+            "completion_func_with_result": completion_funcs_with_result if completion_funcs_with_result else [],
             "error_functions": error_functions if error_functions else [],
             "output_queue": queue.Queue(),
             "error_during_run": False
@@ -75,7 +75,8 @@ class ThreadEventManager:
         # and pass the result of the event to it
         # only if there was no error during the event
         if event["completion_func_with_result"] and not event["error_during_run"]:
-            event["completion_func_with_result"](result)
+            for completion_func in event["completion_func_with_result"]:
+                completion_func(result)
 
         # run the completion functions
         for completion_func in event["completion_functions"]:
