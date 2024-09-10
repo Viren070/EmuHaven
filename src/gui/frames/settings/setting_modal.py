@@ -7,7 +7,7 @@ from customtkinter import (BooleanVar, CTkButton, CTkEntry, CTkFont, CTkFrame,
 
 from core.utils.logger import Logger
 from gui.libs import messagebox
-from gui.libs.ext.CTkScrollableDropdown import CTkScrollableDropdown
+from gui.libs.CTkScrollableDropdown import CTkScrollableDropdown
 
 
 class SettingModal(CTkFrame):
