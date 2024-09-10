@@ -16,9 +16,9 @@ from gui.progress_window import ProgressWindow
 
 
 class ProgressHandler:
-    def __init__(self, master, type="frame"):
+    def __init__(self, master, widget="frame"):
         self.logger = Logger(__name__).get_logger()
-        self._progress_bar = ProgressFrame(master, self) if type == "frame" else ProgressWindow(master, self)
+        self._progress_bar = ProgressFrame(master, self) if widget == "frame" else ProgressWindow(master, self)
         self.master = master
         self.smoothing_factor = 0.3
         self.report_queue = queue.Queue()
@@ -47,7 +47,7 @@ class ProgressHandler:
         self._progress_bar.update_progress(0, total_units, units)
         self._progress_bar.set_speed(0, units)
         self._progress_bar.set_cancel_button_state("normal")
-        self._progress_bar.grid(row=0, column=0, sticky="ew")
+        self._progress_bar.show()
 
         
     def is_total_units_set(self):
@@ -154,5 +154,5 @@ class ProgressHandler:
         """
         called by the operation
         """
-        self._progress_bar.grid_forget()
+        self._progress_bar.hide()
 

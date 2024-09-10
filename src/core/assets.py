@@ -24,6 +24,7 @@ class Assets:
         self.xenia_logo = customtkinter.CTkImage(Image.open(self.get_image_path("xenia_logo")), size=(26, 26))
         self.xenia_banner = customtkinter.CTkImage(Image.open(self.get_image_path("xenia_banner")), size=(276, 129))
         self.xenia_canary_banner = customtkinter.CTkImage(Image.open(self.get_image_path("xenia_canary_banner")), size=(276, 129))
+        self.placeholder_icon = customtkinter.CTkImage(Image.open(self.get_image_path("placeholder_icon")), size=(224, 224))
         self.play_image = customtkinter.CTkImage(light_image=Image.open(self.get_image_path("play_light")),
                                                  dark_image=Image.open(self.get_image_path("play_dark")), size=(20, 20))
         self.settings_image = customtkinter.CTkImage(light_image=Image.open(self.get_image_path("settings_light")),
@@ -35,6 +36,8 @@ class Assets:
 
         self.kofi_button = customtkinter.CTkImage(light_image=Image.open(self.get_image_path("kofi_button_blue")), size=(1081*0.185, 170*0.195))
 
+    def create_image(self, image_path, size):
+        return customtkinter.CTkImage(Image.open(image_path), size=size)
     def get_image_path(self, image_name):
         path = self.asset_dir / "images" / f"{image_name}.png"
         if path.exists():

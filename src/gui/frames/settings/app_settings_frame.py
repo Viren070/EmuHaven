@@ -6,6 +6,7 @@ from tkinter import filedialog
 import customtkinter
 from CTkToolTip import CTkToolTip
 
+from core import constants
 from core.utils.github import get_rate_limit_status
 from core.utils.thread_event_manager import ThreadEventManager
 from gui.frames.settings.setting_modal import SettingModal
@@ -92,7 +93,7 @@ class AppSettingsFrame(customtkinter.CTkFrame):
                 "id": "auto_app_updates",
                 "type": "switch",
                 "title": "Auto App Updates",
-                "description": "Automatically check for and install updates for applications.",
+                "description": f"Automatically check for {constants.App.NAME.value} updates on start-up.",
             },
         )
         auto_app_updates_setting.grid(row=5, column=0, padx=10, pady=5, sticky="ew")
@@ -105,7 +106,7 @@ class AppSettingsFrame(customtkinter.CTkFrame):
                 "id": "auto_emulator_updates",
                 "type": "switch",
                 "title": "Auto Emulator Updates",
-                "description": "Automatically check for and install updates for emulators.",
+                "description": "Automatically check for, and install, emulator updates when launching.",
             },
         )
         auto_emulator_updates_setting.grid(row=6, column=0, padx=10, pady=5, sticky="ew")

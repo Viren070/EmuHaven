@@ -309,7 +309,7 @@ class SwitchEmulator:
     def download_titledb(progress_handler=None):
         return download_file_with_progress(
             download_url=constants.Switch.TITLEDB_DOWNLOAD_URL.value,
-            download_path=constants.Switch.TITLEDB_FILENAME.value,
+            download_path=Path(constants.Switch.TITLEDB_FILENAME.value).resolve(),
             progress_handler=progress_handler,
         )
         

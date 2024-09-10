@@ -282,7 +282,7 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
         cache_lookup_result = self.cache.get_json_data_from_cache("firmware_keys")
         if cache_lookup_result and time.time() - cache_lookup_result["time"] < 604800:
             return {
-                "result": cache_lookup_result["data"],
+                "result": (cache_lookup_result["data"],),
             }
             
         # if not in cache, create new one
@@ -300,7 +300,7 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
         
         # return result
         return {
-            "result": firmware_keys_fetch_result["firmware_keys"],
+            "result": (firmware_keys_fetch_result["firmware_keys"], ),
         }
         
     def update_installed_versions(self):

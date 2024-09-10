@@ -16,6 +16,7 @@ from core.paths import Paths
 from core.settings import Settings
 from core.utils.logger import Logger
 from core.utils.thread_event_manager import ThreadEventManager
+from core.utils.github import get_latest_release_with_asset
 from core.versions import Versions
 from gui.frames.dolphin.dolphin_frame import DolphinFrame
 from gui.frames.ryujinx.ryujinx_frame import RyujinxFrame
@@ -23,7 +24,6 @@ from gui.frames.settings.settings_frame import SettingsFrame
 from gui.frames.xenia.xenia_frame import XeniaFrame
 from gui.frames.yuzu.yuzu_frame import YuzuFrame
 from gui.libs import messagebox
-from updater import is_update_available
 
 
 class EmulatorManager(customtkinter.CTk):
@@ -39,7 +39,6 @@ class EmulatorManager(customtkinter.CTk):
         self.select_frame_by_name(opening_menu)
         self.protocol("WM_DELETE_WINDOW", self.close_app)
 
-        
     def check_currentdir_permissions(self):
         self.logger.info("Checking current directory permissions")
         try:
@@ -55,22 +54,29 @@ class EmulatorManager(customtkinter.CTk):
     def check_for_updates(self):
         # check if application is in executable mode or not
         if getattr(sys, "frozen", False) is False:
+            pass
+            #return
+        if self.settings.auto_app_updates is False:
             return
-        if not os.path.exists("Updater.exe"):
-            self.logger.error("Updater.exe not found")
+        latest_release = get_latest_release_with_asset(
+            repo_owner=constants.App.GH_OWNER.value,
+            repo_name=constants.App.GH_REPO.value,
+            regex=constants.App.GH_ASSET_REGEX.value
+        )
+
+        if not latest_release["status"]:
+            self.logger.error(f"Failed to get the latest release: {latest_release["message"]}")
+            messagebox.showerror(self, "Error", f"Failed to get the latest release: {latest_release["message"]}")
+            return 
+
+        current_version = self.version
+        latest_version = version.parse(latest_release["release"]["version"])
+        if current_version >= latest_version:
+            self.logger.info(f"Current version {current_version} is greater than the latest version {latest_version}")
             return
-        self.logger.info("Checking for updates")
-        update = is_update_available()
-        if update["status"]:
-            if update["update_available"]:
-                if messagebox.askyesno(self, "Update Available", f"An update is available. Would you like to download it now?\n\nCurrent version: {self.version}\nLatest version: {update['latest_release']['version']}"):
-                    self.after(200, self.destroy)
-                    # launch Updater.exe
-                    os.system("Updater.exe")
-            else:
-                self.logger.info("No updates available")
-        else:
-            self.logger.error(f"Failed to check for updates: {update['message']}")
+
+        if messagebox.askyesno(self, "Update Available", f"An update is available. Would you like to download the latest version ({latest_version})?", icon="info") == "yes":
+            webbrowser.open(f"https://github.com/{constants.App.GH_OWNER.value}/{constants.App.GH_REPO.value}/releases/tag/v{latest_version}")
 
     def build_gui(self):
         self.resizable(True, True)  # disable resizing of window
@@ -204,14 +210,12 @@ class EmulatorManager(customtkinter.CTk):
             self.dolphin_frame.grid_forget()
             self.dolphin_frame.select_frame_by_name(None)
         if name == "yuzu":
-            self.yuzu_frame.firmware_keys_frame.request_fetch()
             self.yuzu_frame.grid(row=0, column=1, sticky="nsew")
             self.yuzu_frame.select_frame_by_name("start")
         else:
             self.yuzu_frame.grid_forget()
             self.yuzu_frame.select_frame_by_name(None)
         if name == "ryujinx":
-            self.ryujinx_frame.firmware_keys_frame.request_fetch()
             self.ryujinx_frame.grid(row=0, column=1, sticky="nsew")
             self.ryujinx_frame.select_frame_by_name("start")
         else:

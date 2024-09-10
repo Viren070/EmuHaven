@@ -76,7 +76,7 @@ class ThreadEventManager:
         # only if there was no error during the event
         if event["completion_func_with_result"] and not event["error_during_run"]:
             for completion_func in event["completion_func_with_result"]:
-                completion_func(result)
+                completion_func(*result)
 
         # run the completion functions
         for completion_func in event["completion_functions"]:

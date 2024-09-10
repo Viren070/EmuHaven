@@ -1,14 +1,15 @@
-import os
-from threading import Thread
-from tkinter import messagebox
-from zipfile import ZipFile
+from pathlib import Path
 
 import customtkinter
 
 from core import constants
+from core.utils.files import extract_zip_archive_with_progress
+from core.utils.myrient import get_game_download_url
 from core.utils.web import download_file_with_progress
 from gui.frames.my_games_frame import MyGamesFrame
 from gui.frames.myrient_game_list_frame import MyrientGameListFrame
+from gui.libs import messagebox
+from gui.progress_handler import ProgressHandler
 
 
 class DolphinROMFrame(customtkinter.CTkTabview):
@@ -41,69 +42,64 @@ class DolphinROMFrame(customtkinter.CTkTabview):
 
         self.current_roms_frame = MyGamesFrame(master=self.tab("My ROMs"), emulator_settings_object=self.settings.dolphin, game_extensions=[".wbfs", ".iso", ".rvz", ".gcm", ".gcz", ".ciso"], event_manager=self.event_manager)
         self.current_roms_frame.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
-        self.wii_roms_frame = MyrientGameListFrame(master=self.tab("Wii ROMs"), event_manager=self.event_manager, cache=self.cache, myrient_path=constants.Dolphin.MYRIENT_WII_PATH.value, console_name="nintendo_wii", download_button_event=self.download_rom_event)
+        self.wii_roms_frame = MyrientGameListFrame(master=self.tab("Wii ROMs"), event_manager=self.event_manager, cache=self.cache, myrient_path=constants.Dolphin.MYRIENT_WII_PATH.value, console_name="nintendo_wii", download_button_event=self.download_game_button_event)
         self.wii_roms_frame.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
-        self.gamecube_roms_frame = MyrientGameListFrame(master=self.tab("GameCube ROMs"), event_manager=self.event_manager, cache=self.cache, myrient_path=constants.Dolphin.MYRIENT_GAMECUBE_PATH.value, console_name="nintendo_gamecube", download_button_event=self.download_rom_event)
+        self.gamecube_roms_frame = MyrientGameListFrame(master=self.tab("GameCube ROMs"), event_manager=self.event_manager, cache=self.cache, myrient_path=constants.Dolphin.MYRIENT_GAMECUBE_PATH.value, console_name="nintendo_gamecube", download_button_event=self.download_game_button_event)
         self.gamecube_roms_frame.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
         self.downloads_frame = customtkinter.CTkScrollableFrame(self.tab("Downloads"))
         self.downloads_frame.grid_columnconfigure(0, weight=1)
         self.downloads_frame.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
 
-    def download_rom_event(self, rom, button):
-        Thread(target=self.download_rom_handler, args=(rom, button)).start()
-
-    def download_rom_handler(self, rom, button):
-        self.downloads_in_progress += 1
-        button.configure(state="disabled", text="Downloading...")
+    def download_game_button_event(self, game, myrient_path):
         self.set("Downloads")
-        download_result = self.download_rom(rom)
-        if not all(download_result):
-            if download_result[1] != "Cancelled":
-                messagebox.showerror("Error", f"An error occurred while attempting to download this ROM\n\n{download_result[1]}")
-            else:
-                if os.path.exists(download_result[2]):
-                    os.remove(download_result[2])
-            self.downloads_in_progress -= 1
-            button.configure(state="normal", text="Download")
-            return
-        extract_result = self.extract_rom(download_result[1])
-        if not all(extract_result):
-            messagebox.showerror("Error", f"An error occurred while attempting to extract this ROM\n\n{extract_result[1]}")
-            button.configure(state="normal", text="Download")
-            return
-        if self.settings.app.delete_files == "True":
-            if os.path.exists(download_result[1]):
-                os.remove(download_result[1])
-        messagebox.showinfo("ROM Install", f"The ROM was successfully installed at path: \n\n{extract_result[1]}")
-        button.configure(state="normal", text="Download")
+        self.downloads_in_progress += 1
+        download_frame = customtkinter.CTkFrame(self.downloads_frame, corner_radius=7, border_width=1, fg_color="transparent", height=50)
+        download_frame.grid(row=self.downloads_in_progress - 1, column=0, sticky="ew", pady=5, padx=5)
+        download_frame.grid_columnconfigure(0, weight=1)
 
-    def download_rom(self, rom):
-        download_folder = self.settings.dolphin.rom_directory
-        if download_folder == "":
-            if messagebox.askyesno("No ROM Directory", "No ROM directory has been set in the settings. Would you like to download to the current directory?"):
-                download_folder = os.getcwd()
-            else:
-                return (False, "Cancelled", "")
-        download_file_with_progress(
-            download_url=rom["url"],
-            download_path=download_folder / rom["name"],
-            progress_handler=None,
-            chunk_size=1024,
+        progress_handler = ProgressHandler(download_frame)
+        
+        self.event_manager.add_event(
+            event_id="download_game",
+            func=self.download_game,
+            kwargs={"game": game, "progress_handler": progress_handler, "myrient_path": myrient_path},
+            error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Game Download", "An unexpected error occurred while attempting to download this game.")],
+            completion_functions=[lambda frame=download_frame: frame.destroy()],
         )
-
-    def extract_rom(self, path_to_rom_archive):
-        try:
-            with ZipFile(path_to_rom_archive, 'r') as zip_ref:
-
-                file_list = zip_ref.namelist()
-                if len(file_list) != 1:
-                    return (False, "Unexpected number of files")
-
-                extracted_file_name = file_list[0]
-                extracted_file_path = os.path.join(self.settings.dolphin.rom_directory, extracted_file_name)
-                zip_ref.extract(extracted_file_name, self.settings.dolphin.rom_directory)
-
-                return (True, extracted_file_path)
-
-        except Exception as error:
-            return (False, error)
+        
+    def download_game(self, game, progress_handler, myrient_path):
+        progress_handler.start_operation(title=game, total_units=0, units="MiB", status="Downloading...")
+        download_result = download_file_with_progress(
+            download_url=get_game_download_url(game, myrient_path=myrient_path),
+            download_path=Path(self.settings.dolphin.game_directory) / f"{game}.zip",
+            progress_handler=progress_handler
+        )
+        if not download_result["status"]:
+            return {
+                "message": {
+                    "function": messagebox.showerror,
+                    "arguments": (self.winfo_toplevel(), "Game Download", f"An error occurred while attempting to download this game\n\n{download_result['message']}"),
+                }
+            }
+        
+        progress_handler.start_operation(title=game, total_units=0, units="MiB", status="Extracting...")
+        extract_result = extract_zip_archive_with_progress(
+            zip_path=download_result["download_path"],
+            extract_directory=Path(self.settings.dolphin.game_directory),
+            progress_handler=progress_handler
+        )
+        download_result["download_path"].unlink(missing_ok=True)
+        if not extract_result["status"]:
+            return {
+                "message": {
+                    "function": messagebox.showerror,
+                    "arguments": (self.winfo_toplevel(), "Game Download", f"An error occurred while attempting to extract this game\n\n{extract_result['message']}"),
+                }
+            }
+        
+        return {
+            "message": {
+                "function": messagebox.showsuccess,
+                "arguments": (self.winfo_toplevel(), "Game Download", "The game was successfully downloaded"),
+            }
+        }

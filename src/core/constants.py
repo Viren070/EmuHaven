@@ -4,7 +4,7 @@ from enum import Enum
 class App(Enum):
     NAME = "EmuHaven"
     AUTHOR = "Viren070"
-    VERSION = "1.0.0"
+    VERSION = "0.14.0a1"
     SETTINGS_VERSION = 5
     CACHE_VERSION = 2
     GH_OWNER = "Viren070"
@@ -74,6 +74,7 @@ class Switch(Enum):
     TITLEDB_GH_REPO_NAME = "NX_TitleDB"
     TITLEDB_FILENAME = "titles-tiny.US.en.json"
     TITLEDB_DOWNLOAD_URL = f"https://github.com/{TITLEDB_GH_REPO_OWNER}/{TITLEDB_GH_REPO_NAME}/releases/download/latest/{TITLEDB_FILENAME}"
+    TITLEID_BLACKLIST = ["0100000000001009"]
     GAMES_URLS = []
 
 

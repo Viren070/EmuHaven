@@ -114,11 +114,12 @@ class YuzuFrame(EmulatorFrame):
         self.selected_channel.set(self.settings.yuzu.release_channel.title().replace("_", " "))
         self.switch_channel()
 
-        self.manage_games_frame = YuzuGamesFrame(self, self.settings, self.cache)
+        self.manage_games_frame = YuzuGamesFrame(self, self.settings, self.cache, self.event_manager)
         self.manage_games_frame.grid(row=0, column=0,  padx=20, pady=20, sticky="nsew")
 
     def manage_games_button_event(self):
-        self.select_frame_by_name("roms")
+        self.manage_games_frame.current_roms_frame.assert_titledb()
+        self.select_frame_by_name("games")
 
     def configure_buttons(
         self,

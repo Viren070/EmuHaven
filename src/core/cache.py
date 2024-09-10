@@ -64,8 +64,13 @@ class Cache:
             with open(self.index_file, "w", encoding="utf-8") as file:
                 json.dump(index, file, indent=4)
         except Exception as error:
-            return (False, error)
-        return (True, data)
+            return {
+                "status": False,
+                "message": error
+            }
+        return {
+            "status": True,
+        }
 
     def remove_from_index(self, key, delete_data=True):
         if not self.is_index_file_valid():
@@ -108,12 +113,15 @@ class Cache:
         if not self.is_index_file_valid():
             self.create_index_file()
         # declare variable to store the path of the new file
-        new_dir = os.path.join(self.cache_directory, "files")
-        os.makedirs(new_dir, exist_ok=True)
-        path = os.path.join(new_dir, os.path.basename(file_path))
+        new_dir = self.cache_directory / "files"
+        new_dir.mkdir(exist_ok=True, parents=True)
+        path = new_dir / file_path.name
         try:
             shutil.move(file_path, path)
         except OSError as error:
-            return (False, error)
+            return {
+                "status": False,
+                "message": error
+            }
         # add this path to the index file with given key
-        return self.add_to_index(key, path)
+        return self.add_to_index(key, str(path.resolve()))

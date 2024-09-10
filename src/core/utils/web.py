@@ -151,7 +151,14 @@ def download_through_stream(response, download_path, chunk_size, progress_handle
         }
     if rollback_needed:
         progress_handler.cancel()
-        download_path.unlink(missing_ok=True)
+        try:
+            download_path.unlink(missing_ok=True)
+        except PermissionError:
+            return {
+                "status": False,
+                "message": "Download cancelled, and the file could not be deleted.",
+                "download_path": None
+            }
         return {
             "status": False,
             "message": "Download cancelled",

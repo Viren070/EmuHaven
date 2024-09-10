@@ -1,13 +1,13 @@
-import os
-from pathlib import Path
-
 import customtkinter
-
+from gui.frames.my_switch_games_frame import MySwitchGamesFrame
 
 
 class RyujinxROMFrame(customtkinter.CTkTabview):
     def __init__(self, master, settings, cache):
         super().__init__(master, corner_radius=7, anchor="nw")
+        self.emulator = master.ryujinx
+        self.event_manager = master.event_manager
+        self.assets = master.assets
         self.master = master
         self.roms = None
         self.cache = cache
@@ -17,20 +17,6 @@ class RyujinxROMFrame(customtkinter.CTkTabview):
         self.downloads_in_progress = 0
         self.build_frame()
 
-    def get_title_ids(self):
-        blacklist_list = ["0100000000001009", ""]
-        if self.settings.ryujinx.portable_mode:
-            user_directory = self.settings.ryujinx.install_directory / "portable"
-        else:
-            user_directory = Path(os.getenv("APPDATA")) / "ryujinx"
-        title_id_dir = os.path.join(user_directory, "games")
-        if not os.path.exists(title_id_dir) or not os.listdir(title_id_dir):
-            return []
-        title_ids = []
-        for title_id in os.listdir(title_id_dir):
-            if os.path.isdir(os.path.join(title_id_dir, title_id)) and title_id not in blacklist_list:
-                title_ids.append(title_id.upper())
-        return title_ids
 
     def build_frame(self):
 
@@ -39,5 +25,5 @@ class RyujinxROMFrame(customtkinter.CTkTabview):
         self.tab("My ROMs").grid_columnconfigure(0, weight=1)
         self.tab("My ROMs").grid_rowconfigure(0, weight=1)
 
-        #self.current_roms_frame = SwitchROMSFrame(self.tab("My ROMs"), self.settings, self.cache, self.get_title_ids, "ryujinx")
-        #self.current_roms_frame.grid(row=0, column=0, sticky="nsew")
+        self.current_roms_frame = MySwitchGamesFrame(self.tab("My ROMs"), cache=self.cache, assets=self.assets, event_manager=self.event_manager, emulator_name="ryujinx", emulator_object=self.emulator)
+        self.current_roms_frame.grid(row=0, column=0, sticky="nsew")

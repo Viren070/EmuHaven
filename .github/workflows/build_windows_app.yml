@@ -34,7 +34,6 @@ jobs:
       - name: Build distributables
         run: |
             pyinstaller --noconfirm --onedir --console --name "EmuHaven" --clean --add-data "${{ env.Python_ROOT_DIR }}/Lib/site-packages/customtkinter;customtkinter/" --add-data "src/assets;assets/"  src/main.py
-            pyinstaller --noconfirm --onedir --console --name "Updater" --clean src/updater.py
             Move-Item -Path "dist/Updater/Updater.exe" -Destination "dist/EmuHaven/Updater.exe"
     
       - name: Compress onedir

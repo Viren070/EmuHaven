@@ -20,7 +20,7 @@ class MyrientGameListFrame(GameListFrame):
         if cache_lookup_result:
             game_list = cache_lookup_result["data"]
             return {
-                "result": game_list,
+                "result": (game_list, ),
                 "message": {
                     "function": messagebox.showsuccess,
                     "arguments": (self.winfo_toplevel(), "Success", "Successfully retrieved games from cache.")
@@ -31,7 +31,7 @@ class MyrientGameListFrame(GameListFrame):
         
         if not scrape_result["status"]:
             return {
-                "result": [],
+                "result": ([], ),
                 "message": {
                     "function": messagebox.showerror,
                     "arguments": (self.winfo_toplevel(), "Error", "Failed to fetch games.")
@@ -40,7 +40,7 @@ class MyrientGameListFrame(GameListFrame):
 
         self.cache.add_json_data_to_cache(f"{self.console_name}_games", scrape_result["games"])
         return {
-            "result": scrape_result["games"],
+            "result": (scrape_result["games"],),
             "message": {
                 "function": messagebox.showsuccess,
                 "arguments": (self.winfo_toplevel(), "Success", "Successfully fetched games.")
@@ -55,7 +55,7 @@ class MyrientGameListFrame(GameListFrame):
 
         entry.grid(row=row_counter, column=0, padx=10, pady=5, sticky="w")
         button = customtkinter.CTkButton(self.result_frame, text="Download")
-        button.configure(command=lambda button=button, game=game: self.download_button_event(game, button))
+        button.configure(command=lambda button=button, game=game: self.download_button_event(game, self.myrient_path))
         button.bind("<Shift-Button-1>", lambda event, game=game: webbrowser.open(game_download_url))
         button.grid(row=row_counter, column=1, padx=10, pady=5, sticky="e")
             

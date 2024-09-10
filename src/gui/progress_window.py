@@ -5,10 +5,15 @@ from gui.progress_frame import ProgressFrame
 
 class ProgressWindow(customtkinter.CTkToplevel):
     def __init__(self, master, handler):
-        super().__init__(master, border_width=1)
+        super().__init__(master)
         self.grid_columnconfigure(0, weight=1)
         self._progress_frame = ProgressFrame(self, handler)
         self._progress_frame.grid(row=0, column=0, sticky="ew")
+        self.withdraw()
+        self.protocol("WM_DELETE_WINDOW", self.on_close)
+        
+    def on_close(self):
+        self.cancel_button_event()
 
     def set_title(self, title):
         self._progress_frame.operation_title.configure(text=title)
@@ -30,4 +35,10 @@ class ProgressWindow(customtkinter.CTkToplevel):
 
     def cancel_button_event(self):
         self._progress_frame.cancel_button_event()
+        
+    def show(self):
+        self.deiconify()
+        
+    def hide(self):
+        self.withdraw()
     

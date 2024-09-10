@@ -111,7 +111,8 @@ class RyujinxFrame(EmulatorFrame):
 
     # override parent method to check for titleDB before switching to roms frame
     def manage_games_button_event(self):
-        self.select_frame_by_name("roms")
+        self.manage_games_frame.current_roms_frame.assert_titledb()
+        self.select_frame_by_name("games")
 
     def configure_buttons(
         self,
