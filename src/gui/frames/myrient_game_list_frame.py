@@ -28,7 +28,6 @@ class MyrientGameListFrame(GameListFrame):
             }
 
         scrape_result = get_list_of_games(myrient_path=self.myrient_path)
-        
         if not scrape_result["status"]:
             return {
                 "result": ([], ),

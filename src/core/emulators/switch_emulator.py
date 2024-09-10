@@ -320,7 +320,11 @@ class SwitchEmulator:
             repo_name=constants.Switch.SAVES_GH_REPO_NAME.value,
             path=constants.Switch.SAVES_GH_REPO_PATH.value,
         )
-        return [save["name"] for save in saves["response"]] if saves["status"] else saves
+        if saves["status"]:
+            saves["saves"] = [save["name"] for save in saves["response"]]
+        
+        return saves
+            
     
     @staticmethod
     def get_game_urls(game_name):
