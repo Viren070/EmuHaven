@@ -114,7 +114,7 @@ If you want to run EmuHaven from the source code:
 
 ### Other
 
-- **Customisation:** Personalise the app through a variety of themes sourced from [avalon60/ctk_theme_builder/](https://github.com/avalon60/ctk_theme_builder) and [a13xe/CTkThemesPack](https://github.com/a13xe/CTkThemesPack)
+- **Customisation:** Personalise the app through a variety of themes sourced from [avalon60/ctk_theme_builder/](https://github.com/avalon60/ctk_theme_builder), [a13xe/CTkThemesPack](https://github.com/a13xe/CTkThemesPack) and [rigvedmaanas/CustomTkinterThemes](https://github.com/rigvedmaanas/CustomTkinterThemes)
 - **Portable Mode:** Enable portable mode by creating a PORTABLE.txt file.
   
 > [!NOTE]
@@ -169,6 +169,9 @@ If you want to run EmuHaven from the source code:
 - Ecchibitionist - For the saves they used to provide on their archive.
 - [THZoria](https://github.com/THZoria) - For providing the firmware on their [repository](https://github.com/THZoria/NX_Firmware)
 - [RyuSAK](https://github.com/Ecks1337/RyuSAK) - For providing inspiration for some features and how to code them.
+- [avalon60](https://github.com/avalon60) - For the theme builder used by other users to create themes present in the app.
+- [a13xe](https://github.com/a13xe) - For the themes used in the app.
+- [rigvedmaanas](https://github.com/rigvedmaanas) - For the themes used in the app.
 - [Kewl](https://www.steamgriddb.com/profile/76561199389486997), [supernova](https://www.steamgriddb.com/profile/76561198042356275), [Crazy](https://www.steamgriddb.com/profile/76561198041637425), [StaticMachina](https://www.steamgriddb.com/profile/76561198129822760), [TalkyPup](https://www.steamgriddb.com/profile/76561198025210011) - Banners for emulators. 
 
 ## Legal Disclaimer
