@@ -44,7 +44,7 @@ def post(url, data=None, json=None, timeout=30, headers=constants.Requests.DEFAU
         timeout (int, optional): The timeout for the request. Defaults to 10.
 
     Returns:
-        dict: A dictionary with fields: status (bool) and message (str or requests.Response)
+        dict: A dictionary with fields: status (bool) and message (str
     """
     try:
         logger.debug("POST %s %s", url, kwargs)
@@ -52,7 +52,7 @@ def post(url, data=None, json=None, timeout=30, headers=constants.Requests.DEFAU
         response.raise_for_status()
     except requests.exceptions.RequestException as error:
         logger.error("POST Error: %s", error)
-        return {"status": False, "message": error, "response": response}
+        return {"status": False, "message": error, "response": None}
     return {"status": True, "message": "Request successful", "response": response}
 
 

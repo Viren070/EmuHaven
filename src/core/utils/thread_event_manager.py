@@ -11,6 +11,12 @@ class ThreadEventManager:
         self.events = []
         self.window = window
         self.result_queue = queue.Queue()
+        
+    def is_event_running(self, event_id):
+        for event in self.events:
+            if event["id"] == event_id:
+                return True
+        return False
 
     def add_event(self, event_id, func, kwargs=None, completion_functions=None, error_functions=None, completion_funcs_with_result=None, ignore_messages=False):
         event = {
@@ -72,16 +78,16 @@ class ThreadEventManager:
         if message and not event["ignore_messages"]:
             message["function"](*message["arguments"])
             
+        # run the completion functions
+        for completion_func in event["completion_functions"]:
+            completion_func()
+            
         # if a completion function with result was provided, run it 
         # and pass the result of the event to it
         # only if there was no error during the event
         if event["completion_func_with_result"] and not event["error_during_run"]:
             for completion_func in event["completion_func_with_result"]:
                 completion_func(*result)
-
-        # run the completion functions
-        for completion_func in event["completion_functions"]:
-            completion_func()
 
         # Remove the event from the list of events
         self.events.remove(event)

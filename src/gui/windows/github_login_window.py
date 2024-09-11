@@ -2,12 +2,12 @@ import os
 import time
 import webbrowser
 from threading import Thread
-from tkinter import messagebox
 
 import customtkinter
 
 from core.utils.github import (is_token_valid, request_device_code,
                                request_token)
+from gui.libs import messagebox
 
 
 class GitHubLoginWindow(customtkinter.CTkToplevel):
@@ -15,19 +15,16 @@ class GitHubLoginWindow(customtkinter.CTkToplevel):
         super().__init__(master)
         self.title("GitHub Login")
         self.settings = master.settings
+        self.event_manager = master.event_manager
         self.geometry("500x250")
         self.resizable(False, False)
-        self.poll_token = True
-        self.master = master
-        self.token_response = None
         self.wm_protocol("WM_DELETE_WINDOW", self.on_closing)
         self.create_widgets()
-        self.token_path = os.path.join(os.getenv("APPDATA"), "Emulator Manager", ".token")
 
     def on_closing(self):
-        self.master.token_gen = None
-        self.poll_token = False
-        self.token_response = "EXIT"
+        if self.event_manager.is_event_running("get_device_code") or self.event_manager.is_event_running("get_token"):
+            messagebox.showinfo(self, "Info", "Please wait for the current process to complete.")
+            return
         self.destroy()
 
     def create_widgets(self):
@@ -36,7 +33,7 @@ class GitHubLoginWindow(customtkinter.CTkToplevel):
         self.token_label.pack(pady=10)
 
         # Frame for token entry and button
-        self.token_frame = customtkinter.CTkFrame(self)
+        self.token_frame = customtkinter.CTkFrame(self,fg_color="transparent", border_width=0)
         self.token_frame.pack(pady=10)
 
         # Entry widget for token
@@ -44,142 +41,131 @@ class GitHubLoginWindow(customtkinter.CTkToplevel):
         self.token_entry.pack(side='left', padx=10)
 
         # Button for token submission
-        self.token_button = customtkinter.CTkButton(self.token_frame, text="Submit", command=self.submit_token_event, width=10)
-        self.token_button.pack(side='left')
+        self.submit_token_button = customtkinter.CTkButton(self.token_frame, text="Submit", command=self.submit_token_button_event, width=10)
+        self.submit_token_button.pack(side='left')
 
         # Label for authorization button
         self.auth_label = customtkinter.CTkLabel(self, text="Or click 'Authorise' to start the authentication process:")
         self.auth_label.pack(pady=10)
 
         # Authorization button
-        self.login_button = customtkinter.CTkButton(self, text="Authorise", command=self.start_authentication)
-        self.login_button.pack(pady=10)
+        self.oauth_start_button = customtkinter.CTkButton(self, text="Authorise", command=self.start_oauth_flow_button_event)
+        self.oauth_start_button.pack(pady=10)
 
-    def submit_token_event(self):
-        self.token_button.configure(state="disabled")
-        Thread(target=self.submit_token).start()
+    def configure_widgets(self, state):
+        self.token_entry.configure(state=state)
+        self.submit_token_button.configure(state=state)
+        self.oauth_start_button.configure(state=state)
 
-    def submit_token(self):
+    def submit_token_button_event(self):
+        self.configure_widgets("disabled")
         token = self.token_entry.get()
-        if is_token_valid(token):
-            self.settings.app.token = token
-            self.master.token_gen = None
-            self.master.start_update_requests_left()
-            messagebox.showinfo("GitHub Authorisation", "Successfully authenticated!")
-            self.grab_release()
-            self.bring_window_to_top(self.master.parent_frame.parent_frame)
+        self.event_manager.add_event(
+            event_id="process_token",
+            func=self.process_token,
+            kwargs={"token": token},
+            completion_funcs_with_result=[self.on_token_processed],
+            error_functions=[lambda: messagebox.showerror(self, "Error", "Failed to process token.")],
+            completion_functions=[lambda: self.configure_widgets("normal")]
+        )
+        
+    def process_token(self, token):
+        if not token or len(token) < 5:
+            return {
+                "result": (False,),
+            }
+        return {
+            "result": (is_token_valid(token),),
+        }
+        
+    def on_token_processed(self, result):
+        if result:
+            self.settings.token = self.token_entry.get()
+            self.settings.save_settings()
+            messagebox.showsuccess(self, "Success", "Token processed successfully.")
             self.destroy()
-            return
+        else:
+            messagebox.showerror(self, "Error", "Invalid token.")
+    
+    def start_oauth_flow_button_event(self):
+        self.configure_widgets("disabled")
+        self.event_manager.add_event(
+            event_id="get_device_code",
+            func=self.get_device_code,
+            error_functions=[lambda: messagebox.showerror(self, "Error", "An unexpected error occured during the authorisation process.")],
+            completion_funcs_with_result=[self.on_device_code_received],
+            completion_functions=[lambda: self.configure_widgets("normal")]   
+        )
 
-        messagebox.showerror("Invalid Token", "The token you entered is invalid. Please try again.")
-        self.token_button.configure(state="normal")
-
-    def start_authentication(self):
-        self.login_button.configure(state="disabled", text="Getting Code...")
-        self.token_button.configure(state="disabled")
-        device_code_thread = Thread(target=self.get_device_code_and_token)
-        device_code_thread.start()
-
-    def get_device_code_and_token(self):
-        device_code_response = request_device_code()
-        if not device_code_response["status"]:
-            messagebox.showerror("Requests Error", device_code_response[1])
-            self.login_button.configure(state="normal", text="Authorise")
-            self.auth_label.configure(text="Click the 'Authorise' button to start the authentication process.")
-            self.token_button.configure(state="normal")
-            return
-        device_code_response = device_code_response["response"]
+    def get_device_code(self):
+        device_code_result = request_device_code()
+        if not device_code_result["status"]:
+            return {
+                "message": {
+                    "function": messagebox.showerror,
+                    "arguments": (self, "Error", device_code_result["message"])
+                }
+            }
+        device_code_response = device_code_result["response"].json()
         verification_uri = device_code_response["verification_uri"]
         user_code = device_code_response["user_code"]
         device_code = device_code_response["device_code"]
         interval = device_code_response["interval"]
-        self.login_button.configure(state="disabled", text="Authorising...")
-        self.countdown_on_widget(5, self.auth_label, f"You will be redirected in {{}} seconds to {verification_uri}\nPlease enter the code: {user_code}. It has been copied to your clipboard", f"You are being redirected to {verification_uri}...\nPlease enter the code: {user_code}. It has been copied to your clipboard")
-        if not self.poll_token:
-            return
+        return {
+            "result": (verification_uri, user_code, device_code, interval),
+        }
+        
+    def on_device_code_received(self, verification_uri, user_code, device_code, interval):
+        self.configure_widgets("disabled")
+        self.oauth_start_button.configure(state="disabled", text="Authorising...")
+        self.auth_label.configure(text=f"You are being redirected to {verification_uri}...\nPlease enter the code: {user_code}. It has been copied to your clipboard")
+        self.after(2000, webbrowser.open, verification_uri)
         self.clipboard_clear()
         self.clipboard_append(user_code)
-        webbrowser.open(verification_uri, new=0)
-        self.auth_label.configure(text=f"Please enter the code at {user_code} at\n{verification_uri} \nIt has been copied to your clipboard.")
-        self.login_button.configure(state="disabled", text="Authorising...")
-        # Poll for the access token
-        token_poll_thread = Thread(target=self.poll_for_token, args=(device_code, interval, ))
+        self.event_manager.add_event(
+            event_id="get_token",
+            func=self.get_token,
+            kwargs={"device_code": device_code, "interval": interval},
+            completion_funcs_with_result=[self.on_token_received],
+            error_functions=[lambda: messagebox.showerror(self, "Error", "An unexpected error occured during the authorisation process.")],
+            completion_functions=[lambda: self.configure_widgets("normal")]
+        )
+        
+    def get_token(self, device_code, interval):
+        start_time = time.time()
+        while time.time() - start_time < 900:
+            token_result = request_token(device_code)
+            if not token_result["status"]:
+                return {
+                    "message": {
+                        "function": messagebox.showerror,
+                        "arguments": (self, "Error", token_result["message"])
+                    }
+                }
+            token_result = token_result["response"].json()
+            if token_result.get("access_token"):
+                return {
+                    "result": (token_result["access_token"],)
+                }
+            
+            if token_result.get("error") == "authorization_pending":
+                time.sleep(interval)
+            elif token_result.get("error") == "slow_down":
+                interval += 5
+                time.sleep(interval)
 
-        self.countdown_on_widget(15, self.login_button, "Checking in {}s")
-
-        token_poll_thread.start()
-        self.check_token_status(token_poll_thread)
-
-    def countdown_on_widget(self, countdown_time, widget, default_text, final_text=None):
-        left = countdown_time
-        widget.configure(text=default_text.format(left))
-        while left > 0:
-            time.sleep(1)
-            if not self.poll_token:
-                return
-            left -= 1
-            widget.configure(text=default_text.format(left))
-        if final_text:
-            widget.configure(text=final_text)
-
-    def poll_for_token(self, device_code, interval):
-        requests_made = 2
-        while self.poll_token:
-            token_response = request_token(device_code)
-            requests_made += 1
-            if interval < 15:
-                interval = 15
-            print(f"requests made with interval {interval}s: {requests_made}")
-            if requests_made > 5:
-                messagebox.showerror("Authorisation Error", "Failed to authorise in time. Attempting to authorise also uses some of your API requests. You can still login if you have 0 requests left.")
-                return
-            if not all(token_response):
-                messagebox.showerror("Requests Error", token_response[1])
-                self.token_response = None
-                return
-            token_response = token_response[1]
-            if "access_token" in token_response:
-                self.token_response = token_response["access_token"]
-                return
-            elif "error" in token_response:
-                error = token_response["error"]
-                if error == "authorization_pending":
-                    self.countdown_on_widget(interval, self.login_button, "Checking in {}s", "Checking...")
-                elif error == "slow_down":
-                    self.countdown_on_widget(interval+10, self.login_button, "Checking in {}s", "Checking...")
-                else:
-                    self.token_response = None
-                    return
-            else:
-                self.token_response = None
-        return
-
-    def check_token_status(self, token_poll_thread):
-        token_poll_thread.join()
-
-        # Polling thread has finished, handle the result
-        if self.token_response == "EXIT":
-            return
-        elif self.token_response is not None:
-            # Authentication successful
-            self.grab_release()
-            self.bring_window_to_top(self.master.parent_frame.parent_frame)
-            self.login_button.configure(text="Success!")
-            messagebox.showinfo("GitHub Authorisation", "Successfully authenticated!")
-            self.settings.app.token = self.token_response
-            self.master.token_gen = None
-            self.master.start_update_requests_left()
-            self.destroy()
-        else:
-            # Authentication failed
-            self.bring_window_to_top(self)
-            messagebox.showerror("Authentication Error", "Failed to authorise")
-            self.login_button.configure(state="normal", text="Authorise")
-            self.auth_label.configure(text="Click the 'Authorise' button to start the authentication process.")
-
-    def bring_window_to_top(self, window):
-        window.deiconify()  # Restore the window if minimized
-        window.focus_force()  # Bring the window into focus
-        window.lift()  # Raise the window to the top
-        window.attributes('-topmost', True)  # Set it as topmost
-        window.attributes('-topmost', False)
+        return {
+            "message": {
+                "function": messagebox.showerror,
+                "arguments": (self, "Error", "Timed out waiting for authorisation.")
+            }
+        }
+                
+    def on_token_received(self, token):
+        self.settings.token = token
+        self.settings.save()
+        messagebox.showsuccess(self, "Success", "Token received successfully.")
+        
+        
+            
+        

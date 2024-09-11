@@ -203,5 +203,7 @@ class AppSettingsFrame(customtkinter.CTkFrame):
         if self.token_gen is None:
             self.token_gen = GitHubLoginWindow(self)
             self.token_gen.grab_set()
+            self.token_gen.wait_window()
+            self.token_gen = None
         else:
             self.token_gen.focus()

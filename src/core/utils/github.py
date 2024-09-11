@@ -140,6 +140,7 @@ def request_token(device_code):
     }
     headers = {"Accept": "application/json"}
     return web.post(GitHubOAuth.TOKEN_REQUEST_URL.value, data=data, headers=headers)
+  
 
 
 def request_device_code():
@@ -151,4 +152,4 @@ def request_device_code():
 def is_token_valid(token):
     if not token:
         return False
-    return web.get(GitHub.API_USER, headers=get_headers(token))["status"]
+    return web.get(GitHub.API_USER.value, headers=get_headers(token))["status"]
