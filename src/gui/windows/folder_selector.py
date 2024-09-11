@@ -1,6 +1,9 @@
 import os
+from pathlib import Path
 from tkinter import filedialog
-from customtkinter import CTkToplevel, CTkEntry, CTkButton, CTkCheckBox, CTkScrollableFrame, CTkFrame
+
+from customtkinter import (CTkButton, CTkCheckBox, CTkEntry, CTkFrame,
+                           CTkScrollableFrame, CTkToplevel)
 
 
 class FolderSelector(CTkToplevel):
@@ -88,7 +91,7 @@ class FolderSelector(CTkToplevel):
         self.populating = False
 
     def ok(self):
-        self.result = (self.directory, [cb.cget('text') for cb in self.checkbuttons if cb.get()])
+        self.result = (Path(self.directory), [cb.cget('text') for cb in self.checkbuttons if cb.get()])
         self.grab_release()
         self.destroy()
 

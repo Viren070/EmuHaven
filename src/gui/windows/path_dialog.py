@@ -1,8 +1,9 @@
-import os
+from pathlib import Path
 from tkinter import filedialog
-from typing import Union, Tuple, Optional
+from typing import Optional, Tuple, Union
 
-from customtkinter import CTkLabel, CTkEntry, CTkButton, ThemeManager, CTkToplevel, CTkFont, CTkFrame
+from customtkinter import (CTkButton, CTkEntry, CTkFont, CTkFrame, CTkLabel,
+                           CTkToplevel, ThemeManager)
 
 
 class PathDialog(CTkToplevel):
@@ -155,8 +156,28 @@ class PathDialog(CTkToplevel):
     def get_input(self):
         self.master.wait_window(self)
         if self._user_input is None:
-            return (False, None)
-        if os.path.exists(self._user_input) and ((self._filetypes is not None and os.path.splitext(self._user_input)[1].lower() in self._filetypes) or (self._filetypes is None)):
-            return (True, self._user_input)
-        else:
-            return (False, "Path does not exist or invalid filetype")
+            return {
+                "status": False,
+                "cancelled": True
+            }
+        path = Path(self._user_input)
+        
+        if not path.exists() or (self._filetypes is not None and path.suffix.lower() not in self._filetypes):
+            return {
+                "status": False,
+                "message": "Invalid path or filetype selected",
+                "cancelled": False
+            }
+        
+        if self.directory_mode and not path.is_dir():
+            return {
+                "status": False,
+                "message": "Invalid directory selected",
+                "cancelled": False
+            }
+        
+        return {
+            "status": True,
+            "path": path,
+            "cancelled": False
+        }

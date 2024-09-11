@@ -1,24 +1,25 @@
 import customtkinter
 from customtkinter import ThemeManager
-from PIL import Image
 
 from gui.frames.settings.app_settings_frame import AppSettingsFrame
 from gui.frames.settings.dolphin_settings_frame import DolphinSettingsFrame
-from gui.frames.settings.yuzu_settings_frame import YuzuSettingsFrame
 from gui.frames.settings.ryujinx_settings_frame import RyujinxSettingsFrame
 from gui.frames.settings.xenia_settings_frame import XeniaSettingsFrame
+from gui.frames.settings.yuzu_settings_frame import YuzuSettingsFrame
 
 
 class SettingsFrame(customtkinter.CTkFrame):
-    def __init__(self, parent_frame, settings):
+    def __init__(self, parent_frame, settings, paths, assets, event_manager):
         super().__init__(parent_frame, corner_radius=0, bg_color="transparent", width=20)
+        self.root_window = parent_frame
+        self.event_manager = event_manager
         self.settings = settings
+        self.paths = paths
+        self.assets = assets
         self.parent_frame = parent_frame
         self.build_gui()
 
     def build_gui(self):
-        self.lock_image = customtkinter.CTkImage(light_image=Image.open(self.settings.get_image_path("padlock_light")),
-                                                 dark_image=Image.open(self.settings.get_image_path("padlock_dark")), size=(20, 20))
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
         # create settings navigation frame
@@ -28,27 +29,27 @@ class SettingsFrame(customtkinter.CTkFrame):
 
         # create settings navigation menu buttons
         text_color = ThemeManager.theme["CTkLabel"]["text_color"]
-        self.app_settings_button = customtkinter.CTkButton(self.settings_navigation_frame, corner_radius=0, width=90, height=25, border_spacing=10, text="App",
+        self.app_settings_button = customtkinter.CTkButton(self.settings_navigation_frame, corner_radius=0, width=120, height=25, border_spacing=10, text="App",
                                                            fg_color="transparent", text_color=text_color,
                                                            anchor="w", command=self.app_settings_button_event)
         self.app_settings_button.grid(row=1, column=0, padx=2, pady=(2, 0), sticky="ew")
 
-        self.dolphin_settings_button = customtkinter.CTkButton(self.settings_navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Dolphin",
+        self.dolphin_settings_button = customtkinter.CTkButton(self.settings_navigation_frame, corner_radius=0, width=120, height=25, border_spacing=10, text="Dolphin",
                                                                fg_color="transparent", text_color=text_color,
                                                                anchor="w", command=self.dolphin_settings_button_event)
         self.dolphin_settings_button.grid(row=2, column=0, padx=2, sticky="ew")
 
-        self.yuzu_settings_button = customtkinter.CTkButton(self.settings_navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Yuzu",
+        self.yuzu_settings_button = customtkinter.CTkButton(self.settings_navigation_frame, corner_radius=0, width=120, height=25, border_spacing=10, text="Yuzu",
                                                             fg_color="transparent", text_color=text_color,
                                                             anchor="w", command=self.yuzu_settings_button_event)
         self.yuzu_settings_button.grid(row=3, column=0, padx=2, sticky="ew")
 
-        self.ryujinx_settings_button = customtkinter.CTkButton(self.settings_navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Ryujinx",
+        self.ryujinx_settings_button = customtkinter.CTkButton(self.settings_navigation_frame, corner_radius=0, width=120, height=25, border_spacing=10, text="Ryujinx",
                                                                fg_color="transparent", text_color=text_color,
                                                                anchor="w", command=self.ryujinx_settings_button_event)
         self.ryujinx_settings_button.grid(row=4, column=0, padx=2, sticky="ew")
 
-        self.xenia_settings_button = customtkinter.CTkButton(self.settings_navigation_frame, corner_radius=0, width=100, height=25, border_spacing=10, text="Xenia",
+        self.xenia_settings_button = customtkinter.CTkButton(self.settings_navigation_frame, corner_radius=0, width=120, height=25, border_spacing=10, text="Xenia",
                                                              fg_color="transparent", text_color=text_color,
                                                              anchor="w", command=self.xenia_settings_button_event)
         self.xenia_settings_button.grid(row=5, column=0, padx=2, sticky="ew")
@@ -56,7 +57,7 @@ class SettingsFrame(customtkinter.CTkFrame):
         self.dolphin_settings_frame = DolphinSettingsFrame(self, self.settings)
         self.yuzu_settings_frame = YuzuSettingsFrame(self, self.settings)
         self.ryujinx_settings_frame = RyujinxSettingsFrame(self, self.settings)
-        self.app_settings_frame = AppSettingsFrame(self, self.settings)
+        self.app_settings_frame = AppSettingsFrame(self, settings=self.settings, paths=self.paths, assets=self.assets, event_manager=self.event_manager)
         self.xenia_settings_frame = XeniaSettingsFrame(self, self.settings)
 
     def dolphin_settings_button_event(self):
@@ -101,11 +102,12 @@ class SettingsFrame(customtkinter.CTkFrame):
             self.xenia_settings_frame.grid_forget()
         if name == "app":
             self.app_settings_frame.grid(row=0, column=1, sticky="nsew")
+            self.app_settings_frame.start_update_requests_left(show_error=False)
         else:
             self.app_settings_frame.grid_forget()
 
     def settings_changed(self):
-        return (self.yuzu_settings_frame.settings_changed() or self.dolphin_settings_frame.settings_changed() or self.xenia_settings_frame.settings_changed() or self.ryujinx_settings_frame.settings_changed())
+        return False 
 
     def revert_settings(self):
         self.yuzu_settings_frame.update_entry_widgets()

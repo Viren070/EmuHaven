@@ -1,4 +1,4 @@
-# Emulator Manager
+# EmuHaven
 
 A program that will help manage your emulators, currently supports: 
 
@@ -7,7 +7,6 @@ A program that will help manage your emulators, currently supports:
  - Ryujinx
  - Xenia
 
-Currently only works for Windows and will not run on other operating systems. This can be fixed though. 
 
 For a short list of features, scroll down to the [features](https://github.com/Viren070/Emulator-Manager?tab=readme-ov-file#features) section. Find detailed information at the [wiki](https://github.com/Viren070/Emulator-Manager/wiki).
 

@@ -1,8 +1,11 @@
 beautifulsoup4==4.12.3
+CTkMessagebox==2.7
+CTkMessagebox==2.7
 CTkToolTip==0.8
 CTkToolTip==0.8
 customtkinter==5.2.2
 packaging==24.1
 Pillow==10.4.0
+platformdirs==4.3.2
 py7zr==0.22.0
 Requests==2.32.3
