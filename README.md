@@ -7,64 +7,70 @@ A program that will help manage your emulators, currently supports:
  - Ryujinx
  - Xenia
 
+For a short list of features, scroll down to the [features](https://github.com/Viren070/EmuHaven?tab=readme-ov-file#features) section. Find detailed information at the [wiki](https://github.com/Viren070/EmuHaven/wiki).
 
-For a short list of features, scroll down to the [features](https://github.com/Viren070/Emulator-Manager?tab=readme-ov-file#features) section. Find detailed information at the [wiki](https://github.com/Viren070/Emulator-Manager/wiki).
-
-For a preview of the app, scroll down to the [images](https://github.com/Viren070/Emulator-Manager?tab=readme-ov-file#images).
+For a preview of the app, scroll down to the [images](https://github.com/Viren070/EmuHaven?tab=readme-ov-file#images).
 
 
-If you have any questions or need help, you may ask them in the [Discord server](https://viren070.github.io/Emulator_Manager/discord/) or the [Discussions page](https://github.com/Viren070/Emulator-Manager/discussions) 
+If you have any questions or need help, you may ask them in the [Discord server](https://discord.viren070.me) or the [Discussions page](https://github.com/Viren070/EmuHaven/discussions) 
 
-Please consider giving a ⭐ if you find this project helpful. Your support is appreciated!
+If you find my project useful, consider supporting me on [Ko-fi](https://ko-fi.com/viren070) or leaving a star on the repository. 
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Viren070)
+
+
 
 ## Installation
-I would suggest [running from source](https://github.com/Viren070/Emulator-Manager?tab=readme-ov-file#running-from-source) as it allows you to have the most up-to-date version of Emulator Manager but if you think it's too complex then follow the instructions below. 
 
-### Windows Executable Installation
+### Using Release Binaries
 
-If you prefer using an EXE file to run the app:
-
-1. Go to the [latest release](https://github.com/Viren070/Emulator-Manager/releases/latest)
-
-2. Scroll down to the assets and download `Emulator.Manager.v0.x.x.zip`
-3. Extract the downloaded zip file and inside the extracted folder launch Emulator Manager.exe 
+1. Go to the [releases](https://github.com/EmuHaven/releases) page
+2. Click on either the latest release or a beta release if you are willing to encounter and report bugs.
+3. Scroll down to the assets and download `EmuHaven-vx.y.z-win_x64.zip`
+4. Extract the downloaded zip file and inside the extracted folder launch `EmuHaven.exe`
 
 > [!WARNING] 
 > Windows Defender will detect the file as a virus since the file is unsigned. This is a false positive and can be ignored. You can follow the steps below and run the source code instead if you don't want to run an EXE.
 
 
-### Running from Source
+### Using Source Code
 
-If you want to run Emulator Manager from the source code:
+If you want to run EmuHaven from the source code:
 
-1. Clone the repository with the command below or click Code > Download ZIP
+1. Clone the repository with the command below
    ```
-   git clone https://github.com/Viren070/Emulator-Manager
+   git clone https://github.com/Viren070/EmuHaven.git
    ```
-2. Install the dependencies with this command inside the cloned repository
+2. Navigate to the cloned repository
+   ```
+   cd EmuHaven
+   ```
+3. Install the dependencies with this command inside the cloned repository
    ```
    pip install -r requirements.txt
    ```
-   - Make sure you have Python 3.12 installed
-    
-3. Simply run main.py and you should see the app open.
+4. Simply run main.py and you should see the app open.
    ```
    python src/main.py
    ```
-   - python must be added to PATH (this can be done with the installer)
-4. When you want to update emulator Manager run this command:
+5. When you want to update EmuHaven run this command:
    ```
    git pull origin main
    ```
-   
-If you want to build an executable file, you can use [pyinstaller](https://pyinstaller.org/en/stable/) with this command:
-   ```
-   pyinstaller --noconfirm --onedir --console --name "Emulator Manager" --clean --add-data "%localappdata%/Programs/Python/Python312/Lib/site-packages/customtkinter;customtkinter/" --add-data src/assets;assets/  src/main.py
-   ```
-   - If you don't have pyinstaller, you can install it with `pip install pyinstaller`
-   - You can replace `--onedir` with `--onefile`.
-   - Replace the path to customtkinter as necessary
 
+## Building
+
+
+1. Install pyinstaller
+
+   ```
+   pip install pyinstaller
+   ```
+
+2. Build using [pyinstaller](https://pyinstaller.org/en/stable/) and ensure to pass path to customtkinter with --add-data
+   ```
+   pyinstaller --noconfirm --onedir --console --name "EmuHaven" --clean --add-data "%localappdata%/Programs/Python/Python312/Lib/site-packages/customtkinter;customtkinter/" --add-data src/assets;assets/  src/main.py
+   ```
 
 ## Features
 
@@ -118,39 +124,39 @@ If you want to build an executable file, you can use [pyinstaller](https://pyins
    
 ## Images
 
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/be259b14-4908-4c4f-964d-d1cda35e6497)
+![image](https://github.com/Viren070/EmuHaven/assets/71220264/be259b14-4908-4c4f-964d-d1cda35e6497)
 
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/0efa4183-e7ee-4ec5-b928-e70a894cae66)
+![image](https://github.com/Viren070/EmuHaven/assets/71220264/0efa4183-e7ee-4ec5-b928-e70a894cae66)
 
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/a9320702-ac36-4b40-b053-45280528ccfe)
+![image](https://github.com/Viren070/EmuHaven/assets/71220264/a9320702-ac36-4b40-b053-45280528ccfe)
 
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/69e34f4b-9765-4210-bbcc-3818b0ac6517)
+![image](https://github.com/Viren070/EmuHaven/assets/71220264/69e34f4b-9765-4210-bbcc-3818b0ac6517)
 
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/d6ba8ddf-3949-4834-9ae4-6007154b43aa)
+![image](https://github.com/Viren070/EmuHaven/assets/71220264/d6ba8ddf-3949-4834-9ae4-6007154b43aa)
 
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/59db024a-5e4e-4556-881d-77809b970619)
+![image](https://github.com/Viren070/EmuHaven/assets/71220264/59db024a-5e4e-4556-881d-77809b970619)
 
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/965600d7-1e60-458e-b70d-4d87e192dd4b)
+![image](https://github.com/Viren070/EmuHaven/assets/71220264/965600d7-1e60-458e-b70d-4d87e192dd4b)
 
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/45c3581c-4f74-4581-888c-5269a1919138)
+![image](https://github.com/Viren070/EmuHaven/assets/71220264/45c3581c-4f74-4581-888c-5269a1919138)
 
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/81955397-d1e0-4ed8-be74-83fce021dcd2)
+![image](https://github.com/Viren070/EmuHaven/assets/71220264/81955397-d1e0-4ed8-be74-83fce021dcd2)
 
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/6c0b73b9-fe19-42dd-b46d-eaafcf097eef)
+![image](https://github.com/Viren070/EmuHaven/assets/71220264/6c0b73b9-fe19-42dd-b46d-eaafcf097eef)
 
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/fd970ca6-ebbb-405f-9ad5-2942565a3dab)
+![image](https://github.com/Viren070/EmuHaven/assets/71220264/fd970ca6-ebbb-405f-9ad5-2942565a3dab)
 
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/f3dcd629-5b4d-46d1-9fe0-1cd1114c60e9)
+![image](https://github.com/Viren070/EmuHaven/assets/71220264/f3dcd629-5b4d-46d1-9fe0-1cd1114c60e9)
 
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/22b9f520-adc8-4f6c-a1d5-a9ba3b0b251d)
+![image](https://github.com/Viren070/EmuHaven/assets/71220264/22b9f520-adc8-4f6c-a1d5-a9ba3b0b251d)
 
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/e5b6ae5c-7534-4af4-963e-5abc63e2c8e0)
+![image](https://github.com/Viren070/EmuHaven/assets/71220264/e5b6ae5c-7534-4af4-963e-5abc63e2c8e0)
 
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/3fcde0f3-e919-4e2e-84e9-cd258dfffd28)
+![image](https://github.com/Viren070/EmuHaven/assets/71220264/3fcde0f3-e919-4e2e-84e9-cd258dfffd28)
 
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/dea33238-314e-413a-a198-ce81b6f95fb5)
+![image](https://github.com/Viren070/EmuHaven/assets/71220264/dea33238-314e-413a-a198-ce81b6f95fb5)
 
-![image](https://github.com/Viren070/Emulator-Manager/assets/71220264/9ee23034-0a70-4807-bad5-655f0ed5e964)
+![image](https://github.com/Viren070/EmuHaven/assets/71220264/9ee23034-0a70-4807-bad5-655f0ed5e964)
 
 
 ## Aknowledgements
@@ -167,20 +173,15 @@ If you want to build an executable file, you can use [pyinstaller](https://pyins
 
 ## Legal Disclaimer
 
-Emulator Manager is a software application that facilitates the management of various game emulators, including but not limited to yuzu, Dolphin, Ryujinx, and Xenia. The purpose of this app is to provide users with a platform to organise and utilise these emulators.
+EmuHaven is a software application that facilitates the management of various game emulators, including but not limited to yuzu, Dolphin, Ryujinx, and Xenia. The purpose of this app is to provide users with a platform to organise and utilise these emulators.
 
 **Ownership Disclaimer:**
-Emulator Manager and its developer(s) are not affiliated with, endorsed by, or connected to the companies that created the gaming consoles (e.g., Nintendo, Microsoft) or the development teams behind the emulators. The app is an independent project developed for the convenience of users who wish to manage and use gaming emulators.
+EmuHaven and its developer(s) are not affiliated with, endorsed by, or connected to the companies that created the gaming consoles (e.g., Nintendo, Microsoft) or the development teams behind the emulators. The app is an independent project developed for the convenience of users who wish to manage and use gaming emulators.
 
 **Trademark Notice:**
-Any trademarks, service marks, product names, or logos appearing in the app are the property of their respective owners. The use of these trademarks is for identification purposes only and does not imply endorsement, sponsorship, or affiliation with Emulator Manager.
+Any trademarks, service marks, product names, or logos appearing in the app are the property of their respective owners. The use of these trademarks is for identification purposes only and does not imply endorsement, sponsorship, or affiliation with EmuHaven.
 
 **Emulator Usage:**
 It is important to note that using emulators to play games may require the user to comply with the respective console manufacturers' terms of service and copyright policies. Users are responsible for ensuring that their use of this app and associated emulators is in accordance with applicable laws and regulations.
 
-By using Emulator Manager, you acknowledge and agree to the terms outlined in this legal disclaimer. The developer(s) of Emulator Manager disclaim any liability for the misuse or violation of any third-party intellectual property rights or terms of service by users.
-
-
-## [Early Access Source](https://github.com/pineappleEA/pineapple-src) | [Firmware & Keys](https://github.com/Viren070/Emulator-Manager-Resources) | [Nintendo Switch Savegames](https://github.com/Viren070/NX_Saves/) | [Dolphin ROMs](https://myrient.erista.me/)
-
-All emulators not listed here are sourced from either their website or GitHub repository.
+By using EmuHaven, you acknowledge and agree to the terms outlined in this legal disclaimer. The developer(s) of EmuHaven disclaim any liability for the misuse or violation of any third-party intellectual property rights or terms of service by users.
