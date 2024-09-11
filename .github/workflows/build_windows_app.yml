@@ -34,17 +34,16 @@ jobs:
       - name: Build distributables
         run: |
             pyinstaller --noconfirm --onedir --console --name "EmuHaven" --clean --add-data "${{ env.Python_ROOT_DIR }}/Lib/site-packages/customtkinter;customtkinter/" --add-data "src/assets;assets/"  src/main.py
-            Move-Item -Path "dist/Updater/Updater.exe" -Destination "dist/EmuHaven/Updater.exe"
     
       - name: Compress onedir
         run: |
-          Compress-Archive -Path "dist/EmuHaven/*" -DestinationPath "dist/EmuHaven.zip"
+          Compress-Archive -Path "dist/EmuHaven/*" -DestinationPath "dist/EmuHaven-${{ github.event_name == 'push' && github.ref_name || github.event.inputs.tag }}-win_x64.zip"
 
       - uses: "softprops/action-gh-release@v2"
         env:
             TAG: ${{ github.event_name == 'push' && github.ref_name || github.event.inputs.tag }}
         with:
-          prerelease: ${{ contains(env.TAG, 'alpha') || contains(env.TAG, 'beta') }}
+          prerelease: ${{ contains(env.TAG, 'a') || contains(env.TAG, 'b') }}
           tag_name: ${{ env.TAG }}
           files: |
             dist/EmuHaven.*.zip
