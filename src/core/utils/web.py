@@ -86,6 +86,7 @@ def get_all_files_from_page(url, file_ext=None, **kwargs):
                 if not all([result.scheme, result.netloc]):
                     continue
             files.append(file_url)
+    logger.debug("%s Files retrieved", len(files))
     return {"status": True, "message": "Files retrieved successfully", "files": files}
 
 

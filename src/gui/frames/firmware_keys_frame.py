@@ -266,7 +266,7 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
             self.firmware_option_menu_variable.set("None Found")
         self.fetched = True
 
-    def request_fetch(self, *args):
+    def request_fetch(self, *args, ignore_messages=False):
         if self.fetching_versions or self.fetched:
             return
         
@@ -274,7 +274,8 @@ class FirmwareKeysFrame(customtkinter.CTkFrame):
             event_id="fetch_firmware_keys",
             func=self.fetch_firmware_keys_dict,
             error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Firmware Keys", "An unexpected error occured while attempting to fetch the firmware and keys details.\nCheck the logs for more details and report this issue.")],
-            completion_funcs_with_result=[self.add_dict_to_dropdown]
+            completion_funcs_with_result=[self.add_dict_to_dropdown],
+            ignore_messages=ignore_messages
         )
 
     def fetch_firmware_keys_dict(self):

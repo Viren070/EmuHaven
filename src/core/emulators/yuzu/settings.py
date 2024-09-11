@@ -1,9 +1,10 @@
 import platform
 from pathlib import Path
-
+from core.utils.logger import Logger
 
 class YuzuSettings:
     def __init__(self):
+        self.logger = Logger(__name__).get_logger()
         self.config = {
             "install_directory": self.get_default_install_directory(),
             "portable_mode": False,
@@ -21,6 +22,7 @@ class YuzuSettings:
         return Path()
 
     def _set_property(self, property_name, value):
+        self.logger.debug(f"Setting {property_name} to {value}")
         self.config[property_name] = value
 
     def _get_property(self, property_name):

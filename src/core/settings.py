@@ -137,7 +137,7 @@ class Settings:
                 "portable_mode": self.dolphin.portable_mode,
                 "sync_user_data": self.dolphin.sync_user_data,
                 "game_directory": str(self.dolphin.game_directory.resolve()),
-                "current_channel": self.dolphin.release_channel,
+                "release_channel": self.dolphin.release_channel,
                 "last_used_data_path": str(self.dolphin.last_used_data_path)
             },
             "yuzu_settings": {
@@ -170,14 +170,15 @@ class Settings:
         }
         with open(self.settings_file, "w", encoding="utf-8") as f:
             json.dump(settings, f, indent=4)
+        self.logger.info("Settings saved")
 
     def _set_property(self, property_name, value):
         if property_name == "colour_theme_path":
             from core.assets import Assets
-            if Assets.is_theme_valid(theme=value):
-                pass
-            else:
+            if not Assets.is_theme_valid(theme=value):
+                self.logger.error(f"Invalid theme receieved and resetting to default: {value}")
                 value = self.default_settings[property_name]
+        self.logger.debug(f"Setting {property_name} to {value}")
         self._settings[property_name] = value
 
     def _get_property(self, property_name):

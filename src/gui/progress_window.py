@@ -9,6 +9,7 @@ class ProgressWindow(customtkinter.CTkToplevel):
         self.grid_columnconfigure(0, weight=1)
         self._progress_frame = ProgressFrame(self, handler)
         self._progress_frame.grid(row=0, column=0, sticky="ew")
+        self.resizable(False, False)
         self.withdraw()
         self.protocol("WM_DELETE_WINDOW", self.on_close)
         
@@ -17,6 +18,7 @@ class ProgressWindow(customtkinter.CTkToplevel):
 
     def set_title(self, title):
         self._progress_frame.operation_title.configure(text=title)
+        self.title(title)
 
     def update_progress(self, units_complete, total_units, measurement_unit):
         self._progress_frame.update_progress(units_complete, total_units, measurement_unit)

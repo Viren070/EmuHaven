@@ -150,7 +150,8 @@ class MySwitchGamesFrame(GameListFrame):
         button.configure(image=self.assets.create_image(image, (224, 224)))
         
     def get_title_meta_from_id(self, title_id):
-        self.assert_titledb()
+        if not self.titledb:
+            self.assert_titledb()
         return self.titledb.get(str(title_id))
 
     def assert_titledb(self):
@@ -165,7 +166,7 @@ class MySwitchGamesFrame(GameListFrame):
                 except json.JSONDecodeError:
                     self.start_titledb_download_event()
 
-    def start_titledb_download_event(self):
+    def start_titledb_download_event(self, ):
         if self.fetching_titledb:
             return
         self.fetching_titledb = True

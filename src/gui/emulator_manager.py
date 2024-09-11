@@ -38,6 +38,8 @@ class EmulatorManager(customtkinter.CTk):
         self.just_opened = False
         self.select_frame_by_name(opening_menu)
         self.protocol("WM_DELETE_WINDOW", self.close_app)
+        self.after(200, self.check_currentdir_permissions)
+        self.after(400, self.check_for_updates)
 
     def check_currentdir_permissions(self):
         self.logger.info("Checking current directory permissions")
@@ -204,24 +206,28 @@ class EmulatorManager(customtkinter.CTk):
             self.settings_frame.select_settings_frame_by_name(None)
 
         if name == "dolphin":
+            self.dolphin_frame.manage_games_frame.current_roms_frame.get_game_list_button_event(ignore_messages=True)
             self.dolphin_frame.grid(row=0, column=1, sticky="nsew")
             self.dolphin_frame.select_frame_by_name("start")
         else:
             self.dolphin_frame.grid_forget()
             self.dolphin_frame.select_frame_by_name(None)
         if name == "yuzu":
+            self.yuzu_frame.firmware_keys_frame.request_fetch()
             self.yuzu_frame.grid(row=0, column=1, sticky="nsew")
             self.yuzu_frame.select_frame_by_name("start")
         else:
             self.yuzu_frame.grid_forget()
             self.yuzu_frame.select_frame_by_name(None)
         if name == "ryujinx":
+            self.ryujinx_frame.firmware_keys_frame.request_fetch()
             self.ryujinx_frame.grid(row=0, column=1, sticky="nsew")
             self.ryujinx_frame.select_frame_by_name("start")
         else:
             self.ryujinx_frame.grid_forget()
             self.ryujinx_frame.select_frame_by_name(None)
         if name == "xenia":
+            self.xenia_frame.manage_games_frame.current_roms_frame.get_game_list_button_event(ignore_messages=True)
             self.xenia_frame.grid(row=0, column=1, sticky="nsew")
             self.xenia_frame.select_frame_by_name("start")
         else:

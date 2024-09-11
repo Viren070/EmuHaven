@@ -6,6 +6,7 @@ import customtkinter
 from core import constants
 from core.utils.myrient import get_list_of_games
 from core.utils.thread_event_manager import ThreadEventManager
+from core.utils.logger import Logger
 from gui.libs import messagebox
 
 
@@ -14,6 +15,7 @@ from gui.libs import messagebox
 class GameListFrame(customtkinter.CTkFrame):
     def __init__(self, master, event_manager: ThreadEventManager):
         super().__init__(master, height=700)
+        self.logger = Logger(__name__).get_logger()
         self.update_in_progress = False
         self.event_manager = event_manager
         self.total_pages = 0
@@ -30,7 +32,7 @@ class GameListFrame(customtkinter.CTkFrame):
         self.prev_button.configure(state=state)
         self.next_button.configure(state=state)
 
-    def get_game_list_button_event(self, *args):
+    def get_game_list_button_event(self, *args, ignore_messages=True):
         self.configure_widgets(fetch_button_text="Fetching...")
         self.event_manager.add_event(
             event_id="get_games",
@@ -38,7 +40,8 @@ class GameListFrame(customtkinter.CTkFrame):
             kwargs={},
             completion_functions=[lambda: self.configure_widgets(state="normal")],
             completion_funcs_with_result=[self.process_game_list],
-            error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Error", "Failed to fetch games.")]
+            error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Error", "Failed to fetch games.")],
+            ignore_messages=ignore_messages
         )
         
     def get_game_list(self):
@@ -51,11 +54,13 @@ class GameListFrame(customtkinter.CTkFrame):
         }
         
     def process_game_list(self, game_list):
+        self.logger.debug(f"Processing received game list of length {len(game_list)}")
         self.game_list = game_list
         self.searched_games = game_list
         self.total_pages = (len(game_list) + constants.App.RESULTS_PER_GAME_PAGE.value - 1) // constants.App.RESULTS_PER_GAME_PAGE.value
         self.total_pages_label.configure(text=f"/ {self.total_pages}")
         self.update_results()
+        self.logger.debug("Game list processed")
 
     def build_frame(self):
         # Create a search bar
@@ -67,7 +72,7 @@ class GameListFrame(customtkinter.CTkFrame):
         search_frame = customtkinter.CTkFrame(self, corner_radius=50)
         search_frame.grid(row=0, column=0, pady=(10, 0), padx=10, sticky="ne")
 
-        self.search_entry = customtkinter.CTkEntry(search_frame, state="disabled", placeholder_text="Search")
+        self.search_entry = customtkinter.CTkEntry(search_frame, state  ="disabled", placeholder_text="Search")
         self.search_entry.grid(row=0, column=0, padx=10, pady=10, sticky="e")
         self.search_entry.bind("<Return>", self.perform_search)
         self.search_button = customtkinter.CTkButton(search_frame, state="disabled", text="Go", width=60, command=self.perform_search)
@@ -149,7 +154,6 @@ class GameListFrame(customtkinter.CTkFrame):
                 break
             if i < start_index:
                 continue
-
             self.add_game_to_frame(game, row_counter)
             row_counter += 2
         

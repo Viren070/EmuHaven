@@ -6,6 +6,7 @@ from core.utils.myrient import get_game_download_url, get_list_of_games
 from gui.frames.game_list_frame import GameListFrame
 from gui.libs import messagebox
 from urllib.parse import unquote
+from core.utils.logger import Logger
 
 class MyrientGameListFrame(GameListFrame):
     def __init__(self, master, event_manager, cache, myrient_path, console_name, download_button_event):
@@ -14,10 +15,12 @@ class MyrientGameListFrame(GameListFrame):
         self.cache = cache
         self.download_button_event = download_button_event
         super().__init__(master=master, event_manager=event_manager)
-       
+        self.logger = Logger(__name__).get_logger()
+        
     def get_game_list(self):
         cache_lookup_result = self.cache.get_json_data_from_cache(f"{self.console_name}_games")
         if cache_lookup_result:
+            self.logger.info("game list cache hit")
             game_list = cache_lookup_result["data"]
             return {
                 "result": (game_list, ),
@@ -26,7 +29,7 @@ class MyrientGameListFrame(GameListFrame):
                     "arguments": (self.winfo_toplevel(), "Success", "Successfully retrieved games from cache.")
                 }
             }
-
+        self.logger.info("game list cache miss")
         scrape_result = get_list_of_games(myrient_path=self.myrient_path)
         if not scrape_result["status"]:
             return {
@@ -36,8 +39,9 @@ class MyrientGameListFrame(GameListFrame):
                     "arguments": (self.winfo_toplevel(), "Error", "Failed to fetch games.")
                 }
             }
-
+        self.logger.info("adding to cache")
         self.cache.add_json_data_to_cache(f"{self.console_name}_games", scrape_result["games"])
+        self.logger.info("added to cache")
         return {
             "result": (scrape_result["games"],),
             "message": {

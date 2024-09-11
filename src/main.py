@@ -57,8 +57,5 @@ if __name__ == "__main__":
             assets=assets
         )
         
-        logger.info("GUI built in %s seconds", round(time.time() - time_start, 2))
-        logger.info("Running the GUI")
-        app.after(200, app.check_currentdir_permissions)
-        app.after(400, app.check_for_updates)
+        logger.info("Starting app, took %s seconds to build", round(time.time() - time_start, 2))
         app.mainloop()

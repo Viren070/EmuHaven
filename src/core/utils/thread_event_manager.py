@@ -12,7 +12,7 @@ class ThreadEventManager:
         self.window = window
         self.result_queue = queue.Queue()
 
-    def add_event(self, event_id, func, kwargs=None, completion_functions=None, error_functions=None, completion_funcs_with_result=None):
+    def add_event(self, event_id, func, kwargs=None, completion_functions=None, error_functions=None, completion_funcs_with_result=None, ignore_messages=False):
         event = {
             "id": event_id,
             "function": func,
@@ -20,6 +20,7 @@ class ThreadEventManager:
             "completion_functions": completion_functions if completion_functions else [],
             "completion_func_with_result": completion_funcs_with_result if completion_funcs_with_result else [],
             "error_functions": error_functions if error_functions else [],
+            "ignore_messages": ignore_messages,
             "output_queue": queue.Queue(),
             "error_during_run": False
         }
@@ -40,7 +41,7 @@ class ThreadEventManager:
             event["error_during_run"] = True
             output = None
 
-        self.logger.info(f"Event {event["id"]} completed")
+        self.logger.info(f"Event completed: {event["id"]}")
         if output is None:
             output = {}
         
@@ -51,6 +52,7 @@ class ThreadEventManager:
 
     def _main_thread_loop(self, event):
         if not event["output_queue"].empty():
+            self.logger.info(f"Processing output for event: {event["id"]}")
             output = event["output_queue"].get()
             self._process_output(output, event)
             return
@@ -59,16 +61,15 @@ class ThreadEventManager:
     def _process_output(self, output, event):
         # Assuming result is a dictionary with keys "message_func" and "message_args"
         # where both can be None for no message
-        self.logger.info(f"Processing output for event {event["id"]}")
         message = output.get("message")
         result = output.get("result")
 
         # if there was an unhandled error during the event, run the error functions if provided
-        if event["error_during_run"] and event["error_functions"]:
+        if event["error_during_run"] and event["error_functions"] and not event["ignore_messages"]:
             for error_func in event["error_functions"]:
                 error_func()
                 
-        if message:
+        if message and not event["ignore_messages"]:
             message["function"](*message["arguments"])
             
         # if a completion function with result was provided, run it 
@@ -84,5 +85,5 @@ class ThreadEventManager:
 
         # Remove the event from the list of events
         self.events.remove(event)
-
+        self.logger.info(f"{event["id"]} event result processed and removed from event list")
 

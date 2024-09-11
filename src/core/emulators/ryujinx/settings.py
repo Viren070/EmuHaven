@@ -19,13 +19,12 @@ class RyujinxSettings:
         
         system = platform.system().lower()
         if system == "windows":
-            # ~/AppData/Roaming/Ryujinx
-            self.logger.debug("Setting default install directory for Windows")
             return Path.home() / "AppData" / "Local" / "Ryujinx"
 
         return None
 
     def _set_property(self, property_name, value):
+        self.logger.debug(f"Setting {property_name} to {value}")
         self.config[property_name] = value
 
     def _get_property(self, property_name):

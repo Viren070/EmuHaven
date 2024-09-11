@@ -33,7 +33,7 @@ class Cache:
     def create_index_file(self):
         self.index_file.parent.mkdir(exist_ok=True)
         with open(self.index_file, "w", encoding="utf-8") as file:
-            json.dump({"cache_version": self.current_cache_version}, file, indent=4)
+            json.dump({"cache_version": self.current_cache_version}, file)
 
     def get_data_from_cache(self, key):
         if not self.is_index_file_valid():
@@ -62,7 +62,7 @@ class Cache:
         }
         try:
             with open(self.index_file, "w", encoding="utf-8") as file:
-                json.dump(index, file, indent=4)
+                json.dump(index, file)
         except Exception as error:
             return {
                 "status": False,
@@ -83,7 +83,7 @@ class Cache:
                 os.remove(index[key]["data"])
             del index[key]
         with open(self.index_file, "w", encoding="utf-8") as file:
-            json.dump(index, file, indent=4)
+            json.dump(index, file)
 
     def add_json_data_to_cache(self, key, data):
         if not self.is_index_file_valid():
@@ -93,7 +93,7 @@ class Cache:
         os.makedirs(os.path.dirname(path), exist_ok=True)
         # write the data to the file
         with open(path, "w", encoding="utf-8") as file:
-            json.dump(data, file, indent=4)
+            json.dump(data, file)
         # add the path to the index file
         self.add_to_index(key, path)
 
