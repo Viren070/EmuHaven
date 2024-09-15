@@ -6,11 +6,11 @@ import time
 from pathlib import Path
 from zipfile import ZipFile
 
-from core import constants
-from core.utils.logger import Logger
+from core.config import constants
+from core.logging.logger import Logger
 from core.utils.files import extract_zip_archive_with_progress, copy_directory_with_progress
-from core.utils.github import get_latest_release_with_asset
-from core.utils.web import download_file_with_progress
+from core.network.github import get_latest_release_with_asset
+from core.network.web import download_file_with_progress
 
 
 class Xenia:

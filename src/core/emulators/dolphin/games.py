@@ -1,5 +1,5 @@
-from core.utils.myrient import get_list_of_games
-from core.constants import Dolphin
+from core.network.myrient import get_list_of_games
+from core.config.constants import Dolphin
 
 class DolphinGames:
     def __init__(self, settings):

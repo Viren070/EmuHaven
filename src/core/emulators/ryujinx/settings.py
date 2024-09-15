@@ -1,7 +1,7 @@
 import platform
 from pathlib import Path
 
-from core.utils.logger import Logger
+from core.logging.logger import Logger
 
 
 class RyujinxSettings:

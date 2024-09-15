@@ -4,8 +4,8 @@ from pathlib import Path
 import customtkinter
 from PIL import Image
 
-from core import constants
-from core.paths import Paths
+from core.config import constants
+from core.config.paths import Paths
 
 
 class Assets:

@@ -1,6 +1,6 @@
 import json
 
-from core.paths import Paths
+from core.config.paths import Paths
 
 
 class Versions:

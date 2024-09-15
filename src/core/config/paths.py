@@ -2,7 +2,7 @@ from pathlib import Path
 
 import platformdirs
 
-from core import constants
+from core.config import constants
 
 
 class Paths:
@@ -17,7 +17,7 @@ class Paths:
             else Path.cwd() / "portable"
         )
         self.cache_dir = self.app_dir / "cache"
-        self.asset_dir = Path(__file__).resolve().parent.parent / "assets"
+        self.asset_dir = Path(__file__).resolve().parent.parent.parent / "assets"
         self.versions_file = self.app_dir / "versions.json"
         self.settings_file = self.app_dir / "settings.json"
 

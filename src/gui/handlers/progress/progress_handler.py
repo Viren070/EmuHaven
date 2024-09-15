@@ -10,9 +10,9 @@ We need to create the progress bar class.
 import queue
 from time import perf_counter
 
-from core.utils.logger import Logger
-from gui.progress_frame import ProgressFrame
-from gui.progress_window import ProgressWindow
+from core.logging.logger import Logger
+from gui.handlers.progress.progress_frame import ProgressFrame
+from gui.handlers.progress.progress_window import ProgressWindow
 
 
 class ProgressHandler:

@@ -5,7 +5,7 @@ from threading import Thread
 
 import customtkinter
 
-from core.utils.github import (is_token_valid, request_device_code,
+from core.network.github import (is_token_valid, request_device_code,
                                request_token)
 from gui.libs import messagebox
 

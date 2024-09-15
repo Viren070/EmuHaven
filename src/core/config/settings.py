@@ -5,16 +5,19 @@ from core.emulators.dolphin.settings import DolphinSettings
 from core.emulators.ryujinx.settings import RyujinxSettings
 from core.emulators.xenia.settings import XeniaSettings
 from core.emulators.yuzu.settings import YuzuSettings
-from core.paths import Paths
-from core.utils.logger import Logger
+from core.config.assets import Assets
+from core.config.paths import Paths
+from core.logging.logger import Logger
 
 
 class Settings:
     def __init__(self, paths: Paths):
         self.logger = Logger(__name__).get_logger()
+        self.paths = paths
+        self.assets = Assets(paths)
         self.default_settings = {
             "dark_mode": True,
-            "colour_theme_path": Path("blue"),
+            "colour_theme_path": self.assets.get_theme_path("blue"),
             "delete_files_after_installing": True,
             "auto_app_updates": True,
             "auto_emulator_updates": True,
@@ -23,7 +26,7 @@ class Settings:
             "token": ""
 
         }
-        self.paths = paths
+        
         self.settings_file = self.paths.settings_file
 
         self._settings = self.default_settings.copy()
@@ -174,8 +177,7 @@ class Settings:
 
     def _set_property(self, property_name, value):
         if property_name == "colour_theme_path":
-            from core.assets import Assets
-            if not Assets.is_theme_valid(theme=value):
+            if not self.assets.is_theme_valid(theme=value):
                 self.logger.error(f"Invalid theme receieved and resetting to default: {value}")
                 value = self.default_settings[property_name]
         self.logger.debug(f"Setting {property_name} to {value}")

@@ -1,8 +1,8 @@
 import re
 
-from core.constants import GitHub, GitHubOAuth, Requests
-from core.utils import web
-from core.utils.logger import Logger
+from core.config.constants import GitHub, GitHubOAuth, Requests
+from core.network import web
+from core.logging.logger import Logger
 
 logger = Logger(__name__).get_logger()
 

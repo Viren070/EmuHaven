@@ -5,8 +5,8 @@ import requests
 from bs4 import BeautifulSoup
 from requests import RequestException
 
-from core import constants
-from core.utils.logger import Logger
+from core.config import constants
+from core.logging.logger import Logger
 from core.utils.progress_handler import ProgressHandler
 
 logger = Logger(__name__).get_logger()

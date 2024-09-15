@@ -1,7 +1,7 @@
 from pathlib import Path
 import platform
 
-from core.utils.logger import Logger
+from core.logging.logger import Logger
 
 
 class XeniaSettings:

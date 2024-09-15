@@ -34,8 +34,8 @@ jobs:
       - name: Build distributables
         run: |
             pyinstaller --noconfirm --onedir --console --name "EmuHaven" --clean --add-data "${{ env.Python_ROOT_DIR }}/Lib/site-packages/customtkinter;customtkinter/" --add-data "src/assets;assets/"  src/main.py
-    
-      - name: Compress onedir
+
+      - name: Create release
         run: |
           Compress-Archive -Path "dist/EmuHaven/*" -DestinationPath "dist/EmuHaven-${{ github.event_name == 'push' && github.ref_name || github.event.inputs.tag }}-win_x64.zip"
 

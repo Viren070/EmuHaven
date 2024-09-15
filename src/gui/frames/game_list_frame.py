@@ -3,10 +3,10 @@ from threading import Thread
 
 import customtkinter
 
-from core import constants
-from core.utils.myrient import get_list_of_games
-from core.utils.thread_event_manager import ThreadEventManager
-from core.utils.logger import Logger
+from core.config import constants
+from core.network.myrient import get_list_of_games
+from gui.handlers.thread_event_manager import ThreadEventManager
+from core.logging.logger import Logger
 from gui.libs import messagebox
 
 

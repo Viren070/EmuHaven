@@ -5,7 +5,7 @@ from tkinter import filedialog
 from customtkinter import (BooleanVar, CTkButton, CTkEntry, CTkFont, CTkFrame,
                            CTkLabel, CTkOptionMenu, CTkSwitch, StringVar)
 
-from core.utils.logger import Logger
+from core.logging.logger import Logger
 from gui.libs import messagebox
 from gui.libs.CTkScrollableDropdown import CTkScrollableDropdown
 

@@ -6,9 +6,9 @@ from tkinter import filedialog
 import customtkinter
 from CTkToolTip import CTkToolTip
 
-from core import constants
-from core.utils.github import get_rate_limit_status
-from core.utils.thread_event_manager import ThreadEventManager
+from core.config import constants
+from core.network.github import get_rate_limit_status
+from gui.handlers.thread_event_manager import ThreadEventManager
 from gui.frames.settings.setting_modal import SettingModal
 from gui.libs import messagebox
 from gui.windows.github_login_window import GitHubLoginWindow

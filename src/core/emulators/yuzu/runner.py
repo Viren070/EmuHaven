@@ -4,11 +4,11 @@ import subprocess
 from pathlib import Path
 from zipfile import ZipFile
 
-from core import constants
+from core.config import constants
 from core.emulators.switch_emulator import SwitchEmulator
 from core.utils.files import (copy_directory_with_progress,
                               extract_zip_archive_with_progress)
-from core.utils.logger import Logger
+from core.logging.logger import Logger
 
 
 class Yuzu(SwitchEmulator):

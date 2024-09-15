@@ -4,7 +4,7 @@ import shutil
 import time
 from pathlib import Path
 
-from core.paths import Paths
+from core.config.paths import Paths
 
 
 class Cache:

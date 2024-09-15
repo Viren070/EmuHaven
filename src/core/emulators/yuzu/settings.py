@@ -1,6 +1,6 @@
 import platform
 from pathlib import Path
-from core.utils.logger import Logger
+from core.logging.logger import Logger
 
 class YuzuSettings:
     def __init__(self):

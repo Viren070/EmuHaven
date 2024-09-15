@@ -1,5 +1,5 @@
-from core.constants import Myrient
-from core.utils.web import get_all_files_from_page
+from core.config.constants import Myrient
+from core.network.web import get_all_files_from_page
 from urllib.parse import quote, unquote
 
 def get_list_of_games(myrient_path):

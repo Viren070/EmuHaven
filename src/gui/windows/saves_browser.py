@@ -4,9 +4,9 @@ from urllib.parse import unquote
 
 import customtkinter
 
-from core import constants
-from core.utils.web import download_file_with_progress
-from gui.progress_handler import ProgressHandler
+from core.config import constants
+from core.network.web import download_file_with_progress
+from gui.handlers.progress.progress_handler import ProgressHandler
 from gui.libs import messagebox
 
 

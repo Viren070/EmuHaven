@@ -2,7 +2,7 @@ import queue
 import threading
 import traceback
 
-from core.utils.logger import Logger
+from core.logging.logger import Logger
 
 
 class ThreadEventManager:

@@ -3,10 +3,10 @@ from pathlib import Path
 
 import customtkinter
 
-from core.utils.web import download_file
+from core.network.web import download_file
 from gui.frames.game_list_frame import GameListFrame
 from gui.libs import messagebox
-from gui.progress_handler import ProgressHandler
+from gui.handlers.progress.progress_handler import ProgressHandler
 from gui.windows.saves_browser import SavesBrowser
 
 class MySwitchGamesFrame(GameListFrame):
@@ -159,17 +159,29 @@ class MySwitchGamesFrame(GameListFrame):
         if not cache_query:
             self.start_titledb_download_event()
         elif not self.titledb:
-            titledb_path = cache_query["data"]
-            with open(titledb_path, "r", encoding="utf-8") as f:
-                try:
-                    self.titledb = json.load(f)
-                except json.JSONDecodeError:
+            self.event_manager.add_event(
+                event_id="load_titledb",
+                func=self.load_titledb,
+                kwargs={"path": cache_query["data"], "refetch_on_error": True},
+                error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Error", "An error occurred while attempting to load the TitleDB.")],
+            )
+
+    def load_titledb(self, path, refetch_on_error=True):
+        with open(path, "r", encoding="utf-8") as f:
+            try:
+                self.titledb = json.load(f)
+                return {}
+            except json.JSONDecodeError as error:
+                if refetch_on_error:
                     self.start_titledb_download_event()
+                else:
+                    raise error
 
     def start_titledb_download_event(self, ):
         if self.fetching_titledb:
             return
         self.fetching_titledb = True
+        messagebox.showinfo(self.winfo_toplevel(), "Downloading TitleDB", "The TitleDB is being downloaded or updated. This may take a few minutes.")
         self.event_manager.add_event(
             event_id="fetch_titledb",
             func=self.download_titledb,
@@ -213,8 +225,8 @@ class MySwitchGamesFrame(GameListFrame):
             }
 
         titledb_path = cache_lookup_result["data"]
-        with open(titledb_path, "r", encoding="utf-8") as f:
-            self.titledb = json.load(f)
+
+        self.load_titledb(titledb_path, refetch_on_error=False)
 
         self.fetching_titledb = False
         return {

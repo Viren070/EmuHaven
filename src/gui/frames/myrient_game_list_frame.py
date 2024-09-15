@@ -2,11 +2,11 @@ import webbrowser
 
 import customtkinter
 
-from core.utils.myrient import get_game_download_url, get_list_of_games
+from core.network.myrient import get_game_download_url, get_list_of_games
 from gui.frames.game_list_frame import GameListFrame
 from gui.libs import messagebox
 from urllib.parse import unquote
-from core.utils.logger import Logger
+from core.logging.logger import Logger
 
 class MyrientGameListFrame(GameListFrame):
     def __init__(self, master, event_manager, cache, myrient_path, console_name, download_button_event):

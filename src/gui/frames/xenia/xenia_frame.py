@@ -1,13 +1,13 @@
 import customtkinter
 from CTkToolTip import CTkToolTip
 
-from core import constants
+from core.config import constants
 from core.emulators.xenia.runner import Xenia
-from core.utils.thread_event_manager import ThreadEventManager
+from gui.handlers.thread_event_manager import ThreadEventManager
 from gui.frames.emulator_frame import EmulatorFrame
 from gui.frames.xenia.xenia_games_frame import XeniaGamesFrame
 from gui.libs import messagebox
-from gui.progress_handler import ProgressHandler
+from gui.handlers.progress.progress_handler import ProgressHandler
 from gui.windows.folder_selector import FolderSelector
 from gui.windows.path_dialog import PathDialog
 

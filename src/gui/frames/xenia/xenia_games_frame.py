@@ -3,13 +3,13 @@ from zipfile import ZipFile
 
 import customtkinter
 
-from core import constants
+from core.config import constants
 from core.utils.files import extract_zip_archive_with_progress
-from core.utils.myrient import get_game_download_url
-from core.utils.web import download_file_with_progress
+from core.network.myrient import get_game_download_url
+from core.network.web import download_file_with_progress
 from gui.frames.my_games_frame import MyGamesFrame
 from gui.frames.myrient_game_list_frame import MyrientGameListFrame
-from gui.progress_handler import ProgressHandler
+from gui.handlers.progress.progress_handler import ProgressHandler
 from gui.libs import messagebox
 
 class XeniaGamesFrame(customtkinter.CTkTabview):

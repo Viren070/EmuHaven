@@ -9,15 +9,15 @@ import customtkinter
 from customtkinter import ThemeManager
 from packaging import version
 
-from core import constants
-from core.assets import Assets
-from core.cache import Cache
-from core.paths import Paths
-from core.settings import Settings
-from core.utils.logger import Logger
-from core.utils.thread_event_manager import ThreadEventManager
-from core.utils.github import get_latest_release_with_asset
-from core.versions import Versions
+from core.config import constants
+from core.config.assets import Assets
+from core.config.cache import Cache
+from core.config.paths import Paths
+from core.config.settings import Settings
+from core.logging.logger import Logger
+from gui.handlers.thread_event_manager import ThreadEventManager
+from core.network.github import get_latest_release_with_asset
+from core.config.versions import Versions
 from gui.frames.dolphin.dolphin_frame import DolphinFrame
 from gui.frames.ryujinx.ryujinx_frame import RyujinxFrame
 from gui.frames.settings.settings_frame import SettingsFrame

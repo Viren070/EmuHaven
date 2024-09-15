@@ -4,10 +4,10 @@ from pathlib import Path
 
 from packaging import version
 
-from core import constants
-from core.utils.github import get_all_releases, get_file_list
+from core.config import constants
+from core.network.github import get_all_releases, get_file_list
 from core.utils.progress_handler import ProgressHandler
-from core.utils.web import download_file_with_progress
+from core.network.web import download_file_with_progress
 
 
 class SwitchEmulator:

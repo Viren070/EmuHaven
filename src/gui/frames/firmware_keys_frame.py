@@ -2,7 +2,7 @@ import time
 
 import customtkinter
 
-from core.utils.thread_event_manager import ThreadEventManager
+from gui.handlers.thread_event_manager import ThreadEventManager
 from gui.libs import messagebox
 from gui.libs.CTkScrollableDropdown import CTkScrollableDropdown
 from gui.windows.path_dialog import PathDialog

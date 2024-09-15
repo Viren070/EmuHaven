@@ -3,12 +3,12 @@ import time
 
 import customtkinter
 
-from core.assets import Assets
-from core.cache import Cache
-from core.paths import Paths
-from core.settings import Settings
-from core.utils.logger import Logger
-from core.versions import Versions
+from core.config.assets import Assets
+from core.config.cache import Cache
+from core.config.paths import Paths
+from core.config.settings import Settings
+from core.logging.logger import Logger
+from core.config.versions import Versions
 
 logger = Logger(__name__).get_logger()
 
