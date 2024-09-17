@@ -11,7 +11,7 @@ class ThreadEventManager:
         self.events = []
         self.window = window
         self.result_queue = queue.Queue()
-        
+
     def is_event_running(self, event_id):
         for event in self.events:
             if event["id"] == event_id:
@@ -50,7 +50,7 @@ class ThreadEventManager:
         self.logger.info(f"Event completed: {event["id"]}")
         if output is None:
             output = {}
-        
+
         if not output:
             self.logger.warning(f"Event {event["id"]} returned no result")
 
@@ -74,15 +74,15 @@ class ThreadEventManager:
         if event["error_during_run"] and event["error_functions"] and not event["ignore_messages"]:
             for error_func in event["error_functions"]:
                 error_func()
-                
+
         if message and not event["ignore_messages"]:
             message["function"](*message["arguments"])
-            
+
         # run the completion functions
         for completion_func in event["completion_functions"]:
             completion_func()
-            
-        # if a completion function with result was provided, run it 
+
+        # if a completion function with result was provided, run it
         # and pass the result of the event to it
         # only if there was no error during the event
         if event["completion_func_with_result"] and not event["error_during_run"]:
@@ -92,4 +92,3 @@ class ThreadEventManager:
         # Remove the event from the list of events
         self.events.remove(event)
         self.logger.info(f"{event["id"]} event result processed and removed from event list")
-

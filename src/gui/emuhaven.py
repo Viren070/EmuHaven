@@ -23,10 +23,10 @@ from gui.frames.ryujinx.ryujinx_frame import RyujinxFrame
 from gui.frames.settings.settings_frame import SettingsFrame
 from gui.frames.xenia.xenia_frame import XeniaFrame
 from gui.frames.yuzu.yuzu_frame import YuzuFrame
-from gui.libs import messagebox
+from gui.libs.CTkMessagebox import messagebox
 
 
-class EmulatorManager(customtkinter.CTk):
+class EmuHaven(customtkinter.CTk):
     def __init__(self, paths: Paths, settings: Settings, versions: Versions, cache: Cache, assets: Assets, opening_menu=""):
         self.just_opened = True
         self.logger = Logger(__name__).get_logger()
@@ -50,26 +50,26 @@ class EmulatorManager(customtkinter.CTk):
             test.unlink(missing_ok=True)
             self.logger.info("Current directory is writable")
         except PermissionError:
-            messagebox.showwarning(self, "Warning", "You do not have permission to write to the current directory. Please run the application as an administrator or move the application to a directory where you have write permissions.")
-            #sys.exit(1)
-            
+            messagebox.showerror(self, "Warning", "You do not have permission to write to the current directory. Please run the application as an administrator or move the application to a directory where you have write permissions.")
+            self.destroy()
+
     def check_for_updates(self):
         # check if application is in executable mode or not
         if getattr(sys, "frozen", False) is False:
-            pass
-            #return
+            return
         if self.settings.auto_app_updates is False:
             return
         latest_release = get_latest_release_with_asset(
             repo_owner=constants.App.GH_OWNER.value,
             repo_name=constants.App.GH_REPO.value,
-            regex=constants.App.GH_ASSET_REGEX.value
+            regex=constants.App.GH_ASSET_REGEX.value,
+            include_prereleases=True,
         )
 
         if not latest_release["status"]:
             self.logger.error(f"Failed to get the latest release: {latest_release["message"]}")
             messagebox.showerror(self, "Error", f"Failed to get the latest release: {latest_release["message"]}")
-            return 
+            return
 
         current_version = self.version
         latest_version = version.parse(latest_release["release"]["version"])
@@ -95,7 +95,7 @@ class EmulatorManager(customtkinter.CTk):
         self.navigation_frame.grid(row=0, column=0, sticky="nsew")
         self.navigation_frame.grid_rowconfigure(1, weight=1)
         self.navigation_frame.grid_columnconfigure(0, weight=1)
-        
+
         # Create navigation frame title.
         self.navigation_frame_label = customtkinter.CTkLabel(self.navigation_frame, text=f"{constants.App.NAME.value} v{self.version.public}",
                                                              compound="left", padx=5, font=customtkinter.CTkFont(size=12, weight="bold"))
@@ -133,10 +133,10 @@ class EmulatorManager(customtkinter.CTk):
         socials_frame = customtkinter.CTkFrame(self.navigation_frame, corner_radius=0, border_width=0, fg_color="transparent")
         socials_frame.grid(row=2, column=0, padx=5, pady=10)
         socials_frame.grid_columnconfigure(0, weight=1)
-    
+
         icon_frame = customtkinter.CTkFrame(socials_frame, corner_radius=0, border_width=0, fg_color="transparent")
         icon_frame.grid(row=0, column=0, padx=10, pady=5)
-        
+
         github_button = customtkinter.CTkLabel(icon_frame, height=0, width=0, text="", image=self.assets.github_icon, )
         github_button.grid(row=0, column=0, padx=4, pady=0)
         github_button.bind("<Button-1>", lambda event: self.show_github())
@@ -144,7 +144,7 @@ class EmulatorManager(customtkinter.CTk):
         discord_button = customtkinter.CTkLabel(icon_frame, height=0, width=0, text="", image=self.assets.discord_icon)
         discord_button.grid(row=0, column=1, padx=10, pady=0)
         discord_button.bind("<Button-1>", lambda event: self.show_discord_invite())
-        
+
         kofi_button = customtkinter.CTkLabel(socials_frame, height=0, width=0, text="", image=self.assets.kofi_button)
         kofi_button.grid(row=1, column=0, padx=10, pady=10)
         kofi_button.bind("<Button-1>", lambda event: self.show_kofi_page())
@@ -164,11 +164,11 @@ class EmulatorManager(customtkinter.CTk):
     def show_github(self):
         if messagebox.askyesno(self, "GitHub", f"Would you like to visit the {constants.App.NAME.value} GitHub repository?\n\nBy visiting the GitHub repository, you can get the latest updates and features.\nYou can also leave a star to support me") == "yes":
             webbrowser.open(constants.App.GITHUB.value)
-    
+
     def show_discord_invite(self):
         if messagebox.askyesno(self, "Discord Invite", f"Would you like to join the {constants.App.NAME.value} Discord server?\n\nBy joining the discord server, you can get help with any issues you may have, as well as get notified of new releases and features") == "yes":
             webbrowser.open(constants.App.DISCORD.value)
-        
+
     def show_kofi_page(self):
         if messagebox.askyesno(self, "Support", f"Would you like to support the development of {constants.App.NAME.value} by donating on Ko-fi?") == "yes":
             webbrowser.open(constants.App.KOFI.value)

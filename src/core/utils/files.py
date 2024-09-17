@@ -6,7 +6,7 @@ from core.utils.progress_handler import ProgressHandler
 
 def copy_directory_with_progress(source_dir, target_dir, progress_handler=None, exclude=None, include=None):
     if progress_handler is None:
-        progress_handler = ProgressHandler()    
+        progress_handler = ProgressHandler()
     if not source_dir.exists() or not source_dir.is_dir():
         progress_handler.report_error(f"Path does not exist or is not a directory: {source_dir}")
         return {"status": False, "message": f"Path does not exist or is not a directory: {source_dir}"}
@@ -55,6 +55,7 @@ def copy_directory_with_progress(source_dir, target_dir, progress_handler=None, 
         "message": "Files copied successfully",
     }
 
+
 def extract_zip_archive_with_progress(zip_path, extract_directory, progress_handler):
     extracted_files = []
     if progress_handler is None:
@@ -78,7 +79,7 @@ def extract_zip_archive_with_progress(zip_path, extract_directory, progress_hand
     except Exception as error:
         progress_handler.report_error(error)
         return {"status": False, "message": error}
-    
+
     if rollback_needed:
         progress_handler.cancel()
         dirs = []

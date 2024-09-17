@@ -48,7 +48,7 @@ body:
         You can paste the error output in the console
 
   - type: input
-    id: emulator-manager-version
+    id: emuhaven-version
     attributes:
       label: EmuHaven version
       description: You can find your EmuHaven version in the top left of the screen
@@ -84,5 +84,5 @@ body:
           required: true
         - label: I have written a short but informative title.
           required: true
-        - label: I have updated the app to version **[0.14.0](https://github.com/Viren070/Emulator-Manager/releases/latest)**.
+        - label: I have updated the app to version **[0.14.0](https://github.com/Viren070/EmuHaven/releases/latest)**.
           required: true

@@ -1,11 +1,11 @@
-""" 
-This is the ProgressHandler class for the GUI 
+"""
+This is the ProgressHandler class for the GUI
 
 For the GUI, our progress handler will be a progress bar that updates as the progress is reported.
 The progress handler will have a report_progress method that will have to take the completed_data as an argument.
 The report_progress method will then update the progress bar with the new values
 
-We need to create the progress bar class. 
+We need to create the progress bar class.
 """
 import queue
 from time import perf_counter
@@ -30,8 +30,6 @@ class ProgressHandler:
         self._current_units = 0
         self._should_cancel = False
 
-
-
     def start_operation(self, title, total_units, units, status="Starting..."):
 
         self._average_speed = 0
@@ -49,14 +47,12 @@ class ProgressHandler:
         self._progress_bar.set_cancel_button_state("normal")
         self._progress_bar.show()
 
-        
     def is_total_units_set(self):
         return self._total_units > 0
 
     def set_total_units(self, total_units):
         self._total_units = total_units
         self._progress_bar.update_progress(self._current_units, total_units, self._units)
-
 
     def _process_report(self, report):
         match report["type"]:
@@ -68,7 +64,7 @@ class ProgressHandler:
                 self._handle_error_report(report)
             case "configure":
                 self._handle_configure_report(report)
-            
+
     def _handle_progress_report(self, report):
         """
         {
@@ -79,9 +75,9 @@ class ProgressHandler:
         completed_units = report["completed_units"]
         self._current_units = completed_units
         # update progress bar, percentage and progress label
-        
+
         self._progress_bar.update_progress(completed_units, self._total_units, self._units)
-        
+
         # calculate download speed
         last_speed = completed_units / (
             (perf_counter() - self._operation_start_time)
@@ -93,7 +89,7 @@ class ProgressHandler:
             (1 - self.smoothing_factor) * self._average_speed
         )
         self._progress_bar.set_speed(self._average_speed, self._units)
-        
+
         # calculate time left
         if self._average_speed != 0:
             time_left = (self._total_units - completed_units) / self._average_speed
@@ -103,39 +99,34 @@ class ProgressHandler:
         else:
             time_left_str = "00:00:00"
         self._progress_bar.set_eta(time_left_str)
-        
-    
+
     def _handle_success_report(self, report):
         self._should_cancel = True
         self.cancel()
-        
-    
+
     def _handle_error_report(self, report):
         self._should_cancel = True
         self.cancel()
 
-    
     def _handle_configure_report(self, report):
         match report["widget"]:
             case "status":
                 self._progress_bar.set_status(report["kwargs"]["text"])
             case "cancel_button":
                 self._progress_bar.set_cancel_button_state(report["kwargs"]["state"])
-            
-    
+
     def report_progress(self, completed_units):
         self._handle_progress_report({"completed_units": completed_units})
-    
+
     def report_success(self):
         self._handle_success_report({})
-        
+
     def report_error(self, error):
         self._handle_error_report({"error": error})
-        
-    
+
     def report_configure(self, widget, **kwargs):
         self.report_queue.put({"type": "configure", "widget": widget, "kwargs": kwargs})
-        
+
     def set_cancel_button_state(self, state):
         self._progress_bar.set_cancel_button_state(state)
 
@@ -148,11 +139,9 @@ class ProgressHandler:
         """
         self._should_cancel = True
         self.set_cancel_button_state("disabled")
-       
-    
+
     def cancel(self):
         """
         called by the operation
         """
         self._progress_bar.hide()
-

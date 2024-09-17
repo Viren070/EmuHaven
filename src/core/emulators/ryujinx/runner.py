@@ -21,7 +21,6 @@ class Ryujinx(SwitchEmulator):
         self.versions = versions
         self.logger = Logger(__name__).get_logger()
 
-
     def get_installed_version(self):
         return (self.versions.get_version("ryujinx") or "Unknown") if (self.settings.ryujinx.install_directory / "publish" / "Ryujinx.exe").exists() else ""
 
@@ -31,7 +30,7 @@ class Ryujinx(SwitchEmulator):
         match platform.system().lower():
             case "windows":
                 return Path.home() / "AppData" / "Roaming" / "Ryujinx"
-                
+
     def verify_ryujinx_zip(self, path_to_archive):
         try:
             with ZipFile(path_to_archive, 'r') as archive:
@@ -89,7 +88,7 @@ class Ryujinx(SwitchEmulator):
                 "status": False,
                 "message": f"Failed to delete Ryujinx due to error: {error}",
             }
-            
+
     def launch_ryujinx(self):
         ryujinx_exe = self.settings.ryujinx.install_directory / "publish" / "Ryujinx.exe"
         def ensure_user_directory():
@@ -101,7 +100,7 @@ class Ryujinx(SwitchEmulator):
                 "status": False,
                 "message": "Ryujinx executable not found",
             }
-            
+
         if self.settings.ryujinx.sync_user_data:
             last_used_data_path = Path(self.settings.ryujinx.last_used_data_path) if self.settings.ryujinx.last_used_data_path else None
             current_data_path = ensure_user_directory()
@@ -109,11 +108,12 @@ class Ryujinx(SwitchEmulator):
             if last_used_data_path is not None and last_used_data_path.exists() and last_used_data_path != current_data_path:
                 self.logger.info("Copying user directory from %s to %s", last_used_data_path, current_data_path)
                 shutil.copytree(last_used_data_path, current_data_path, dirs_exist_ok=True)
+                shutil.rmtree(last_used_data_path)
 
-        elif not self.settings.ryujinx.portable_mode and (self.settings.ryujinx.install_directory / self.get_installation_folder_name() / "portable").exists():
+        if not self.settings.ryujinx.portable_mode and (self.settings.ryujinx.install_directory / "publish" / "portable").exists():
             return {
                 "status": False,
-                "message": "A portable user directory was found but portable mode and user data sync is disabled. Either:\n\n1. Enable portable mode\n2. Delete/Move the 'user' folder in the ryujinx install directory\n3. Enable user data sync"
+                "message": "A portable user directory was found but portable mode is disabled and user data may not have been synced due to your roaming data being determined as newer. Either:\n\n1. Enable portable mode\n2. Delete/Move the 'portable' folder in the ryujinx install directory\n3. Enable user data sync"
             }
 
         match platform.system().lower():
@@ -121,7 +121,7 @@ class Ryujinx(SwitchEmulator):
                 args = ["cmd", "/c", "start", "cmd", "/c", str(ryujinx_exe)]
             case _:
                 args = [ryujinx_exe]
-        
+
         try:
             run = subprocess.run(args, check=False, capture_output=True, shell=True)
             self.settings.ryujinx.last_used_data_path = self.get_user_directory()
@@ -132,7 +132,7 @@ class Ryujinx(SwitchEmulator):
                 "message": f"Failed to launch Ryujinx due to error: {error}",
             }
         if run.returncode != 0:
-            return {    
+            return {
                 "status": True,
                 "error_encountered": True,
                 "message": f"The process exited with a non zero exit code:\n\n{run.stderr.decode("utf-8")}"
@@ -142,7 +142,6 @@ class Ryujinx(SwitchEmulator):
             "error_encountered": False,
             "message": "Ryujinx successfully launched and exited with no errors"
         }
-
 
     def export_ryujinx_data(self, export_directory, folders=None, progress_handler=None, save_folder=False):
 
@@ -174,7 +173,7 @@ class Ryujinx(SwitchEmulator):
         if save_folder:
             import_directory = import_directory / "bis" / "user" / "save"
             user_directory = user_directory / "bis" / "user" / "save"
-            
+
         return copy_directory_with_progress(
             source_dir=import_directory,
             target_dir=user_directory,

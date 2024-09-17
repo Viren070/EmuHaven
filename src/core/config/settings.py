@@ -1,12 +1,12 @@
 import json
 from pathlib import Path
 
+from core.config.assets import Assets
+from core.config.paths import Paths
 from core.emulators.dolphin.settings import DolphinSettings
 from core.emulators.ryujinx.settings import RyujinxSettings
 from core.emulators.xenia.settings import XeniaSettings
 from core.emulators.yuzu.settings import YuzuSettings
-from core.config.assets import Assets
-from core.config.paths import Paths
 from core.logging.logger import Logger
 
 
@@ -26,7 +26,7 @@ class Settings:
             "token": ""
 
         }
-        
+
         self.settings_file = self.paths.settings_file
 
         self._settings = self.default_settings.copy()
@@ -40,9 +40,10 @@ class Settings:
         else:
             self.create_settings_file()
             self.load()
-            
+
     def settings_file_valid(self):
         if not self.settings_file.exists():
+            self.logger.info("Settings file does not exist")
             return False
         try:
             with open(self.settings_file, "r", encoding="utf-8") as file:
@@ -51,9 +52,8 @@ class Settings:
                     return False
         except (FileNotFoundError, json.JSONDecodeError, KeyError):
             return False
-                
+
         return True
-        
 
     def create_settings_file(self):
         settings_template = {
@@ -98,6 +98,7 @@ class Settings:
             json.dump(settings_template, f, indent=4)
 
     def load(self):
+        self.logger.info("Loading settings")
         with open(self.settings_file, "r", encoding="utf-8") as file:
             settings = json.load(file)
 

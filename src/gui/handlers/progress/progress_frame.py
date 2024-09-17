@@ -9,7 +9,6 @@ class ProgressFrame(customtkinter.CTkFrame):
         self.smoothing_factor = 0.3
         self.cancel_download_raised = False
 
-
         self.operation_title = customtkinter.CTkLabel(self)
         self.progress_label = customtkinter.CTkLabel(self)
         self.progress_bar = customtkinter.CTkProgressBar(
@@ -59,9 +58,9 @@ class ProgressFrame(customtkinter.CTkFrame):
 
     def cancel_button_event(self):
         self.handler.send_cancel_signal_to_operation()
-    
+
     def show(self):
         self.grid(row=0, column=0, sticky="ew")
-        
+
     def hide(self):
         self.grid_forget()

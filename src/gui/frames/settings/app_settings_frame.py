@@ -10,7 +10,7 @@ from core.config import constants
 from core.network.github import get_rate_limit_status
 from gui.handlers.thread_event_manager import ThreadEventManager
 from gui.frames.settings.setting_modal import SettingModal
-from gui.libs import messagebox
+from gui.libs.CTkMessagebox import messagebox
 from gui.windows.github_login_window import GitHubLoginWindow
 
 
@@ -155,7 +155,7 @@ class AppSettingsFrame(customtkinter.CTkFrame):
         r_left = rate_limit_status["requests_remaining"]
         t_left = rate_limit_status["reset_time"]
 
-        # Calculate the time difference       
+        # Calculate the time difference
         time_till_reset = datetime.fromtimestamp(int(t_left)) - datetime.now()
 
         # Extract hours, and minutes

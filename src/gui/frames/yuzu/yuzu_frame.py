@@ -3,12 +3,12 @@ from CTkToolTip import CTkToolTip
 
 from core.config import constants
 from core.emulators.yuzu.runner import Yuzu
-from gui.handlers.thread_event_manager import ThreadEventManager
 from gui.frames.emulator_frame import EmulatorFrame
 from gui.frames.firmware_keys_frame import FirmwareKeysFrame
 from gui.frames.yuzu.yuzu_games_frame import YuzuGamesFrame
-from gui.libs import messagebox
 from gui.handlers.progress.progress_handler import ProgressHandler
+from gui.handlers.thread_event_manager import ThreadEventManager
+from gui.libs.CTkMessagebox import messagebox
 from gui.windows.folder_selector import FolderSelector
 from gui.windows.path_dialog import PathDialog
 
@@ -59,16 +59,15 @@ class YuzuFrame(EmulatorFrame):
         self.launch_yuzu_button = customtkinter.CTkButton(self.actions_frame, height=40, width=200, image=self.assets.play_image, text="Launch Yuzu  ", command=self.launch_yuzu_button_event, font=customtkinter.CTkFont(size=15, weight="bold"))
         self.launch_yuzu_button.grid(row=0, column=2, padx=30, pady=15, sticky="n")
         self.launch_yuzu_button.bind("<Button-1>", command=self.launch_yuzu_button_event)
-        
+
         self.install_yuzu_button = customtkinter.CTkButton(self.actions_frame, text="Install Yuzu", command=self.install_yuzu_button_event)
         self.install_yuzu_button.grid(row=0, column=1, padx=10, pady=5, sticky="ew")
         self.install_yuzu_button.bind("<Button-1>", command=self.install_yuzu_button_event)
-        
+
         self.delete_yuzu_button = customtkinter.CTkButton(self.actions_frame, text="Delete Yuzu", fg_color="red", hover_color="darkred", command=self.delete_yuzu_button_event)
         self.delete_yuzu_button.grid(row=0, column=3, padx=10, pady=5, sticky="ew")
         CTkToolTip(self.delete_yuzu_button, message="Click me to delete the installation of yuzu at the directory specified in settings.")
 
-    
         self.firmware_keys_frame = FirmwareKeysFrame(self.center_frame, frame_obj=self, emulator_obj=self.yuzu)
         self.firmware_keys_frame.grid(row=3, column=0, padx=10, pady=10, columnspan=3)
 
@@ -77,7 +76,7 @@ class YuzuFrame(EmulatorFrame):
         self.yuzu_log_frame.grid_propagate(False)
         self.yuzu_log_frame.grid_columnconfigure(0, weight=3)
         self.main_progress_frame = ProgressHandler(self.yuzu_log_frame)
-        
+
         # create yuzu 'Manage Data' frame and widgets
         self.manage_data_frame = customtkinter.CTkFrame(self, corner_radius=0, bg_color="transparent")
         self.manage_data_frame.grid_columnconfigure(0, weight=1)
@@ -143,12 +142,12 @@ class YuzuFrame(EmulatorFrame):
         self.firmware_keys_frame.install_firmware_button.configure(state=state, text=install_firmware_button_text)
         self.firmware_keys_frame.install_keys_button.configure(state=state, text=install_keys_button_text)
         self.firmware_keys_frame.update_installed_versions()
-    
+
     def configure_data_buttons(self, state="disabled", import_text="Import", export_text="Export", delete_text="Delete"):
         self.yuzu_import_button.configure(state=state, text=import_text)
         self.yuzu_export_button.configure(state=state, text=export_text)
         self.yuzu_delete_button.configure(state=state, text=delete_text)
-    
+
     def switch_channel(self, value=None):
         value = self.selected_channel.get().lower().replace(" ", "_")
         self.settings.yuzu.release_channel = value
@@ -203,7 +202,7 @@ class YuzuFrame(EmulatorFrame):
         yuzu_path = self.settings.yuzu.install_directory / ("yuzu-windows-msvc-early-access" if self.settings.yuzu.release_channel == "early_access" else "yuzu-windows-msvc")
         if yuzu_path.is_dir() and any(yuzu_path.iterdir()) and messagebox.askyesno(self.winfo_toplevel(), "Directory Exists", "The directory already exists. Are you sure you want to overwrite the contents inside?") != "yes":
             return
-        
+
         path_to_archive = PathDialog(filetypes=(".zip",), title="Custom Yuzu Archive", text="Enter path to yuzu archive: ")
         path_to_archive = path_to_archive.get_input()
         if not path_to_archive["status"]:
@@ -354,9 +353,9 @@ class YuzuFrame(EmulatorFrame):
                 return
         else:
             folders = constants.Yuzu.USER_FOLDERS.value
-        
+
         self.configure_data_buttons(export_text="Exporting...")
-        
+
         self.event_manager.add_event(
             event_id="export_yuzu_data",
             func=self.export_data_handler,
@@ -364,7 +363,7 @@ class YuzuFrame(EmulatorFrame):
             completion_functions=[lambda: self.configure_data_buttons(state="normal")],
             error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Error", "An unexpected error occurred while exporting Yuzu data.\nPlease check the logs for more information and report this issue.")]
         )
-        
+
     def export_data_handler(self, export_directory, folders, save_folder=False):
         self.data_progress_handler.start_operation(
             title="Export Yuzu Data",

@@ -1,13 +1,13 @@
-import json
 from pathlib import Path
 
 import customtkinter
 
 from core.network.web import download_file
 from gui.frames.game_list_frame import GameListFrame
-from gui.libs import messagebox
 from gui.handlers.progress.progress_handler import ProgressHandler
+from gui.libs.CTkMessagebox import messagebox
 from gui.windows.saves_browser import SavesBrowser
+
 
 class MySwitchGamesFrame(GameListFrame):
     def __init__(self, master, cache, assets, event_manager, emulator_name, emulator_object):
@@ -21,7 +21,6 @@ class MySwitchGamesFrame(GameListFrame):
         self.emulator_object = emulator_object
         super().__init__(master, event_manager)
         self.progress_handler = ProgressHandler(self.winfo_toplevel(), widget="window")
-        
 
     def get_game_list(self):
         user_directory = self.emulator_object.get_user_directory()
@@ -36,7 +35,7 @@ class MySwitchGamesFrame(GameListFrame):
             case "ryujinx":
                 title_id_dir = user_directory / "games"
                 if title_id_dir.is_dir() and any(title_id_dir.iterdir()):
-                    
+
                     for item in title_id_dir.iterdir():
                         if item.is_dir():
                             title_ids.append(item.name)
@@ -53,18 +52,17 @@ class MySwitchGamesFrame(GameListFrame):
         return {
             "result": (title_ids, ),
         }
-    
+
     def add_game_to_frame(self, game, row_counter):
         # game can either be a title ID or a game name
         title_id = None
         name = None
-        
+
         if game.isnumeric():
             title_id = game
         else:
             name = game
-        
-        
+
         if title_id:
             # if game is title ID, get name from title ID
             meta = self.get_title_meta_from_id(title_id)
@@ -76,11 +74,11 @@ class MySwitchGamesFrame(GameListFrame):
             if not title_id:
                 return
             meta = self.get_title_meta_from_id(title_id)
-    
+
         name = meta["name"]
         description = meta["description"]
         icon_url = meta["iconUrl"]
-        # add the title id and name to the mapping 
+        # add the title id and name to the mapping
         self.game_id_name_map[name] = title_id
         self.game_id_name_map[title_id] = name
         game_frame = customtkinter.CTkFrame(self.result_frame)
@@ -116,69 +114,63 @@ class MySwitchGamesFrame(GameListFrame):
         download_saves_button = customtkinter.CTkButton(game_frame, text="Download Saves", height=50, font=("Arial", 14))
         download_saves_button.configure(command=lambda game=game, button=download_saves_button: self.download_saves_button_event(game, button))
         download_saves_button.grid(row=2, column=2, padx=10, pady=10, sticky="se")
-        
+
         # remove title ID from list and add name instead
         self.game_list.remove(game)
         self.game_list.append(name)
 
     def download_icon(self, title_id, icon_url, button):
-        cache_query_result = self.cache.get_data_from_cache(f"{title_id}_icon")
-        if cache_query_result:
-            icon_path = cache_query_result["data"]
+        cache_query_result = self.cache.get_file(f"{title_id}_icon")
+        if cache_query_result["status"]:
+            icon_path = cache_query_result["path"]
             return {
                 "result": (button, icon_path, )
             }
         download_result = download_file(icon_url, Path(f"{title_id}.png").resolve())
         if not download_result["status"]:
             return {}
-        
+
         icon_path = download_result["download_path"]
-        add_to_cache_result = self.cache.add_custom_file_to_cache(f"{title_id}_icon", icon_path)
+        add_to_cache_result = self.cache.add_file(f"{title_id}_icon", icon_path)
         if not add_to_cache_result["status"]:
             return {}
-        
-        cache_query_result = self.cache.get_data_from_cache(f"{title_id}_icon")
+
+        cache_query_result = self.cache.get_file(f"{title_id}_icon")
         if not cache_query_result:
             return {}
-        icon_path = cache_query_result["data"]
-        
+        icon_path = cache_query_result["path"]
+
         return {
             "result": (button, icon_path, )
         }
-    
+
     def update_game_cover(self, button, image):
         button.configure(image=self.assets.create_image(image, (224, 224)))
-        
+
     def get_title_meta_from_id(self, title_id):
         if not self.titledb:
             self.assert_titledb()
         return self.titledb.get(str(title_id))
 
-    def assert_titledb(self):
-        cache_query = self.cache.get_data_from_cache("TitleDB")
-        if not cache_query:
-            self.start_titledb_download_event()
-        elif not self.titledb:
+    def load_titledb(self, titledb=None):
+        if titledb is None:
+            titledb = self.cache.get_json("TitleDB")["data"]
+        self.titledb = titledb
+        return {}
+
+    def assert_titledb(self, ):
+        if self.fetching_titledb:
+            return
+        if self.titledb:
+            return
+        cache_query = self.cache.get_file("TitleDB")
+        if cache_query["status"]:
             self.event_manager.add_event(
                 event_id="load_titledb",
                 func=self.load_titledb,
-                kwargs={"path": cache_query["data"], "refetch_on_error": True},
+                kwargs={},
                 error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Error", "An error occurred while attempting to load the TitleDB.")],
             )
-
-    def load_titledb(self, path, refetch_on_error=True):
-        with open(path, "r", encoding="utf-8") as f:
-            try:
-                self.titledb = json.load(f)
-                return {}
-            except json.JSONDecodeError as error:
-                if refetch_on_error:
-                    self.start_titledb_download_event()
-                else:
-                    raise error
-
-    def start_titledb_download_event(self, ):
-        if self.fetching_titledb:
             return
         self.fetching_titledb = True
         messagebox.showinfo(self.winfo_toplevel(), "Downloading TitleDB", "The TitleDB is being downloaded or updated. This may take a few minutes.")
@@ -189,11 +181,11 @@ class MySwitchGamesFrame(GameListFrame):
             error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Error", "An unknown error occured while attempting to download the titleDB.")],
             completion_functions=[lambda: setattr(self, "fetching_titledb", False)]
         )
-        
+
     def download_titledb(self):
         self.progress_handler.start_operation("Downloading TitleDB", total_units=0, units="MiB", status="Downloading...")
         download_result = self.emulator_object.download_titledb(progress_handler=self.progress_handler)
-        
+
         if not download_result["status"]:
             self.fetching_titledb = False
             return {
@@ -204,17 +196,9 @@ class MySwitchGamesFrame(GameListFrame):
             }
         download_path = download_result["download_path"]
 
-        move_to_cache_result = self.cache.add_custom_file_to_cache("TitleDB", download_path)
-        if not move_to_cache_result["status"]:
-            self.fetching_titledb = False
-            return {
-                "message": {
-                    "function": messagebox.showerror,
-                    "arguments": (self.winfo_toplevel(), "Error", f"An error occured while attempting to move the TitleDB to the cache:\n\n{move_to_cache_result['message']}"),
-                }
-            }
+        self.cache.add_file(key="TitleDB", file=download_path, ttl=60*60*24*7)
 
-        cache_lookup_result = self.cache.get_data_from_cache("TitleDB")
+        cache_lookup_result = self.cache.get_json("TitleDB")
         if not cache_lookup_result:
             self.fetching_titledb = False
             return {
@@ -224,9 +208,9 @@ class MySwitchGamesFrame(GameListFrame):
                 }
             }
 
-        titledb_path = cache_lookup_result["data"]
+        titledb = cache_lookup_result["data"]
 
-        self.load_titledb(titledb_path, refetch_on_error=False)
+        self.load_titledb(titledb, refetch_on_error=False)
 
         self.fetching_titledb = False
         return {
@@ -235,47 +219,42 @@ class MySwitchGamesFrame(GameListFrame):
                 "arguments": (self.winfo_toplevel(), "Success", "TitleDB downloaded successfully.")
             }
         }
-        
+
     def download_mods_button_event(self, game, button):
         button.configure(state="disabled")
         self.open_mod_downloader(game)
         button.configure(state="normal")
-        
+
     def open_mod_downloader(self, game):
-        pass 
-    
+        pass
+
     def download_saves_button_event(self, game, button):
         button.configure(state="disabled")
-        all_saves_cache_query = self.cache.get_json_data_from_cache("switch_saves")
-        if not all_saves_cache_query:
-            self.event_manager.add_event(
-                event_id="fetch_switch_saves",
-                func=self.get_saves_list,
-                kwargs={},
-                completion_functions=[lambda: self.open_save_browser(game, button), lambda: button.configure(state="normal")],
-                error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Error", "An error occurred while attempting to fetch the saves list.")],
-            )
-        else:
-            self.open_save_browser(game, button)
 
-    def open_save_browser(self, game, button):
+        self.event_manager.add_event(
+            event_id="fetch_switch_saves",
+            func=self.get_saves_list_for_game,
+            kwargs={"game": game, "button": button},
+            completion_functions=[lambda: button.configure(state="normal")],
+            completion_funcs_with_result=[self.open_save_browser],
+            error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Error", "An error occurred while attempting to fetch the saves list.")],
+        )
+
+    def open_save_browser(self, game, game_saves, button):
         game_name = self.game_id_name_map.get(game, game)
-        save_browser = SavesBrowser(master=self.winfo_toplevel(), title=game_name, saves_list=self.get_saves_for_game(game), event_manager=self.event_manager)
+        save_browser = SavesBrowser(master=self.winfo_toplevel(), title=game_name, saves_list=game_saves, event_manager=self.event_manager)
         save_browser.wait_window()
         button.configure(state="normal")
-        
-    def get_saves_for_game(self, game):
-        all_saves_cache_query = self.cache.get_json_data_from_cache("switch_saves")
-        if not all_saves_cache_query:
-            return []
 
-      
-        title_id = game
-        all_saves = all_saves_cache_query["data"]
-        game_saves = [save for save in all_saves if title_id in save]
-        return game_saves
-        
-    def get_saves_list(self):
+    def get_saves_list_for_game(self, game, button):
+        all_saves_cache_query = self.cache.get_json("switch_saves")
+        if all_saves_cache_query["status"]:
+            saves = all_saves_cache_query["data"]
+            saves = [save for save in saves if game in save]
+            return {
+                "result": (game, saves, button, ),
+            }
+
         saves_result = self.emulator_object.get_saves_list()
         if not saves_result["status"]:
             return {
@@ -285,9 +264,10 @@ class MySwitchGamesFrame(GameListFrame):
                 }
             }
         saves = saves_result["saves"]
-        
-        self.cache.add_json_data_to_cache("switch_saves", saves)
-        
-        
 
-                            
+        self.cache.add_json("switch_saves", saves)
+
+        saves = [save for save in saves if game in save]
+        return {
+            "result": (game, saves, button, ),
+        }

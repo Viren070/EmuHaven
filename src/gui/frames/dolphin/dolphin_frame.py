@@ -3,11 +3,11 @@ from CTkToolTip import CTkToolTip
 
 from core.config import constants
 from core.emulators.dolphin.runner import Dolphin
-from gui.handlers.thread_event_manager import ThreadEventManager
 from gui.frames.dolphin.dolphin_games_frame import DolphinROMFrame
 from gui.frames.emulator_frame import EmulatorFrame
-from gui.libs import messagebox
 from gui.handlers.progress.progress_handler import ProgressHandler
+from gui.handlers.thread_event_manager import ThreadEventManager
+from gui.libs.CTkMessagebox import messagebox
 from gui.windows.folder_selector import FolderSelector
 from gui.windows.path_dialog import PathDialog
 
@@ -73,7 +73,7 @@ class DolphinFrame(EmulatorFrame):
         self.dolphin_log_frame.grid_propagate(False)
         self.dolphin_log_frame.grid_columnconfigure(0, weight=3)
         self.main_progress_frame = ProgressHandler(self.dolphin_log_frame)
-        
+
         self.manage_data_frame = customtkinter.CTkFrame(self, corner_radius=0, bg_color="transparent")
         self.manage_data_frame.grid_columnconfigure(0, weight=1)
         self.manage_data_frame.grid_columnconfigure(1, weight=1)
@@ -122,13 +122,12 @@ class DolphinFrame(EmulatorFrame):
         self.launch_dolphin_button.configure(state=state, text=launch_dolphin_button_text)
         self.install_dolphin_button.configure(state=state, text=install_dolphin_button_text)
         self.delete_dolphin_button.configure(state=state, text=delete_dolphin_button_text)
-        
+
     def configure_data_buttons(self, state="disabled", import_text="Import", export_text="Export", delete_text="Delete"):
         self.dolphin_import_button.configure(state=state, text=import_text)
         self.dolphin_export_button.configure(state=state, text=export_text)
         self.dolphin_delete_button.configure(state=state, text=delete_text)
 
-    
     def launch_dolphin_button_event(self, event=None):
         if event is None or self.launch_dolphin_button.cget("state") == "disabled":
             return
@@ -137,11 +136,11 @@ class DolphinFrame(EmulatorFrame):
         self.event_manager.add_event(
             "launch_dolphin",
             self.launch_dolphin_handler,
-            kwargs={"update_mode": update_mode}, 
+            kwargs={"update_mode": update_mode},
             completion_functions=[lambda: self.configure_buttons(state="normal")],
             error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Error", "An unexpected error occurred while launching Dolphin.\nPlease check the logs for more information and report this issue.")]
             )
-        
+
     def launch_dolphin_handler(self, update_mode):
         if update_mode:
             self.configure_buttons(launch_dolphin_button_text="Checking for updates...")
@@ -150,7 +149,7 @@ class DolphinFrame(EmulatorFrame):
                 return update_result
         self.configure_buttons(launch_dolphin_button_text="Launched!")
         status = self.dolphin.launch_dolphin()
-        
+
         if not status["run_status"]:
             return {
                 "message": {
@@ -172,7 +171,7 @@ class DolphinFrame(EmulatorFrame):
     def install_dolphin_button_event(self, event=None):
         if event is None or self.install_dolphin_button.cget("state") == "disabled":
             return
-        
+
         if self.settings.dolphin.install_directory.is_dir() and any(self.settings.dolphin.install_directory.iterdir()):
             if messagebox.askyesno(self.winfo_toplevel(), "Directory Exists", "The directory already exists. Are you sure you want to overwrite the contents inside?") != "yes":
                 return
@@ -194,20 +193,19 @@ class DolphinFrame(EmulatorFrame):
             path_to_archive = path_to_archive["path"]
 
         self.configure_buttons(install_dolphin_button_text="Installing...")
-        
+
         self.event_manager.add_event(
-            "install_dolphin", 
-            self.install_dolphin_handler, 
-            kwargs={"archive_path": path_to_archive}, 
+            "install_dolphin",
+            self.install_dolphin_handler,
+            kwargs={"archive_path": path_to_archive},
             completion_functions=[lambda: self.configure_buttons(state="normal")],
             error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Error", "An unexpected error occurred while installing Dolphin.\nPlease check the logs for more information and report this issue.")]
             )
-        
-        
+
     def install_dolphin_handler(self, archive_path=None, update_mode=False):
-        
+
         custom_install = archive_path is not None
-        
+
         if archive_path is None:
             release_fetch_result = self.dolphin.get_dolphin_release()
             if not release_fetch_result["status"]:
@@ -224,9 +222,9 @@ class DolphinFrame(EmulatorFrame):
                         "status": True,
                     }
                 self.configure_buttons(launch_dolphin_button_text="Updating...")
-            
+
             self.main_progress_frame.start_operation(title="Install Dolphin", total_units=0, units=" MiB", status="Downloading...")
-            download_result = self.dolphin.download_release(release_fetch_result["release"], progress_handler=self.main_progress_frame) 
+            download_result = self.dolphin.download_release(release_fetch_result["release"], progress_handler=self.main_progress_frame)
             if not download_result["status"]:
                 if "cancelled" in download_result["message"]:
                     return {
@@ -241,7 +239,7 @@ class DolphinFrame(EmulatorFrame):
                         "arguments": (self.winfo_toplevel(), "Dolphin", f"Failed to download the latest release of Dolphin:\n\n{download_result['message']}"),
                     }
                 }
-                
+
             archive_path = download_result["download_path"]
 
         self.main_progress_frame.start_operation(title="Install Dolphin", total_units=1, units=" Files", status="Extracting...")
@@ -272,20 +270,19 @@ class DolphinFrame(EmulatorFrame):
             },
             "status": True
         }
-        
 
     def delete_dolphin_button_event(self):
         if not self.settings.dolphin.install_directory.is_dir() or not any(self.settings.dolphin.install_directory.iterdir()):
             messagebox.showinfo(self.winfo_toplevel(), "Delete Dolphin", f"The Dolphin Installation directory is either empty or does not exist:\n {self.settings.dolphin.install_directory}")
-            return 
+            return
 
         if messagebox.askyesno(self.winfo_toplevel(), "Confirmation", f"Are you sure you want to delete the contents of `{self.settings.dolphin.install_directory}`") != "yes":
             return
 
         self.configure_buttons(delete_dolphin_button_text="Deleting...")
         self.event_manager.add_event(
-            "delete_dolphin", 
-            self.delete_dolphin_handler, 
+            "delete_dolphin",
+            self.delete_dolphin_handler,
             completion_functions=[lambda: self.configure_buttons(state="normal")],
             error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Error", "An unexpected error occurred while deleting Dolphin.\nPlease check the logs for more information and report this issue.")]
             )
@@ -377,16 +374,16 @@ class DolphinFrame(EmulatorFrame):
             messagebox.showerror("Error", export_directory["message"])
             return
         export_directory = export_directory["path"]
-        
+
         if self.dolphin_export_optionmenu.get() == "Custom":
             _, folders = FolderSelector(title="Choose folders to export", predefined_directory=self.dolphin.get_user_directory(), allowed_folders=constants.Dolphin.USER_FOLDERS.value).get_input()
             if folders is None:
                 return
         else:
             folders = constants.Dolphin.USER_FOLDERS.value
-        
+
         self.configure_data_buttons(export_text="Exporting...")
-        
+
         self.event_manager.add_event(
             event_id="export_dolphin_data",
             func=self.export_data_handler,
@@ -394,7 +391,7 @@ class DolphinFrame(EmulatorFrame):
             completion_functions=[lambda: self.configure_data_buttons(state="normal")],
             error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Error", "An unexpected error occurred while exporting Dolphin data.\nPlease check the logs for more information and report this issue.")]
         )
-        
+
     def export_data_handler(self, export_directory, folders):
         self.data_progress_handler.start_operation(
             title="Export Dolphin Data",

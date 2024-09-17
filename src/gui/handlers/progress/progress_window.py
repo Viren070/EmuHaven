@@ -12,7 +12,7 @@ class ProgressWindow(customtkinter.CTkToplevel):
         self.resizable(False, False)
         self.withdraw()
         self.protocol("WM_DELETE_WINDOW", self.on_close)
-        
+
     def on_close(self):
         self.cancel_button_event()
 
@@ -37,10 +37,9 @@ class ProgressWindow(customtkinter.CTkToplevel):
 
     def cancel_button_event(self):
         self._progress_frame.cancel_button_event()
-        
+
     def show(self):
         self.deiconify()
-        
+
     def hide(self):
         self.withdraw()
-    

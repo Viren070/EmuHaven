@@ -14,13 +14,12 @@ class XeniaSettings:
             "game_directory": Path().resolve(),
         }
 
-   
     def get_default_install_directory(self):
         system = platform.system().lower()
-        
+
         if system == "windows":
             return Path.home() / "AppData" / "Local" / "Xenia"
-        
+
         return Path()
 
     def _set_property(self, property_name, value):
@@ -34,7 +33,7 @@ class XeniaSettings:
         fget=lambda self: self._get_property("install_directory"),
         fset=lambda self, value: self._set_property("install_directory", value),
     )
-    
+
     portable_mode = property(
         fget=lambda self: self._get_property("portable_mode"),
         fset=lambda self, value: self._set_property("portable_mode", value),

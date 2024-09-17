@@ -55,7 +55,7 @@ class DolphinSettingsFrame(customtkinter.CTkFrame):
                 "description": "Enable portable mode for Dolphin.",
             },
         )
-        
+
         sync_user_data_setting = SettingModal(
             master=self,
             settings=self.settings,

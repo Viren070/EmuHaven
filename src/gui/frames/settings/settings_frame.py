@@ -107,7 +107,7 @@ class SettingsFrame(customtkinter.CTkFrame):
             self.app_settings_frame.grid_forget()
 
     def settings_changed(self):
-        return False 
+        return False
 
     def revert_settings(self):
         self.yuzu_settings_frame.update_entry_widgets()

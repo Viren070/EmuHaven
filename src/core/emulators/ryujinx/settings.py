@@ -16,7 +16,7 @@ class RyujinxSettings:
         }
 
     def get_default_install_directory(self):
-        
+
         system = platform.system().lower()
         if system == "windows":
             return Path.home() / "AppData" / "Local" / "Ryujinx"

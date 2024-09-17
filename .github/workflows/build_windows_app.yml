@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          repository: Viren070/Emulator-Manager
+          repository: Viren070/EmuHaven
 
       - name: Set up Python 3.12
         uses: actions/setup-python@v5 

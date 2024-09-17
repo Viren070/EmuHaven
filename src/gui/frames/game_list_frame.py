@@ -1,15 +1,9 @@
-import webbrowser
-from threading import Thread
-
 import customtkinter
 
 from core.config import constants
-from core.network.myrient import get_list_of_games
-from gui.handlers.thread_event_manager import ThreadEventManager
 from core.logging.logger import Logger
-from gui.libs import messagebox
-
-
+from gui.handlers.thread_event_manager import ThreadEventManager
+from gui.libs.CTkMessagebox import messagebox
 
 
 class GameListFrame(customtkinter.CTkFrame):
@@ -23,7 +17,7 @@ class GameListFrame(customtkinter.CTkFrame):
         self.game_list = []
         self.searched_games = []
         self.build_frame()
-        
+
     def configure_widgets(self, fetch_button_text="Get Games", state="disabled"):
         self.refresh_button.configure(state=state, text=fetch_button_text)
         self.search_entry.configure(state=state)
@@ -43,7 +37,7 @@ class GameListFrame(customtkinter.CTkFrame):
             error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Error", "Failed to fetch games.")],
             ignore_messages=ignore_messages
         )
-        
+
     def get_game_list(self):
         return {
             "result": [],
@@ -52,7 +46,7 @@ class GameListFrame(customtkinter.CTkFrame):
                 "args": ("Error", "Game Fetch not implemented.")
             }
         }
-        
+
     def process_game_list(self, game_list):
         self.logger.debug(f"Processing received game list of length {len(game_list)}")
         self.game_list = game_list
@@ -72,7 +66,7 @@ class GameListFrame(customtkinter.CTkFrame):
         search_frame = customtkinter.CTkFrame(self, corner_radius=50)
         search_frame.grid(row=0, column=0, pady=(10, 0), padx=10, sticky="ne")
 
-        self.search_entry = customtkinter.CTkEntry(search_frame, state  ="disabled", placeholder_text="Search")
+        self.search_entry = customtkinter.CTkEntry(search_frame, state="disabled", placeholder_text="Search")
         self.search_entry.grid(row=0, column=0, padx=10, pady=10, sticky="e")
         self.search_entry.bind("<Return>", self.perform_search)
         self.search_button = customtkinter.CTkButton(search_frame, state="disabled", text="Go", width=60, command=self.perform_search)
@@ -156,14 +150,14 @@ class GameListFrame(customtkinter.CTkFrame):
                 continue
             self.add_game_to_frame(game, row_counter)
             row_counter += 2
-        
+
         self.current_page_entry.configure(state="normal")
         self.current_page_entry.delete(0, customtkinter.END)
         self.current_page_entry.insert(0, str(self.current_page))
         self.next_button.configure(state="normal")
         self.prev_button.configure(state="normal")
         self.update_in_progress = False
-        
+
     def add_game_to_frame(self, game, row_counter):
         customtkinter.CTkLabel(self.result_frame, text=game).grid(row=row_counter, column=0, padx=5, pady=5, sticky="ew")
 

@@ -1,5 +1,5 @@
-from pathlib import Path
 import textwrap
+from pathlib import Path
 from urllib.parse import unquote
 
 import customtkinter
@@ -7,7 +7,7 @@ import customtkinter
 from core.config import constants
 from core.network.web import download_file_with_progress
 from gui.handlers.progress.progress_handler import ProgressHandler
-from gui.libs import messagebox
+from gui.libs.CTkMessagebox import messagebox
 
 
 class SavesBrowser(customtkinter.CTkToplevel):
@@ -78,7 +78,7 @@ class SavesBrowser(customtkinter.CTkToplevel):
             download_path=Path.home() / "Desktop" / save,
             progress_handler=self.progress_handler,
         )
-        
+
         self.downloading_save = False
         if not download_result["status"]:
             return {
@@ -87,14 +87,13 @@ class SavesBrowser(customtkinter.CTkToplevel):
                     "arguments": (self, "Save Download", f"An error occurred while attempting to download this save\n\n{download_result['message']}"),
                 }
             }
-            
+
         return {
             "message": {
                 "function": messagebox.showsuccess,
-                "arguments": (self, "Save Download", "The savefile was successfully downloaded to your desktop" ),
+                "arguments": (self, "Save Download", "The savefile was successfully downloaded to your desktop"),
             }
         }
-        
 
     def on_closing(self):
         self.grab_release()

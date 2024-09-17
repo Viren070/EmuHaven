@@ -2,6 +2,7 @@ import platform
 from pathlib import Path
 from core.logging.logger import Logger
 
+
 class YuzuSettings:
     def __init__(self):
         self.logger = Logger(__name__).get_logger()
@@ -12,7 +13,7 @@ class YuzuSettings:
             "last_used_data_path": None,
             "sync_user_data": True,
         }
-    
+
     def get_default_install_directory(self):
         system = platform.system().lower()
 

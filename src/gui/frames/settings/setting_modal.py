@@ -6,7 +6,7 @@ from customtkinter import (BooleanVar, CTkButton, CTkEntry, CTkFont, CTkFrame,
                            CTkLabel, CTkOptionMenu, CTkSwitch, StringVar)
 
 from core.logging.logger import Logger
-from gui.libs import messagebox
+from gui.libs.CTkMessagebox import messagebox
 from gui.libs.CTkScrollableDropdown import CTkScrollableDropdown
 
 
@@ -152,7 +152,10 @@ class SettingModal(CTkFrame):
 
         self.logger.info("Updating setting %s to value: %s", self.setting_id, value)
         if self.custom_options.get("update_function") is not None:
-            self.custom_options.get("update_function")(value, self.setting_var)
+            try:
+                self.custom_options.get("update_function")(value, self.setting_var)
+            except Exception as error:
+                messagebox.showerror(self.winfo_toplevel(), self.setting_id.replace("_", " ").title(), f"An error occurred while updating the setting.\n\n{error}")
             self.is_updating = False
             return
 

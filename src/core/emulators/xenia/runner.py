@@ -23,11 +23,10 @@ class Xenia:
         self.main_progress_frame = None
         self.data_progress_frame = None
 
-
     def get_user_directory(self):
-        if self.settings.xenia.release_channel == "master": 
+        if self.settings.xenia.release_channel == "master":
             if self.settings.xenia.portable_mode:
-                return self.settings.xenia.install_directory / "master" 
+                return self.settings.xenia.install_directory / "master"
             match platform.system().lower():
                 case "windows":
                     return Path.home() / "Documents" / "Xenia"
@@ -60,7 +59,7 @@ class Xenia:
             token=self.settings.token,
             use_commit_as_version=release_channel == "canary"
         )
-    
+
     def download_xenia_release(self, release, progress_handler=None):
         return download_file_with_progress(
             download_url=release["download_url"],
@@ -93,7 +92,7 @@ class Xenia:
                 "status": True,
                 "message": f"Successfully deleted Xenia {release_channel}",
             }
-            
+
         except OSError as e:
             return {
                 "status": False,
@@ -108,7 +107,7 @@ class Xenia:
                 "run_status": False,
                 "message": "Xenia executable does not exist",
             }
-        
+
         if self.settings.xenia.portable_mode and self.settings.xenia.release_channel == "master":
             (self.settings.xenia.install_directory / "portable.txt").touch()
         else:
@@ -123,7 +122,7 @@ class Xenia:
                 "message": f"Failed to launch xenia due to error:\n\n{e}",
             }
         if run.returncode != 0:
-            return {    
+            return {
                 "run_status": True,
                 "error_encountered": True,
                 "message": run.stderr.decode("utf-8")
@@ -135,15 +134,15 @@ class Xenia:
         }
 
     def export_xenia_data(self, export_directory, folders, progress_handler=None):
-        
+
         user_directory = self.get_user_directory()
-        
+
         if not user_directory.exists():
             return {
                 "status": False,
                 "message": f"No xenia data was found. Nothing to export.\n\nPortable: {"True" if self.settings.xenia.portable_mode else "False"}\nUser Directory:{user_directory}"
             }
-        
+
         return copy_directory_with_progress(
             source_dir=user_directory,
             target_dir=export_directory,

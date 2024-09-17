@@ -8,8 +8,8 @@ class App(Enum):
     SETTINGS_VERSION = 5
     CACHE_VERSION = 2
     GH_OWNER = "Viren070"
-    GH_REPO = "Emulator-Manager"
-    GH_ASSET_REGEX = r"Emulator.Manager.*\.zip"
+    GH_REPO = "EmuHaven"
+    GH_ASSET_REGEX = r"EmuHaven.*\.zip"
     GITHUB = f"https://github.com/{GH_OWNER}/{GH_REPO}"
     DISCORD = "https://discord.viren070.me"
     KOFI = "https://ko-fi.com/viren070"
@@ -33,7 +33,7 @@ class GitHub(Enum):
     API_RATE_LIMIT = API_URL + "rate_limit"
     API_USER = API_URL + "user"
     RAW_URL = "https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{path}"
-    
+
 
 class Myrient(Enum):
     BASE_URL = "https://myrient.erista.me/files/"
@@ -48,8 +48,10 @@ class Dolphin(Enum):
     MYRIENT_GAMECUBE_PATH = "Redump/Nintendo - GameCube - NKit RVZ [zstd-19-128k]/"
     MYRIENT_WII_PATH = "Redump/Nintendo - Wii - NKit RVZ [zstd-19-128k]/"
     GAME_FILE_EXTENSIONS = [".wbfs", ".iso", ".rvz", ".gcm", ".gcz", ".ciso"]
-    USER_FOLDERS = ["Backup", "Cache", "Config", "Dump", "GameSettings", "GBA", "GC", "Load", "Logs", "Maps", "ResourcePacks", "SavedAssembly", "ScreenShots", "Shaders", "StateSaves", "Styles", "Themes", "Wii"]
-
+    USER_FOLDERS = [
+        "Backup", "Cache", "Config", "Dump", "GameSettings", "GBA", "GC", "Load", "Logs", "Maps", "ResourcePacks",
+        "SavedAssembly", "ScreenShots", "Shaders", "StateSaves", "Styles", "Themes", "Wii"
+    ]
 
 
 class Xenia(Enum):

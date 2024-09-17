@@ -1,4 +1,5 @@
 import customtkinter
+
 from gui.frames.my_switch_games_frame import MySwitchGamesFrame
 
 
@@ -16,8 +17,6 @@ class YuzuGamesFrame(customtkinter.CTkTabview):
         self.update_in_progress = False
         self.downloads_in_progress = 0
         self.build_frame()
-
-
 
     def build_frame(self):
 

@@ -42,7 +42,7 @@ class YuzuSettingsFrame(customtkinter.CTkFrame):
             },
         )
         portable_mode_setting.grid(row=1, column=0, padx=10, pady=5, sticky="ew")
-        
+
         sync_user_data_setting = SettingModal(
             master=self,
             settings=self.settings,

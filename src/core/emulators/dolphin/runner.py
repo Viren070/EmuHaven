@@ -8,18 +8,19 @@ from zipfile import ZipFile
 import py7zr
 
 from core.config import constants
+from core.logging.logger import Logger
+from core.network.web import (download_file_with_progress,
+                              get_all_files_from_page)
 from core.utils.files import (copy_directory_with_progress,
                               extract_zip_archive_with_progress)
-from core.logging.logger import Logger
-from core.network.web import download_file_with_progress, get_all_files_from_page
 
 
 class Dolphin:
     """
-    This runner class is for Dolphin. 
+    This runner class is for Dolphin.
     It handles downloading and extracting Dolphin releases, launching Dolphin, and deleting Dolphin.
     It also has methods for exporting, importing, and deleting Dolphin data.
-    
+
     Available methods:
     - get_dolphin_release(release_channel)
     - download_release(release, progress_handler)
@@ -80,9 +81,9 @@ class Dolphin:
         download_page = constants.Dolphin.RELEASE_LIST_URL.value.format(
             release_download_url_mapping[self.settings.dolphin.release_channel]
         )
-        
+
         files_result = get_all_files_from_page(download_page, file_ext=".7z")
-        
+
         if not files_result["status"]:
             return files_result
 
@@ -112,7 +113,7 @@ class Dolphin:
             download_path=Path(release["filename"]).resolve(),
             progress_handler=progress_handler,
         )
-        
+
     def extract_release(self, release: Path, progress_handler=None):
         match release.suffix:
             case ".zip":
@@ -132,23 +133,22 @@ class Dolphin:
                     "extracted_files": []
                 }
 
-
     def _extract_7z_archive(self, release_archive, progress_handler):
 
         # check if the installation directory exists and has files
         if self.settings.dolphin.install_directory.exists() and self.settings.dolphin.install_directory.iterdir():
-            # delete old installation 
+            # delete old installation
             # check for portable mode and temporarily move the user directory
             pass
         self.settings.dolphin.install_directory.mkdir(exist_ok=True, parents=True)
-        
+
         try:
             with py7zr.SevenZipFile(release_archive, mode="r") as archive:
                 archive.extractall(path=self.settings.dolphin.install_directory)
         except Exception as error:
             self.logger.error("Error extracting 7z archive: %s", error)
             return {
-                "status": False, 
+                "status": False,
                 "message": "Extraction failed",
                 "error": error,
                 "extracted_files": []
@@ -202,13 +202,13 @@ class Dolphin:
             }
 
     def launch_dolphin(self):
-        dolphin_exe = self.settings.dolphin.install_directory / "Dolphin.exe" 
+        dolphin_exe = self.settings.dolphin.install_directory / "Dolphin.exe"
         if not dolphin_exe.exists():
             return {
                 "run_status": False,
                 "message": "Dolphin executable not found"
             }
-            
+
         if self.settings.dolphin.sync_user_data:
             last_used_data_path = Path(self.settings.dolphin.last_used_data_path) if self.settings.dolphin.last_used_data_path else None
             current_data_path = self.get_user_directory()
@@ -217,7 +217,6 @@ class Dolphin:
                 self.logger.info("Copying user directory from %s to %s", last_used_data_path, current_data_path)
                 shutil.copytree(last_used_data_path, current_data_path, dirs_exist_ok=True)
 
-            
         if self.settings.dolphin.portable_mode:
             (self.settings.dolphin.install_directory / "portable.txt").touch()
         else:
@@ -228,7 +227,7 @@ class Dolphin:
         self.settings.dolphin.last_used_data_path = self.get_user_directory()
         self.settings.save()
         if run.returncode != 0:
-            return {    
+            return {
                 "run_status": True,
                 "error_encountered": True,
                 "message": run.stderr.decode("utf-8")
@@ -239,17 +238,15 @@ class Dolphin:
             "message": "Dolphin successfully launched and exited with no errors"
         }
 
-
     def export_dolphin_data(self, export_directory, folders, progress_handler=None):
-        
         user_directory = self.get_user_directory()
-        
+
         if not user_directory.exists():
             return {
                 "status": False,
                 "message": f"No dolphin data was found. Nothing to export.\n\nPortable: {"True" if self.settings.dolphin.portable_mode else "False"}\nUser Directory:{user_directory}"
             }
-        
+
         return copy_directory_with_progress(
             source_dir=user_directory,
             target_dir=export_directory,

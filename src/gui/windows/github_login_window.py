@@ -1,13 +1,11 @@
-import os
 import time
 import webbrowser
-from threading import Thread
 
 import customtkinter
 
 from core.network.github import (is_token_valid, request_device_code,
-                               request_token)
-from gui.libs import messagebox
+                                 request_token)
+from gui.libs.CTkMessagebox import messagebox
 
 
 class GitHubLoginWindow(customtkinter.CTkToplevel):
@@ -33,7 +31,7 @@ class GitHubLoginWindow(customtkinter.CTkToplevel):
         self.token_label.pack(pady=10)
 
         # Frame for token entry and button
-        self.token_frame = customtkinter.CTkFrame(self,fg_color="transparent", border_width=0)
+        self.token_frame = customtkinter.CTkFrame(self, fg_color="transparent", border_width=0)
         self.token_frame.pack(pady=10)
 
         # Entry widget for token
@@ -68,7 +66,7 @@ class GitHubLoginWindow(customtkinter.CTkToplevel):
             error_functions=[lambda: messagebox.showerror(self, "Error", "Failed to process token.")],
             completion_functions=[lambda: self.configure_widgets("normal")]
         )
-        
+
     def process_token(self, token):
         if not token or len(token) < 5:
             return {
@@ -77,7 +75,7 @@ class GitHubLoginWindow(customtkinter.CTkToplevel):
         return {
             "result": (is_token_valid(token),),
         }
-        
+
     def on_token_processed(self, result):
         if result:
             self.settings.token = self.token_entry.get()
@@ -86,7 +84,7 @@ class GitHubLoginWindow(customtkinter.CTkToplevel):
             self.destroy()
         else:
             messagebox.showerror(self, "Error", "Invalid token.")
-    
+
     def start_oauth_flow_button_event(self):
         self.configure_widgets("disabled")
         self.event_manager.add_event(
@@ -94,7 +92,7 @@ class GitHubLoginWindow(customtkinter.CTkToplevel):
             func=self.get_device_code,
             error_functions=[lambda: messagebox.showerror(self, "Error", "An unexpected error occured during the authorisation process.")],
             completion_funcs_with_result=[self.on_device_code_received],
-            completion_functions=[lambda: self.configure_widgets("normal")]   
+            completion_functions=[lambda: self.configure_widgets("normal")]
         )
 
     def get_device_code(self):
@@ -114,7 +112,7 @@ class GitHubLoginWindow(customtkinter.CTkToplevel):
         return {
             "result": (verification_uri, user_code, device_code, interval),
         }
-        
+
     def on_device_code_received(self, verification_uri, user_code, device_code, interval):
         self.configure_widgets("disabled")
         self.oauth_start_button.configure(state="disabled", text="Authorising...")
@@ -130,7 +128,7 @@ class GitHubLoginWindow(customtkinter.CTkToplevel):
             error_functions=[lambda: messagebox.showerror(self, "Error", "An unexpected error occured during the authorisation process.")],
             completion_functions=[lambda: self.configure_widgets("normal")]
         )
-        
+
     def get_token(self, device_code, interval):
         start_time = time.time()
         while time.time() - start_time < 900:
@@ -147,7 +145,7 @@ class GitHubLoginWindow(customtkinter.CTkToplevel):
                 return {
                     "result": (token_result["access_token"],)
                 }
-            
+
             if token_result.get("error") == "authorization_pending":
                 time.sleep(interval)
             elif token_result.get("error") == "slow_down":
@@ -160,12 +158,8 @@ class GitHubLoginWindow(customtkinter.CTkToplevel):
                 "arguments": (self, "Error", "Timed out waiting for authorisation.")
             }
         }
-                
+
     def on_token_received(self, token):
         self.settings.token = token
         self.settings.save()
         messagebox.showsuccess(self, "Success", "Token received successfully.")
-        
-        
-            
-        

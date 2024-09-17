@@ -161,21 +161,21 @@ class PathDialog(CTkToplevel):
                 "cancelled": True
             }
         path = Path(self._user_input)
-        
+
         if not path.exists() or (self._filetypes is not None and path.suffix.lower() not in self._filetypes):
             return {
                 "status": False,
                 "message": "Invalid path or filetype selected",
                 "cancelled": False
             }
-        
+
         if self.directory_mode and not path.is_dir():
             return {
                 "status": False,
                 "message": "Invalid directory selected",
                 "cancelled": False
             }
-        
+
         return {
             "status": True,
             "path": path,

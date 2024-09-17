@@ -14,8 +14,11 @@ class Logger:
             self.logger.handlers.clear()
 
         # Create a formatter that includes the timestamp with milliseconds
-        formatter = logging.Formatter('[%(asctime)s.%(msecs)03d] [%(levelname)s] [%(name)s]: %(message)s',
-                                      datefmt='%Y-%m-%d %H:%M:%S')
+        formatter = logging.Formatter(
+            '[%(asctime)s.%(msecs)03d] [%(levelname)s] [%(name)s.%(funcName)s]: %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S'
+        )
+
         if console:
             # Create a console handler and set the log level
             console_handler = logging.StreamHandler()

@@ -1,5 +1,3 @@
-from threading import Thread
-
 import customtkinter
 from CTkToolTip import CTkToolTip
 
@@ -8,8 +6,8 @@ from core.emulators.ryujinx.runner import Ryujinx
 from gui.frames.emulator_frame import EmulatorFrame
 from gui.frames.firmware_keys_frame import FirmwareKeysFrame
 from gui.frames.ryujinx.ryujinx_games_frame import RyujinxROMFrame
-from gui.libs import messagebox
 from gui.handlers.progress.progress_handler import ProgressHandler
+from gui.libs.CTkMessagebox import messagebox
 from gui.windows.folder_selector import FolderSelector
 from gui.windows.path_dialog import PathDialog
 
@@ -129,7 +127,7 @@ class RyujinxFrame(EmulatorFrame):
         self.firmware_keys_frame.install_firmware_button.configure(state=state, text=install_firmware_button_text)
         self.firmware_keys_frame.install_keys_button.configure(state=state, text=install_keys_button_text)
         self.firmware_keys_frame.update_installed_versions()
-        
+
     def configure_data_buttons(self, state="disabled", import_text="Import", export_text="Export", delete_text="Delete"):
         self.import_data_button.configure(state=state, text=import_text)
         self.export_data_button.configure(state=state, text=export_text)
@@ -232,7 +230,7 @@ class RyujinxFrame(EmulatorFrame):
                 self.configure_buttons(launch_ryujinx_button_text="Updating...")
             total_units = release_fetch_result["release"]["size"] / 1024 / 1024
             self.main_progress_frame.start_operation(title="Install Ryujinx", total_units=total_units, units=" MiB", status="Downloading...")
-            download_result = self.ryujinx.download_release(release_fetch_result["release"], progress_handler=self.main_progress_frame) 
+            download_result = self.ryujinx.download_release(release_fetch_result["release"], progress_handler=self.main_progress_frame)
             if not download_result["status"]:
                 if "cancelled" in download_result["message"]:
                     return {
@@ -277,7 +275,6 @@ class RyujinxFrame(EmulatorFrame):
             },
             "status": True
         }
-
 
     def delete_ryujinx_button_event(self, event=None):
         if not (self.settings.ryujinx.install_directory / "publish").is_dir() or not any((self.settings.ryujinx.install_directory / "publish").iterdir()):
@@ -382,9 +379,9 @@ class RyujinxFrame(EmulatorFrame):
                 return
         else:
             folders = constants.Ryujinx.USER_FOLDERS.value
-        
+
         self.configure_data_buttons(export_text="Exporting...")
-        
+
         self.event_manager.add_event(
             event_id="export_ryujinx_data",
             func=self.export_data_handler,
@@ -392,7 +389,7 @@ class RyujinxFrame(EmulatorFrame):
             completion_functions=[lambda: self.configure_data_buttons(state="normal")],
             error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Error", "An unexpected error occurred while exporting Ryujinx data.\nPlease check the logs for more information and report this issue.")]
         )
-        
+
     def export_data_handler(self, export_directory, folders, save_folder=False):
         self.data_progress_handler.start_operation(
             title="Export Ryujinx Data",

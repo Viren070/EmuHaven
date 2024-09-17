@@ -16,7 +16,7 @@ class DolphinSettings:
         }
 
     def get_default_install_directory(self):
-        
+
         system = platform.system().lower()
         if system == "windows":
             # ~/AppData/Roaming/Dolphin Emulator

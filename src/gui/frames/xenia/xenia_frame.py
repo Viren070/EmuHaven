@@ -3,11 +3,11 @@ from CTkToolTip import CTkToolTip
 
 from core.config import constants
 from core.emulators.xenia.runner import Xenia
-from gui.handlers.thread_event_manager import ThreadEventManager
 from gui.frames.emulator_frame import EmulatorFrame
 from gui.frames.xenia.xenia_games_frame import XeniaGamesFrame
-from gui.libs import messagebox
 from gui.handlers.progress.progress_handler import ProgressHandler
+from gui.handlers.thread_event_manager import ThreadEventManager
+from gui.libs.CTkMessagebox import messagebox
 from gui.windows.folder_selector import FolderSelector
 from gui.windows.path_dialog import PathDialog
 
@@ -72,7 +72,7 @@ class XeniaFrame(EmulatorFrame):
         self.log_frame.grid_propagate(False)
         self.log_frame.grid_columnconfigure(0, weight=3)
         self.main_progress_frame = ProgressHandler(self.log_frame)
-        
+
         self.manage_data_frame = customtkinter.CTkFrame(self.start_frame, corner_radius=0, border_width=0)
         # create xenia downloader button, frame and widgets
         self.actions_frame.grid_propagate(True)
@@ -108,9 +108,8 @@ class XeniaFrame(EmulatorFrame):
         self.xenia_data_log.grid_columnconfigure(0, weight=1)
         self.xenia_data_log.grid_rowconfigure(1, weight=1)
         self.data_progress_handler = ProgressHandler(self.xenia_data_log)
-        
-        self.manage_games_frame = XeniaGamesFrame(self, settings=self.settings, cache=self.cache, event_manager=self.event_manager)
 
+        self.manage_games_frame = XeniaGamesFrame(self, settings=self.settings, cache=self.cache, event_manager=self.event_manager)
 
     def switch_channel(self, value=None):
         value = self.selected_channel.get()
@@ -155,7 +154,6 @@ class XeniaFrame(EmulatorFrame):
             error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Error", "An unexpected error occured while launching Xenia. Please check the logs for more information and report this issue.")]
         )
 
-        
     def launch_xenia_handler(self, auto_update):
         if auto_update:
             self.configure_buttons(launch_xenia_button_text="Checking for updates...")
@@ -163,10 +161,10 @@ class XeniaFrame(EmulatorFrame):
             if not update.get("status", False):
                 self.configure_buttons(launch_xenia_button_text="Oops!")
                 return update
-        
+
         self.configure_buttons(launch_xenia_button_text="Launched!")
         launch_result = self.xenia.launch_xenia()
-        
+
         if not launch_result["run_status"]:
             self.configure_buttons(launch_xenia_button_text="Oops!")
             return {
@@ -183,9 +181,9 @@ class XeniaFrame(EmulatorFrame):
                     "arguments": (self.winfo_toplevel(), "Error", launch_result["message"]),
                 }
             }
-        
+
         return {}
-    
+
     def install_xenia_button_event(self, event=None):
         if event is None or self.install_xenia_button.cget("state") == "disabled":
             return
@@ -218,10 +216,10 @@ class XeniaFrame(EmulatorFrame):
             completion_functions=[lambda: self.configure_buttons(state="normal")],
             error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Error", "An unexpected error occured while installing Xenia. Please check the logs for more information and report this issue.")]
         )
-        
+
     def install_xenia_handler(self, update_mode=False, archive_path=None):
         custom_install = archive_path is not None
-        
+
         if archive_path is None:
             release_fetch_result = self.xenia.get_xenia_release()
             if not release_fetch_result["status"]:
@@ -231,7 +229,7 @@ class XeniaFrame(EmulatorFrame):
                         "arguments": (self.winfo_toplevel(), "Xenia", f"Failed to fetch the {self.settings.xenia.release_channel} latest release of Xenia:\n\n{release_fetch_result['message']}"),
                     }
                 }
-            
+
             if update_mode:
                 if release_fetch_result["release"]["version"] == self.xenia.get_installed_version(release_channel=self.settings.xenia.release_channel):
                     return {
@@ -239,7 +237,7 @@ class XeniaFrame(EmulatorFrame):
                     }
                 self.configure_buttons(launch_xenia_button_text="Updating...")
             self.main_progress_frame.start_operation(title="Installing Xenia", total_units=release_fetch_result["release"]["size"] / 1024 / 1024, units=" MiB", status="Downloading...")
-            download_result = self.xenia.download_xenia_release(release_fetch_result["release"], progress_handler=self.main_progress_frame) 
+            download_result = self.xenia.download_xenia_release(release_fetch_result["release"], progress_handler=self.main_progress_frame)
             if not download_result["status"]:
                 if "cancelled" in download_result["message"]:
                     return {
@@ -254,7 +252,7 @@ class XeniaFrame(EmulatorFrame):
                         "arguments": (self.winfo_toplevel(), "Xenia", f"Failed to download the latest {self.settings.xenia.release_channel} release of Xenia:\n\n{download_result['message']}"),
                     }
                 }
-                
+
             archive_path = download_result["download_path"]
 
         self.main_progress_frame.start_operation(title="Installing Xenia", total_units=0, units=" Files", status="Extracting...")
@@ -310,7 +308,7 @@ class XeniaFrame(EmulatorFrame):
             "message_func": messagebox.showsuccess,
             "message_args": (self.winfo_toplevel(), "Success", delete_result["message"]),
         }
-    
+
     def import_data_button_event(self):
 
         import_option = self.xenia_import_optionmenu.get()
@@ -375,16 +373,16 @@ class XeniaFrame(EmulatorFrame):
             messagebox.showerror("Error", export_directory["message"])
             return
         export_directory = export_directory["path"]
-        
+
         if self.xenia_export_optionmenu.get() == "Custom":
             _, folders = FolderSelector(title="Choose folders to export", predefined_directory=self.xenia.get_user_directory(), allowed_folders=constants.Xenia.USER_FOLDERS.value, show_files=True).get_input()
             if folders is None:
                 return
         else:
             folders = constants.Xenia.USER_FOLDERS.value
-        
+
         self.configure_data_buttons(export_text="Exporting...")
-        
+
         self.event_manager.add_event(
             event_id="export_xenia_data",
             func=self.export_data_handler,
@@ -392,7 +390,7 @@ class XeniaFrame(EmulatorFrame):
             completion_functions=[lambda: self.configure_data_buttons(state="normal")],
             error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Error", "An unexpected error occurred while exporting Xenia data.\nPlease check the logs for more information and report this issue.")]
         )
-        
+
     def export_data_handler(self, export_directory, folders):
         self.data_progress_handler.start_operation(
             title="Export Xenia Data",

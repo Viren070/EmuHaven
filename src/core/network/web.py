@@ -22,7 +22,7 @@ def get(url, timeout=30, headers=constants.Requests.DEFAULT_HEADERS.value, **kwa
 
     Returns:
         dict: A dictionary with fields: status (bool) and message (str or requests.Response)
-    """ 
+    """
     try:
         logger.debug("GET %s  %s", url, kwargs)
         response = requests.get(url, timeout=timeout, headers=headers, **kwargs)
@@ -171,6 +171,7 @@ def download_through_stream(response, download_path, chunk_size, progress_handle
         "download_path": Path(download_path)
     }
 
+
 def download_file(download_url, download_path, **kwargs):
     """Download a file from the given URL to the given path.
 
@@ -186,15 +187,15 @@ def download_file(download_url, download_path, **kwargs):
     if not response["status"]:
         return response
     response = response["response"]
-    
+
     try:
         content = response.content
     except RequestException as error:
         logger.error("Error downloading file: %s", error)
         return {"status": False, "message": error, "download_path": None}
-    
+
     download_path.parent.mkdir(parents=True, exist_ok=True)
-    
+
     try:
         with open(download_path, "wb") as f:
             f.write(content)

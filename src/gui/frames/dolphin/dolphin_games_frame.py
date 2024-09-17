@@ -3,13 +3,13 @@ from pathlib import Path
 import customtkinter
 
 from core.config import constants
-from core.utils.files import extract_zip_archive_with_progress
 from core.network.myrient import get_game_download_url
 from core.network.web import download_file_with_progress
+from core.utils.files import extract_zip_archive_with_progress
 from gui.frames.my_games_frame import MyGamesFrame
 from gui.frames.myrient_game_list_frame import MyrientGameListFrame
-from gui.libs import messagebox
 from gui.handlers.progress.progress_handler import ProgressHandler
+from gui.libs.CTkMessagebox import messagebox
 
 
 class DolphinROMFrame(customtkinter.CTkTabview):
@@ -58,7 +58,7 @@ class DolphinROMFrame(customtkinter.CTkTabview):
         download_frame.grid_columnconfigure(0, weight=1)
 
         progress_handler = ProgressHandler(download_frame)
-        
+
         self.event_manager.add_event(
             event_id="download_game",
             func=self.download_game,
@@ -66,7 +66,7 @@ class DolphinROMFrame(customtkinter.CTkTabview):
             error_functions=[lambda: messagebox.showerror(self.winfo_toplevel(), "Game Download", "An unexpected error occurred while attempting to download this game.")],
             completion_functions=[lambda frame=download_frame: frame.destroy()],
         )
-        
+
     def download_game(self, game, progress_handler, myrient_path):
         progress_handler.start_operation(title=game, total_units=0, units="MiB", status="Downloading...")
         download_result = download_file_with_progress(
@@ -81,7 +81,7 @@ class DolphinROMFrame(customtkinter.CTkTabview):
                     "arguments": (self.winfo_toplevel(), "Game Download", f"An error occurred while attempting to download this game\n\n{download_result['message']}"),
                 }
             }
-        
+
         progress_handler.start_operation(title=game, total_units=0, units="MiB", status="Extracting...")
         extract_result = extract_zip_archive_with_progress(
             zip_path=download_result["download_path"],
@@ -96,7 +96,7 @@ class DolphinROMFrame(customtkinter.CTkTabview):
                     "arguments": (self.winfo_toplevel(), "Game Download", f"An error occurred while attempting to extract this game\n\n{extract_result['message']}"),
                 }
             }
-        
+
         return {
             "message": {
                 "function": messagebox.showsuccess,

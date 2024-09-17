@@ -28,16 +28,16 @@ class SwitchEmulator:
 
     def get_user_directory(self):
         return
-    
+
     def get_firmware_path(self):
         return self.get_user_directory() / self.firmware_path
-    
+
     def get_key_path(self):
         return self.get_user_directory() / self.key_path
-    
+
     def get_installed_firmware_version(self):
         return (self.versions.get_version(f"{self.emulator}_firmware") or "Unknown") if self.check_current_firmware() else ""
-    
+
     def get_installed_key_version(self):
         return (self.versions.get_version(f"{self.emulator}_keys") or "Unknown") if self.check_current_keys()["prod.keys"] else ""
 
@@ -55,7 +55,7 @@ class SwitchEmulator:
         """Check if the current keys are present in the key directory
 
         Returns:
-            dict: A dictionary containing the status of the prod.keys and title.keys files 
+            dict: A dictionary containing the status of the prod.keys and title.keys files
         """
         key_directory = self.get_key_path()
         prod_key = key_directory / "prod.keys"
@@ -106,7 +106,6 @@ class SwitchEmulator:
                 return {"title.keys": title_found, "prod.keys": prod_found}
         except zipfile.BadZipFile:
             return False
-
 
     def download_firmware_release(self, release, progress_handler=None):
         return download_file_with_progress(
@@ -167,7 +166,7 @@ class SwitchEmulator:
                 "status": False,
                 "message": f"Failed to extract firmware archive: {error}",
             }
-        
+
         if rollback_needed:
             shutil.rmtree(firmware_directory)
             return {
@@ -187,7 +186,7 @@ class SwitchEmulator:
                 "status": False,
                 "message": f"Key file {key_path} does not exist",
             }
-        
+
         target_key_folder = self.get_user_directory() / self.key_path
         try:
             target_key_folder.mkdir(parents=True, exist_ok=True)
@@ -198,7 +197,7 @@ class SwitchEmulator:
                 "status": False,
                 "message": f"Failed to copy key file: {error}",
             }
-            
+
         return {
             "status": True,
             "message": "Key file copied successfully"
@@ -242,19 +241,19 @@ class SwitchEmulator:
             "status": True,
             "message": "Keys extracted successfully",
         }
-    
+
     @staticmethod
     def get_firmware_keys_dict(github_token=None):
         def convert_to_title(name):
             parsed_version = version.parse(name)
-    
+
             if parsed_version.is_postrelease:
                 base_version = parsed_version.base_version
                 post_release = parsed_version.post
                 return f"{base_version} (Rebootless Update {post_release})" if post_release != 0 else f"{base_version} (Rebootless Update)"
 
             return parsed_version.base_version
-            
+
         releases = get_all_releases(
             repo_owner=constants.Switch.FIRMWARE_KEYS_GH_REPO_OWNER.value,
             repo_name=constants.Switch.FIRMWARE_KEYS_GH_REPO_NAME.value,
@@ -303,8 +302,7 @@ class SwitchEmulator:
             "message": "Firmware and keys retrieved successfully",
             "firmware_keys": firmware_keys,
         }
-    
-        
+
     @staticmethod
     def download_titledb(progress_handler=None):
         return download_file_with_progress(
@@ -312,7 +310,7 @@ class SwitchEmulator:
             download_path=Path(constants.Switch.TITLEDB_FILENAME.value).resolve(),
             progress_handler=progress_handler,
         )
-        
+
     @staticmethod
     def get_saves_list():
         saves = get_file_list(
@@ -322,10 +320,9 @@ class SwitchEmulator:
         )
         if saves["status"]:
             saves["saves"] = [save["name"] for save in saves["response"]]
-        
+
         return saves
-            
-    
+
     @staticmethod
     def get_game_urls(game_name):
         return []

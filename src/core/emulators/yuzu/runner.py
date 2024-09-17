@@ -30,21 +30,20 @@ class Yuzu(SwitchEmulator):
         except Exception:
             return False
 
-    
     def get_installation_folder_name(self):
         return "yuzu-windows-msvc-early-access" if self.settings.yuzu.release_channel == "early_access" else "yuzu-windows-msvc"
 
     def get_user_directory(self):
-        
+
         if self.settings.yuzu.portable_mode:
-            return self.settings.yuzu.install_directory / self.get_installation_folder_name()  / "user"
-        
+            return self.settings.yuzu.install_directory / self.get_installation_folder_name() / "user"
+
         match platform.system().lower():
             case "windows":
                 return Path.home() / "AppData" / "Roaming" / "yuzu"
             case _:
                 raise NotImplementedError("Only Windows is supported for non-portable mode")
-                
+
     def extract_release(self, zip_path, progress_handler=None):
         return extract_zip_archive_with_progress(
             zip_path=zip_path,
@@ -60,30 +59,16 @@ class Yuzu(SwitchEmulator):
                 "message": "The archive is not a valid yuzu release"
             }
         return self.extract_release(archive_path, progress_handler)
-    
+
     def launch_yuzu(self):
         yuzu_path = self.settings.yuzu.install_directory / self.get_installation_folder_name() / "yuzu.exe"
         args = [yuzu_path]
-    
+
         def ensure_user_directory():
             user_directory = self.get_user_directory()
             user_directory.mkdir(parents=True, exist_ok=True)
             return user_directory
-        
-        # we need to check the value of the sync_user_data setting
-        # if it is True, we need to copy the user directory from the last used version to the current version
-        # if it is False, and a portable user directory is found, we need to return an error
-        # because yuzu will launch in portable mode and we can't decide on deleting the user directory
-        # currently. 
-        # there are 3 different locations where the user directory can be found:
-        # 1. in yuzu mainline install directory
-        # 2. in yuzu early access install directory
-        # 3. in appdata/roaming/yuzu
-        # the last used version setting will determine the location to copy the user directory from
-        
-        
-        
-        
+
         if self.settings.yuzu.sync_user_data:
             last_used_data_path = Path(self.settings.yuzu.last_used_data_path) if self.settings.yuzu.last_used_data_path else None
             current_data_path = ensure_user_directory()
@@ -91,13 +76,14 @@ class Yuzu(SwitchEmulator):
             if last_used_data_path is not None and last_used_data_path.exists() and last_used_data_path != current_data_path:
                 self.logger.info("Copying user directory from %s to %s", last_used_data_path, current_data_path)
                 shutil.copytree(last_used_data_path, current_data_path, dirs_exist_ok=True)
+                shutil.rmtree(last_used_data_path)
 
-        elif not self.settings.yuzu.portable_mode and (self.settings.yuzu.install_directory / self.get_installation_folder_name() / "user").exists():
+        if not self.settings.yuzu.portable_mode and (self.settings.yuzu.install_directory / self.get_installation_folder_name() / "user").exists():
             return {
                 "status": False,
-                "message": "A portable user directory was found but portable mode and user data sync is disabled. Either:\n\n1. Enable portable mode\n2. Delete/Move the 'user' folder in the yuzu install directory\n3. Enable user data sync"
+                "message": "A portable user directory was found but portable mode and user data sync is disabled or determined your roaming data as newer. Either:\n\n1. Enable portable mode\n2. Delete/Move the 'user' folder in the yuzu install directory\n3. Enable user data sync"
             }
-            
+
         try:
             output = subprocess.run(args, check=False, capture_output=True)
             self.settings.yuzu.last_used_data_path = self.get_user_directory()
@@ -114,12 +100,11 @@ class Yuzu(SwitchEmulator):
                 "message": f"Yuzu exited with a non-zero:\n\n{output.stderr.decode()}"
             }
         return {
-            "status": True, 
+            "status": True,
             "error_encountered": False,
             "message": "Yuzu safely launched and exited"
         }
 
-    
     def delete_yuzu(self):
         yuzu_path = self.settings.yuzu.install_directory / ("yuzu-windows-msvc-early-access" if self.settings.yuzu.release_channel == "early_access" else "yuzu-windows-msvc")
         if not yuzu_path.is_dir() or not any(yuzu_path.iterdir()):
@@ -169,7 +154,7 @@ class Yuzu(SwitchEmulator):
         if save_folder:
             import_directory = import_directory / "nand" / "user" / "save"
             user_directory = user_directory / "nand" / "user" / "save"
-            
+
         return copy_directory_with_progress(
             source_dir=import_directory,
             target_dir=user_directory,
