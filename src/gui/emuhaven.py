@@ -17,6 +17,7 @@ from core.config.settings import Settings
 from core.logging.logger import Logger
 from gui.handlers.thread_event_manager import ThreadEventManager
 from core.network.github import get_latest_release_with_asset
+from core.network import web
 from core.config.versions import Versions
 from gui.frames.dolphin.dolphin_frame import DolphinFrame
 from gui.frames.ryujinx.ryujinx_frame import RyujinxFrame
@@ -40,7 +41,32 @@ class EmuHaven(customtkinter.CTk):
         self.protocol("WM_DELETE_WINDOW", self.close_app)
         self.after(200, self.check_currentdir_permissions)
         self.after(400, self.check_for_updates)
+        self.after(600, self.show_announcements)
 
+    def show_announcements(self):
+        announcements_url = constants.GitHub.RAW_URL.value.format(
+            owner=constants.App.GH_OWNER.value,
+            repo=constants.App.GH_REPO.value,
+            branch="main",
+            path="announcements.json"
+        )
+        response = web.get(announcements_url)
+        if not response["status"]:
+            self.logger.error(f"Failed to get announcements: {response['message']}")
+            return 
+        try:
+            announcements = response["response"].json()
+        except Exception as error:
+            self.logger.error(f"Failed to parse announcements:\n {response["response"].text}\n{error}")
+            return
+        if not announcements:
+            return 
+        for announcement_id, announcement in announcements.items():
+            if announcement_id not in self.settings.announcements_read:
+                messagebox.showinfo(self, announcement["title"], announcement["message"])
+                self.settings.announcements_read.append(announcement_id)
+        self.settings.save()
+        
     def check_currentdir_permissions(self):
         self.logger.info("Checking current directory permissions")
         try:

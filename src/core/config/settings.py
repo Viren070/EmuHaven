@@ -170,6 +170,7 @@ class Settings:
                 "auto_app_updates": self.auto_app_updates,
                 "auto_emulator_updates": self.auto_emulator_updates,
                 "firmware_denied": self.firmware_denied,
+                "announcements_read": self.announcements_read,
             }
         }
         with open(self.settings_file, "w", encoding="utf-8") as f:

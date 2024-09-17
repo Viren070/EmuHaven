@@ -99,6 +99,8 @@ class Requests(Enum):
     DEFAULT_HEADERS = {
         "User-Agent": USER_AGENT,
         "Accept-Encoding": "identity",
+        "Cache-Control": "no-cache",
+        "Pragma": "no-cache",
     }
     GH_HEADERS = {
         "User-Agent": USER_AGENT,
