@@ -1,4 +1,10 @@
 {
-    "1": "Test",
-    "2": "Test 2",
+    "1": {
+        "title": "Test",
+        "message": "Test Message"
+    },
+    "2": {
+        "title": "Test 2",
+        "message": "Test Message 2"
+    }
 }
