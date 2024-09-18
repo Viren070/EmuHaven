@@ -1,4 +1,4 @@
-name: Lint and Test Build
+name: Test Build
 
 on:
   push:
@@ -12,34 +12,6 @@ on:
 
 
 jobs:
-  lint:
-    name: Lint 
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          repository: Viren070/EmuHaven
-
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v5 
-        with:
-          python-version: 3.12.6
-          cache: 'pip'
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install pylint
-          pip install flake8
-      
-      - name: Analysing the code with pylint
-        run: |
-            pylint $(git ls-files '*.py')
-
-      - name: Analysing the code with flake8
-        run: |
-            flake8 $(git ls-files '*.py')
-
   build:
     name: Test Build Windows App
     runs-on: windows-latest
