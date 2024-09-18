@@ -1,4 +1,4 @@
-name: Build and Deploy to GitHub Pages
+name: Deploy Docusaurus
 
 on:
   push:
@@ -6,6 +6,8 @@ on:
       - main
     paths:
       - 'website/**'
+  workflow_dispatch:
+
     # Review gh actions docs if you want to further define triggers, paths, etc
     # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#on
 
@@ -13,6 +15,9 @@ jobs:
   build:
     name: Build Docusaurus
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: website
     steps:
       - uses: actions/checkout@v4
         with:
@@ -21,6 +26,7 @@ jobs:
         with:
           node-version: 18
           cache: npm
+          cache-dependency-path: website/package-lock.json
 
       - name: Install dependencies
         run: npm ci
