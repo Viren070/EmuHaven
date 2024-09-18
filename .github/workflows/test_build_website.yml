@@ -9,6 +9,8 @@ on:
   pull_request:
     branches:
       - main
+    paths:
+      - 'website/**'
   workflow_dispatch:
 
     # Review gh actions docs if you want to further define triggers, paths, etc
