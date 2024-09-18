@@ -13,8 +13,7 @@ on:
 jobs:
   build:
     runs-on: windows-latest
-
-
+    name: Build Windows App
     steps:
       - uses: actions/checkout@v4
         with:

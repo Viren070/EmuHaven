@@ -16,7 +16,7 @@ on:
 
 jobs:
   build:
-    name: Build Docusaurus
+    name: Test Build Docusaurus
     runs-on: ubuntu-latest
     defaults:
       run:
