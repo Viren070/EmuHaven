@@ -36,7 +36,7 @@ pillow==10.4.0
     # via
     #   -r requirements.in
     #   ctkmessagebox
-platformdirs==4.3.3
+platformdirs==4.3.6
     # via -r requirements.in
 psutil==6.0.0
     # via py7zr
