@@ -13,26 +13,26 @@ updates:
     python-packages:
       patterns:
         - "*"
-  - package-ecosystem: "npm" # See documentation for possible values
-    directory: "website/" # Location of package manifests
-    schedule:
-      interval: "daily"
-    open-pull-requests-limit: 20
-    groups:
-      docusaurus:
-        applies-to: version-updates
-        dependency-type: production
-        patterns:
-        - "@docusaurus*"
-        update-types:
-        - "minor"
-        - "patch"
-      docusaurusDev:
-        applies-to: version-updates
-        dependency-type: development
-        patterns: 
-        - "@docusaurus*"
-        update-types:
-        - "minor"
-        - "patch"
+- package-ecosystem: "npm" # See documentation for possible values
+  directory: "website/" # Location of package manifests
+  schedule:
+    interval: "daily"
+  open-pull-requests-limit: 20
+  groups:
+    docusaurus:
+      applies-to: version-updates
+      dependency-type: production
+      patterns:
+      - "@docusaurus*"
+      update-types:
+      - "minor"
+      - "patch"
+    docusaurusDev:
+      applies-to: version-updates
+      dependency-type: development
+      patterns: 
+      - "@docusaurus*"
+      update-types:
+      - "minor"
+      - "patch"
 
