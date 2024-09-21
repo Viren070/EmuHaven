@@ -135,14 +135,14 @@ class SettingModal(CTkFrame):
             try:
                 value = Path(self.setting_var.get().strip()).resolve()
             except Exception as error:
-                self.update_entry_widget()
                 messagebox.showerror(self.winfo_toplevel(), self.setting_id.replace("_", " ").title(), f"The path you entered is invalid.\n\n{error}")
                 self.is_updating = False
+                self.update_entry_widget()
                 return
             if not value.exists():
-                self.update_entry_widget()
                 messagebox.showerror(self.winfo_toplevel(), self.setting_id.replace("_", " ").title(), "The path you entered does not exist.")
                 self.is_updating = False
+                self.update_entry_widget()
                 return
             self.update_dir_cycle()
         elif self.setting_type == "option_menu":
