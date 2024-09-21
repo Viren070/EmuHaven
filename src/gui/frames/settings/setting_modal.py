@@ -132,6 +132,11 @@ class SettingModal(CTkFrame):
         self.is_updating = True
 
         if self.setting_type == "path":
+            if not self.entry_widget.winfo_viewable():
+                self.logger.debug("Entry widget not in view, ignoring update setting value event")
+                self.update_entry_widget()
+                self.is_updating = False
+                return
             try:
                 value = Path(self.setting_var.get().strip()).resolve()
             except Exception as error:
