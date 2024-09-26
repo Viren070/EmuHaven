@@ -11,14 +11,11 @@ For a short list of features, scroll down to the [features](https://github.com/V
 
 For a preview of the app, scroll down to the [images](https://github.com/Viren070/EmuHaven?tab=readme-ov-file#images).
 
-
 If you have any questions or need help, you may ask them in the [Discord server](https://discord.viren070.me) or the [Discussions page](https://github.com/Viren070/EmuHaven/discussions) 
 
 If you find my project useful, consider supporting me on [Ko-fi](https://ko-fi.com/viren070) or leaving a star on the repository. 
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Viren070)
-
-
 
 ## Installation
 
@@ -30,10 +27,20 @@ If you find my project useful, consider supporting me on [Ko-fi](https://ko-fi.c
 4. Extract the downloaded zip file and inside the extracted folder launch `EmuHaven.exe`
 
 > [!WARNING] 
-> Windows Defender will detect the file as a virus since the file is unsigned. This is a false positive and can be ignored. You can follow the steps below and run the source code instead if you don't want to run an EXE.
+> Windows Defender will detect the file as a virus since the file is unsigned. This is a false positive and can be ignored.
+> 
+> If you do not trust the distributable, you can either run the source code or build the distributable yourself. The steps to do so are detailed below.
 
 
 ### Using Source Code
+
+If you are using this method, stability is not guaranteed.
+
+**Requirements**:
+* Python 3.12
+* Git
+> [!WARNING]
+> tkinter is also a required library. It is usually installed by default. If you are struggling to install tkinter, refer to [this StackOverflow answer](https://stackoverflow.com/questions/76105218/why-does-tkinter-or-turtle-seem-to-be-missing-or-broken-shouldnt-it-be-part/76105219#76105219)
 
 If you want to run EmuHaven from the source code:
 
@@ -49,6 +56,7 @@ If you want to run EmuHaven from the source code:
    ```
    pip install -r requirements.txt
    ```
+  
 4. Simply run main.py and you should see the app open.
    ```
    python src/main.py
@@ -61,16 +69,16 @@ If you want to run EmuHaven from the source code:
 ## Building
 
 
-1. Install pyinstaller
-
+1. Install [pyinstaller](https://pyinstaller.org/en/stable/) 
    ```
    pip install pyinstaller
    ```
 
-2. Build using [pyinstaller](https://pyinstaller.org/en/stable/) and ensure to pass path to customtkinter with --add-data
+2. Build using pyinstaller:
    ```
    pyinstaller --noconfirm --onedir --console --name "EmuHaven" --clean --add-data "%localappdata%/Programs/Python/Python312/Lib/site-packages/customtkinter;customtkinter/" --add-data src/assets;assets/  src/main.py
    ```
+   * Adjust path to customtkinter library as needed.
 
 ## Features
 
@@ -161,7 +169,7 @@ If you want to run EmuHaven from the source code:
 
 ## Aknowledgements
 
-- [Yuzu Team](https://yuzu-emu.org/) - Nintendo Switch Emulator Developers
+- [Yuzu Team](https://web.archive.org/web/20240302235734/https://yuzu-emu.org/) - Nintendo Switch Emulator Developers
 - [Dolphin Team](https://dolphin-emu.org/) - Nintendo Wii & Nintendo GameCube Emulator Developers
 - [Ryujinx Team](https://ryujinx.org/) - Nintendo Switch Emulator Developers
 - [Xenia Team](https://xenia.jp/) - Xbox 360 Emulator Developers
@@ -169,9 +177,7 @@ If you want to run EmuHaven from the source code:
 - Ecchibitionist - For the saves they used to provide on their archive.
 - [THZoria](https://github.com/THZoria) - For providing the firmware on their [repository](https://github.com/THZoria/NX_Firmware)
 - [RyuSAK](https://github.com/Ecks1337/RyuSAK) - For providing inspiration for some features and how to code them.
-- [avalon60](https://github.com/avalon60) - For the theme builder used by other users to create themes present in the app.
-- [a13xe](https://github.com/a13xe) - For the themes used in the app.
-- [rigvedmaanas](https://github.com/rigvedmaanas) - For the themes used in the app.
+- [avalon60/ctk_theme_builder/user_themes](https://github.com/avalon60/ctk_theme_builder/tree/develop/user_themes), [a13xe/CTkThemesPack](https://github.com/a13xe/CTkThemesPack), [rigvedmaanas/CustomTkinterThemes](https://github.com/rigvedmaanas/CustomTkinterThemes) - For the themes used in the app.
 - [Kewl](https://www.steamgriddb.com/profile/76561199389486997), [supernova](https://www.steamgriddb.com/profile/76561198042356275), [Crazy](https://www.steamgriddb.com/profile/76561198041637425), [StaticMachina](https://www.steamgriddb.com/profile/76561198129822760), [TalkyPup](https://www.steamgriddb.com/profile/76561198025210011) - Banners for emulators. 
 
 ## Legal Disclaimer
