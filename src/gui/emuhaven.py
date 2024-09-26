@@ -39,6 +39,7 @@ class EmuHaven(customtkinter.CTk):
         self.just_opened = False
         self.select_frame_by_name(opening_menu)
         self.protocol("WM_DELETE_WINDOW", self.close_app)
+        self.iconbitmap(self.assets.emuhaven_logo_path)
         self.after(200, self.check_currentdir_permissions)
         self.after(400, self.check_for_updates)
         self.after(600, self.show_announcements)
@@ -124,7 +125,8 @@ class EmuHaven(customtkinter.CTk):
 
         # Create navigation frame title.
         self.navigation_frame_label = customtkinter.CTkLabel(self.navigation_frame, text=f"{constants.App.NAME.value} v{self.version.public}",
-                                                             compound="left", padx=5, font=customtkinter.CTkFont(size=12, weight="bold"))
+                                                             compound="left", padx=5, font=customtkinter.CTkFont(size=12, weight="bold"),
+                                                             image=self.assets.emuhaven_logo)
         self.navigation_frame_label.grid(row=0, column=0, padx=20, pady=20)
         self.navigation_frame_label.bind('<Double-Button-1>', command=lambda event: messagebox.showinfo(self, "About", f"{constants.App.NAME.value} v{self.version}, made by {constants.App.AUTHOR.value} on GitHub."))
 

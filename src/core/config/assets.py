@@ -28,6 +28,8 @@ class Assets:
         """
         self.asset_dir = self.paths.asset_dir
         # assign all the images as CTkImage objects to attributes
+        self.emuhaven_logo_path = self.get_image_path("emuhaven_logo", ".ico")
+        self.emuhaven_logo = customtkinter.CTkImage(Image.open(self.emuhaven_logo_path), size=(32, 32))
         self.dolphin_logo = customtkinter.CTkImage(Image.open(self.get_image_path("dolphin_logo")), size=(24, 13.5))
         self.dolphin_banner = customtkinter.CTkImage(light_image=Image.open(self.get_image_path("dolphin_banner_light")),
                                                      dark_image=Image.open(self.get_image_path("dolphin_banner_dark")), size=(276, 129))
@@ -65,12 +67,13 @@ class Assets:
         self.logger.debug(f"Creating CTkImage from {image_path}")
         return customtkinter.CTkImage(Image.open(image_path), size=size)
 
-    def get_image_path(self, image_name):
+    def get_image_path(self, image_name, extension=".png"):
         """
         Get the path to an image file in the assets/images directory given the image name
 
         Args:
             image_name (str): the name of the image file without the file extension
+            extension (str): the file extension of the image file (default is .png)
 
         Raises:
             FileNotFoundError: if the image file is not found
@@ -78,7 +81,7 @@ class Assets:
         Returns:
             pathlib.Path: the path to the image file
         """
-        path = self.asset_dir / "images" / f"{image_name}.png"
+        path = self.asset_dir / "images" / f"{image_name}{extension}"
         self.logger.debug("Resolved image path for %s as %s", image_name, path)
         if path.exists():
             return path
