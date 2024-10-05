@@ -21,7 +21,7 @@ If you find my project useful, consider supporting me on [Ko-fi](https://ko-fi.c
 
 ### Using Release Binaries
 
-1. Go to the [releases](https://github.com/EmuHaven/releases) page
+1. Go to the [releases](https://github.com/Viren070/EmuHaven/releases) page
 2. Click on either the latest release or a beta release if you are willing to encounter and report bugs.
 3. Scroll down to the assets and download `EmuHaven-vx.y.z-win_x64.zip`
 4. Extract the downloaded zip file and inside the extracted folder launch `EmuHaven.exe`
