@@ -37,7 +37,7 @@ jobs:
 
       - name: Build distributables
         run: |
-          pyinstaller --noconfirm --onedir --console --name "EmuHaven" --clean --add-data="${{ env.Python_ROOT_DIR }}/Lib/site-packages/customtkinter;customtkinter/" --add-data="src/assets;assets/"  src/main.py
+          pyinstaller --noconfirm --onedir --console --name "EmuHaven" --clean --add-data="${{ env.Python_ROOT_DIR }}/Lib/site-packages/customtkinter:customtkinter/" --add-data="src/assets:assets/"  src/main.py
 
 
       - name: Create release archive
