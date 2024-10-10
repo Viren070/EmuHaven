@@ -40,9 +40,13 @@ jobs:
         id: determine-path
         run: |
           echo "CUSTOMTKINTER_PATH=$(python -c 'import customtkinter; print(customtkinter.__path__[0])')" >> $GITHUB_ENV
+          echo "CUSTOMTKINTER_PATH=${{ env.CUSTOMTKINTER_PATH }}"
 
       - name: Build distributables
         run: |
+          if [ -z "${{ env.CUSTOMTKINTER_PATH }}" ]; then
+            echo "CUSTOMTKINTER_PATH=${{ env.Python_ROOT_DIR }}/Lib/site-packages/customtkinter" >> $GITHUB_ENV
+          fi
           pyinstaller --noconfirm --onedir --console --name "EmuHaven" --clean --add-data="${{ env.CUSTOMTKINTER_PATH }}:customtkinter/" --add-data="src/assets:assets/"  src/main.py
 
       - name: Create release archive
