@@ -40,7 +40,7 @@ jobs:
         id: determine-path
         run: |
           echo "CUSTOMTKINTER_PATH=$(python -c 'import customtkinter; print(customtkinter.__path__[0])')" >> $GITHUB_ENV
-          echo "CUSTOMTKINTER_PATH=$(python -c 'import customtkinter; print(customtkinter.__path__[0])')"
+        shell: bash
 
       - name: Build distributables
         run: |
