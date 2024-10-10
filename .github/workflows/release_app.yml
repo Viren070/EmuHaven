@@ -16,7 +16,7 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest, macos-latest, ubuntu-latest]
-        python-version: [3.12.6]
+        python-version: [3.12.7]
     name: Build App on ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -40,7 +40,7 @@ jobs:
         id: determine-path
         run: |
           echo "CUSTOMTKINTER_PATH=$(python -c 'import customtkinter; print(customtkinter.__path__[0])')" >> $GITHUB_ENV
-          echo "CUSTOMTKINTER_PATH=${{ env.CUSTOMTKINTER_PATH }}"
+          echo "CUSTOMTKINTER_PATH=$(python -c 'import customtkinter; print(customtkinter.__path__[0])')"
 
       - name: Build distributables
         run: |
@@ -48,6 +48,7 @@ jobs:
             echo "CUSTOMTKINTER_PATH=${{ env.Python_ROOT_DIR }}/Lib/site-packages/customtkinter" >> $GITHUB_ENV
           fi
           pyinstaller --noconfirm --onedir --console --name "EmuHaven" --clean --add-data="${{ env.CUSTOMTKINTER_PATH }}:customtkinter/" --add-data="src/assets:assets/"  src/main.py
+        shell: bash 
 
       - name: Create release archive
         run: |
