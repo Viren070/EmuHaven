@@ -34,11 +34,16 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pyinstaller
+      
+      
+      - name: Determine customtkinter path
+        id: determine-path
+        run: |
+          echo "CUSTOMTKINTER_PATH=$(python -c 'import customtkinter; print(customtkinter.__path__[0])')" >> $GITHUB_ENV
 
       - name: Build distributables
         run: |
-          pyinstaller --noconfirm --onedir --console --name "EmuHaven" --clean --add-data="${{ env.Python_ROOT_DIR }}/Lib/site-packages/customtkinter:customtkinter/" --add-data="src/assets:assets/"  src/main.py
-
+          pyinstaller --noconfirm --onedir --console --name "EmuHaven" --clean --add-data="${{ env.CUSTOMTKINTER_PATH }}:customtkinter/" --add-data="src/assets:assets/"  src/main.py
 
       - name: Create release archive
         run: |
