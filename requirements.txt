@@ -32,7 +32,7 @@ packaging==24.1
     # via
     #   -r requirements.in
     #   customtkinter
-pillow==10.4.0
+pillow==11.0.0
     # via
     #   -r requirements.in
     #   ctkmessagebox
