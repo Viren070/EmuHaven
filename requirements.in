@@ -4,8 +4,8 @@ CTkMessagebox==2.7
 CTkToolTip==0.8
 CTkToolTip==0.8
 customtkinter==5.2.2
-packaging==24.1
-Pillow==10.4.0
+packaging==24.2
+Pillow==11.0.0
 platformdirs==4.3.6
 py7zr==0.22.0
 Requests==2.32.3
