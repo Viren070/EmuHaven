@@ -28,11 +28,11 @@ inflate64==1.0.0
     # via py7zr
 multivolumefile==0.2.3
     # via py7zr
-packaging==24.1
+packaging==24.2
     # via
     #   -r requirements.in
     #   customtkinter
-pillow==10.4.0
+pillow==11.0.0
     # via
     #   -r requirements.in
     #   ctkmessagebox
